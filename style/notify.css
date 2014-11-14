@@ -1,0 +1,20 @@
+.notify-success {
+    padding: 5px;
+    width: 548px;;
+    background-color: #F1FFEF;
+    border: 1px solid #8CBF83;
+	color:black;
+}
+
+.notify-error {
+    padding: 5px;
+    width: 548px;;
+    background-color: #FFF2E8;
+    border: 1px solid #FF0000;
+	color:black;
+	margin:55px 55px 0 55px;
+}
+
+.notify-error li {
+    margin: 5px 20px;
+}

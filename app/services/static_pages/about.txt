@@ -1,0 +1,22 @@
+Service "Static Pages 1.0"
+for WhiteLion 1.0
+
+Author: Ostap Matskiv
+Date 1.0 : 19.05.2014
+
+Description: Статичні сторінки
+Options: null
+
+SEO (name, title, keywords, description) and text use wl_ntkd
+
+Need to work: jquery-1.8.3.js+
+
+Public links:
+	/index() - static page
+	/edit - form edit page
+
+Private (work) links:
+	/save (ajax) - procedure to save some data for page
+
+Versions:
+	1.0 	Основа модулю, включно із ajax збереженням даних

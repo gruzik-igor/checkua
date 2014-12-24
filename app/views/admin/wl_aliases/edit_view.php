@@ -28,6 +28,10 @@
 				<?php } ?>
 			</td>
 		</tr>
+		<tr>
+			<td title="Обов'язкове поле">ADMIN ico</td>
+			<td><input type="text" name="admin_ico" value="<?=$alias->admin_ico?>"></td>
+		</tr>
 		<?php if(isset($options)) foreach ($options as $key => $value) { ?>
 			<tr>
 				<td><?=$key?></td>

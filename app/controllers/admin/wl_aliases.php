@@ -166,6 +166,9 @@ class wl_aliases extends Controller {
                                 $install = new install();
                                 $install->db = $this->db;
 
+                                if($service->admin_ico != ''){
+                                    $this->db->updateRow('wl_aliases', array('admin_ico' => $service->admin_ico), $alias);
+                                }
                                 $seo_keywords = $install->seo_keywords;
                                 $seo_description = $install->seo_description;
 
@@ -210,6 +213,7 @@ class wl_aliases extends Controller {
                     exit();
 
                 } elseif($_POST['id'] > 0 && $go < 2) {
+                    $data['admin_ico'] = $this->data->post('admin_ico');
                     $this->db->updateRow('wl_aliases', $data, $_POST['id']);
                     if($data['options'] > 0 && $data['service'] > 0){
                         $options = array();

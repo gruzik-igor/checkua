@@ -1,10 +1,12 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add">Додати товар</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх товарів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add"><?=$admin_words['product_add']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх <?=$admin_words['products_to_all']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 </div>
 
-<h1>Додати групу товарів</h1>
+<h1><?=$admin_words['group_add']?></h1>
 
 <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_group" method="POST" enctype="multipart/form-data">
 	<input type="hidden" name="id" value="0">

@@ -22,9 +22,8 @@ class wl_ntkd extends Controller {
                     elseif(is_numeric($id)) $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => $id, 'ntkd' => $this->get($alias, $id)));
                     else {
                         $ntkd = $this->db->getAllDataByFieldInArray('wl_ntkd', $alias->id, 'alias');
-                        if(count($ntkd) == 1) $ntkd = $ntkd[0];
-                        elseif(count($ntkd) > 1) $this->load->admin_view('wl_ntkd/list_view', array('alias' => $alias));
-                        else $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0, 'ntkd' => $ntkd));
+                        if(count($ntkd) == 1) $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0, 'ntkd' => $ntkd[0]));
+                        elseif(count($ntkd) > 1) $this->load->admin_view('wl_ntkd/list_view', array('alias' => $alias)); 
                     }
                 } else $this->load->page_404();
             } else $this->load->notify_view(array('errors' => 'Доступ заборонено!'));

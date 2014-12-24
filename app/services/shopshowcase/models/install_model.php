@@ -6,12 +6,14 @@ class install{
 	
 	public $name = "shopshowcase";
 	public $title = "Магазин-вітрина";
-	public $description = "Перелік товарів БЕЗ можливості їх замовити та оплатити. Мультимовна.";
+	public $description = "Перелік товарів з підтримкою властифостей та фотогалереї БЕЗ можливості їх замовити та оплатити. Мультимовна.";
 	public $table_service = "s_shopshowcase";
 	public $table_alias = "";
-	public $version = "1.0";
+	public $multi_alias = 1;
+	public $admin_ico = 'list';
+	public $version = "2.0";
 
-	public $options = array('useGroups' => 1, 'ProductMultiGroup' => 0, 'resize' => 1, 'folder' => 'shopshowcase', 'canAdd' => 2);
+	public $options = array('useGroups' => 1, 'useOptions' => 1, 'ProductMultiGroup' => 0, 'resize' => 1, 'folder' => 'shopshowcase', 'canAdd' => 2);
 
 	public $seo_name = "Магазин-вітрина";
 	public $seo_title = "Магазин-вітрина";
@@ -29,12 +31,25 @@ class install{
 					  `price` int(11) NOT NULL,
 					  `availability` tinyint(1) NOT NULL,
 					  `position` int(11) NOT NULL,
-					  `photo` int(11) NOT NULL,
+					  `photo` text NOT NULL,
 					  `active` tinyint(1) NOT NULL,
 					  `user` int(11) NOT NULL,
-					  `date` int(11) NOT NULL,
+					  `date_add` int(11) NOT NULL,
+					  `date_edit` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
+					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
+		$this->db->executeQuery($query);
+
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_photos{$table}` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `product` int(11) NOT NULL,
+					  `name` text NOT NULL
+					  `date` int(11) NOT NULL,
+					  `user` int(11) NOT NULL,
+					  `title` text NOT NULL,
+					  `main` int(11) NOT NULL,
+					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
@@ -55,6 +70,7 @@ class install{
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `product` int(11) NOT NULL,
 					  `option` int(11) NOT NULL,
+					  `language` varchar(2) NOT NULL
 					  `value` text NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)

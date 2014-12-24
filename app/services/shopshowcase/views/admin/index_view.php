@@ -1,11 +1,15 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add">Додати товар</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх товарів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх параметрів</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>"><?=$admin_words['product_add']?></a>
+	<?php if($_SESSION['option']->useGroups == 1){ ?>
+		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх <?=$admin_words['products_to_all']?></a>
+		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
+	<?php } ?>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх <?=$admin_words['options_to_all']?></a>
 </div>
 
-<h1><?=$_SESSION['alias']->name?>. Групи/підгрупи товарів</h1>
+<h1><?=$_SESSION['alias']->name?>. Групи/підгрупи</h1>
 
 <table cellspacing="0">
 	<?php if(isset($group)){ ?>

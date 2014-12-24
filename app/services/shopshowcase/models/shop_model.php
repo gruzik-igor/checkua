@@ -69,12 +69,11 @@ class shop_model {
             				}
             			}
 					}
-					// exit();
 				}
 			}
 		}
 		$limit = '';
-		if(isset($_SESSION['option']->PerPage) && $_SESSION['option']->PerPage > 0){
+		if($active && isset($_SESSION['option']->PerPage) && $_SESSION['option']->PerPage > 0){
 			$start = 0;
 			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1){
 				$start = ($_GET['page'] - 1) * $_SESSION['option']->PerPage;
@@ -88,8 +87,31 @@ class shop_model {
         if($this->db->numRows() > 0){
             $products = $this->db->getRows('array');
 
-            $this->db->executeQuery("SELECT count(*) as count FROM `{$this->table('_products')}` as a {$where}");
-			$_SESSION['option']->count_all_products = $this->db->getRows()->count;
+            $this->db->executeQuery("SELECT a.* FROM `{$this->table('_products')}` as a {$where}");
+			$list = $this->db->getRows('array');
+			$options = array();
+			foreach ($list as $el) {
+				$el->options = $this->getProductOptions($el);
+				if(!empty($el->options)){
+					foreach ($el->options as $option){
+						if($option->filter == 1){
+							if(isset($options[$option->id])){
+								if(!in_array($option->value, $options[$option->id]->values)){
+									$options[$option->id]->values[] = $option->value;
+								}
+							} else {
+								@$options[$option->id]->id = $option->id;
+								$options[$option->id]->name = $option->name;
+								$options[$option->id]->link = $option->link;
+								$options[$option->id]->values = array($option->value);
+							}
+						}
+					}
+				}
+			}
+			$_SESSION['option']->count_all_products = count($list);
+			@$_SESSION['products']->options = $options;
+
 
 			$where_language = '';
             if($_SESSION['language']) $where_language = "AND `language` = '{$_SESSION['language']}'";
@@ -101,55 +123,62 @@ class shop_model {
             		$product->text = $ntkd->text;
             	}
 
-            	$product->options = array();
-	            $this->db->executeQuery("SELECT go.id, go.link, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_group_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' ORDER BY go.position");
-	            if($this->db->numRows() > 0){
-	        		$options = $this->db->getRows('array');
-	        		foreach ($options as $option) if($option->value != '') {
-	        			@$product->options[$option->id]->id = $option->id;
-	        			$product->options[$option->id]->link = $option->link;
-	        			$product->options[$option->id]->filter = $option->filter;
-	        			$where = array();
-	    			    $where['option'] = $option->id;
-	    				if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-	    				$name = $this->db->getAllDataById($this->table('_options_name'), $where);
-
-	    				if($name){
-	    					$product->options[$option->id]->name = $name->name;
-	    					$product->options[$option->id]->sufix = $name->sufix;
-	    				}
-	        			if($option->options == 1){
-	        				if($option->type_name == 'checkbox'){
-	        					$option->value = explode(',', $option->value);
-	        					$product->options[$option->id]->value = '';
-	        					foreach ($option->value as $value) {
-	        						$where = array();
-	        						$where['option'] = $value;
-	        						if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-	        						$value = $this->db->getAllDataById($this->table('_options_name'), $where);
-			        				if($value){
-			        					$product->options[$option->id]->value .= $value->name .' ';
-			        				}
-	        					}
-	        				} else {
-	        					$where = array();
-	    						$where['option'] = $option->value;
-	    						if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-	        					$value = $this->db->getAllDataById($this->table('_options_name'), $where);
-		        				if($value){
-		        					$product->options[$option->id]->value = $value->name;
-		        				}
-	        				}
-	        			} else {
-	        				$product->options[$option->id]->value = $option->value;
-	        			}
-	        		}
-	        	}
+            	$product->options = $this->getProductOptions($product);
             }
 
 			return $products;
 		}
 		return null;
+	}
+	
+	private function getProductOptions($product){
+		$product_options = array();
+		$where_language = '';
+        if($_SESSION['language']) $where_language = "AND po.language = '{$_SESSION['language']}'";
+		$this->db->executeQuery("SELECT go.id, go.link, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_group_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} ORDER BY go.position");
+		if($this->db->numRows() > 0){
+			$options = $this->db->getRows('array');
+			foreach ($options as $option) if($option->value != '') {
+				@$product_options[$option->id]->id = $option->id;
+				$product_options[$option->id]->link = $option->link;
+				$product_options[$option->id]->filter = $option->filter;
+				$where = array();
+				$where['option'] = $option->id;
+				if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+				$name = $this->db->getAllDataById($this->table('_options_name'), $where);
+
+				if($name){
+					$product_options[$option->id]->name = $name->name;
+					$product_options[$option->id]->sufix = $name->sufix;
+				}
+				if($option->options == 1){
+					if($option->type_name == 'checkbox'){
+						$option->value = explode(',', $option->value);
+						$product_options[$option->id]->value = '';
+						foreach ($option->value as $value) {
+							$where = array();
+							$where['option'] = $value;
+							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+							$value = $this->db->getAllDataById($this->table('_options_name'), $where);
+							if($value){
+								$product_options[$option->id]->value .= $value->name .' ';
+							}
+						}
+					} else {
+						$where = array();
+						$where['option'] = $option->value;
+						if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+						$value = $this->db->getAllDataById($this->table('_options_name'), $where);
+						if($value){
+							$product_options[$option->id]->value = $value->name;
+						}
+					}
+				} else {
+					$product_options[$option->id]->value = $option->value;
+				}
+			}
+		}
+		return $product_options;
 	}
 	
 	function getProductById($id, $lang = true){
@@ -185,7 +214,7 @@ class shop_model {
 			}
 
             $product->options = array();
-            $this->db->executeQuery("SELECT go.id, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_group_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' ORDER BY go.position");
+            $this->db->executeQuery("SELECT go.id, po.value, po.language, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_group_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' ORDER BY go.position");
             if($this->db->numRows() > 0){
         		$options = $this->db->getRows('array');
         		foreach ($options as $option) if($option->value != '') {
@@ -222,7 +251,8 @@ class shop_model {
 	        				}
         				}
         			} else {
-        				$product->options[$option->id]->value = $option->value;
+        				if($option->language == '' || ($_SESSION['language'] && $option->language == $_SESSION['language']))
+        					$product->options[$option->id]->value = $option->value;
         			}
         		}
         	}
@@ -231,15 +261,26 @@ class shop_model {
 		return null;
 	}
 
-	function add_product($photo = -1){
+	public function getProductPhotos($product)
+	{
+		$this->db->executeQuery("SELECT p.*, u.name as user_name FROM {$this->table('_product_photos')} as p LEFT JOIN wl_users as u ON p.user = u.id WHERE p.product = {$product} ORDER BY p.main DESC");
+		if($this->db->numRows() > 0){
+			return $this->db->getRows('array');
+		}
+		return false;
+	}
+	
+	public function add_product(&$link = ''){
 		$data = array();
 		$data['active'] = 1;
 		$data['availability'] = 1;
 		$data['price'] = 0;
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] > 0) $data['price'] = $_POST['price'];
-		$data['photo'] = $photo;
+		$data['photo'] = '';
 		$data['user'] = $_SESSION['user']->id;
-		$data['date'] = time();
+		$data['date_add'] = time();
+		$data['date_edit'] = time();
+
 		if($this->db->insertRow($this->table('_products'), $data)){
 			$id = $this->db->getLastInsertedId();
 			$data = array();
@@ -280,7 +321,7 @@ class shop_model {
 			} else {
 				$data['position'] = $this->db->getCount($this->table('_products'));
 			}
-			if($photo > 0) $data['photo'] = $id;
+			$link = $data['link'];
 			if($this->db->updateRow($this->table('_products'), $data, $id)) return $id;
 		}
 		return false;
@@ -295,7 +336,11 @@ class shop_model {
 				if(is_array($value)){
 					$options[$key[1]] = implode(',', $value);
 				} else {
-					$options[$key[1]] = $value;
+					if($_SESSION['language'] && isset($key[2]) && in_array($key[2], $_SESSION['all_languages'])){
+						$options[$key[1]][$key[2]] = $value;
+					} else {
+						$options[$key[1]] = $value;
+					}
 				}
 			}
 		}
@@ -304,19 +349,39 @@ class shop_model {
 			$list = array();
 			if($list_temp) {
 				foreach ($list_temp as $option) {
-					$list[$option->option] = $option;
+					if($_SESSION['language'] && $option->language != ''){
+						$list[$option->option][$option->language] = $option;
+					} else {
+						$list[$option->option] = $option;
+					}
 				}
 			}
 			foreach ($options as $key => $value) {
-				if(isset($list[$key])){
-					if($list[$key]->value != $value){
-						$this->db->updateRow($this->table('_product_options'), array('value' => $value), $list[$key]->id);
+				if(is_array($value)){
+					foreach ($value as $lang => $value2) {
+						if(isset($list[$key][$lang])){
+							if($list[$key][$lang]->value != $value2){
+								$this->db->updateRow($this->table('_product_options'), array('value' => $value2), $list[$key][$lang]->id);
+							}
+						} else {
+							$data['product'] = $id;
+							$data['option'] = $key;
+							$data['language'] = $lang;
+							$data['value'] = $value2;
+							$this->db->insertRow($this->table('_product_options'), $data);
+						}
 					}
 				} else {
-					$data['product'] = $id;
-					$data['option'] = $key;
-					$data['value'] = $value;
-					$this->db->insertRow($this->table('_product_options'), $data);
+					if(isset($list[$key])){
+						if($list[$key]->value != $value){
+							$this->db->updateRow($this->table('_product_options'), array('value' => $value), $list[$key]->id);
+						}
+					} else {
+						$data['product'] = $id;
+						$data['option'] = $key;
+						$data['value'] = $value;
+						$this->db->insertRow($this->table('_product_options'), $data);
+					}
 				}
 			}
 		}
@@ -327,10 +392,26 @@ class shop_model {
 	{
 		$where = '';
 		if($parent >= 0) $where = "WHERE c.parent = '{$parent}'";
-		if($active) $where .= " AND c.active = '1'";
-		$this->db->executeQuery("SELECT c.*, u.name as user_name FROM {$this->table('_groups')} as c LEFT JOIN wl_users as u ON u.id = c.user {$where} ORDER BY c.position");
+		if($active){
+			if($where != '') $where .= " AND c.active = '1'";
+			else $where = " WHERE c.active = '1'";
+		}
+		
+		$limit = '';
+		if($active && isset($_SESSION['option']->PerPage) && $_SESSION['option']->PerPage > 0 && $parent >= 0){
+			$start = 0;
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1){
+				$start = ($_GET['page'] - 1) * $_SESSION['option']->PerPage;
+			}
+			$limit = "LIMIT {$start}, {$_SESSION['option']->PerPage}";
+		}
+		
+		$this->db->executeQuery("SELECT c.*, u.name as user_name FROM {$this->table('_groups')} as c LEFT JOIN wl_users as u ON u.id = c.user {$where} ORDER BY c.position {$limit}");
 		if($this->db->numRows() > 0){
             $categories = $this->db->getRows('array');
+			
+			$this->db->executeQuery("SELECT count(*) as count FROM `{$this->table('_groups')}` as c {$where}");
+			$_SESSION['option']->count_all_products = $this->db->getRows()->count;
 
             $where = '';
             if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";

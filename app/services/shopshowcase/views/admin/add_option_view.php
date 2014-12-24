@@ -1,9 +1,11 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх параметрів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх <?=$admin_words['options_to_all']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 </div>
 
-<h1>Додати параметр товару</h1>
+<h1><?=$admin_words['option_add']?></h1>
 
 <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_option" method="POST">
 	<input type="hidden" name="id" value="0">

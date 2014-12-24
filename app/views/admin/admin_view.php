@@ -4,6 +4,7 @@
 	<title>Панель керування <?=SITE_NAME?></title>
 
 	<meta charset="utf-8">
+	<link rel="icon" href="<?=SITE_URL?>favicon_admin.ico" type="image/x-icon">
 
 <!-- 	<link rel="stylesheet" href="<?=SITE_URL?>style/reset.css"> -->
 	<link rel="stylesheet" href="<?=SITE_URL?>style/style-admin.css">
@@ -13,7 +14,7 @@
 <body>
 <div class="container">
 	<div class="header">
-		<div class="title" class="f-l">White Lion 1.2.1 / <span class="site"><?=SITE_NAME?></span></div>
+		<div class="title" class="f-l">White Lion 1.0 / <span class="site"><?=SITE_NAME?></span></div>
 		<div class="f-r top_menu">
 			<a href="<?=SITE_URL?>">На головну</a>
 			<a href="<?=SITE_URL?>logout">Вийти</a>
@@ -25,15 +26,47 @@
 			<li>
 				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/home.png"></div>
 				<div class="f-l nav"><a href="<?=SITE_URL?>admin">Головна</a></div>
+			</li>
+			<li>
+				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/calendar.png"></div>
+				<div class="f-l nav"><a href="<?=SITE_URL?>admin/schedule">Розклад</a></div>
+			</li>
+			<li>
+				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/mail-2.png"></div>
+				<div class="f-l nav"><a href="<?=SITE_URL?>admin/booking">Заявки на екскурсії</a></div>
+			</li>
+			<li>
+				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/user.png"></div>
+				<div class="f-l nav"><a href="<?=SITE_URL?>admin/clients">Клієнти</a></div>
+			</li>
+			<li>
+				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/globe.png"></div>
+				<div class="f-l nav"><a href="<?=SITE_URL?>admin/places">Місця</a></div>
+			</li>
+			<!-- <li>
 				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/mail-1.png"></div>
 				<div class="f-l nav"><a href="<?=SITE_URL?>admin/mailhandler">Зворотній зв'язок</a></div>
 			</li>
-			<?php $wl_aliases = $this->db->getAllData('wl_aliases');
+			<li>
+				<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/mail-1.png"></div>
+				<div class="f-l nav"><a href="<?=SITE_URL?>admin/subscribe">Розсилка</a></div>
+			</li> -->
+			<?php $wl_aliases = $this->db->getAllData('wl_aliases', 'id DESC');
 			if($wl_aliases){
-				foreach ($wl_aliases as $wl_alias) if($wl_alias->active == 1 && $wl_alias->service > 0) { ?>
+				foreach ($wl_aliases as $wl_alias) if($wl_alias->active == 1 && $wl_alias->service > 0) { 
+					$where['alias'] = $wl_alias->id;
+					$where['content'] = '0';
+					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+					$name = $this->db->getAllDataById('wl_ntkd', $where);
+					if($name) $wl_alias->name = $name->name;
+					else $wl_alias->name = $name->alias;
+					
+					$ico = 'document';
+					if($wl_alias->admin_ico != '') $ico = $wl_alias->admin_ico;
+					?>
 				<li>
-					<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/document.png"></div>
-					<div class="f-l nav"><a href="<?=SITE_URL?>admin/<?=$wl_alias->alias?>"><?=$wl_alias->alias?></a></div>
+					<div class="f-l image"><img src="<?=SITE_URL?>style/images-admin/<?=$ico?>.png"></div>
+					<div class="f-l nav"><a href="<?=SITE_URL?>admin/<?=$wl_alias->alias?>"><?=$wl_alias->name?></a></div>
 				</li>
 			<?php	}
 			}
@@ -59,7 +92,7 @@
 		</ul>
 	</div>
 	<div class="right-content">
-		<?php if ((isset($errors) && $errors != '') || (isset($success) && $success != '')) require APP_PATH.'views/notify_view.php'; ?>
+		<?php if ((isset($errors) && $errors != '') || (isset($success) && $success != '')) require APP_PATH.'views/admin/notify_view.php'; ?>
 		
 		<?php if(isset($view_file) && $view_file != '') require_once($view_file.'.php'); else require_once('index_view.php'); ?>
 	</div>

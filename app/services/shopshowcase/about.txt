@@ -1,19 +1,22 @@
-Service "Shop Showcase 1.0"
+Service "Shop Showcase 2.0"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.0 : 20.11.2014
+Date 1.1 : 15.10.2014
 Date 1.0 : 02.09.2014
 
-Description: Магазин-вітрина (перелік товарів БЕЗ можливості їх замовити та оплатити). Мультимовний. Автовиправлення адрес (лінків) товарів.
+Description: Магазин-вітрина з підтримкою властифостей та фотогалереї (перелік товарів БЕЗ можливості їх замовити та оплатити). Мультимовний. Автовиправлення адрес (лінків) товарів.
 Options:
 	useGroups	(0, 1)		наявність категорій в яких можуть знаходитися товари
+	useOptions	(0, 1)		відображати наявність товару в адмінці
 	ProductMultiGroup	(0, 1) один товар більше ніж в одній категорії
 	resize		(0, 1)		при заливанні фото на сервер здійсювати створення мініатюр, зміну розмірів
 	folder		(текст)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми
 	canAdd		(1, 2, 4) 	мінімальний рівень доступу (згідно wl_user_types) для додавання фото, створення альбомів
 
 Path photos after uploading:
-	IMG_PATH / folder / (s_) id_product . jpg
+	IMG_PATH / folder / id_product / (s_) photo_name . jpg
 	IMG_PATH / folder / groups / (s_) id_group . jpg
 
 SEO (name, title, keywords, description) for albums use wl_ntkd (content: id_product, content: -id_group)
@@ -25,10 +28,19 @@ Tables:
 		`group` int(11)		ід групи товару
 		`price` int(11)		ціна товару
 		`position` int(11)	позиція у списку
-		`photo` int(11),	наявність фото: 0 - ні, номер фото
+		`photo` text,		назва головного фото (для списку)
 		`active` tinyint(1),поточний стан товару (0 - відключено, 1 - активний)
 		`user` int(11),		хто додав
-		`date` int(11)		дата додачі (The Unix Epoch)
+		`date_add` int(11)		дата додачі (The Unix Epoch)
+		`date_edit` int(11)	дата останнього редагування (The Unix Epoch)
+	s_shopshowcase_product_photos
+		`id` int(11) AUTO_INCREMENT,
+		`product` int(11) 	ід товару
+		`name` text 		назва фото (у файловій системі)
+		`date` int(11) 		дата додачі (The Unix Epoch)
+		`user` int(11) 		хто додав
+		`title` text 		назва фотографії для відображення (СЕО)
+		`main` int(11) 		головне фото (по найвищому значенню)
 	s_shopshowcase_group_options 	перелік опцій, що доступні для товарів. Присвоюються групам із успадкуванням
 		`id` int(11) AUTO_INCREMENT,
 		`group` int(11),	ід батьківської групи
@@ -41,6 +53,7 @@ Tables:
 		`id` int(11) AUTO_INCREMENT,
 		`product` int(11),	ід товару
 		`option` int(11),	ід опціїї
+		`language` varchar(2),	мова, якщо є мультимовний
 		`value` text		значення
 	s_shopshowcase_options_name		дані пареметрів товару
 		`id` int(11),
@@ -88,6 +101,9 @@ Public links:
 	/edit_group/id - form to edit group
 	/options - list of all options
 	/add_option - form to add option
+	/photo_add - upload and add_save photo
+	/photo_save - save title, main_photo info
+	/photo_delete - delete photo
 
 
 
@@ -112,3 +128,5 @@ Versions:
 	1.0 	Основу сервісу взято із сервісу library 1.0. Відносно оснтаннього внесено зміни: стаття -> товар, категорія -> група. Функціонал груп перероблено на деревовидну структуру без обмежень по вкладанні. Авто виправлення лінків товарів. Розроблено можливість задавати властивості товарів із ієрархією груп для кожної групи товарів.
 
 	1.1 	Додано можливість створювати елементи фільтра із опцій. При редагуванні товару додано можливість вибору сторінки переходу. Виправлено помилки.
+
+	2.0 	Додано фотогалерею. Редагувати продукт через таби. Додано admin_words. Додано дату останнього редагування. Виправлено помилки із паддінгацією, мультимовністю. Дороблено мультимовні властивості.

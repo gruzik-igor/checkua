@@ -32,12 +32,8 @@ class Router  extends Loader {
 		if($parts[0] == 'admin'){
 			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && ($_SESSION['user']->admin || $_SESSION['user']->manager)){
 				if(count($parts) == 1) $parts[] = 'admin';
-				else {
-					parent::library('db', $this);
-					parent::model('wl_alias_model');
-					$this->wl_alias_model->alias($parts[1]);
-				}
 				$admin = true;
+				$_SESSION['alias']->service = false;
 			} else {
 				header("Location: ".SITE_URL."login");
 				exit();

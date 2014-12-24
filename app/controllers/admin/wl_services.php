@@ -39,8 +39,13 @@ class wl_services extends Controller {
                 $install = new install();
                 $install->db = $this->db;
 
-                $query = "INSERT INTO `wl_services` (`id`, `name`, `title`, `description`, `table`, `version`, `active`) 
-                                 VALUES (NULL, '{$install->name}', '{$install->title}', '{$install->description}', '{$install->table_service}', '{$install->version}', '1');";
+                $multi_alias = 1;
+                if(isset($install->multi_alias)) $multi_alias = $install->multi_alias;
+                $admin_ico = '';
+                if(isset($install->admin_ico)) $admin_ico = $install->admin_ico;
+
+                $query = "INSERT INTO `wl_services` (`id`, `name`, `title`, `description`, `table`, `multi_alias`, `version`, `admin_ico`, `active`) 
+                                 VALUES (NULL, '{$install->name}', '{$install->title}', '{$install->description}', '{$install->table_service}', '{$multi_alias}', '{$install->version}', '{$admin_ico}' '1');";
                 $this->db->executeQuery($query);
                 $id = $this->db->getLastInsertedId();
 

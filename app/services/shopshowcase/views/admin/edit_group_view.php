@@ -1,15 +1,18 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх товарів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх <?=$admin_words['products_to_all']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 </div>
 
-<button onClick="showUninstalForm()">Видалити групу</button>
+<button onClick="showUninstalForm()">Видалити <?=$admin_words['groups_to_delete']?></button>
 <br>
 <div id="uninstall-form" style="background: rgba(236, 0, 0, 0.68); padding: 10px; display: none;">
 	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete_group" method="POST">
-		Ви впевнені що бажаєте видалити групу?
+		Ви впевнені що бажаєте видалити <?=$admin_words['groups_to_delete']?>?
 		<br><br>
-		<input type="checkbox" name="content" value="1" id="content" onChange="setContentUninstall(this)"><label for="content">Видалити всі товари і підгрупи, що пов'язані з даною групою</label>
+		<input type="checkbox" name="content" value="1" id="content" onChange="setContentUninstall(this)">
+		<label for="content">Видалити всі <?=$admin_words['products']?> і підгрупи, що пов'язані з даною групою</label>
 		<br>
 		<input type="hidden" name="id" value="<?=$group->id?>">
 		<input type="submit" value="Видалити" style="margin-left:25px; float:left;">
@@ -32,7 +35,7 @@
 			</td>
 		</tr>
 		<tr>
-			<td>Батьківська група</td>
+			<td>Батьківська <?=$admin_words['group']?></td>
 			<td>
 				<select name="parent" required>
 					<option value="0">Немає</option>

@@ -1,7 +1,59 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх товарів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх <?=$admin_words['products_to_all']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 </div>
+
+<?php
+	$h1 = '';
+  $ntkd = array();
+  $where_ntkd['alias'] = $_SESSION['alias']->id;
+  $where_ntkd['content'] = $product->id;
+  $wl = $this->db->getAllDataByFieldInArray('wl_ntkd', $where_ntkd);
+  if($wl){
+  	if($_SESSION['language']){
+  		foreach ($wl as $nt) {
+	      	$ntkd[$nt->language] = $nt;
+	      	if($_SESSION['language'] == $nt->language) $h1 = $nt->name;
+	    }
+  	} else {
+  		$ntkd = NULL;
+  		$ntkd = $wl[0];
+  		$h1 = $ntkd->name;
+  	}
+
+  }
+
+  $options_parents = array();
+  if($_SESSION['option']->useGroups && isset($list)){
+    $parent = $product->group;
+    while ($parent != 0) {
+      array_unshift($options_parents, $parent);
+      $parent = $list[$parent]->parent;
+    }
+  }
+  array_unshift($options_parents, 0);
+  $product_options = array();
+  $options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
+  if($options){
+    foreach ($options as $option) {
+      if($option->language != '' && in_array($option->language, $_SESSION['all_languages'])){
+        $product_options[$option->option][$option->language] = $option->value;
+      } else {
+        $product_options[$option->option] = $option->value;
+      }
+    }
+  }
+
+?>
+
+<h1><?=$h1?></h1>
+
+<span class="f-r">
+	Додано: <?=date('d.m.Y H:i', $product->date_add)?>
+	Редаговано: <?=date('d.m.Y H:i', $product->date_edit)?>
+</span>
 
 <?php
 	$url = $this->data->url();
@@ -10,12 +62,12 @@
 	$url = implode('/', $url);
 ?>
 <a href="<?=SITE_URL.'admin/'.$url?>">До каталогу</a>
-<a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$product->id?>">До товару</a>
-<button onClick="showUninstalForm()">Видалити товар</button>
+<a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$product->id?>"><?=$admin_words['product_to']?></a>
+<button onClick="showUninstalForm()">Видалити <?=$admin_words['product_to_delete']?></button>
 <br>
 <div id="uninstall-form" style="background: rgba(236, 0, 0, 0.68); padding: 10px; display: none;">
 	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete" method="POST">
-		Ви впевнені що бажаєте видалити товар?
+		Ви впевнені що бажаєте видалити <?=$admin_words['product']?>?
 		<br><br>
 		<input type="hidden" name="id" value="<?=$product->id?>">
 		<input type="submit" value="Видалити" style="margin-left:25px; float:left;">
@@ -29,279 +81,61 @@
 	require APP_PATH.'views/notify_view.php';
 } ?>
 
-<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
-	<input type="hidden" name="id" value="<?=$product->id?>">
-	<table>
-		<tr>
-			<td>Фото</td>
-			<td>
-				<?php if($product->photo > 0){ ?>
-					<img src="<?=IMG_PATH.$_SESSION['option']->folder.'/'.$product->photo?>.jpg" class="f-left">
-					Змінити фото:<br>
-				<?php } ?>
-				<input type="file" name="photo" class="border-0">
-			</td>
-		</tr>
-		<?php if($_SESSION['option']->useGroups){
-			$this->load->smodel('shop_model');
-			$groups = $this->shop_model->getGroups(-1);
-			if($groups){
+<div class="clear"></div>
+<br>
 
-				$list = array();
-				$emptyChildsList = array();
-				foreach ($groups as $g) {
-					$list[$g->id] = $g;
-					$list[$g->id]->child = array();
-					if(isset($emptyChildsList[$g->id])){
-						foreach ($emptyChildsList[$g->id] as $c) {
-							$list[$g->id]->child[] = $c;
-						}
-					}
-					if($g->parent > 0) {
-						if(isset($list[$g->parent]->child)) $list[$g->parent]->child[] = $g->id;
-						else {
-							if(isset($emptyChildsList[$g->parent])) $emptyChildsList[$g->parent][] = $g->id;
-							else $emptyChildsList[$g->parent] = array($g->id);
-						}
-					}
-				}
+<div id="tabs">
+  <ul>
+    <li><a href="#tab-main">Загальні дані</a></li>
+    <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
+    	<li><a href="#tab-<?=$lang?>"><?=$lang?></a></li>
+    <?php } } else { ?>
+    	<li><a href="#tab-ntkd">Назва та опис</a></li>
+    <?php } ?>
+    <li><a href="#tab-photo">Фото</a></li>
+  </ul>
+  <div id="tab-main">
+    <?php require_once 'edit_product_tabs/tab-main.php'; ?>
+  </div>
+  <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
+  		<div id="tab-<?=$lang?>">
+  			<?php require 'edit_product_tabs/tab-ntkd.php'; ?>
+  		</div>
+  	<?php } } else { ?>
+  		<div id="tab-ntkd">
+  			<?php require 'edit_product_tabs/tab-ntkd.php'; ?>
+  		</div>
+  	<?php } ?>
+  <div id="tab-photo">
+    <?php require_once 'edit_product_tabs/tab-photo.php'; ?>
+  </div>
+</div>
 
-				echo "<tr><td>Оберіть групу</td><td>";
-				if($_SESSION['option']->ProductMultiGroup && !empty($list)){
-					function showList($product_group, $all, $list, $parent = 0, $level = 0, $parents = array())
-					{
-
-						$ml = 15 * $level;
-						foreach ($list as $g) if($g->parent == $parent) {
-							$class = '';
-							if($g->parent > 0 && !empty($parents)){
-								$class = 'class="';
-								foreach ($parents as $p) {
-									$class .= ' parent-'.$p;
-								}
-								$class .= '"';
-							}
-							if(empty($g->child)){
-								$checked = '';
-								if($product_group == $g->id) $checked = 'checked';
-								echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
-								echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
-								echo ('<br>');
-							} else {
-								echo ('<input type="checkbox" id="group-'.$g->id.'" '.$class.' onChange="setChilds('.$g->id.')">');
-								echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
-								$l = $level + 1;
-								$childs = array();
-								foreach ($g->child as $c) {
-									$childs[] = $all[$c];
-								}
-								$ml = 15 * $l;
-								echo ('<div style="margin-left: '.$ml.'px">');
-								$parents2 = $parents;
-								$parents2[] = $g->id;
-								showList ($product_group, $all, $childs, $g->id, $l, $parents2);
-								echo('</div>');
-							}
-						}
-
-						return true;
-					}
-					showList($product->group, $list, $list);
-				} else {
-					echo('<select name="group">');
-					echo ('<option value="0">Немає</option>');
-					if(!empty($list)){
-						function showList($product_group, $all, $list, $parent = 0, $level = 0)
-						{
-							$prefix = '';
-							for ($i=0; $i < $level; $i++) { 
-								$prefix .= '- ';
-							}
-							foreach ($list as $g) if($g->parent == $parent) {
-								if(empty($g->child)){
-									$selected = '';
-									if($product_group == $g->id) $selected = 'selected';
-									echo('<option value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
-								} else {
-									echo('<optgroup label="'.$prefix.$g->name.'">');
-									$l = $level + 1;
-									$childs = array();
-									foreach ($g->child as $c) {
-										$childs[] = $all[$c];
-									}
-									showList ($product_group, $all, $childs, $g->id, $l);
-									echo('</optgroup>');
-								}
-							}
-							return true;
-						}
-						showList($product->group, $list, $list);
-					}
-					echo('</select>');
-				}
-				echo "</td></tr>";
-			}
-		} ?>
-		<tr>
-			<td>link</td>
-			<?php $product->link = explode('/', $product->link); $product->link = end($product->link); $product->link = explode('-', $product->link); array_shift($product->link); $product->link = implode('-', $product->link); ?>
-			<td><?=$product->id?>-<input type="text" name="link" value="<?=$product->link?>" required style="width:90%"></td>
-		</tr>
-		<tr>
-			<td>active</td>
-			<td>
-				<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Так</label>
-				<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Ні</label>
-			</td>
-		</tr>
-		<tr>
-			<td>Наявність</td>
-			<td>
-				<?php $where_language = '';
-            	if($_SESSION['language']) $where_language = "AND n.language = '{$_SESSION['language']}'";
-				$this->db->executeQuery("SELECT a.*, n.name FROM {$_SESSION['service']->table}_availability as a LEFT JOIN {$_SESSION['service']->table}_availability_name as n ON n.availability = a.id {$where_language} WHERE a.active = 1 ORDER BY a.position ASC");
-				if($this->db->numRows() > 0){
-            		$availabilities = $this->db->getRows('array');
-            		foreach ($availabilities as $availability) { ?>
-            			<input type="radio" name="availability" value="<?=$availability->id?>" <?=($product->availability == $availability->id)?'checked':''?> id="availability-<?=$availability->id?>"><label for="availability-<?=$availability->id?>"><?=$availability->name?></label>
-            		<?php }
-            	}
-            	?>
-			</td>
-		</tr>
-		<tr>
-			<td>Ціна</td>
-			<td><input type="number" name="price" value="<?=$product->price?>" min="0" required> грн</td>
-		</tr>
-		<?php $options_parents = array();
-			if($_SESSION['option']->useGroups && isset($list)){
-				$parent = $product->group;
-				while ($parent != 0) {
-					array_unshift($options_parents, $parent);
-					$parent = $list[$parent]->parent;
-				}
-			}
-			array_unshift($options_parents, 0);
-			$product_options = array();
-			$options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
-			if($options){
-				foreach ($options as $option) {
-					$product_options[$option->option] = $option->value;
-				}
-			}
-		?>
-		<tr>
-			<td colspan="2"><h3>Властивості товару</h3></td>
-		</tr>
-		<?php 			
-			foreach ($options_parents as $option_id) {
-				$options = $this->shop_model->getOptions($option_id);
-				if($options){
-					foreach ($options as $option) {
-						$value = '';
-						if(isset($product_options[$option->id])) $value = $product_options[$option->id];
-						echo('<tr>');
-						echo('<td>'.$option->name.'</td><td>');
-						if($option->type_name == 'checkbox'){
-							$where = '';
-							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-							$option_values = array();
-							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-							if($this->db->numRows() > 0){
-			                    $option_values = $this->db->getRows('array');
-			                }
-							if(!empty($option_values)){
-								$value = explode(',', $value);
-								foreach ($option_values as $ov) {
-									$checked = '';
-									if(in_array($ov->id, $value)) $checked = ' checked';
-									echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
-								}
-							}
-						} elseif($option->type_name == 'radio'){
-							$where = '';
-							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-							$option_values = array();
-							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-							if($this->db->numRows() > 0){
-			                    $option_values = $this->db->getRows('array');
-			                }
-							if(!empty($option_values)){
-								foreach ($option_values as $ov) {
-									$checked = '';
-									if($value == $ov->id) $checked = ' checked';
-									echo('<input type="radio" name="option-'.$option->id.'" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
-								}
-							}
-						} elseif($option->type_name == 'select'){
-							$where = '';
-							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-							$option_values = array();
-							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-							if($this->db->numRows() > 0){
-			                    $option_values = $this->db->getRows('array');
-			                }
-							echo('<select name="option-'.$option->id.'"> ');
-							if(!empty($option_values)){
-								foreach ($option_values as $ov) {
-									$selected = '';
-									if($value == $ov->id) $selected = ' selected';
-									echo("<option value='{$ov->id}'{$selected}>{$ov->name}</option>");
-								}
-							}
-							echo("</select> ");
-						} else {
-							echo('<input type="text" name="option-'.$option->id.'" value="'.$value.'" class="options"> ');
-						}
-						echo($option->sufix.'</td></tr>');
-					}
-				}
-			}
-		?>
-		<tr>
-			<td>
-				Після збереження:
-			</td>
-			<td>
-				<input type="radio" name="to" value="edit" id="to_edit" checked="checked"><label for="to_edit">продовжити редагування</label>
-				<input type="radio" name="to" value="category" id="to_category"><label for="to_category">до списку товарів</label>
-				<input type="radio" name="to" value="new" id="to_new"><label for="to_new">додати новий товар</label>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="2" class="center">
-				<input type="submit" value="Зберегти">
-			</td>
-		</tr>
-	</table>
-</form>
 
 <?php 
-	$content = $product->id;
-	require_once('_edit_ntkdt_view.php');
+	// $content = $product->id;
+	// require_once('_edit_ntkdt_view.php');
 ?>
 
-<style type="text/css">
-	input[type="radio"]{
-		min-width: 15px;
-		height: 15px;
-		margin-left: 15px;
-		margin-right: 5px;
-	}
-	input.options {
-		width: 40%;
-	}
-	img.f-left {
-		margin-right: 10px;
-		height: 80px;
-	}
-</style>
+<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+<script>
+	$(function() {
+    	$( "#tabs" ).tabs();
+  	});
+</script>
+
+<script type="text/javascript" src="<?=SITE_URL?>assets/ckeditor/ckeditor.js"></script>
+<script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
-	function showUninstalForm () {
-		if($('#uninstall-form').is(":hidden")){
-			$('#uninstall-form').slideDown("slow");
-		} else {
-			$('#uninstall-form').slideUp("fast");
-		}
-	}
+  <?php if($_SESSION['all_languages']) foreach($_SESSION['all_languages'] as $lng) echo "CKEDITOR.replace( 'editor-{$lng}' ); "; else echo "CKEDITOR.replace( 'editor' ); "; ?>
+    CKFinder.setupCKEditor( null, {
+    basePath : '<?=SITE_URL?>assets/ckfinder/',
+    filebrowserBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html',
+    filebrowserImageBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html?type=Images',
+    filebrowserFlashBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html?type=Flash',
+    filebrowserUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Files',
+    filebrowserImageUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Images',
+    filebrowserFlashUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Flash',
+  });
 </script>

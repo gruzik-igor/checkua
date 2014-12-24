@@ -45,7 +45,7 @@
 		if(!empty($wl_services)){
 			echo "<select name='service' required>";
 			echo "<option value='0'>відсутній</option>";
-			foreach ($wl_services as $s) if($s->active == 1) {
+			foreach ($wl_services as $s) if($s->active == 1 && $s->multi_alias == 1) {
 				echo "<option value='{$s->id}'>{$s->title}</option>";
 			}
 			echo "</select>";

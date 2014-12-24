@@ -1,15 +1,17 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх параметрів</a>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх груп</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх <?=$admin_words['options_to_all']?></a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 </div>
 
-<h1>Редагувати параметр товару</h1>
+<h1>Редагувати <?=$admin_words['option']?></h1>
 
-<button onClick="showUninstalForm()">Видалити параметр</button>
+<button onClick="showUninstalForm()">Видалити <?=$admin_words['option']?></button>
 <br>
 <div id="uninstall-form" style="background: rgba(236, 0, 0, 0.68); padding: 10px; display: none;">
 	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete_option" method="POST">
-		Ви впевнені що бажаєте видалити параметр із всіма властивостями, якщо такі є?
+		Ви впевнені що бажаєте видалити <?=$admin_words['option']?> із всіма властивостями, якщо такі є?
 		<br><br>
 		<input type="hidden" name="id" value="<?=$option->id?>">
 		<input type="submit" value="Видалити" style="margin-left:25px; float:left;">

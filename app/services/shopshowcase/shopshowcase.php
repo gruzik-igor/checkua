@@ -1,11 +1,18 @@
 <?php
 
+/*
+
+ 	Service "Shop Showcase 2.0"
+	for WhiteLion 1.0
+
+*/
+
 class shopshowcase extends Controller {
 				
-    function _remap($method)
+    function _remap($method, $data = array())
     {
         if (method_exists($this, $method)) {
-            $this->$method();
+            $this->$method($data);
         } else {
         	$request = $_GET['request'];
         	$request = explode('/', $request);
@@ -44,8 +51,9 @@ class shopshowcase extends Controller {
 
 					$this->load->model('wl_ntkd_model');
 					$this->wl_ntkd_model->setContent($product->id);
+					$photos = $this->shop_model->getProductPhotos($product->id);
 					
-					$this->load->page_view('detal_view', array('product' => $product));
+					$this->load->page_view('detal_view', array('product' => $product, 'photos' => $photos));
 				} else $this->load->page_404();
 			}
 		} elseif($id != '' && $id != $_SESSION['alias']->alias) {
@@ -167,7 +175,9 @@ class shopshowcase extends Controller {
 							}
 						}
 					} 
-					$this->load->admin_view('admin/edit_product_view', array('product' => $product, 'groups' => $groups));
+					$photos = $this->shop_model->getProductPhotos($product->id);
+
+					$this->load->admin_view('admin/edit_product_view', array('product' => $product, 'groups' => $groups, 'photos' => $photos));
 					unset($_SESSION['notify']);
 				} else $this->load->page_404();
 			} else {
@@ -182,16 +192,34 @@ class shopshowcase extends Controller {
 			if(isset($_POST['id']) && is_numeric($_POST['id'])){
 				$this->load->smodel('shop_model');
 				if($_POST['id'] == 0){
-					$photo = false;
-					if(!empty($_FILES['photo']['name'])) $photo = true;
-					$id = $this->shop_model->add_product($photo);
+					$link = '';
+					$id = $this->shop_model->add_product($link);
 					if($id){
-						if(!empty($_FILES['photo']['name'])) $this->savephoto('photo', IMG_PATH.$_SESSION['option']->folder.'/', $id);
-						header("Location: ".SITE_URL.'admin/'.$_SESSION['alias']->alias.'/edit/'.$id);
+						$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$id;
+						if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+						if(!is_dir($path)){
+							mkdir($path, 0777);
+						}
+						if(!empty($_FILES['photo']['name'])) {
+							$data['product'] = $id;
+							$data['user'] = $_SESSION['user']->id;
+							$data['date'] = time();
+							$data['main'] = time();
+							$this->db->insertRow($this->shop_model->table('_product_photos'), $data);
+							$photo_id = $this->db->getLastInsertedId();
+							$photo = $link . '-' . $photo_id;
+							$extension = $this->savephoto('photo', IMG_PATH.$_SESSION['option']->folder.'/'.$id.'/', $photo);
+							if($extension){
+								$photo .= '.'.$extension;
+								$this->db->updateRow($this->shop_model->table('_products'), array('photo' => $photo), $id);
+								$this->db->updateRow($this->shop_model->table('_product_photos'), array('name' => $photo), $photo_id);
+							}
+						}
+						header("Location: ".SITE_URL.'admin/'.$_SESSION['alias']->alias.'/edit/'.$link);
 						exit;
 					}
 				} else {
-					$data = array('active' => 1, 'availability' => 1);
+					$data = array('active' => 1, 'availability' => 1, 'date_edit' => time());
 					if(isset($_POST['link']) && $_POST['link'] != '') $data['link'] = $_POST['id'] . '-' . trim($this->data->post('link'));
 					if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
 					if(isset($_POST['availability']) && is_numeric($_POST['availability']) && $_POST['availability'] > 1) $data['availability'] = $_POST['availability'];
@@ -227,15 +255,6 @@ class shopshowcase extends Controller {
 							if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
 						}
 					}
-					if(!empty($_FILES['photo']['name'])){
-						$data['photo'] = $_POST['id'];
-
-						$path = IMG_PATH.$_SESSION['option']->folder.'/';
-						if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-						if(!is_dir($path)) mkdir($path, 0777);
-
-						$this->savephoto('photo', $path, $_POST['id']);
-					}
 					$this->shop_model->saveProductOptios($_POST['id']);
 					if($this->db->updateRow($this->shop_model->table('_products'), $data, $_POST['id'])){
 
@@ -267,39 +286,76 @@ class shopshowcase extends Controller {
 			}
 		} else $this->load->page_404();
 	}
+
+	public function save_product_ntkd()
+    {
+    	if (isset($_POST['id']) && $_POST['id'] > 0) {
+    		$this->load->smodel('shop_model');
+    		$product = $this->shop_model->getProductById($_POST['id']);
+    		if($product){
+    			$wl_ntkd_where['alias'] = $_SESSION['alias']->id;
+    			$wl_ntkd_where['content'] = $product->id;
+    			if(isset($_POST['language']) && in_array($_POST['language'], $_SESSION['all_languages'])){
+	    			$wl_ntkd_where['language'] = $_POST['language'];
+	    			$tab = $_POST['language'];
+
+	    			$ntkdt['name'] = $this->data->post('name-'.$_POST['language']);
+	    			$ntkdt['title'] = $this->data->post('title-'.$_POST['language']);
+	    			$ntkdt['keywords'] = $this->data->post('keywords-'.$_POST['language']);
+	    			$ntkdt['description'] = $this->data->post('description-'.$_POST['language']);
+	    			$ntkdt['text'] = htmlentities($_POST['text-'.$_POST['language']], ENT_QUOTES, 'utf-8');
+	    		} else {
+	    			$tab = 'ntkd';
+
+	    			$ntkdt['name'] = $this->data->post('name');
+	    			$ntkdt['title'] = $this->data->post('title');
+	    			$ntkdt['keywords'] = $this->data->post('keywords');
+	    			$ntkdt['description'] = $this->data->post('description');
+	    			$ntkdt['text'] = htmlentities($_POST['text'], ENT_QUOTES, 'utf-8');
+		    	}
+
+    			$wl_ntkd = $this->db->getAllDataById('wl_ntkd', $wl_ntkd_where);
+
+    			if($wl_ntkd){
+    				$this->db->updateRow('wl_ntkd', $ntkdt, $wl_ntkd->id);
+    			} else {
+    				$ntkdt['alias'] = $_SESSION['alias']->id;
+	    			$ntkdt['content'] = $product->id;
+	    			$ntkdt['language'] = $_POST['language'];
+    				$this->db->insertRow('wl_ntkd', $ntkdt);
+    			}
+
+    			$this->shop_model->saveProductOptios($product->id);
+    			$this->db->updateRow($this->shop_model->table('_products'), array('date_edit' => time()), $product->id);
+
+    			@$_SESSION['notify']->success = 'Дані успішно оновлено!';
+    			header("Location: ".SITE_URL."admin/{$_SESSION['alias']->alias}/{$product->link}#tab-{$tab}");
+		    	exit;
+    		}
+    	}
+    }
 	
 	function delete(){
 		if($this->userCan($_SESSION['alias']->alias)){
 			if(isset($_POST['id']) && is_numeric($_POST['id'])){
 				$this->load->smodel('shop_model');
-				$article = $this->db->getAllDataById($this->shop_model->table('_products'), $_POST['id']);
-				if($article){
+				$product = $this->shop_model->getProductById($_POST['id']);
+				if($product){
 
-					$this->db->deleteRow($this->shop_model->table('_products'), $article->id);
-					$this->db->executeQuery("UPDATE `{$this->shop_model->table('_products')}` SET `position` = position - 1 WHERE `id` > '{$article->id}'");
-					$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$article->id}'");
-					if($article->photo > 0){
-						$path = IMG_PATH.$_SESSION['option']->folder.'/';
-						if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-
-						$prefix = array('');
-						$sizes = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_photo_size', $_SESSION['alias']->id, 'alias');
-						if($sizes){
-							foreach ($sizes as $resize) if($resize->active == 1 && $resize->prefix != ''){
-								$prefix[] = $resize->prefix .'_';
-							}
-						}
-						
-						foreach ($prefix as $p) {
-							$filename = $path.$p.$article->photo.'.jpg';
-							@unlink ($filename);
-						}
-					}
+					$this->db->deleteRow($this->shop_model->table('_products'), $product->id);
+					$this->db->executeQuery("UPDATE `{$this->shop_model->table('_products')}` SET `position` = position - 1 WHERE `id` > '{$product->id}'");
+					$this->db->executeQuery("DELETE FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$product->id}'");
+					$this->db->executeQuery("DELETE FROM `{$this->shop_model->table('_product_photos')}` WHERE `product` = '{$product->id}'");
+					
+					$path = IMG_PATH.$_SESSION['option']->folder.'/'.$product->id;
+					if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+					$this->data->removeDirectory($path);
 
 					$link = '';
 					if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 0){
-						$group = $this->db->getAllDataById($this->shop_model->table('_groups'), $article->group);
-						if($group) $link = '/'.$group->link;
+						$product->link = explode('/', $product->link);
+						array_pop ($product->link);
+						$link = '/'.implode('/', $product->link);
 					}
 					header("Location: ".SITE_URL.'admin/'.$_SESSION['alias']->alias.$link);
 					exit;
@@ -542,20 +598,21 @@ class shopshowcase extends Controller {
 			$this->load->library('image');
 			if($array) $this->image->uploadArray($name_field, $i, $path, $name);
 			else $this->image->upload($name_field, $path, $name);
+			$extension = $this->image->getExtension();
 			$this->image->save();
 			if($this->image->getErrors() == ''){
 				if($_SESSION['option']->resize > 0){
 					$sizes = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_photo_size', $_SESSION['alias']->id, 'alias');
 					if($sizes){
 						foreach ($sizes as $resize) if($resize->active == 1){
-							$this->image->loadImage($path, $name);
+							$this->image->loadImage($path, $name, $extension);
 							if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
 							if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
 							$this->image->save($path, $resize->prefix);
 						}
 					}
 				}
-				return true;
+				return $this->image->getExtension();
 			}
 		}
 		return false;
@@ -716,6 +773,162 @@ class shopshowcase extends Controller {
 				}
 			}
 		}
+	}
+
+	// --- photo
+	public function photo_add(){
+		$res = array();
+
+		if (isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
+			$id = $this->data->uri(3);
+			if(is_numeric($id)){
+				$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id;
+				$name_field = 'photos';
+				$error = 0;
+				if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+				if(!is_dir($path)){
+					if(mkdir($path, 0777) == false){
+						$error++;
+						$res['error'] = 'Error create dir ' . $path;
+					} 
+				}
+				$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id.'/';
+
+				$this->load->smodel('shop_model');
+				$product = $this->db->getAllDataById($this->shop_model->table('_products'), $id);
+
+				if($product && !empty($_FILES[$name_field]['name'][0]) && $error == 0){
+					$length = count($_FILES[$name_field]['name']);
+					for($i = 0; $i < $length; $i++){
+						$data['product'] = $product->id;
+						$data['user'] = $_SESSION['user']->id;
+						$data['date'] = time();
+						$data['main'] = time();
+						$this->db->insertRow($this->shop_model->table('_product_photos'), $data);
+						$photo_id = $this->db->getLastInsertedId();
+						$photo_name = $product->link . '-' . $photo_id;
+						
+						$extension = $this->savephoto($name_field, $path, $photo_name, true, $i);
+						if($extension){
+							$photo_name .= '.'.$extension;
+							$this->db->updateRow($this->shop_model->table('_products'), array('date_edit' => time(), 'photo' => $photo_name), $id);
+							$this->db->updateRow($this->shop_model->table('_product_photos'), array('name' => $photo_name), $photo_id);
+
+							$photo['id'] = $photo_id;
+							$photo['name'] = '';
+							$photo['date'] = date('d.m.Y H:i');
+							$photo['url'] = $path.$photo_name;
+							$photo['thumbnailUrl'] = $path.'/s_'.$photo_name;
+							$res[] = $photo;
+						} else {
+							$error++;
+						}
+					}
+				}
+				if($error > 0){
+					$photo['result'] = false;
+					$photo['error'] = "Access Denied!";
+					$res[] = $photo;
+				}
+			}
+		}
+
+		if(empty($res)){
+			$photo['result'] = false;
+			$photo['error'] = "Access Denied!";
+			$res[] = $photo;
+		}
+
+		header('Content-type: application/json');
+		echo json_encode(array('files' => $res));
+		exit;
+	}
+
+	public function photo_save()
+	{
+		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
+		if(isset($_SESSION['user']) && $_SESSION['user']->id > 0){
+			if(isset($_POST['photo']) && is_numeric($_POST['photo']) && isset($_POST['name'])){
+				$photo = $this->db->getAllDataById($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo']);
+				if(!empty($photo)){
+					$data = array();
+					if($_POST['name'] == 'title') $data['title'] = $this->db->sanitizeString($_POST['title']);
+					if($_POST['name'] == 'active'){
+						$data['main'] = time();
+						$this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, array('date_edit' => time(), 'photo' => $photo->name), $photo->product);
+					} 
+					if(!empty($data)) if($this->db->updateRow($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $data, $_POST['photo'])){
+						$res['result'] = true;
+						$res['error'] = '';
+					}
+				} else $res['error'] = 'Фотографію не знайдено!';
+			}
+		}
+		header('Content-type: application/json');
+		echo json_encode($res);
+		exit;
+	}
+	
+	public function photo_delete()
+	{
+		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
+		if(isset($_SESSION['user']) && $_SESSION['user']->id > 0){
+			if(isset($_POST['photo']) && is_numeric($_POST['photo'])){
+				$photo = $this->db->getAllDataById($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo']);
+				if(!empty($photo)){
+					if($this->db->deleteRow($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo'])){
+						$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$photo->product.'/';
+						if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+						$prefix = array('');
+						$sizes = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_photo_size', $_SESSION['alias']->id, 'alias');
+						if($sizes){
+							foreach ($sizes as $resize) if($resize->active == 1){
+								$prefix[] = $resize->prefix.'_';
+							}
+						}
+						foreach ($prefix as $p) {
+							$filename = $path.$p.$_POST['photo'].'.jpg';
+							@unlink ($filename);
+						}
+						$res['result'] = true;
+						$res['error'] = '';
+
+						$product = $this->db->getAllDataById($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, $photo->product);
+						if($product) {
+							$data['date_edit'] = time();
+							if($product->photo == $photo->id){
+								$data['photo'] = 0;
+								$photos = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $product->id, 'product', 'main DESC');
+								if($photos) $data['photo'] = $photos[0]->id;
+							}
+							$this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, $data, $product->id);
+						}
+					}
+				} else $res['error'] = 'Фотографію не знайдено!';
+			}
+		}
+		header('Content-type: application/json');
+		echo json_encode($res);
+		exit;
+	}
+
+	public function __show_mini_list_Products($data = array())
+	{
+		$group = 0;
+		$my_alias = $_SESSION['alias']->id;
+		$my_PerPage = $_SESSION['option']->PerPage;
+		if(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
+		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->PerPage = $data['limit'];
+		if(isset($data['alias']) && is_numeric($data['alias'])) $_SESSION['alias']->id = $data['alias'];
+		if(isset($data['table'])) $_SESSION['alias']->table = $data['table'];
+
+		$this->load->smodel('shop_model');
+		$products = $this->shop_model->getProducts($group);
+
+		$this->load->view('_show_mini_list_Products', array('products' => $products, 'uri' => $data['uri']));
+
+		$_SESSION['alias']->id = $my_alias;
+		$_SESSION['option']->PerPage = $my_PerPage;
 	}
 	
 }

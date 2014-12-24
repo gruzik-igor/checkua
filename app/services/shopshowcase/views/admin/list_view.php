@@ -1,10 +1,12 @@
+<?php require_once '_admin_words.php'; ?>
+
 <div class="f-right inline">
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>">Додати товар</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>"><?=$admin_words['product_add']?></a>
 	<?php if($_SESSION['option']->useGroups == 1){ ?>
-		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх товарів</a>
-		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До груп товарів</a>
+		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all">До всіх <?=$admin_words['products_to_all']?></a>
+		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups">До всіх <?=$admin_words['groups_to_all']?></a>
 	<?php } ?>
-	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх параметрів</a>
+	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options">До всіх <?=$admin_words['options_to_all']?></a>
 </div>
 
 <h1><?=(isset($group))?$_SESSION['alias']->name .'. Список товарів':'Список всіх товарів'?></h1>
@@ -42,9 +44,11 @@
 			$categories = $this->shop_model->getGroups(-1, false);
 			?>
 			<th>Group</th>
+		<?php } if($_SESSION['option']->useOptions == 1){ ?>
+			<th>Наявність</th>
 		<?php } ?>
-		<th>Наявність</th>
-		<th>Author Date</th>
+		<th>Автор</th>
+		<th>Редаговано</th>
 		<th>Active</th>
 		<th>Змінити порядок</th>
 		<th></th>
@@ -65,19 +69,21 @@
 				} ?>
 			</select>
 		</td>
+		<?php } if($_SESSION['option']->useOptions == 1){ ?>
+			<td>
+				<?php if(isset($availabilities)){ ?>
+					<select onchange="changeAvailability(this, <?=$a->id?>)">
+						<?php foreach ($availabilities as $availability) {
+							$selected = '';
+							if($a->availability == $availability->id) $selected = 'selected'; ?>
+							<option value="<?=$availability->id?>" style="color:<?=$availability->color?>" <?=$selected?>><?=$availability->name?></option>
+						<?php } ?>
+					</select>
+				<?php } ?>
+			</td>
 		<?php } ?>
-		<td>
-			<?php if(isset($availabilities)){ ?>
-				<select onchange="changeAvailability(this, <?=$a->id?>)">
-					<?php foreach ($availabilities as $availability) {
-						$selected = '';
-						if($a->availability == $availability->id) $selected = 'selected'; ?>
-						<option value="<?=$availability->id?>" style="color:<?=$availability->color?>" <?=$selected?>><?=$availability->name?></option>
-					<?php } ?>
-				</select>
-			<?php } ?>
-		</td>
-		<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->user?>"><?=$a->user_name?></a> <?=date("d.m.Y H:i", $a->date)?></td>
+		<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->user?>"><?=$a->user_name?></a></td>
+		<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 		<td bgcolor="<?=($a->active == 1)?'green':'red'?>" style="color:white"><center><?=$a->active?></center></td>
 		<td><form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeposition"><input type="hidden" name="id" value="<?=$a->id?>"><input type="number" name="position" min="1" max="<?=$max?>" value="<?=$a->position?>" onchange="this.form.submit();" autocomplete="off"></form></td>
 	</tr>

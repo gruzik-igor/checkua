@@ -39,6 +39,14 @@ class Controller extends Loader {
 		$_SESSION['user']->check = true;
     }
 
+    public function userIs()
+    {
+    	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
+    		return true;
+    	}
+    	return false;
+    }
+
     public function userCan($permissions = '')
     {
     	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {

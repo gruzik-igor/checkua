@@ -11,22 +11,34 @@
 	
 ?>
 
-<h1>Налаштування SEO (name, title, descriptions)</h1>
-
-Наявні адреси:
-<table cellspacing="0">
-	<tr class="top">
-		<th>id</th>
-		<th>alias</th>
-		<th>service</th>
-		<th>active</th>
-	</tr>
-	<?php if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
-		<tr>
-			<td><?=$alias->id?></td>
-			<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=$alias->alias?></a></td>
-			<td><?=$services_title[$alias->service]?></td>
-			<td><?=$alias->active?></td>
-		</tr>
-	<?php } ?>
-</table>
+<div class="row">
+    <div class="col-md-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <h4 class="panel-title">Наявні адреси:</h4>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
+                        <thead>
+                            <tr>
+								<th>id</th>
+								<th>Головна адреса</th>
+								<th>Сервіс</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        <?php if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
+							<tr>
+								<td><?=$alias->id?></td>
+								<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=$alias->alias?></a></td>
+								<td><?=$services_title[$alias->service]?></td>
+							</tr>
+						<?php } ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

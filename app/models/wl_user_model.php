@@ -2,6 +2,7 @@
 
 /*
  * Модель для роботи з базою даних користувачів.
+ * For White Lion CMS 1.0
  */
 
 class wl_user_model {
@@ -9,84 +10,167 @@ class wl_user_model {
     /*
      * В цю властивість записуються всі помилки.
      */
-    public $user_errors = array();
+    public $user_errors = '';
 
     /*
      * Отримуємо дані користувача з бази даних
      */
-    function getUserInfoById($id){
-        $id = $this->db->sanitizeString($id);
-        $this->db->executeQuery("SELECT u.* FROM wl_users AS u
-                                WHERE u.id = '{$id}'");
-        if($this->db->numRows() > 0){
-            return $this->db->getRows();
+    function getInfo($id = 0, $additionall = '*')
+    {
+    	if($id == 0 && isset($_SESSION['user']->id)) $id = $_SESSION['user']->id;
+        $this->db->select('wl_users as u', '*', $id);
+        $this->db->join('wl_user_types', 'name as type_name', '#u.type');
+    	$user = $this->db->get('single');
+        if($user && $additionall)
+        {
+        	$info = false;
+        	if($additionall == '*')
+        	{
+        		$info = $this->db->getAllDataByFieldInArray('wl_user_info', $user->id, 'user');
+        	}
+        	else
+        	{
+        		$where['user'] = $user->id;
+        		$where['key'] = explode(',', $additionall);
+        		$info = $this->db->getAllDataByFieldInArray('wl_user_info', $where);
+        	}
+        	if($info)
+        	{
+        		foreach ($info as $i) {
+        			$key = $i->key;
+        			if(isset($user->$key))
+        			{
+        				if(is_array($user->$key)) array_push($user->$key, $i->value);
+        				else
+        				{
+        					$value = clone $user->$key;
+        					$user->$key = array();
+        					array_push($user->$key, $value);
+        					array_push($user->$key, $i->value);
+        					unset($value);
+        				}
+        			}
+        			else
+        			{
+        				$user->$key = $i->value;
+        			}
+        		}
+        	}
         }
-        return null;
+        return $user;
     }
 
     /*
      * Метод додає користувача до бази.
+     * info (array) масив з основними даними користувача (email, name, photo, password)
+     * additionall (array) додаткові дані користувача (phone, facebook, vk, city..)
+     * new_user_type (int) ід типу користувача за замовчуванням (4 - простий користувач)
+     * set_password (bool) чи встановлювати пароль до профілю (класична реєстрація - так, швидка зі соц. мереж - ні). також впливає на статус новозареєстрованого користувача (класична - 2, швидка наступний після 2)
+     * comment (text) службовий коментар у реєстр
      */
-    public function addUser($name, $email, $password){
-    	$email = $this->db->sanitizeString($email);
-        $this->db->executeQuery("SELECT id, email, type, status FROM wl_users WHERE email = '{$email}'");
-        if($this->db->numRows() > 0){
-        	$user = $this->db->getRows();
-        	if(is_array($user)) return false;
-        	if($user->type == 5){
-        		$data['name'] = $name;
-        		$data['photo'] = 0;
-		    	$data['type'] = 4;
-		    	$data['status'] = 2;
-		    	$data['registered'] = time();
-		    	$data['auth_id'] = md5($name.'|'.$password.'|'.$email);
-		    	$data['password'] = sha1(md5($password) . SYS_PASSWORD);
-		    	if($this->db->updateRow('wl_users', $data, $user->id)){
-		    		$register['date'] = $data['registered'];
-		    		$register['do'] = 1;
-		    		$register['user'] = $user->id;
-		    		if($this->db->insertRow('wl_user_register', $register)){
-		    			$this->user_errors['id'] = $user->id;
-		    			$this->user_errors['auth_id'] = $data['auth_id'];
-		    			return true;
-		    		}
-		    	}
-        	} return false;
-        } else {
-        	$user['email'] = $email;
-	    	$user['name'] = $name;
-	    	$user['photo'] = 0;
-	    	$user['type'] = 4;
-	    	$user['status'] = 2;
-	    	$user['registered'] = time();
-	    	$user['auth_id'] = md5($name.'|'.$password.'|'.$email);
-	    	$user['password'] = sha1(md5($password) . SYS_PASSWORD);
-	    	if($this->db->insertRow('wl_users', $user)){
-	    		$id = $this->db->getLastInsertedId();
-	    		$register['date'] = $user['registered'];
-	    		$register['do'] = 1;
-	    		$register['user'] = $id;
-	    		if($this->db->insertRow('wl_user_register', $register)){
-	    			$this->user_errors['id'] = $id;
-	    			$this->user_errors['auth_id'] = $user['auth_id'];
-	    			return true;
-	    		}
+    public function add($info = array(), $additionall = array(), $new_user_type = 4, $set_password = true, $comment = '')
+    {
+    	$status = $this->db->getAllDataById('wl_user_status', 2);
+        if(!$set_password)
+            $status = $this->db->getAllDataById('wl_user_status', $status->next);
+
+    	$user = $this->db->getAllDataById('wl_users', $info['email'], 'email');
+        if($user)
+        {
+        	if($user->type == 5)
+        	{
+        		$data = array();
+                $data['alias'] = $user->alias = $this->makeAlias($info['name']);
+                $data['name'] = $user->name = $info['name'];
+        		$data['photo'] = $user->photo = $info['photo'];
+		    	$data['type'] = $user->type = $new_user_type;
+		    	$data['status'] = $user->status = $status->id;
+		    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
+                if($set_password)
+		    	    $data['password'] = $user->password = $this->getPassword($user->id, $user->email, $info['password']);
+		    	if($this->db->updateRow('wl_users', $data, $user->id))
+		    		$this->db->register('signup', $comment, $user->id);
+        	}
+        	else
+    		{
+    			$this->user_errors = 'Користувач з таким е-мейлом вже є!';
+    			return false;
+    		}
+        }
+        else
+        {
+        	$user = new stdClass();
+        	$data = array();
+            $data['alias'] = $user->alias = $this->makeAlias($info['name']);
+        	$data['email'] = $user->email = $info['email'];
+	    	$data['name'] = $user->name = $info['name'];
+            $data['photo'] = $user->photo = $info['photo'];
+	    	$data['type'] = $user->type = $new_user_type;
+	    	$data['status'] = $user->status = $status->id;
+	    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
+    		$data['registered'] = $user->registered = time();
+	    	if($this->db->insertRow('wl_users', $data))
+	    	{
+	    		$user->id = $this->db->getLastInsertedId();
+
+                if($set_password)
+                {
+                    $password = $this->getPassword($user->id, $user->email, $info['password']);
+                    $this->db->updateRow('wl_users', array('password' => $password), $user->id);
+                }
+
+	    		$this->db->register('signup', $comment, $user->id);
 	    	}
         }
-    	$this->user_errors = 'Виникли проблеми при реєстрації. Будь-ласка спробуйте пізніше.';
+        if($user)
+        {
+            $user->load = $status->load;
+        	if(!empty($additionall))
+			{
+				foreach ($additionall as $key => $value) {
+					$info = array();
+					$info['user'] = $user->id;
+					$info['key'] = $key;
+					$info['value'] = $value;
+					$info['date'] = time();
+					$this->db->insertRow('wl_user_info', $info);
+
+					if(isset($user->$key))
+        			{
+        				if(is_array($user->$key)) array_push($user->$key, $value);
+        				else
+        				{
+        					$exist_value = clone $user->$key;
+        					$user->$key = array();
+        					array_push($user->$key, $exist_value);
+        					array_push($user->$key, $value);
+        					unset($exist_value);
+        				}
+        			}
+        			else
+        			{
+        				$user->$key = $value;
+        			}
+				}
+			}
+			return $user;
+		}
+
+    	$this->user_errors = 'Виникли проблеми при реєстрації. Будь ласка, спробуйте пізніше.';
         return false;
     }
 
-    /*
-     * Оновлюємо інформацію користувача
-     */
-    function saveUser($id, $data = array()){
-        $this->db->updateRow('wl_users', $data, $id);
-        if($this->db->affectedRows() > 0){
-            return true;
-        } else {
-            return false;
+    private function makeAlias($name)
+    {
+        $name = $this->data->latterUAtoEN($name);
+        $name = $alias = mb_eregi_replace('-', '.', $name);
+        $i = 2;
+        while($check = $this->db->getAllDataById('wl_users', $alias, 'alias'))
+        {
+            $alias = $name .'.'. $i;
+            $i++;
         }
+        return $alias;
     }
 
 
@@ -94,209 +178,191 @@ class wl_user_model {
      * Метод перевіряє чи емейл існує в базі.
      * Використовується при реєстрації.
      */
-    public function userExists($email = ''){
+    public function userExists($email = '')
+    {
         $email = $this->db->sanitizeString($email);
-        $this->db->executeQuery("SELECT email, type, status FROM wl_users WHERE email = '{$email}'");
+        $this->db->executeQuery("SELECT `email`, `type`, `status` FROM `wl_users` WHERE `email` = '{$email}'");
         if($this->db->numRows() == 1){
-            $data = $this->db->getRows();
-            if($data->status == 3){
-                array_push($this->user_errors, 'Користувач із даною адресою заблокований!');
-            } elseif($data->type == 5){
+            $user = $this->db->getRows();
+            if($user->status == 3){
+                $this->user_errors = 'Користувач із даною адресою заблокований!';
+            } elseif($user->type == 5){
                 return false;
-            } else array_push($this->user_errors, 'Користувач з таким е-мейлом вже є!');
+            } else $this->user_errors = 'Користувач з таким е-мейлом вже є!';
             return true;
         } else if($this->db->numRows() > 1) {
-            array_push($this->user_errors, 'Така емейл адреса користувача вже існує.');
+            $this->user_errors = 'Така емейл адреса користувача вже існує.';
             return true;
         }
 
         return false;
     }
 	
-	public function chekConfirmed($code){
-		$this->db->executeQuery("SELECT id, email, name, type, auth_id FROM wl_users WHERE id = '{$_SESSION['user']->id}'");
-		if($this->db->numRows() == 1){
-            $user = $this->db->getRows();
-			if($code == $user->auth_id){
-				$date = time();
-				$this->db->executeQuery("UPDATE wl_users SET status = 1 WHERE id = '{$_SESSION['user']->id}'");
-				$this->db->executeQuery("INSERT INTO wl_user_register (date, do, user) VALUES('{$date}', 2, '{$_SESSION['user']->id}' )");
-				
-				$_SESSION['user']->id = $user->id;
-	            $_SESSION['user']->name = $user->name;
-	            $_SESSION['user']->email = $user->email;
-	            $_SESSION['user']->type = $user->type;
-	            $_SESSION['user']->verify = 1;
-	            $_SESSION['user']->permissions = array();
-	            if($user->type == 1) $_SESSION['user']->admin = 1; else $_SESSION['user']->admin = 0;
-	            if($user->type == 2){
-	                $_SESSION['user']->manager = 1;
-	                $permissions = $this->db->getAllDataByFieldInArray('wl_user_permissions', $user->id, 'user');
-	                $aliases = $this->db->getAllData('wl_aliases');
-	                $alias_list = array();
-	                foreach ($aliases as $a) {
-	                	$alias_list[$a->id] = $a->alias;
-	                }
-	                if($permissions){
-	                    foreach($permissions as $permission) $_SESSION['user']->permissions[$alias_list[$permission]] = 1;
-	                }
-	            } else $_SESSION['user']->manager = 0;
-
-				return true;
-			}
-			else return false;
+	public function checkConfirmed($email, $code)
+	{
+		$this->db->select('wl_users as u', '*', $email, 'email');
+        $this->db->join('wl_user_status', 'next', '#u.status');
+        $user = $this->db->get('single');
+		if($user && $code == $user->auth_id)
+		{
+            $status = $this->db->getAllDataById('wl_user_status', $user->next);
+			$this->db->updateRow('wl_users', array('status' => $user->next), $user->id);
+			$user->status = $user->next;
+			$this->setSession($user);
+			$this->db->register('confirmed');
+			return $status;
         }
-        return null;
-	}
-	
-	// wl+
-	public function checkConfirmedByEmailCode($email, $code){
-		$email = $this->db->sanitizeString($email);
-		$this->db->executeQuery("SELECT id, name, type, auth_id FROM wl_users WHERE email = '{$email}'");
-		if($this->db->numRows() == 1){
-            $user = $this->db->getRows();
-			if($code == $user->auth_id){
-				$date = time();
-				$this->db->executeQuery("UPDATE wl_users SET status = 1, active = 1 WHERE id = '{$user->id}'");
-				$this->db->executeQuery("INSERT INTO wl_user_register (date, do, user) VALUES('{$date}', 2, '{$user->id}' )");
-				
-				$_SESSION['user']->id = $user->id;
-	            $_SESSION['user']->name = $user->name;
-	            $_SESSION['user']->email = $email;
-	            $_SESSION['user']->type = $user->type;
-	            $_SESSION['user']->verify = 1;
-	            $_SESSION['user']->permissions = array();
-	            if($user->type == 1) $_SESSION['user']->admin = 1; else $_SESSION['user']->admin = 0;
-	            if($user->type == 2){
-	                $_SESSION['user']->manager = 1;
-	                $permissions = $this->db->getAllDataByFieldInArray('wl_user_permissions', $user->id, 'user');
-	                $aliases = $this->db->getAllData('wl_aliases');
-	                $alias_list = array();
-	                foreach ($aliases as $a) {
-	                	$alias_list[$a->id] = $a->alias;
-	                }
-	                if($permissions){
-	                    foreach($permissions as $permission) $_SESSION['user']->permissions[$alias_list[$permission]] = 1;
-	                }
-	            } else $_SESSION['user']->manager = 0;
-
-				return true;
-			}
-			else return false;
-        }
-        return null;
+        return false;
 	}
 
-    /* wl+
+    /* 
      * Перевірка логіну та пароля. Використовується для POST авторизація.
      * Якщо логін та пароль вірні в сессії робляться відповідні записи.
      */
-    public function checkUser($email = '', $password = '', $sequred = false){		
-		if($email != '' && $password != ''){
-			$email = $this->db->sanitizeString($email);
-			if($sequred == false) $password = md5($password);
-			$password = sha1($password . SYS_PASSWORD);
-			
-			$this->db->executeQuery("SELECT id, name, email, type, status FROM wl_users WHERE email = '{$email}' AND password = '{$password}'");
-			if($this->db->numRows() == 1){
-				$data = $this->db->getRows();
-
-				if($data->status != 3){
-					$_SESSION['user']->id = $data->id;
-		            $_SESSION['user']->name = $data->name;
-		            $_SESSION['user']->email = $data->email;
-		            $_SESSION['user']->verify = $data->status;
-		            $_SESSION['user']->permissions = array();
-		            if($data->type == 1) $_SESSION['user']->admin = 1; else $_SESSION['user']->admin = 0;
-		            if($data->type == 2){
-		                $_SESSION['user']->manager = 1;
-		                $permissions = $this->db->getAllDataByFieldInArray('wl_user_permissions', $data->id, 'user');
-		                if($permissions){
-		                	$aliases = $this->db->getAllData('wl_aliases');
-			                $alias_list = array();
-			                foreach ($aliases as $a) {
-			                	$alias_list[$a->id] = $a->alias;
-			                }
-		                    foreach($permissions as $permission) $_SESSION['user']->permissions[] = $alias_list[$permission->permission];
-		                }
-		            } else $_SESSION['user']->manager = 0;
-
-					$this->db->executeQuery("UPDATE wl_users SET active = 1 WHERE id = {$_SESSION['user']->id}");
-
-					return true;
-				} else $this->user_errors = 'Користувач заблокований! Зверніться до адміністрації за формою праворуч або на email '.SYS_EMAIL;
-
-	            
-			} else {
-				$this->user_errors = 'Невірна пошта чи пароль.';
-			}
+    public function login($key = 'email', $password = '', $sequred = false)
+    {	
+    	$user = false;
+		if($key == 'email')
+		{
+			$user = $this->db->getAllDataById('wl_users', $this->data->post('email'), 'email');
+			if($user)
+				$password = $this->getPassword($user->id, $user->email, $password, $sequred);
 		}
+		else
+		{
+			$this->db->select('wl_user_info as ui', 'value as password', $key, 'key');
+			$this->db->join('wl_users', 'id, email, name, type, status', '#ui.user');
+			$user = $this->db->get('single');
+		}
+		if($user && $password != '')
+		{
+            $status = $this->db->getAllDataById('wl_user_status', $user->status);
+			if($user->password != $password) {
+				$this->user_errors = 'Пароль невірний.';
+				return false;
+			}
+
+			if(isset($_SESSION['facebook_id']) && $this->data->post('facebook') == $_SESSION['facebook_id'] && $_SESSION['facebook_id'] > 0)
+			{
+				$this->setAdditional($user->id, 'facebook', $_SESSION['facebook_id']);
+				$this->setAdditional($user->id, 'facebook_link', $_SESSION['facebook_link']);
+				$_SESSION['notify'] = new stdClass();
+				$_SESSION['notify']->success = 'Профіль facebook успішно підключено.';
+				if($user->status == 2)
+				{
+					$user->status = $status->next;
+					$this->db->updateRow('wl_users', array('status' => $user->status), $user->id);
+					$status = $this->db->getAllDataById('wl_user_status', $user->status);
+				}
+			}
+
+			if($user->status == 1)
+			{
+				$this->setSession($user);
+				$auth_id = md5($user->email.'|'.$user->password.'|auth_id|'.time());
+				setcookie('auth_id', $auth_id, time() + 3600*24*31, '/');
+				$this->db->updateRow('wl_users', array('auth_id' => $auth_id), $user->id);
+				return $status;
+			}
+			elseif($user->status != 3)
+			{
+				$this->setSession($user);
+				return $status;
+			}
+			else
+				$this->user_errors = 'Користувач заблокований! Зверніться до адміністрації на email '.SITE_EMAIL;
+		} else
+			$this->user_errors = 'Невірна пошта чи пароль.';
 		return false;
     }
-    
-    function getPmInfo($user_id){
-    	if(is_numeric($user_id)) {
-    		$this->db->executeQuery("SELECT id, name, photo FROM users WHERE id = {$user_id}");
-    		return $this->db->getRows();
+
+    public function setAdditional($user, $key, $value)
+    {
+    	$where['user'] = $user;
+    	$where['key'] = $key;
+    	$this->db->select('wl_user_info', 'id, value', $where);
+    	$additionall = $this->db->get();
+    	if(is_array($additionall))
+    	{
+    		$add = true;
+    		foreach ($additionall as $info) {
+    			if($info->value == $value)
+    			{
+    				$add = false;
+    				break;
+    			}
+    		}
+    		if($add)
+    		{
+    			$where['value'] = $value;
+    			$where['date'] = time();
+    			$this->db->insertRow('wl_user_info', $where);
+    			return true;
+    		}
     	}
-    	return null;
+    	elseif(is_object($additionall))
+    	{
+    		if($additionall->value != $value)
+    			$this->db->updateRow('wl_user_info', array('value' => $value, 'date' => time()), $additionall->id);
+    		return true;
+    	}
+    	else
+    	{
+    		$where['value'] = $value;
+    		$where['date'] = time();
+			$this->db->insertRow('wl_user_info', $where);
+			return true;
+    	}
     }
-	
-	
-	function change_pass($confirm=false,$pass=null){
-		if ($confirm){
-			if($pass!=0){
-				$this->db->updateRow('users',array('password'=>$pass),$_SESSION['user']->id);
-				if($this->db->affectedRows()==0) return false; else return true;
-			}
-		}else{
-			$this->db->executeQuery("SELECT password FROM users WHERE id = '{$_SESSION['user']->id}'");
-			if($this->db->numRows() > 0)
-				return $this->db->getRows();
-				
-		}
-	}
-	
-	function change_email($confirm=false,$email=null){
-		if ($confirm){
-			if($email!=0){
-				$this->db->updateRow('users',array('email'=>$email),$_SESSION['user']->id);
-				if($this->db->affectedRows()==0) return false; else return true;
-			}
-		}else{
-			$this->db->executeQuery("SELECT email FROM users WHERE email = '{$email}'");
-			if($this->db->numRows() > 0) return false; 
-			else{
-				$this->db->executeQuery("SELECT password FROM users WHERE id = '{$_SESSION['user']->id}'");
-				if($this->db->numRows() > 0)
-					return $this->db->getRows();
-			}	
-		}
-	}
-	
-	// wl+
-	public function set_auth_id($auth_id){
-		$this->db->executeQuery("UPDATE `wl_users` SET `auth_id` = '{$auth_id}' WHERE `id` = '{$_SESSION['user']->id}'");
-		if($this->db->affectedRows()>0)
-            return true;
-		else 
-            return false;        
+
+    public function reset($email = '')
+    {
+    	$user = $this->db->getAllDataById('wl_users', $email, 'email');
+    	if($user)
+    	{
+			$data = array();
+			$data['reset_key'] = $user->reset_key = md5($_POST['email'].'|'.$user->auth_id.'|'.time());
+			$data['reset_expires'] = $user->reset_expires = mktime(date("H") + 2, date("i"), date("s"), date("m"), date("d"), date("Y"));//+ 2 ГОДИНИ!!!
+			$this->db->updateRow('wl_users', $data, $user->id);
+			$this->db->register('reset_sent', '', $user->id);
+			return $user;
+    	}
+    	return false;
+    }
+
+	public function getPassword($id, $email, $password, $sequred = false)
+	{
+		if(!$sequred) $password = md5($password);
+		return sha1($email . $password . SYS_PASSWORD . $id);
 	}
 
-	// wl+
-    public function checkUserAPI($email = '', $password = '', $sequred = false){		
-		if($email != '' && $password != ''){
-			$email = $this->db->sanitizeString($email);
-			if($sequred == false) $password = md5($password);
-			$password = sha1($password . SYS_PASSWORD);
-			
-			$this->db->executeQuery("SELECT id, name, status FROM wl_users WHERE email = '{$email}' AND password = '{$password}' AND status = 1");
-			if($this->db->numRows() == 1){
-				return $this->db->getRows();
-			} else return false;
-		}
-		return false;		
-    }
+	public function setSession($user)
+	{
+		$_SESSION['user']->id = $user->id;
+        $_SESSION['user']->name = $user->name;
+        $_SESSION['user']->email = $user->email;
+        $_SESSION['user']->status = $user->status;
+        $_SESSION['user']->permissions = array();
+
+        if($user->type == 1)
+            $_SESSION['user']->admin = 1; 
+        else
+            $_SESSION['user']->admin = 0;
+
+        if($user->type == 2)
+        {
+            $_SESSION['user']->manager = 1;
+            $this->db->select('wl_user_permissions as up', '*', $user->id, 'user');
+            $this->db->join('wl_aliases', 'alias', '#up.permission');
+            $permissions = $this->db->get('array');
+            if($permissions)
+                foreach($permissions as $permission)
+                	$_SESSION['user']->permissions[] = $permission->alias;
+        }
+        else
+            $_SESSION['user']->manager = 0;
+        return true;
+	}
 	
 }
 

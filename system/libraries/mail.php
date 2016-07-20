@@ -32,7 +32,10 @@ class Mail {
         $this->params = $pms;
     }
 
-    function send(){
+    function send()
+    {
+        if($_SERVER["SERVER_NAME"] == 'localhost') return true;
+
         if(is_array($this->params)){
             foreach($this->params as $key => $value){
                 $this->message = str_replace('{'.$key.'}', $value, $this->message);
@@ -53,13 +56,14 @@ class Mail {
             return false;
         }
     }
-	
-	function sendTemplate($template, $to, $data = array()){
+
+	function sendTemplate($template, $to, $data = array())
+    {
 		$path = APP_PATH.'mails'.DIRSEP.$template.'.php';
         if($_SESSION['language']){
             $path = APP_PATH.'mails'.DIRSEP.$_SESSION['language'].DIRSEP.$template.'.php';
             if(file_exists($path) == false) $path = APP_PATH.'mails'.DIRSEP.$template.'.php';
-        } 
+        }
 		if(file_exists($path)){
 			$subject = '';
 			$message = '';
@@ -68,15 +72,52 @@ class Mail {
 			require($path);
 			if($message != '' && $subject != ''){
 				$this->params(array('name' => $from_name));
-				$this->message($message);
+				$this->message(html_entity_decode($message));
 				$this->subject($subject);
 				$this->to($to);
 				$this->from($from_mail);
-				
+
 				if($this->send()) return true;
 			}
 		}
 		return false;
 	}
+
+    function sendMailTemplate($template, $data = array())
+    {
+        $from = $this->checkMail($template->from, $data);
+        $to = $this->checkMail($template->to, $data);
+
+        if($from && $to){
+            $this->params($data);
+            $this->message(html_entity_decode($template->text));
+            $this->subject($template->title);
+            $this->to($to);
+            $this->from($from);
+
+            if($this->send()) return true;
+        }
+
+        return false;
+    }
+
+    public function checkMail($mail, $data = array())
+    {
+        switch ($mail) {
+            case 'SITE_EMAIL':
+                return SITE_EMAIL;
+                break;
+
+            default:
+                if(!isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $mail)){
+                    return $mail;
+                } else if(isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data[$mail])){
+                    return $data[$mail];
+                } else return false;
+                break;
+        }
+
+        return false;
+    }
 }
 ?>

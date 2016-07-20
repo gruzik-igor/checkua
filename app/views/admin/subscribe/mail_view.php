@@ -1,4 +1,5 @@
-<a href="<?=SITE_URL?>admin/subscribe" style="float:right">До списку всіх email</a>
+<a href="<?=SITE_URL?>admin/clients" style="float:right">До списку всіх email</a>
+<!-- <a href="<?=SITE_URL?>admin/subscribe" style="float:right">До списку всіх email</a> -->
 <h1>Зробити розсилку</h1>
 <form action="<?=SITE_URL?>admin/subscribe/makemail" method="post">
 	З якого email робити розсилку: <input type="email" name="from" value="<?=SITE_EMAIL?>" required><br>

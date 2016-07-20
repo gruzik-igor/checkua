@@ -5,28 +5,56 @@
  *
  * Отримуємо POST дані і частини URI
  *
- * Версія 1.0.1 (06.11.2014) Додано insertFromForm
+ * Версія 1.0.1 (06.11.2014) Додано insertFromForm()
+ * Версія 1.0.2 (29.09.2015) Додано getShortText()
+ * Версія 1.0.3 (19.10.2015) Бібліотеку розділено на 2 (data + form), модифіковано функцію make()
+ * Версія 1.0.4 (04.12.2015) Виправлено getShortText()
+ * Версія 1.0.5 (09.03.2016) Виправлено констуктор Data() згідно режиму мультимовності 'main domain', додано заміну "багато дефів" на один у latterUAtoEN(), додано перевірку існування папки у removeDirectory()
+ * Версія 1.1 (07.04.2016) Додано re_get(), re_post()
  */
 
-class Data extends Controller {
+class Data {
 
 	private $uri_data;
 	public $errors = array();
-	
-	function Data(){
+
+	function Data()
+	{
 		$arr = (empty($_GET['request'])) ? '' : $_GET['request'];
 		$arr = trim($arr, '/\\');
 		$arr = explode('/', $arr);
 		$this->uri_data = $arr;
+
+		if($_SESSION['language'] && ($GLOBALS['multilanguage_type'] == 'main domain' || $_SERVER["SERVER_NAME"] == 'localhost'))
+		{
+			if(isset($_SESSION['language']) && $_SESSION['language'] != $_SESSION['all_languages'][0] && in_array($_SESSION['language'], $_SESSION['all_languages']))
+			{
+				array_shift ($this->uri_data);
+			}
+		}
+
+		if(!empty($_POST))
+		{
+			foreach ($_POST as $key => $value) {
+				$_SESSION['_POST'][$key] = $this->post($key);
+			}
+		}
+		if(!empty($_GET))
+		{
+			foreach ($_GET as $key => $value) {
+				$_SESSION['_GET'][$key] = $this->get($key);
+			}
+		}
 	}
-	
+
 	/**
 	 * Отримуємо частину URI
 	 *
 	 * @param int частина
 	 * @param bool очистити від xss
 	 */
-	function uri($idx = null, $xss = false){
+	public function uri($idx = null, $xss = false)
+	{
 		if($idx && array_key_exists($idx, $this->uri_data)){
 			if($xss){
 				return $this->xss_clean($this->uri_data[$idx]);
@@ -34,11 +62,11 @@ class Data extends Controller {
 				return $this->uri_data[$idx];
 			}
 		}
-		
+
 		return null;
 	}
 
-	function url()
+	public function url()
 	{
 		return $this->uri_data;
 	}
@@ -48,121 +76,137 @@ class Data extends Controller {
 	 *
 	 * @param string ключ
 	 * @param bool очистити від xss
-	 */		
-	function post($key, $xss = true){
+	 */
+	public function post($key, $xss = true)
+	{
 		if($key && array_key_exists($key, $_POST)){
 			if($xss){
 				return $this->xss_clean($_POST[$key]);
 			} else {
 				return $_POST[$key];
 			}
-		}	
-		
+		}
+
 		return null;
 	}
-	
-	function get($key, $xss = true){
+
+	public function get($key, $xss = true)
+	{
 		if($key && array_key_exists($key, $_GET)){
 			if($xss){
 				return $this->xss_clean($_GET[$key]);
 			} else {
 				return $_GET[$key];
 			}
-		}	
-		
+		}
+
 		return null;
 	}
 
-	function makeFromPOST($fields)
+	public function re_post($key='')
 	{
-		if(!empty($fields)){
-			$data = array();
-			foreach ($fields as $f => $type) if(isset($_POST[$f])){
-				if($type == 'number'){
-					if(is_numeric($_POST[$f])) $data[$f] = $_POST[$f];
+		if(isset($_SESSION['_POST'][$key])) return $_SESSION['_POST'][$key];
+		return false;
+	}
+
+	public function re_get($key='')
+	{
+		if(isset($_SESSION['_GET'][$key])) return $_SESSION['_GET'][$key];
+		return false;
+	}
+
+    public function getShortText($text, $len = 155)
+    {
+        $text = strip_tags(html_entity_decode($text));
+        if(mb_strlen($text, 'UTF-8') > $len)
+        {
+            $pos = mb_strpos($text, ' ', $len, 'UTF-8');
+			if($pos){
+				return mb_substr($text, 0, $pos, 'UTF-8');
+			} else {
+				$pos = mb_strpos($text, ' ', $len - 10, 'UTF-8');
+				if($pos){
+					return mb_substr($text, 0, $pos, 'UTF-8');
 				}
-				elseif($type == 'date'){
-					$date = explode('.', $_POST[$f]);
-					$date = mktime(0,0,0, $date[1], $date[0], $date[2]);
-					if(is_numeric($date)) $data[$f] = $date;
-				}
-				else $data[$f] = $this->post($f, true);
 			}
+        }
+        return $text;
+    }
+
+	function make($fields, $var = '_POST')
+	{
+		if(!empty($fields) && is_array($fields)) {
+			$data = array();
+			foreach ($fields as $f => $type) {
+                $value = null;
+                if($var == '_POST') {
+                    $value = $this->post($f, true);
+                } else {
+                    $value = $this->get($f, true);
+                }
+                if($value !== null) {
+    				if($type == 'number') {
+    					if(is_numeric($value)) {
+                            $data[$f] = $value;
+                        }
+    				}
+    				elseif($type == 'date') {
+    					$date = explode('.', $value);
+    					$date = mktime(0,0,0, $date[1], $date[0], $date[2]);
+    					if(is_numeric($date)) {
+                            $data[$f] = $date;
+                        }
+    				}
+    				else {
+                        $data[$f] = $value;
+                    }
+    			} else {
+                    if($var == '_POST') {
+                        $data[$type] = $this->post($type, true);
+                    } else {
+                        $data[$type] = $this->get($type, true);
+                    }
+                }
+            }
 			return $data;
 		}
 		return null;
 	}
 
-	public function insertFromForm($form='', $additionally = array(), $user = -1)
-    {
-        if($form != ''){
-        	$this->library('db');
-            $form = $this->db->getAllDataById('wl_forms', $form, 'name');
-            if($form && $form->table != '' && $form->type > 0 && $form->type_data > 0){
-                $fields = $this->db->getQuery("SELECT f.*, t.name as type_name FROM wl_fields as f LEFT JOIN wl_input_types as t ON t.id = f.input_type WHERE f.form = {$form->id}", 'array');
-                if($fields){
-                	$data = array();
-                	$this->errors = array();
-                	foreach ($fields as $field) {
-                		$input_data = null;
-                		if($form->type == 1) $input_data = $this->get($field->name);
-                		elseif($form->type == 2) $input_data = $this->post($field->name);
-                		if($field->required && $input_data == null) {
-                			$this->errors[] = "Field '{$field->title}' is required!";
-                		}
-                		if($input_data){
-                			$data[$field->name] = $input_data;
-                		}
-                	}
-                	if(!empty($data) && empty($this->errors)){
-                		if(!empty($additionally)) $data = array_merge ($data, $additionally);
-                		if($form->type_data == 1){
-                			foreach ($data as $field => $value) {
-                				if($user == 0 && isset($_SESSION['user']->id) && $_SESSION['user']->id > 0){
-                					$row['user'] = $_SESSION['user']->id;
-                				} elseif($user > 0){
-                					$row['user'] = $user;
-                				}
-                				$row['field'] = $field;
-                				$row['value'] = $value;
-                				$this->db->insertRow($form->table, $row);
-                			}
-                		} elseif($form->type_data == 2){
-                			$this->db->insertRow($form->table, $data);
-                			$data['id'] = $this->db->getLastInsertedId();
-                		}
-                		return $data;
-                	}
-                }
-            }
-        }
-        return false;
-    }
-
 	/**
 	 * Очищуємо від xss
-	 */	
-	private function xss_clean($value){
-		return htmlspecialchars($value);
+	 */
+	private function xss_clean($value)
+    {
+		return htmlspecialchars($value, ENT_QUOTES);
 	}
-	
-	function latterUAtoEN($text){
-		$text = mb_strtolower($text, "utf-8");		
-		$text = stripcslashes($text);	
-		$ua = array('а', 'б', 'в', 'г', 'ґ', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'');
-		$en = array('a', 'b', 'v', 'h', 'g', 'd', 'e', 'e', 'zh', 'z', 'y', 'i', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'kh', 'c', 'ch', 'sh', 'sch', '', 'u', 'ja' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_', '_', '*', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*');
-		for($i = 0; $i < count($ua); $i++){
-			$text = mb_eregi_replace($ua[$i], $en[$i], $text);
-		}
-		return $text;
-	}
-	
-	function NoXssPHP($text){
-		$text = preg_replace("|<script[\w\s]*>|si", "<span style=\"color:red\">!!! ALERT START XSS SCRIPT !!! ", $text);
-		$text = preg_replace("|</script>|si", " !!! FINISH !!!</span>", $text);
-		$text = preg_replace("|<\?[\w\s]*\?>|si", "", $text);
-		return $text;
-	}
+
+	public function latterUAtoEN($text)
+	{
+        $text = mb_strtolower($text, "utf-8");      
+        $ua = array('а', 'б', 'в', 'г', 'ґ', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'', 'ы', 'ё');
+        $en = array('a', 'b', 'v', 'h', 'g', 'd', 'e', 'e', 'zh', 'z', 'y', 'i', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'kh', 'c', 'ch', 'sh', 'sch', '', 'u', 'ja' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '-', '-', '*', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*', 'y', 'e');
+        for($i = 0; $i < count($ua); $i++)
+        {
+            $text = mb_eregi_replace($ua[$i], $en[$i], $text);
+        }
+        $text = mb_eregi_replace("[-]{2,}", '-', $text);
+        return $text;
+    }
+
+    public function removeDirectory($dir)
+    {
+    	if(is_dir($dir))
+    	{
+    		if ($objs = glob($dir."/*"))
+    		{
+	           foreach($objs as $obj) {
+	             	is_dir($obj) ? $this->removeDirectory($obj) : unlink($obj);
+	           }
+	        }
+	        rmdir($dir);
+    	}
+    }
 
 }
 

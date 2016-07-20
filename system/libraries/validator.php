@@ -32,7 +32,7 @@ class validator {
     }
 
     /**
-     * Перевіряємо якщо валідація пройдена
+     * Перевірямо якщо валідація пройдена
      *
      * @return <boolean>
      */
@@ -45,7 +45,7 @@ class validator {
     }
 
     /**
-     * Перевіряємо довжину даних
+     * Перевірямо довжину даних
      *
      * @param <string> $field
      * @param <string> $data
@@ -53,25 +53,25 @@ class validator {
      * @param <int> $max
      */
     private function valid_length($field, $data, $min, $max){
-        if(strlen($data) < $min || strlen($data) > $max){
+        if(mb_strlen($data, 'utf-8') < $min || mb_strlen($data, 'utf-8') > $max){
             array_push($this->errors, $field.' повинно містити від '.$min.' до '.$max.' символів.');
         }
     }
 
     /**
-     * Перевіряємо емейл-адресу
+     * Перевірямо емейл-адресу
      *
      * @param <string> $field
      * @param <string> $data
      */
     private function email($field, $data){
         if(!preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data)){
-            array_push($this->errors, $field.' неправильний.');
+            array_push($this->errors, $field.' неправильне.');
         }
     }
 
     /**
-     * Перевіряємо якщо поле необхідне
+     * Перевірямо якщо поле необхідне
      *
      * @param <string> $field
      * @param <string> $data
@@ -83,14 +83,14 @@ class validator {
     }
 
     /**
-     * Перевіряємо числове поле
+     * Перевірямо якщо поле необхідне
      *
      * @param <string> $field
      * @param <string> $data
      */
-    private function number($field, $data = ''){
-        if(!is_numeric($data)){
-            array_push($this->errors, $field.' має бути числове.');
+    public function password($pas1, $pas2){
+        if($pas1 != $pas2){
+            array_push($this->errors, 'Паролі не співпадають.');
         }
     }
 

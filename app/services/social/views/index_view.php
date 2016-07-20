@@ -1,2 +1,0 @@
-<a href="<?= SITE_URL .$_SESSION['service']->name?>/vk">Увійти/зареєструватися через vk.com</a><br>
-<a href="<?= SITE_URL .$_SESSION['service']->name?>/fb">Увійти/зареєструватися через facebook.com</a>

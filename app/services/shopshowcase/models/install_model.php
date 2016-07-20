@@ -7,13 +7,31 @@ class install{
 	public $name = "shopshowcase";
 	public $title = "Магазин-вітрина";
 	public $description = "Перелік товарів з підтримкою властифостей та фотогалереї БЕЗ можливості їх замовити та оплатити. Мультимовна.";
+	public $group = "shop";
 	public $table_service = "s_shopshowcase";
 	public $table_alias = "";
 	public $multi_alias = 1;
-	public $admin_ico = 'list';
-	public $version = "2.0";
+	public $order_alias = 100;
+	public $admin_ico = 'fa-qrcode';
+	public $version = "2.1";
 
-	public $options = array('useGroups' => 1, 'useOptions' => 1, 'ProductMultiGroup' => 0, 'resize' => 1, 'folder' => 'shopshowcase', 'canAdd' => 2);
+	public $options = array('useGroups' => 1, 'useOptions' => 1, 'ProductMultiGroup' => 0, 'resize' => 1, 'folder' => 'shopshowcase', 'cart' => 0, 'idExplodeLink' => '-');
+	public $options_admin = array (
+					'word:products_to_all' => 'товарів',
+					'word:product_to' => 'До товару',
+					'word:product_to_delete' => 'товару',
+					'word:product' => 'товар',
+					'word:products' => 'товари',
+					'word:product_add' => 'Додати товар',
+					'word:groups_to_all' => 'груп',
+					'word:groups_to_delete' => 'групу',
+					'word:group' => 'група',
+					'word:group_add' => 'Додати групу товарів',
+					'word:options_to_all' => 'параметрів',
+					'word:option' => 'параметр товару',
+					'word:option_add' => 'Додати параметр товару'
+				);
+	public $sub_menu = array("add" => "Додати товар", "all" => "До всіх товарів", "groups" => "Групи", "options" => "Властивості");
 
 	public $seo_name = "Магазин-вітрина";
 	public $seo_title = "Магазин-вітрина";
@@ -27,14 +45,15 @@ class install{
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_products{$table}` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `group` int(11) NOT NULL,
-					  `link` text NOT NULL,
+					  `alias` text NOT NULL,
 					  `price` int(11) NOT NULL,
 					  `availability` tinyint(1) NOT NULL,
 					  `position` int(11) NOT NULL,
 					  `photo` text NOT NULL,
 					  `active` tinyint(1) NOT NULL,
-					  `user` int(11) NOT NULL,
+					  `author_add` int(11) NOT NULL,
 					  `date_add` int(11) NOT NULL,
+					  `author_edit` int(11) NOT NULL,
 					  `date_edit` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
@@ -44,19 +63,20 @@ class install{
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_photos{$table}` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `product` int(11) NOT NULL,
-					  `name` text NOT NULL
+					  `name` text NOT NULL,
 					  `date` int(11) NOT NULL,
 					  `user` int(11) NOT NULL,
 					  `title` text NOT NULL,
 					  `main` int(11) NOT NULL,
-					  PRIMARY KEY (`id`)
+					  PRIMARY KEY (`id`),
+					  UNIQUE KEY `id` (`id`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_group_options{$table}` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `group` int(11) NOT NULL,
-					  `link` text NOT NULL,
+					  `alias` text NOT NULL,
 					  `position` int(11) NOT NULL,
 					  `type` int(11) NOT NULL,
 					  `filter` tinyint(1) NOT NULL,
@@ -70,7 +90,7 @@ class install{
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `product` int(11) NOT NULL,
 					  `option` int(11) NOT NULL,
-					  `language` varchar(2) NOT NULL
+					  `language` varchar(2) NOT NULL,
 					  `value` text NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
@@ -83,20 +103,23 @@ class install{
 					  `language` varchar(2) NOT NULL,
 					  `name` text NOT NULL,
 					  `sufix` text NOT NULL,
-					  PRIMARY KEY (`id`)
+					  PRIMARY KEY (`id`),
+					  UNIQUE KEY `id` (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
 		if($this->options['useGroups'] > 0){
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups{$table}` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
-						  `link` text NOT NULL,
+						  `alias` text NOT NULL,
 						  `parent` int(11),
 						  `position` int(11) NOT NULL,
 						  `photo` int(11) NOT NULL,
 						  `active` tinyint(1) NOT NULL,
-						  `user` int(11) NOT NULL,
-						  `date` int(11) NOT NULL,
+						  `author_add` int(11) NOT NULL,
+						  `date_add` int(11) NOT NULL,
+						  `author_edit` int(11) NOT NULL,
+						  `date_edit` int(11) NOT NULL,
 						  PRIMARY KEY (`id`),
 						  UNIQUE KEY `id` (`id`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
@@ -126,7 +149,7 @@ class install{
 						(3, 'red', 1, 3);";
 		$this->db->executeQuery($query);
 
-		$query = "CREATE TABLE IF NOT EXISTS `s_shopshowcase_availability_name` (
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_availability_name` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `availability` int(11) NOT NULL,
 					  `language` varchar(2) NOT NULL,
@@ -135,28 +158,14 @@ class install{
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;";
 		$this->db->executeQuery($query);
 		
-		$query = " INSERT INTO `s_shopshowcase_availability_name` (`id`, `availability`, `language`, `name`) VALUES
+		$query = " INSERT INTO `{$this->table_service}_availability_name` (`id`, `availability`, `language`, `name`) VALUES
 						(1, 1, '', 'В наявності'),
 						(2, 2, '', 'Очікується'),
 						(3, 3, '', 'Немає');";
 		$this->db->executeQuery($query);
 
 		if($this->options['resize'] > 0){
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_photo_size` (
-					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `alias` int(11) NOT NULL,
-					  `active` tinyint(1) NOT NULL,
-					  `name` text NOT NULL,
-					  `prefix` varchar(2) NOT NULL,
-					  `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
-					  `height` int(11) NOT NULL,
-					  `width` int(11) NOT NULL,
-					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
-					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
-			$this->db->executeQuery($query);
-
-			$query = "INSERT INTO `{$this->table_service}_photo_size` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
+			$query = "INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
 												 ( NULL, {$alias}, 1, 'Оригінал', '', 1, 1500, 1500),
 												 ( NULL, {$alias}, 1, 'Preview', 's', 2, 200, 200);";
 			$this->db->executeQuery($query);
@@ -173,29 +182,32 @@ class install{
 		return true;
 	}
 
+	public function alias_delete($alias = 0, $table = '')
+	{
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_products{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_product_photos{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_group_options{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_product_options{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_options_name{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_groups{$table}");
+		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_product_group{$table}");
+		if($alias > 0) @$this->db->deleteRow('wl_images_sizes', $alias, 'alias');
+
+		$path = IMG_PATH.$this->options['folder'];
+		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+		if(is_dir($path)) $this->removeDirectory($path);
+
+		return true;
+	}
+
 	public function setOption($option, $value, $table = '')
 	{
 		$this->options[$option] = $value;
 
-		if ($option == 'resize' AND $value > 0) {
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_photo_size` (
-					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `alias` int(11) NOT NULL,
-					  `active` tinyint(1) NOT NULL,
-					  `name` text NOT NULL,
-					  `prefix` varchar(2) NOT NULL,
-					  `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
-					  `height` int(11) NOT NULL,
-					  `width` int(11) NOT NULL,
-					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
-					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
-			$this->db->executeQuery($query);
-		}
 		if ($option == 'useGroups' AND $value > 0) {
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups{$table}` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
-						  `link` text NOT NULL,
+						  `alias` text NOT NULL,
 						  `parent` int(11),
 						  `position` int(11) NOT NULL,
 						  `photo` int(11) NOT NULL,
@@ -226,34 +238,26 @@ class install{
 	}
 
 	function install_go(){
-
-		if($this->options['resize'] > 0){
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_photo_size` (
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_prices` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `alias` int(11) NOT NULL,
-					  `active` tinyint(1) NOT NULL,
-					  `name` text NOT NULL,
-					  `prefix` varchar(2) NOT NULL,
-					  `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
-					  `height` int(11) NOT NULL,
-					  `width` int(11) NOT NULL,
+					  `shop` int(11) NOT NULL,
+					  `price` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
-			$this->db->executeQuery($query);
-		}
-
+		$this->db->executeQuery($query);
 		return true;
 	}
 
-	public function uninstall($alias = 0)
+	public function uninstall($service = 0)
 	{
 		if(isset($_POST['content']) && $_POST['content'] == 1){
 			$path = IMG_PATH.$this->options['folder'];
 			if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
 			if(is_dir($path)) $this->removeDirectory($path);
 
-			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_photo_size");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability_name");
 		}
 	}
 

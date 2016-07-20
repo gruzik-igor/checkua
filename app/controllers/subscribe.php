@@ -11,24 +11,42 @@ class subscribe extends Controller {
         }
     }
 
-    function index(){
-		if(isset($_POST['email'])){
-			$this->load->library('data');
+    public function index(){
+		$this->load->library('validator');
+        $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
+
+        if($this->validator->run())
+        {
 			$this->load->model('subscribe_model');
-			if($this->subscribe_model->add_mail($this->data->post('email', true))){
-				$success = 'Дякуємо! Ваш email успішно доданий до бази!';
-				$this->load->view('page_view', array('view_file' => 'notify_view', 'success' => $success));
+			if($this->subscribe_model->add_mail($this->data->post('email', true))) {
+				$this->load->notify_view(array('success' => 'Дякуємо! Ваш email успішно доданий до бази!'));
 			} else {
-				$errors = 'Увага! Ваш email вже є у базі!';
-				$this->load->view('page_view', array('view_file' => 'notify_view', 'errors' => $errors));
+				$this->load->notify_view(array('success' => 'Увага! Ваш email вже є у базі!'));
 			}
-		} elseif($this->userCan('subscribe')){
-    		header("Location: ".SITE_URL.'admin/subscribe');
-    		exit();
     	} else {
-    		header("Location: ".SITE_URL);
-    		exit();
+    		$this->load->notify_view(array('errors' => 'Невірний формат email'));
     	}
+    }
+
+    public function add()
+    {
+        $result = array('add' => false, 'message' => 'Невірний формат email');
+
+        $this->load->library('validator');
+        $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
+
+        if($this->validator->run())
+        {
+            $this->load->model('subscribe_model');
+            if($this->subscribe_model->add_mail($this->data->post('email', true))) {
+                $result['message'] = 'Дякуємо! Ваш email успішно доданий до бази!';
+                $result['add'] = true;
+            } else {
+                $result['message'] = 'Увага! Ваш email вже є у базі!';
+            }
+        }
+
+        $this->load->json($result);
     }
 	
 }

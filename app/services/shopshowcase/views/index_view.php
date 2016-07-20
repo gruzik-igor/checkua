@@ -1,39 +1,72 @@
-<div id="liniy"></div>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/cube-portfolio/cubeportfolio/custom/custom-cubeportfolio.css">
+<link rel="stylesheet" href="<?=SITE_URL?>assets/cube-portfolio/cubeportfolio/css/cubeportfolio.min.css">
+<!--=== Breadcrumbs v3 ===-->
+<div class="breadcrumbs-v3 img-v1">
+    <div class="container text-center">
+        <p><?=$this->text('Portfolio', 0)?></p>
+        <h1><?=$this->text('Наші Проекти')?></h1>
+    </div>
+</div>
+<!--=== End Breadcrumbs v3 ===-->
 
-<div id="wrapper">
-    <div id="container">
-    	<div style="width:840px; background-color: rgb(254, 243, 200);">
+<?php if(isset($products)){ ?>
+<div class="cube-portfolio container margin-bottom-60">
+    <div class="content-xs">
+        <div id="filters-container" class="cbp-l-filters-text content-xs">
+            <div data-filter="*" class="cbp-filter-item-active cbp-filter-item"> Всі123 </div> 
+            <?php 
+            if(isset($products)){ 
+                $groups = array();
+                foreach ($products as $project) {
+                    if(!empty($project->group)){ 
+                        foreach ($project->group as $group) {
+                            $groups[$group->alias] = $group->name.' ';
+                        }
+                    }
+                }
+                foreach ($groups as $alias => $name) {
+            ?>
+                <div data-filter=".<?=$alias?>" class="cbp-filter-item"> <?=$name?> </div>
+            <?php } 
+            } ?>
+        </div>
 
-          	<div id="img_container" style="padding:20px; width:800px;">
-	            <div class="visible_txt">
-		            <ul> 
-                        <li><p id="p_text" ><?=$_SESSION['alias']->name?></p>
-                            
-                        </li>
-           
-					</ul>		
-				</div>
+        <div id="grid-container" class="cbp-l-grid-agency">
 
-             	   
- 				<div class="foto">
- 				    <img style="width:800px; height:350px;" src="<?=IMG_PATH?>tours/<?=(isset($group))?$group->link:'tours'?>.jpg">
-				</div>
-
-               	<div class="entry-content" style="padding:0px 20px ;">
-					<?=html_entity_decode($_SESSION['alias']->text)?>
-				</div><!-- .entry-content -->
-
-				<div id="content" role="main">	
-					<?php 
-						if($type == 'groups') require_once '_groups_view.php';
-						else require_once '_list_view.php';
-					?>
-		        </div><!-- #content###main## --> 
-		         <!-- <h3 style="font-family:'viva_viva';margin-left:350px;padding-bottom: 25px;"><a  href="<?=SITE_URL?>" style="color: #f1a655;">Повний список<span class="meta-nav">→</span></a></h3>    -->
-            </div>
-
-		</div>
-	</div><!-- #container## -->
-</div><!-- #wrapper-## -->
-
-<?php include "app/views/@commons/_left_column.php"; ?>
+            <?php
+                foreach($products as $article){
+                    $activeGroupsLink = '';
+                    $activeGroupsName = '';
+                    if(!empty($article->group)){ 
+                        foreach ($article->group as $group) {
+                            $activeGroupsLink .= $group->alias.' ';
+                            $activeGroupsName .= $group->name.' ';
+                        }
+                    }
+            ?>
+                    <div class="cbp-item <?=$activeGroupsLink?>">
+                        <div class="cbp-caption" style="border: 2px solid white;margin-top:2px">
+                            <div class="cbp-caption-defaultWrap">
+                                <img src="<?=IMG_PATH.$article->b_photo?>" alt="">
+                            </div>
+                            <div class="cbp-caption-activeWrap">
+                                <div class="cbp-l-caption-alignCenter">
+                                    <div class="cbp-l-caption-body">                            
+                                        <ul class="link-captions">
+                                            <li><a href="<?=SITE_URL.$article->link?>"><i class="rounded-x fa fa-link"></i></a></li>
+                                        </ul>
+                                        <div class="cbp-l-grid-agency-title"><?=$article->name?></div>
+                                        <div class="cbp-l-grid-agency-desc"><?=$activeGroupsName?></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+            <?php } ?>
+        </div>
+    </div>
+</div>
+<?php 
+    $_SESSION['alias']->js_plugins[] = 'assets/cube-portfolio/cubeportfolio/js/jquery.cubeportfolio.min.js';
+    $_SESSION['alias']->js_load[] = 'assets/cube-portfolio/cubeportfolio/cube-portfolio-2.js';
+} ?>

@@ -4,7 +4,7 @@ class wl_Auth_model {
 
     function authByCookies(){
         $auth_id = $this->db->sanitizeString($_COOKIE['auth_id']);
-        $this->db->executeQuery("SELECT `id`, `name`, `email`, `type`, `status` FROM `wl_users` WHERE `auth_id` = '{$auth_id}' && status = 2");
+        $this->db->executeQuery("SELECT `id`, `name`, `email`, `type`, `status` FROM `wl_users` WHERE `auth_id` = '{$auth_id}'");
         if($this->db->numRows() == 1){
             $user = $this->db->getRows();
             $_SESSION['user']->id = $user->id;

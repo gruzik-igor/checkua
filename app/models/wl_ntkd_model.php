@@ -44,6 +44,7 @@ class wl_ntkd_model {
 			$_SESSION['alias']->keywords = $ntkd->keywords;
 			$_SESSION['alias']->description = $ntkd->description;
 			$_SESSION['alias']->text = $ntkd->text;
+			$_SESSION['alias']->list = $ntkd->list;
 
 			return $ntkd;
 		} else {
@@ -57,6 +58,7 @@ class wl_ntkd_model {
 					$_SESSION['alias']->keywords = $ntkd->keywords;
 					$_SESSION['alias']->description = $ntkd->description;
 					$_SESSION['alias']->text = $ntkd->text;
+					$_SESSION['alias']->list = $ntkd->list;
 
 					return $ntkd;
 				} else {
@@ -70,6 +72,7 @@ class wl_ntkd_model {
 						$_SESSION['alias']->keywords = $ntkd->keywords;
 						$_SESSION['alias']->description = $ntkd->description;
 						$_SESSION['alias']->text = $ntkd->text;
+						$_SESSION['alias']->list = $ntkd->list;
 
 						return $ntkd;
 					}
@@ -80,6 +83,7 @@ class wl_ntkd_model {
 				$_SESSION['alias']->keywords = '';
 				$_SESSION['alias']->description = '';
 				$_SESSION['alias']->text = '';
+				$_SESSION['alias']->list = '';
 			}
 		}
 		return null;

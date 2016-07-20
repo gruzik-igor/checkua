@@ -1,0 +1,111 @@
+Service "forum 2.3"
+for WhiteLion 1.0
+
+Author: Ostap Matskiv
+Date 2.3   : 05.12.2015
+Date 2.2   : 01.12.2015
+Date 2.1   : 18.11.2015
+Date 2.0   : 12.11.2015
+Date 1.0   : 15.05.2014
+
+Description: Бібліотека статей із підтримкою категорій. Мультимовна. Автовиправлення адрес (лінків) товарів.
+Options:
+	useGroups	(0, 1)		наявність категорій в яких можуть знаходитися товари
+	ArticleMultiGroup	(0, 1) один товар більше ніж в одній категорії
+	idExplodeLink (символ)	розділювач між id та продовженням адреси статті ('-')
+	resize		(0, 1)		при заливанні фото на сервер здійсювати створення мініатюр, зміну розмірів
+	folder		(текст)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми
+
+Path photos after uploading:
+	IMG_PATH / folder / id_article / (*) photo_name . *
+	IMG_PATH / folder / groups / (*) id_group . jpg
+
+SEO (name, title, keywords, description) for albums use wl_ntkd (content: id_article, content: -id_group)
+
+Tables:
+	s_shopshowcase_articles			перелік товарів
+		`id` int(11) AUTO_INCREMENT,
+		`alias` text,		кінцева адреса товару (включно з ід товару)
+		`group` int(11)		ід групи товару
+		`price` int(11)		ціна товару
+		`position` int(11)	позиція у списку
+		`photo` text,		назва головного фото (для списку)
+		`active` tinyint(1),поточний стан товару (0 - відключено, 1 - активний)
+		`user` int(11),		хто додав
+		`date_add` int(11)		дата додачі (The Unix Epoch)
+		`date_edit` int(11)	дата останнього редагування (The Unix Epoch)
+	s_shopshowcase_article_photos
+		`id` int(11) AUTO_INCREMENT,
+		`article` int(11) 	ід товару
+		`name` text 		назва фото (у файловій системі)
+		`date` int(11) 		дата додачі (The Unix Epoch)
+		`user` int(11) 		хто додав
+		`title` text 		назва фотографії для відображення (СЕО)
+		`main` int(11) 		головне фото (по найвищому значенню)
+
+	if options['useGroups'] > 0
+	s_shopshowcase_groups 			перелік груп товарів
+		`id` int(11) AUTO_INCREMENT,
+		`alias` text,		кінцева адреса групи
+		`parent` int(11)	батьківська група
+		`position` int(11)	позиція групи
+		`photo` int(11),	наявність фото: 0 - ні, ід - номер фото
+		`active` tinyint(1),поточний стан (0 - відключено, 1 - активний)
+		`user` int(11),		хто додав
+		`date` int(11)		дата додачі (The Unix Epoch)
+
+	if options['ArticleMultiGroup'] > 0
+	s_shopshowcase_article_group 	для МУЛЬТИТОВАРГРУПА. Один товар - декілька груп
+		`article` int(11)	ід товару
+		`group` int(11)		ід групи
+
+Public links:
+	/index() - main page, list of active groups or articles sorted by `position`
+	/index()/../id - link - detal info about article
+	/__get_Search()				повертає об'єкт пошуку
+	/__get_Articles()			виводить список активних товарів
+	/__get_Groups()				повертає список активних груп
+
+
+
+Private links (admin access):
+	/index() - manage of article or group
+	/all - list of all articles sorted by `position`
+	/add - form add article
+	/edit($id) (private) - form edit article by id article
+	/groups - list all groups
+	/add_group - form to add new group
+	/edit_group(id) (private) - form to edit group
+	/photo_add - upload and add_save photo
+	/photo_save - save title, main_photo info
+	/photo_delete - delete photo
+
+	/save - procedure to save or creating new article
+	/delete - procedure to delete article
+	/changeposition - procedure to change article position in list
+	/changeGroup (ajax) - procedure to set new article group
+	/save_group - procedure to save or creating new group
+	/delete_group - procedure to delete group (+ with articles)
+	/change_group_position - procedure to change group position in list
+	/savephoto (private) - function which save and make resize photo
+	/deleteArticlesByGroup (private) - from DELETE_GROUP() to delete all articles by group and subgroups
+
+
+Versions:
+	1.0 	Розробка сервісу forum 1.0.
+
+	2.0		Основу сервісу взято із сервісу ShopShowCase 2.0.
+
+	2.1		Додано адреси мініатюр зображень то статей згідно wl_images_sizes. Формат $article->(*prefix)_photo.
+			Виправлено помилку із пошуком.
+			Змінено порядок сортування статей. Нові згори.
+
+	2.2		До налаштувань сервісу додано idExplodeLink (символ) - розділювач між id та продовженням адреси статті ('-').
+			Додано адреси мініатюр зображень то груп згідно wl_images_sizes. Формат $group->(*prefix)_photo.
+			Виправлено помилку коли головний аліас складається більше однієї частини.
+			Змінено порядок вкладок при редагуванні статті на текст по замовчуванню.
+
+	2.3		Виправлення у панелі керування відносно одномовної версії сайту.
+			Виправлено паддінгацію.
+			Додано повні адреси фотографій статті до списку і детально.
+			Додано відео до списку статтей.

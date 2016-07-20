@@ -9,7 +9,7 @@ class wl_services_model{
 
 	public function loadService($service)
 	{
-		$this->db->executeQuery("SELECT `id`, `name`, `table` FROM `wl_services` WHERE `name` = '{$service}' AND `active` = 1");
+		$this->db->executeQuery("SELECT `id`, `name`, `table` FROM `wl_services` WHERE `id` = '{$service}' AND `active` = 1");
 		if($this->db->numRows() == 1){
 			$service = $this->db->getRows();
 			$_SESSION['alias']->service = $service->name;

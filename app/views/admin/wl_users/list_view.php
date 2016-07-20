@@ -1,46 +1,46 @@
-<?php
+<!-- begin row -->
+<div class="row">
+    <!-- begin col-12 -->
+    <div class="col-md-12">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+                <div class="panel-heading-btn">
+                	<a href="<?=SITE_URL?>admin/wl_users/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати користувача</a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                    <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
+                </div>
+                <h4 class="panel-title">Список всіх користувачів</h4>
+            </div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
+                        <thead>
+                            <tr>
+                                <th width="100px" nowrap>ID</th>
+                                <th >Email</th>
+                                <th >Ім'я</th>
+                                <th >Тип користувача</th>
+                                <th>Статус</th>
+                                <th>Дата реєстрації</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- end col-12 -->
+</div>
+<!-- end row -->
 
-	$wl_users = $this->db->getAllData('wl_users');
-	
+<?php 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/jquery.dataTables.js';  
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colReorder.js'; 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colVis.js'; 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.responsive.js'; 
+  $_SESSION['alias']->js_load[] = 'js/admin/table-users.js'; 
+  $_SESSION['alias']->js_init[] = 'TableManageCombine.init();'; 
 ?>
-<a href="<?=SITE_URL?>admin/wl_users/add" style="float: right">Додати користувача</a>
-<h1>Список користувачів:</h1>
-<table cellspacing="0">
-	<tr class="top">
-		<th>id</th>
-		<th>email</th>
-		<th>name</th>
-		<th>type</th>
-		<th>status</th>
-		<th>active</th>
-		<th>registered</th>
-	</tr>
-	<?php if($wl_users) foreach ($wl_users as $user) { ?>
-		<tr>
-			<td><?=$user->id?></td>
-			<td><a href="<?=SITE_URL.'admin/wl_users/'.$user->email?>"><?=$user->email?></a></td>
-			<td><?=$user->name?></td>
-			<td><?=$user->type?></td>
-			<td><?=$user->status?></td>
-			<td><?=$user->active?></td>
-			<td><?=date("d.m.Y H:i", $user->registered)?></td>
-		</tr>
-	<?php } ?>
-</table>
-
-<!-- <br>
-<form action="<?=SITE_URL?>admin/wl_aliases/add" method="GET">
-	<span title="Адреса повинною бути унікальною!">Додати адресу*:</span>
-	<input type="text" name="alias" placeholder="alias" required>
-	<?php 
-		if(!empty($wl_services)){
-			echo "<select name='service' required>";
-			echo "<option value='0'>відсутній</option>";
-			foreach ($wl_services as $s) if($s->active == 1) {
-				echo "<option value='{$s->id}'>{$s->title}</option>";
-			}
-			echo "</select>";
-		} else echo "<input type='hidden' id='service' value='0'>";
-	?>
-	<button>Додати</button>
-</form> -->
+<link href="<?=SITE_URL?>assets/DataTables/css/data-table.css" rel="stylesheet" />

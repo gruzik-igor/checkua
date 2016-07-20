@@ -8,7 +8,7 @@
 <!-- 	<link rel="stylesheet" href="<?=SITE_URL?>style/reset.css"> -->
 	<link rel="stylesheet" href="<?=SITE_URL?>style/style-admin.css">
 
-	<script type="text/javascript" src="<?=SITE_URL?>assets/jquery-1.8.3.js"></script>
+	<script type="text/javascript" src="<?=SITE_URL?>assets/jquery-1.11.0.min.js"></script>
 </head>
 <body>
 <div class="container">

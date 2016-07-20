@@ -1,5 +1,9 @@
 <?php
 
+//--- CMS White Lion 1.0 ---//
+//-- Installation package --//
+
+define('DIRSEP', DIRECTORY_SEPARATOR);
 $uri = explode("/", $_SERVER['REQUEST_URI']);
 require_once("step0".DIRSEP."step0.php");
 

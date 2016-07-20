@@ -1,9 +1,7 @@
-<a href="<?=SITE_URL?>admin/wl_ntkd">До всіх ссилок сайту</a>
-<?php if($this->data->uri(2) != ''){ ?>
-	<a href="<?=SITE_URL?>admin/wl_ntkd/<?=$this->data->uri(2)?>">До всіх ссилок розділу</a>
-<?php } ?>
-
+<div class="row">
+    <div class="col-md-12">
 <?php
+
 	$name = '';
 	if(!isset($ntkd)){
 		$this->load->model('wl_ntkd_model');
@@ -27,13 +25,6 @@
 					$data[$n->language] = $n;
 					if($n->language == $_SESSION['language']) $name = $n->name;
 				}
-			} else {
-				if($ntkd->language == ''){
-					$this->db->updateRow('wl_ntkd', array('language' => $_SESSION['language']), $ntkd->id);
-					$ntkd->language = $_SESSION['language'];
-				}
-				$name = $ntkd->name;
-				$data[$_SESSION['language']] = $ntkd;
 			}
 			
 			if(count($data) != count($_SESSION['all_languages'])){
@@ -51,73 +42,81 @@
 		}
 	}
 
-?>
 
-<h1><?=$name?></h1>
-<?php
-
-if($_SESSION['language']){
-	foreach ($_SESSION['all_languages'] as $lang) { ?>
-		<center><h2><?=$lang?></h2></center>
-		<table>
-			<tr>
-				<td>name:</td>
-				<td><input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>"></td>
-			</tr>
-			<tr>
-				<td>title</td>
-				<td><input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>"></td>
-			</tr>
-			<tr>
-				<td>keywords</td>
-				<td><input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>"></td>
-			</tr>
-		</table>
-		description<br>
-		<textarea onChange="save('description', this, '<?=$lang?>')"><?=$ntkd[$lang]->description?></textarea>
+	if($_SESSION['language']){ ?>
+		<ul class="nav nav-tabs">
+		    <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
+		    	<li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
+	        <?php } ?>
+    	</ul>
+    	<div class="tab-content">
+			<?php foreach ($_SESSION['all_languages'] as $lang) { ?>
+				<div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="language-tab-<?=$lang?>">
+					<label class="col-md-2 control-label">Назва сторінки:</label>
+					<div class="col-md-4">
+                        <input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>" class="form-control">
+                    </div>
+					<button type="button" class="btn btn-info" onclick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description</button>
+					<div class="row m-t-5" id="tkd-<?=$lang?>" style="display:none">
+    					<div class="col-md-12">
+							<label class="col-md-2 control-label">title:</label>
+							<div class="col-md-4">
+		                        <input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>" class="form-control">
+		                    </div>
+		                    <label class="col-md-2 control-label">keywords:</label>
+							<div class="col-md-4">
+		                        <input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>" class="form-control">
+		                    </div>
+		                    <label class="col-md-2 control-label m-t-5">description:</label>
+							<div class="col-md-10 m-t-5">
+		                        <textarea onChange="save('description', this, '<?=$lang?>')"><?=$ntkd[$lang]->description?></textarea>
+		                    </div>
+    					</div>
+    				</div>
+					
+					<br>
+					<label class="control-label">Вміст сторінки:</label><br>
+					<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
+					<button class="btn btn-success m-t-5" onClick="saveText('<?=$lang?>')"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+				</div>
+			<?php } ?>
+		</div>
+	<?php } else { ?>
+		<label class="col-md-2 control-label">Назва сторінки:</label>
+		<div class="col-md-4">
+            <input type="text" onChange="save('name', this)" value="<?=$ntkd->name?>" class="form-control">
+        </div>
+		<button type="button" class="btn btn-info" onclick="showEditTKD('lang')">Редагувати title, keywords, description</button>
+		<div class="row m-t-5" id="tkd-lang" style="display:none">
+			<div class="col-md-12">
+				<label class="col-md-2 control-label">title:</label>
+				<div class="col-md-4">
+                    <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" class="form-control">
+                </div>
+                <label class="col-md-2 control-label">keywords:</label>
+				<div class="col-md-4">
+                    <input type="text" onChange="save('keywords', this)" value="<?=$ntkd->keywords?>" class="form-control">
+                </div>
+                <label class="col-md-2 control-label m-t-5">description:</label>
+				<div class="col-md-10 m-t-5">
+                    <textarea onChange="save('description', this)"><?=$ntkd->description?></textarea>
+                </div>
+			</div>
+		</div>
+		
 		<br>
-		text<br>
-		<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
-		<button onClick="saveText('<?=$lang?>')">Зберегти текст</button>
-	<? }
-} else { ?>
-	<table>
-		<tr>
-			<td>name:</td>
-			<td><input type="text" onChange="save('name', this)" value="<?=$ntkd->name?>"></td>
-		</tr>
-		<tr>
-			<td>title</td>
-			<td><input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>"></td>
-		</tr>
-		<tr>
-			<td>keywords</td>
-			<td><input type="text" onChange="save('keywords', this)" value="<?=$ntkd->keywords?>"></td>
-		</tr>
-	</table>
-	description<br>
-	<textarea onChange="save('description', this)"><?=$ntkd->description?></textarea>
-	<br>
-	text<br>
-	<textarea class="t-big" onChange="save('text', this)" id="editor"><?=$ntkd->text?></textarea>
-	<button onClick="saveText(false)">Зберегти текст</button>
-<?php }
+		<label class="control-label">Вміст сторінки:</label><br>
+		<textarea class="t-big" onChange="save('text', this)" id="editor"><?=$ntkd->text?></textarea>
+		<button class="btn btn-success m-t-5" onClick="saveText(false)"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+	<?php } ?>
 
-?>
-
-<br>
-<br>
-<br>
-<div class="clear"></div>
-
-<div id="saveing">
-	<img src="<?=SITE_URL?>style/images/icon-loading.gif">
+	</div>
 </div>
 
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckeditor/ckeditor.js"></script>
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
-	<?php if($_SESSION['all_languages']) foreach($_SESSION['all_languages'] as $lng) echo "CKEDITOR.replace( 'editor-{$lng}' ); "; else echo "CKEDITOR.replace( 'editor' ); "; ?>
+	<?php if($_SESSION['language']) foreach($_SESSION['all_languages'] as $lng) echo "CKEDITOR.replace( 'editor-{$lng}' ); "; else echo "CKEDITOR.replace( 'editor' ); "; ?>
 		CKFinder.setupCKEditor( null, {
 		basePath : '<?=SITE_URL?>assets/ckfinder/',
 		filebrowserBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html',
@@ -132,7 +131,6 @@ if($_SESSION['language']){
 <script type="text/javascript">
 	var data;
 	function save (field, e, lang) {
-	    $('#saveing').css("display", "block");
 	    var value = '';
 	    if(e != false) value = e.value;
 	    else value = data;
@@ -149,17 +147,18 @@ if($_SESSION['language']){
             },
             success: function(res){
                 if(res['result'] == false){
-                    alert(res['error']);
+                    $.gritter.add({title:"Помилка!",text:res['error']});
+                } else {
+                	language = '';
+                	if(lang) language = lang;
+                	$.gritter.add({title:field+' '+language,text:"Дані успішно збережено!"});
                 }
-                $('#saveing').css("display", "none");
             },
             error: function(){
-                alert("Помилка! Спробуйте ще раз!");
-                $('#saveing').css("display", "none");
+                $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
             },
             timeout: function(){
-                alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
-                $('#saveing').css("display", "none");
+            	$.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
             }
         });
 	}
@@ -171,23 +170,21 @@ if($_SESSION['language']){
 		}
 		save('text', false, lang);
 	}
+	function showEditTKD (lang) {
+		if($('#tkd-'+lang).is(":hidden")){
+			$('#tkd-'+lang).slideDown("slow");
+	    } else {
+			$('#tkd-'+lang).slideUp("fast");
+	    }
+	}
 </script>
 
 <style type="text/css">
-	input[type="text"]{
-		width: 715px;
-	}
 	textarea{
 		width: 100%;
 		height: 100px;
 	}
 	textarea.t-big{
 		height: 450px;
-	}
-	#saveing {
-		left: 40%;
-		top: 35%;
-		position: fixed;
-		display: none;
 	}
 </style>

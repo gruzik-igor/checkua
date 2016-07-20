@@ -9,6 +9,7 @@
  * Версія 1.0.3 (16.10.2013 - додано delete(), 25.10.2013 - додано підтримку роботи з розширеннями png i gif)
  * Версія 1.0.3+ (26.10.2013 - додано getExtension(), виправлено preview(), resize(), save())
  * Версія 1.0.4 (27.12.2013 - додано/виправлено у resize() правильне зменшення тільки по ширині зображення)
+ * Версія 1.0.5 (27.11.2015 - виправлено помилку при додаванні фотографій за короткою адресою сайту)
  */
 
 class Image {
@@ -51,11 +52,11 @@ class Image {
 	 * $name - назва зображення (без розширення)
 	 * $extension - розширення зображення (по замовчуванню jpg)
      */
-    function loadImage($filepath, $name = '', $extension = 'jpg'){
+    function loadImage($filepath, $name = '', $extension = 'jpg', $checkFilePath = true){
 		
 		if(in_array($extension, $this->allowed_ext) == false) return false;
 
-		if(strlen($filepath) > strlen(SITE_URL)) $filepath = substr($filepath, strlen(SITE_URL));
+		if($checkFilePath && strlen($filepath) > strlen(SITE_URL)) $filepath = substr($filepath, strlen(SITE_URL));
         if($name != '') $fullpath = $filepath.$name.'.'.$extension;
         else $fullpath = $filepath;
 		
@@ -99,14 +100,12 @@ class Image {
     /*
      * Завантаження зображення зі сторони клієнта
 	 * $img_in - назва поля у POST запиті ($_FILES[$img_in])
-	 * $img_out - адреса папки куди слід відвантажити зображення (може включати абсолютний шлях серверу)
+	 * $img_out - адреса папки куди слід відвантажити зображення (шлях відносно кореня сайту)
 	 * $name - назва збереженого зображення. Якщо не задано, то оригінальна назва зображення
      */
-    function upload($img_in, $img_out, $name = ''){
-		
-        if(strlen($img_out) > strlen(SITE_URL)) $img_out = substr($img_out, strlen(SITE_URL));
-		
-        if(is_uploaded_file($_FILES[$img_in]['tmp_name'])){
+    function upload($img_in, $img_out, $name = '')
+    {
+		if(is_uploaded_file($_FILES[$img_in]['tmp_name'])){
             $pos = strrpos($_FILES[$img_in]['name'], '.');
             if($pos){
                 $name_length = strlen($_FILES[$img_in]['name']) - $pos;
@@ -116,11 +115,10 @@ class Image {
                         $size = $_FILES[$img_in]['size'] / 1024;
                         if($size <= $this->max_size){
 							if($this->extension) $ext = $this->extension;
-							if(strlen($img_out) > strlen(SITE_URL)) $img_out = substr($img_out, strlen(SITE_URL));
 							if($name == '') $name = stripslashes(substr($_FILES[$img_in]['name'], 0, $pos - 1));
                             $path = $img_out.$name.'.'.$ext;
                             move_uploaded_file($_FILES[$img_in]['tmp_name'], $path);
-                            $this->loadImage($img_out, $name, $ext);
+                            $this->loadImage($img_out, $name, $ext, false);
                         } else {
                             array_push($this->errors, 'Розмір файлу не повинен перевищувати '.$this->max_size);
                             return false;
@@ -144,13 +142,11 @@ class Image {
      * Обробка масового (групового) завантаження зображень зі сторони клієнта
 	 * $img_in - назва поля у POST запиті ($_FILES[$img_in])
 	 * $i - номер елементу у масиві $_FILES[$img_in]['tmp_name'][$i]
-	 * $img_out - адреса папки куди слід відвантажити зображення (може включати абсолютний шлях серверу)
+	 * $img_out - адреса папки куди слід відвантажити зображення (шлях відносно кореня сайту)
 	 * $name - назва збереженого зображення. Якщо не задано, то оригінальна назва зображення
      */
-	function uploadArray($img_in, $i, $img_out, $name = ''){
-        
-		if(strlen($img_out) > strlen(SITE_URL)) $img_out = substr($img_out, strlen(SITE_URL));
-		
+	function uploadArray($img_in, $i, $img_out, $name = '')
+	{
         if(is_uploaded_file($_FILES[$img_in]['tmp_name'][$i])){
             $pos = strrpos($_FILES[$img_in]['name'][$i], '.');
             if($pos){
@@ -161,11 +157,10 @@ class Image {
                         $size = $_FILES[$img_in]['size'][$i] / 1024;
                         if($size <= $this->max_size){
 							if($this->extension) $ext = $this->extension;
-							if(strlen($img_out) > strlen(SITE_URL)) $img_out = substr($img_out, strlen(SITE_URL));
 							if($name == '') $name = stripslashes(substr($_FILES[$img_in]['name'], 0, $pos - 1));
                             $path = $img_out.$name.'.'.$ext;
                             move_uploaded_file($_FILES[$img_in]['tmp_name'][$i], $path);
-                            $this->loadImage($img_out, $name, $ext);
+                            $this->loadImage($img_out, $name, $ext, false);
                         } else {
                             array_push($this->errors, 'Розмір файлу не повинен перевищувати '.$this->max_size);
                             return false;

@@ -4,6 +4,8 @@ class wl_services extends Controller {
 				
     function _remap($method)
     {
+        $_SESSION['alias']->name = 'Сервіси';
+        $_SESSION['alias']->breadcrumb = array('Сервіси' => '');
         if (method_exists($this, $method) && $method != 'library' && $method != 'db') {
             $this->$method();
         } else {
@@ -20,6 +22,8 @@ class wl_services extends Controller {
                 if($service){
                     $aliases = $this->db->getAllDataByFieldInArray('wl_aliases', $service->id, 'service');
                     $options = $this->db->getAllDataByFieldInArray('wl_options', $service->id, 'service');
+                    $_SESSION['alias']->name = 'Сервіс "'.$service->title.'"';
+                    $_SESSION['alias']->breadcrumb = array('Сервіси' => 'admin/wl_services', $service->title => '');
                     $this->load->admin_view('wl_services/options_view', array('service' => $service, 'aliases' => $aliases,'options' => $options));
                 } else {
                     $this->load->page_404();
@@ -45,7 +49,7 @@ class wl_services extends Controller {
                 if(isset($install->admin_ico)) $admin_ico = $install->admin_ico;
 
                 $query = "INSERT INTO `wl_services` (`id`, `name`, `title`, `description`, `table`, `multi_alias`, `version`, `admin_ico`, `active`) 
-                                 VALUES (NULL, '{$install->name}', '{$install->title}', '{$install->description}', '{$install->table_service}', '{$multi_alias}', '{$install->version}', '{$admin_ico}' '1');";
+                                 VALUES (NULL, '{$install->name}', '{$install->title}', '{$install->description}', '{$install->table_service}', '{$multi_alias}', '{$install->version}', '{$admin_ico}', '1');";
                 $this->db->executeQuery($query);
                 $id = $this->db->getLastInsertedId();
 
@@ -63,7 +67,9 @@ class wl_services extends Controller {
                 $install->service = $this->db->getAllDataById('wl_services', $id);
                 
                 $install->install_go();
-                
+
+                $this->db->register('service_install', $id.'. '.$install->name.' ('.$install->version.')');
+
                 header("Location: ".SITE_URL."admin/wl_aliases/add?service=".$id);
                 exit;
             }
@@ -74,40 +80,62 @@ class wl_services extends Controller {
     // У параметрі передаються дані про видалення контенту, що був зібраний.
     public function uninstall()
     {
-        $res = array('result' => false, 'error' => "Помилка! Дані не збережено!");
-        if($_SESSION['user']->admin == 1 && isset($_POST['id']) && is_numeric($_POST['id'])){
-            $service = $this->db->getAllDataById('wl_services', $_POST['id']);
-            if($service){
-                $aliases = $this->db->getAllDataByFieldInArray('wl_aliases', $service->id, 'service');
-                $this->db->deleteRow('wl_aliases', $service->id, 'service');
-                $this->db->deleteRow('wl_options', $service->id, 'service');
-                $this->db->deleteRow('wl_services', $service->id);
-                if($service->table != '') $this->db->executeQuery("DROP TABLE IF EXISTS {$service->table}");
-                $content = false;
-                if(isset($_POST['content']) && $_POST['content'] == 1) $content = true;
-                if($content && !empty($aliases)){
-                    foreach ($aliases as $alias) {
-                        if($alias->table != '') $this->db->executeQuery("DROP TABLE IF EXISTS {$alias->table}");
-                        $this->db->deleteRow('wl_ntkd', $alias->id, 'alias');
+        if($_SESSION['user']->admin == 1 && isset($_POST['admin-password']) && isset($_POST['id'])){
+            $admin = $this->db->getAllDataById('wl_users', $_SESSION['user']->id);
+            $password = md5($_POST['admin-password']);
+            $password = sha1($_SESSION['user']->email . $password . SYS_PASSWORD . $_SESSION['user']->id);
+            if($password == $admin->password){
+                $service = $this->db->getAllDataById('wl_services', $_POST['id']);
+                if($service){
+                    $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
+                    if(file_exists($path)){
+                        require_once($path);
+                        $install = new install();
+                        $install->db = $this->db;
+
+                        $content = false;
+                        if(isset($_POST['content']) && $_POST['content'] == 1) $content = true;
+                        if($content){
+                            $aliases = $this->db->getAllDataByFieldInArray('wl_aliases', $service->id, 'service');
+                            if(!empty($aliases)){
+                                foreach ($aliases as $alias) {
+                                    $additionally = "{$alias->id}. {$alias->alias}. ";
+                                    $additionally .= $service->name .' ('.$service->id.')';
+
+                                    if(isset($install->options['folder'])){
+                                        $where = array('service' => $alias->service, 'alias' => $alias->id, 'name' => 'folder');
+                                        $option = $this->db->getAllDataById('wl_options', $where);
+                                        if($option){
+                                            $install->options['folder'] = $option->value;
+                                        }
+                                    }
+                                    if(method_exists("install", "alias_delete")) $install->alias_delete($alias->id, $alias->table);
+      
+                                    $this->db->deleteRow('wl_ntkd', $alias->id, 'alias');
+                                    $this->db->deleteRow('wl_images_sizes', $alias->id, 'alias');
+                                    $this->db->register('alias_delete', $additionally);
+                                }
+                                $this->db->deleteRow('wl_aliases', $service->id, 'service');
+                            }
+                            $this->db->deleteRow('wl_options', $service->id, 'service');
+                        }
+
+                        if(method_exists("install", "uninstall")) $install->uninstall($service->id);
                     }
+
+                    $this->db->deleteRow('wl_services', $service->id);
+                    $this->db->register('service_uninstall', $service->id.'. '.$service->name.' ('.$service->version.')');
+
+                    header("Location: ".SITE_URL."admin/wl_services");
+                    exit;
                 }
-                $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
-                if(file_exists($path)){
-                    require_once($path);
-                    $install = new install();
-                    $install->db = $this->db;
-                    if(method_exists("install", "uninstall")) $install->uninstall();
-                }
-                $res['result'] = true;
+            } else {
+                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
             }
         }
-        if(isset($_POST['json']) && $_POST['json']){
-            header('Content-type: application/json');
-            echo json_encode($res);
-        } else {
-            header("Location: ".SITE_URL."wl_services");
-            exit;
-        }
+
+        header("Location: ".$_SERVER['HTTP_REFERER']);
+        exit();
     }
 
     public function saveOption()
@@ -120,7 +148,7 @@ class wl_services extends Controller {
             header('Content-type: application/json');
             echo json_encode($res);
         } else {
-            header("Location: ".SITE_URL."wl_services");
+            header("Location: ".SITE_URL."admin/wl_services");
             exit;
         }
     }

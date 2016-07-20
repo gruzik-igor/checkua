@@ -12,9 +12,11 @@ class Loader {
 	 * Якшо в конфігу задана секція "autoload" то завантажуємо ці бібліотеки.
 	 * Якщо виклик із сервісу, то передається назва сервісу
 	 */
-	function __construct(){
-		if($this->config('autoload')){
-			$this->autoload($this->config('autoload'));
+	function __construct()
+	{
+		if($this->config('autoload'))
+		{
+			$this->autoload( $this->config('autoload') );
 		}
 	}
 	
@@ -25,11 +27,15 @@ class Loader {
 	 *
 	 * @return значення
 	 */
-	function config($key){
+	function config($key)
+	{
 		require APP_PATH.'config.php';
-		if(array_key_exists($key, $config)){
+		if(array_key_exists($key, $config))
+		{
 			return $config[$key];
-		} else {
+		}
+		else
+		{
 			return null;
 		}
 	}
@@ -39,12 +45,17 @@ class Loader {
 	 *
 	 * @params масив назв бібліотек
 	 */
-	function autoload($arr){
-		foreach($arr as $class){
+	function autoload($arr)
+	{
+		foreach($arr as $class)
+		{
 			$class = strtolower($class);
-			if($this->config($class)) {
+			if($this->config($class))
+			{
 				$this->$class = $this->register($class, $this->config($class));
-			} else {
+			}
+			else
+			{
 				$this->$class = $this->register($class);
 			}
 		}
@@ -57,33 +68,17 @@ class Loader {
 	 * @params $data параметри
 	 */	
 	function view($view, $data = null){
+		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data){
 			foreach($data as $key => $value){
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.$view.'.php';
-		if($_SESSION['alias']->service) $view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
-		if(file_exists($view_path)){
-			require $view_path;
+		if($_SESSION['alias']->service) {
+			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign == 2) $view_path = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view.'.php';
+			else $view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
 		}
-	}
-	
-	/**
-	 * Завантажуємо подання сервісу
-	 *
-	 * @params $service назва сервісу
-	 * @params $view назва подання
-	 * @params $data параметри
-	 */	
-	function service_view($service = null, $view, $data = null){
-		if(empty($service)) return null;
-		if($data){
-			foreach($data as $key => $value){
-				$$key = $value;
-			}
-		}
-		$view_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.'views'.DIRSEP.$view.'.php';
 		if(file_exists($view_path)){
 			require $view_path;
 		}
@@ -96,6 +91,7 @@ class Loader {
 	 * @params $data параметри
 	 */	
 	function page_view($view_file = false, $data = null){
+		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data){
 			foreach($data as $key => $value){
 				$$key = $value;
@@ -108,6 +104,7 @@ class Loader {
 		}		
 		if(file_exists($view_path)){
 			require $view_path;
+			exit();
 		}
 	}
 	
@@ -126,6 +123,7 @@ class Loader {
 		$view_file = 'notify_view';
 		if(file_exists($view_path)){
 			require $view_path;
+			exit();
 		}
 	}
 
@@ -141,15 +139,17 @@ class Loader {
 	 * @params $data параметри
 	 */	
 	function admin_view($view_file = false, $data = null){
+		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data){
 			foreach($data as $key => $value){
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.'admin/admin_view.php';
-		if($_SESSION['alias']->service && $view_file) $view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
+		if($_SESSION['alias']->service && $view_file) $view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.$view_file;
 		if(file_exists($view_path)){
 			require $view_path;
+			exit();
 		}
 	}
 	
@@ -159,12 +159,17 @@ class Loader {
 	 * @params $model назва моделі
 	 */	
 	function model($model){
+		if(isset($this->$model) && is_object($this->$model)) return true;
+
 		$model_path = APP_PATH.'models'.DIRSEP.$model.'.php';
 		if(file_exists($model_path)){
 			require_once $model_path;
 			$this->$model = new $model();
 			if(is_object($this->db)){
 				$this->$model->db = $this->db;
+			}
+			if(isset($this->data) && is_object($this->data)){
+				$this->$model->data = $this->data;
 			}
 		}
 	}
@@ -183,40 +188,140 @@ class Loader {
 				$this->$model = new $model();
 				if(is_object($this->db)){
 					$this->$model->db = $this->db;
+					$this->$model->data = $this->data;
 				}
 			}
 		}
 	}
 
 	/**
-	 * Завантажуємо моделі
+	 * Завантажуємо функцію у контролері сайту або контролері сервісу згідно назви сторінки
 	 *
-	 * @params $model назва моделі
+	 * @params $alias адреса
+	 * @params $method назва функції, яку викликаємо у контролері
+	 * @params $data дані, що передаємо функції
+	 * @params $admin позначка що відповідає за режим доступу та контролер панелі керування
 	 */	
-	function service($service, $method = '', $data = array()){
-		$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';
-		if(file_exists($model_path)){
+	function function_in_alias($alias, $method = '', $data = array(), $admin = false){
+		$rezult = NULL;
+		$old_alias = $_SESSION['alias']->id;
+		$this->library('db');
 
-			$old = $_SESSION['alias']->service;
-			if(isset($_SESSION['service'])) $old_service = clone $_SESSION['service'];
+		if(is_numeric($alias)) {
+			$alias = $this->db->getAllDataById('wl_aliases', $alias);
+		} else {
+			$alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
+		}
 
-			$this->model('wl_services_model');
-			$this->wl_services_model->loadService($service);
-			require_once $model_path;
-			if($method != ''){
-				$service = new $service();
-				if(is_callable(array($service, '_remap'))){
-					$service->_remap($method, $data);
-				} else if(is_callable(array($service, $method))) {
-					$service->$method($data);
-				}
-			} else {
-				$this->$service = new $service();
+		if(is_object($alias))
+		{
+			if($admin && !$this->userCan($alias->alias))
+			{
+				$this->page_404();
 			}
 
-			$_SESSION['alias']->service = $old;
-			if(isset($old_service)) $_SESSION['service'] = $old_service;
+			if(!isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
+			{
+				$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
+				if(isset($_SESSION['option'])) {
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
+				} else {
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
+				}
+				if(isset($_SESSION['service'])) {
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
+				} else {
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
+				}
+			}
+
+			if($admin == false)
+			{
+				if(isset($_SESSION['alias-cache'][$alias->id]))
+				{
+					if($alias->id != $_SESSION['alias']->id)
+					{
+						$_SESSION['alias'] = $_SESSION['alias-cache'][$alias->id]->alias;
+						$_SESSION['option'] = $_SESSION['alias-cache'][$alias->id]->options;
+						$_SESSION['service'] = $_SESSION['alias-cache'][$alias->id]->service;
+					}
+					
+					$service = $alias->alias;
+					if(isset($this->$service) && is_object($this->$service))
+					{
+						if(is_callable(array($this->$service, '_remap'))){
+							$rezult = $this->$service->_remap($method, $data);
+						} else if(is_callable(array($this->$service, $method))) {
+							$rezult = $this->$service->$method($data);
+						}
+					}
+				}
+				else
+				{
+					$_SESSION['alias'] = $alias;
+					$_SESSION['alias-cache'][$alias->id] = new stdClass();
+					$_SESSION['alias-cache'][$alias->id]->alias = clone $alias;
+					$_SESSION['alias-cache'][$alias->id]->options = null;
+					$_SESSION['alias-cache'][$alias->id]->service = null;
+				}
+			}
+
+			if($rezult === NULL)
+			{
+				if($alias->service > 0)
+				{
+					$this->model('wl_services_model');
+					if($this->wl_services_model->loadService($alias->service))
+					{
+						$service = $_SESSION['alias']->service;
+						$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';
+						if($admin)
+						{
+							$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.'admin.php';
+						}
+					}
+				} else {
+					$this->model('wl_alias_model');
+					$this->wl_alias_model->alias($alias->alias);
+					$service = $alias->alias;
+					$model_path = APP_PATH.'controllers'.DIRSEP.$service.'.php';
+					if($admin)
+					{
+						$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
+					}
+				}
+
+				if($admin == false)
+				{
+					$_SESSION['alias-cache'][$alias->id]->options = clone $_SESSION['option'];
+					$_SESSION['alias-cache'][$alias->id]->service = clone $_SESSION['service'];
+				}
+
+				if(file_exists($model_path))
+				{
+					require_once $model_path;
+					if($method != ''){
+						$controller = $service;
+						$service = new $service();
+						if(is_callable(array($service, '_remap'))){
+							$rezult = $service->_remap($method, $data);
+						} else if(is_callable(array($service, $method))) {
+							$rezult = $service->$method($data);
+						}
+						if($admin == false)
+						{
+							$this->$controller = clone $service;
+						}
+					}
+				}
+			}
+			
+			$_SESSION['alias'] = clone $_SESSION['alias-cache'][$old_alias]->alias;
+			$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;
+			$_SESSION['service'] = clone $_SESSION['alias-cache'][$old_alias]->service;
 		}
+		return $rezult;
 	}
 	
 	/**
@@ -233,6 +338,51 @@ class Loader {
 		} else {
 			$this->$class = $this->register($class);
 		}
+	}
+
+	/**
+	 * Здійснюємо перенаправлення на вказану адресу
+	 *
+	 * @params $link адреса перенаправлення. Якщо відсутня, то на сторінку звідки прийшов користувач
+	 * @params $use_SITE_URL чи використовувати префікс адреси сайту до адреси перенаправлення
+	 */
+	function redirect($link = '', $use_SITE_URL = true)
+	{
+		if($link == '' || $link[0] == '#')
+		{
+			if($_SERVER['HTTP_REFERER'])
+			{
+				$link = $_SERVER['HTTP_REFERER'] . $link;
+			}
+			else
+			{
+				$link = SITE_URL;
+			}
+		}
+		elseif($use_SITE_URL)
+		{
+			$link = SITE_URL . $link;
+		}
+		header ('HTTP/1.1 303 See Other');
+		header("Location: {$link}");
+		exit();
+	}
+
+	function json($value = '')
+	{
+		header('Content-type: application/json');
+		echo json_encode($value);
+		exit();
+	}
+
+	function text($word = '', $alias = -1)
+	{
+		if($_SESSION['language'] && $word != '')
+		{
+			$this->model('wl_language_model');
+			return $this->wl_language_model->get($word, $alias);
+		}
+		return $word;
 	}
 
 	/**

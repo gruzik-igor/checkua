@@ -23,31 +23,48 @@
 
 <?php
 
-if($_SESSION['language']){
-	foreach ($_SESSION['all_languages'] as $lang) { ?>
-		<center><h2><?=$lang?></h2></center>
-		<table>
-			<tr>
-				<td>name:</td>
-				<td><input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>"></td>
-			</tr>
-			<tr>
-				<td>title</td>
-				<td><input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>"></td>
-			</tr>
-			<tr>
-				<td>keywords</td>
-				<td><input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>"></td>
-			</tr>
-		</table>
-		description<br>
-		<textarea onChange="save('description', this, '<?=$lang?>')"><?=$ntkd[$lang]->description?></textarea>
-		<br>
-		text<br>
-		<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
-		<button onClick="saveText('<?=$lang?>')">Зберегти текст</button>
-	<? }
-} else { ?>
+if($_SESSION['language']){ ?>
+	<div id="tabs">
+	    <ul>
+		    <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
+	            <li><a href="#tab-<?=$lang?>"><?=$lang?></a></li>
+	        <?php } ?>
+    	</ul>
+		<?php foreach ($_SESSION['all_languages'] as $lang) { ?>
+			<div id="tab-<?=$lang?>">
+				<table>
+					<tr>
+						<td>name:</td>
+						<td><input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>"></td>
+					</tr>
+					<tr>
+						<td>title</td>
+						<td><input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>"></td>
+					</tr>
+					<tr>
+						<td>keywords</td>
+						<td><input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>"></td>
+					</tr>
+				</table>
+				description<br>
+				<textarea onChange="save('description', this, '<?=$lang?>')"><?=$ntkd[$lang]->description?></textarea>
+				<br>
+				text<br>
+				<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
+				<button onClick="saveText('<?=$lang?>')">Зберегти текст</button>
+			</div>
+		<?php } ?>
+	</div>
+
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.11.0/themes/smoothness/jquery-ui.css">
+	<script src="//code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+	<script>
+	    $(function() {
+	        $( "#tabs" ).tabs();
+	    });
+	</script>
+
+<?php } else { ?>
 	<table>
 		<tr>
 			<td>name:</td>

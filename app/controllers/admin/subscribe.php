@@ -44,9 +44,9 @@ class subscribe extends Controller {
 	
 	function makemail(){
 		$this->load->model('subscribe_model');
-		$mails = $this->subscribe_model->getAll();
-		if($this->sentMail() && $this->sent_emails != ''){
-			$mail_from = SYS_EMAIL;
+		$mails = $this->subscribe_model->getListActiveMail();
+		if($this->sentMail($mails) && $this->sent_emails != ''){
+			$mail_from = SITE_EMAIL;
 			if(isset($_POST['from']) && $_POST['from'] != '') $mail_from = $_POST['from'];
 			$success = 'Розсилку з '.$mail_from.' на наступні емейли '.$this->sent_emails.' розіслано успішно!';
 			$this->load->admin_view('subscribe/all_view', array('mails' => $mails, 'success' => $success));
@@ -56,9 +56,7 @@ class subscribe extends Controller {
 		}
 	}
 	
-	private function sentMail(){
-		$this->load->model('subscribe_model');
-		$mails = $this->subscribe_model->getListActiveMail();
+	private function sentMail($mails){
 		if($mails){
 			foreach($mails as $m){ 
 				if($m->email != ''){

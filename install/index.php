@@ -4,6 +4,22 @@
 //-- Installation package --//
 
 define('DIRSEP', DIRECTORY_SEPARATOR);
+define('SYS_PATH', getcwd() . DIRSEP.'system'.DIRSEP);
+define('APP_PATH', getcwd() . DIRSEP.'app'.DIRSEP);
+
+$localhost = $_SERVER['SERVER_NAME'];
+if($localhost)
+{
+	$uri = explode("/", $_SERVER['REQUEST_URI']);
+	if($uri[1] != '')
+	{
+		$LOCAL_SITE_URL = $uri[1]."/";
+	}
+}
+
+define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$LOCAL_SITE_URL);
+define('SITE_NAME', $_SERVER["SERVER_NAME"]);
+
 $uri = explode("/", $_SERVER['REQUEST_URI']);
 require_once("step0".DIRSEP."step0.php");
 

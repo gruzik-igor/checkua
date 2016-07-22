@@ -1,4 +1,4 @@
-<h1>1. Налаштування БД</h1>
+<h2 style="color:#fff">1. Налаштування БД</h2>
 <form action="<?=SITE_URL?>step1" method="POST">
 	<input type="hidden" name="step" value="1">
 	<input type="hidden" name="check" value="2">

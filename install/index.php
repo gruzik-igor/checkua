@@ -21,7 +21,6 @@ define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$LOCAL_SITE_URL);
 define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 
 $uri = explode("/", $_SERVER['REQUEST_URI']);
-require_once("step0".DIRSEP."step0.php");
 
 switch ($uri[2]) {
 

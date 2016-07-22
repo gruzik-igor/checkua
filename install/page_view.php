@@ -42,25 +42,18 @@
             <!-- begin brand -->
             <div class="login-header">
                 <div class="brand">
-                    <span class="logo"></span> <?=SITE_NAME?>
-                    <small>Практична стрільба для кожного</small>
+                    <img src="<?=SITE_URL?>style/admin/images/WhiteLion-white.png" style="width: 50px;"> White Lion CMS
+                    <small>Інсталяція <?=SITE_URL?></small>
                 </div>
                 <div class="icon">
-                    <i class="fa fa-sign-in"></i>
+                    <i class="fa fa-cogs"></i>
                 </div>
             </div>
             <!-- end brand -->
             <div class="login-content">
-                <h2 style="color:#fff">Профіль стрільця</h2>
-                <div class="m-t-20 text-center">
-                    <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg m-b-20"><i class="fa fa-facebook"></i> Швидка реєстрація facebook</button>
-                    <big>АБО</big>
-                    <a href="<?=SITE_URL?>signup/email" class='btn btn-warning btn-block btn-lg m-t-20'><i class="fa fa-envelope"></i> Реєстрація через email</a>
-                </div>
-                <div class="m-t-20">
-                    Вже зареєстровані? <a href="<?=SITE_URL?>reset">Увійти</a>. <br>
-                    Повернутися на <a href="<?=SITE_URL?>">головну сторінку</a>.
-                </div>
+                <?php if ((isset($errors) && $errors != '') || (isset($success) && $success != '')) require APP_PATH.'views'.DIRSEP.'notify_view.php'; ?>
+        
+                <?php if(isset($view_file) && $view_file != '') require_once($view_file.'.php'); ?>
             </div>
         </div>
         <!-- end login -->
@@ -90,8 +83,8 @@
     <!-- ================== END BASE JS ================== -->
     
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
-    <script src="<?=SITE_URL?>js/admin/login-v2.min.js"></script>
-    <script src="<?=SITE_URL?>js/admin/apps.min.js"></script>
+    <script src="<?=SITE_URL?>assets/admin/login-v2.min.js"></script>
+    <script src="<?=SITE_URL?>assets/admin/apps.min.js"></script>
     <!-- ================== END PAGE LEVEL JS ================== -->
 
     <script>

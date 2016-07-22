@@ -51,7 +51,7 @@
             </div>
             <!-- end brand -->
             <div class="login-content">
-                <?php if ((isset($errors) && $errors != '') || (isset($success) && $success != '')) require APP_PATH.'views'.DIRSEP.'notify_view.php'; ?>
+                <?php if ((isset($errors) && $errors != '') || (isset($success) && $success != '')) require APP_PATH.'views'.DIRSEP.'admin'.DIRSEP.'notify_view.php'; ?>
         
                 <?php if(isset($view_file) && $view_file != '') require_once($view_file.'.php'); ?>
             </div>

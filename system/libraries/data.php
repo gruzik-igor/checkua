@@ -11,6 +11,7 @@
  * Версія 1.0.4 (04.12.2015) Виправлено getShortText()
  * Версія 1.0.5 (09.03.2016) Виправлено констуктор Data() згідно режиму мультимовності 'main domain', додано заміну "багато дефів" на один у latterUAtoEN(), додано перевірку існування папки у removeDirectory()
  * Версія 1.1 (07.04.2016) Додано re_get(), re_post()
+ * Версія 1.1.1 (22.07.2016) До re_get(), re_post() додано значення за замовчуванням; приведено дос тандарту php7
  */
 
 class Data {
@@ -18,7 +19,7 @@ class Data {
 	private $uri_data;
 	public $errors = array();
 
-	function Data()
+	function __construct()
 	{
 		$arr = (empty($_GET['request'])) ? '' : $_GET['request'];
 		$arr = trim($arr, '/\\');
@@ -103,16 +104,16 @@ class Data {
 		return null;
 	}
 
-	public function re_post($key='')
+	public function re_post($key = '', $default = false)
 	{
 		if(isset($_SESSION['_POST'][$key])) return $_SESSION['_POST'][$key];
-		return false;
+		return $default;
 	}
 
-	public function re_get($key='')
+	public function re_get($key = '', $default = false)
 	{
 		if(isset($_SESSION['_GET'][$key])) return $_SESSION['_GET'][$key];
-		return false;
+		return $default;
 	}
 
     public function getShortText($text, $len = 155)

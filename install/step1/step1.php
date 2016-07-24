@@ -3,7 +3,6 @@ require_once("checkConnection.php");
 
 if ($res['result']) 
 {	
-
 	$nakedDir = getcwd();
 	$dirName = $nakedDir.DIRSEP."install".DIRSEP."step1".DIRSEP."config.php";
 	$content = file_get_contents ($dirName);
@@ -20,7 +19,7 @@ if ($res['result'])
 else
 {
 	$view_file = "step1".DIRSEP."index_view";
-	$errors = $res['content'];
+	$_SESSION['notify']->errors = $res['content'];
 }
 
 ?>

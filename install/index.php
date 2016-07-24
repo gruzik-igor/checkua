@@ -7,22 +7,29 @@ define('DIRSEP', DIRECTORY_SEPARATOR);
 define('SYS_PATH', getcwd() . DIRSEP.'system'.DIRSEP);
 define('APP_PATH', getcwd() . DIRSEP.'app'.DIRSEP);
 
-$localhost = $_SERVER['SERVER_NAME'];
-if($localhost)
+if($_SERVER["SERVER_NAME"] == 'localhost')
 {
-	$uri = explode("/", $_SERVER['REQUEST_URI']);
-	if($uri[1] != '')
+	$REQUEST_URI = explode('/', $_SERVER["REQUEST_URI"]);
+	if(isset($REQUEST_URI[1]))
 	{
-		$LOCAL_SITE_URL = $uri[1]."/";
+		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+		define('SITE_NAME', $REQUEST_URI[1]);
+	}
+	else
+	{
+		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+		define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 	}
 }
+else
+{
+	define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+	define('SITE_NAME', $_SERVER["SERVER_NAME"]);
+}
 
-define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$LOCAL_SITE_URL);
-define('SITE_NAME', $_SERVER["SERVER_NAME"]);
+$request = (empty($_GET['request'])) ? '' : $_GET['request'];
 
-$uri = explode("/", $_SERVER['REQUEST_URI']);
-
-switch ($uri[2]) {
+switch ($request) {
 
 	case 'step1':
 		require_once("checkstep.php");
@@ -46,4 +53,5 @@ switch ($uri[2]) {
 }
 
 require_once("page_view.php");
+
 ?>

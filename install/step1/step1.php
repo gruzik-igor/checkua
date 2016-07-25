@@ -13,13 +13,33 @@ if ($res['result'])
 	fwrite($configOpen, $newConfig);
 	fclose($configOpen);
 
-	header("Location: ".SITE_URL."step2");
-	exit();
+	$dirName = $nakedDir.DIRSEP."install".DIRSEP."step1".DIRSEP."white_lion.sql";
+	$sql = file_get_contents($dirName);
+	if($sql)
+	{
+		$mysqli->set_charset("utf8");
+		if($mysqli->multi_query($sql) === true)
+		{
+			$mysqli->close();
+			header("Location: ".SITE_URL."step2");
+			exit();
+		}
+		else
+		{
+			$_SESSION['notify']->errors = "Помилка MySQL: (" . $mysqli->connect_errno . ") " . $mysqli->connect_error;
+		}
+		$mysqli->close();
+	}
+	else
+	{
+		$_SESSION['notify']->errors = "Error: File white_lion.sql not found!";
+	}
 }
 else
 {
-	$view_file = "step1".DIRSEP."index_view";
 	$_SESSION['notify']->errors = $res['content'];
 }
+
+$view_file = "step1".DIRSEP."index_view";
 
 ?>

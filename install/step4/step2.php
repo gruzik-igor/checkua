@@ -1,12 +1,11 @@
 <?php
 
 require_once("../../app/config.php");
-require_once('../../LOCAL_SITE_URL.php');
 
 $site_name = $_POST['site_name'];
-$sys_password = $_POST['sys_password'];
+$useWWW = $_POST['useWWW'];
 $site_email = $_POST['site_email'];
-$sys_email = $_POST['sys_email'];
+$cache = $_POST['cache'];
 $language = ($_POST['language'] == "one")? "false" : "'local'";
 
 $deleteEmptyLang = array_diff($_POST['languages'], array(''));

@@ -1,7 +1,5 @@
 <h4 style="color:#fff">1. Налаштування БД</h4>
 <form action="<?=SITE_URL?>step1" method="POST" class="margin-bottom-0" id="form-step-1">
-	<input type="hidden" name="step" value="1">
-
 	<div class="form-group">
         <input type="text" name="host" id="host" value="localhost" class="form-control input-lg" placeholder="Host" required />
     </div>

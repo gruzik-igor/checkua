@@ -1,5 +1,5 @@
-<h4 style="color:#fff">2. Налаштування сайту</h4>
-<form action="<?=SITE_URL?>install/step2/step2.php" method="POST" class="margin-bottom-0" id="form-step-2">
+<h4 style="color:#fff">4. Налаштування сайту</h4>
+<form action="<?=SITE_URL?>step4" method="POST" class="margin-bottom-0" id="form-step-2">
 
 	<div class="form-group">
 		<p>Робоча адреса сайту: (без www)</p>
@@ -28,6 +28,8 @@
 			<label><input type="checkbox" name="languages[]" value="pl"> pl </label> 
 			Нова мова: <input type="text" id="new_lang1" name="languages[]" pattern="[a-z]{2}" title="Введіть 2 букви в нижньому регістрі" style="width: 25px"> 
 			Нова мова: <input type="text" id="new_lang2" name="languages[]" pattern="[a-z]{2}" title="Введіть 2 букви в нижньому регістрі" style="width: 25px">
+			<p><label><input name="language_type" type="radio" value="link" checked="checked" required> В адресі site.com/*en </label> 
+		<label><input name="language_type" type="radio" value="subdomain"> Автопіддомен *en.site.com</label>
 		</div>
     </div>
 	<button type="submit" class="btn btn-success btn-block btn-lg">Далі</button>

@@ -375,6 +375,7 @@ CREATE TABLE IF NOT EXISTS `wl_statistic_views` (
 
 CREATE TABLE IF NOT EXISTS `wl_users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `alias` text,
   `email` text NOT NULL,
   `name` text,
   `photo` text,
@@ -397,10 +398,11 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
 CREATE TABLE IF NOT EXISTS `wl_user_info` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user` int(11) NOT NULL,
-  `key` text NOT NULL,
-  `data` text,
+  `field` text NOT NULL,
+  `value` text,
+  `date` int(11) NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 
 -- --------------------------------------------------------

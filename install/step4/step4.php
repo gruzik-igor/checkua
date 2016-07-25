@@ -58,4 +58,24 @@ if($sql) {
 	exit("Error: File white_lion.sql not found!");
 }
 
+chdir("../");
+$installDir = getcwd();
+$dirsep = DIRECTORY_SEPARATOR;
+chdir("../");
+$nakedDir = getcwd().$dirsep;
+rename($nakedDir."index.php", $nakedDir."_index.php");
+$step2Dir = $nakedDir."install".$dirsep."step2".$dirsep;
+rename($step2Dir."_index.php", $nakedDir."index.php");
+
+
+@rename($installDir, $nakedDir."_install");
+if(file_exists($installDir))
+{
+	header("Location: ".'http://'.$_SERVER["SERVER_NAME"].'/'.$LOCAL_SITE_URL."install/step4/step4.php");
+	exit();
+} else{
+	header("Location: ".'http://'.$_SERVER["SERVER_NAME"].'/'.$LOCAL_SITE_URL."_install/step4/step4.php");
+	exit();
+}
+
 ?>

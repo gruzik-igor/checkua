@@ -37,13 +37,20 @@ switch ($request) {
 		break;
 
 	case 'step2':
-		require_once("step2".DIRSEP."checkstep.php");
 		$view_file = "step2".DIRSEP."index_view";
+		if(!empty($_POST)) require_once("step2".DIRSEP."step2.php");
 		break;
 
 	case 'step3':
-	    require_once("step3".DIRSEP."checkstep.php");
+		require_once("step3".DIRSEP."checkstep.php");
 		$view_file = "step3".DIRSEP."index_view";
+		if(!empty($_POST)) require_once("step3".DIRSEP."step3.php");
+		break;
+
+	case 'step4':
+		require_once("step3".DIRSEP."checkstep.php");
+		$view_file = "step4".DIRSEP."index_view";
+		if(!empty($_POST)) require_once("step4".DIRSEP."step4.php");
 		break;
 	
 	default:

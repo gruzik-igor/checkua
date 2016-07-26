@@ -24,13 +24,13 @@ if(file_exists($file_config))
 	    }
 	    $alias = mb_eregi_replace("[.]{2,}", '.', $text);
 		$password = sha1($email . md5($_POST['admin_password'] . $SYS_PASSWORD . 1));
-		$auth_id = md5($name.'|'.$_POST['admin_password'].'|'.$email);
+		$auth_id = md5($name.'|'.$_POST['admin_password'].'|auth_id|'.$email);
 		$time = time();
 
 		$connect = new mysqli($config['db']['host'], $config['db']['user'], $config['db']['password'], $config['db']['database']);
 		$connect->set_charset("utf8");
 
-		$query = "INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `type`, `status`, `registered`, `password`) VALUES (1, '{$alias}', '{$email}', '{$name}', 1, 1, {$time},'{$password}');";
+		$query = "INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `type`, `status`, `registered`, `auth_id`, `password`) VALUES (1, '{$alias}', '{$email}', '{$name}', 1, 1, {$time}, '{$auth_id}', '{$password}');";
 		$connect->query($query);
 
 		$query = "INSERT INTO `wl_user_register` (`id`, `date`, `do`, `user`) VALUES (1, {$time}, 1, 1);";
@@ -38,7 +38,6 @@ if(file_exists($file_config))
 		$connect->close();
 
 		$_SESSION['SYS_PASSWORD'] = $SYS_PASSWORD;
-		$auth_id = md5($email.'|'.$password.'|auth_id|'.$time);
 		setcookie('auth_id', $auth_id, $time + 3600*24*31, '/');
 
 		header("Location: ".SITE_URL."step4");

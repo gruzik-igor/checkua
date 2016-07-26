@@ -4,8 +4,6 @@
 //-- Installation package --//
 
 define('DIRSEP', DIRECTORY_SEPARATOR);
-define('SYS_PATH', getcwd() . DIRSEP.'system'.DIRSEP);
-define('APP_PATH', getcwd() . DIRSEP.'app'.DIRSEP);
 
 if($_SERVER["SERVER_NAME"] == 'localhost')
 {
@@ -50,7 +48,6 @@ switch ($request) {
 	case 'step4':
 		require_once("step3".DIRSEP."checkstep.php");
 		$view_file = "step4".DIRSEP."index_view";
-		if(!empty($_POST)) require_once("step4".DIRSEP."step4.php");
 		break;
 	
 	default:

@@ -49,6 +49,17 @@ if(file_exists($file_config))
 
 	@rename($installDir, $nakeDir."_install");
 
+	if($_SERVER["SERVER_NAME"] == 'localhost')
+	{
+		$REQUEST_URI = explode('/', $_SERVER["REQUEST_URI"]);
+		if(isset($REQUEST_URI[1]))
+			define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+		else
+			define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+	}
+	else
+		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+
 	header("Location: ".SITE_URL."admin");
 	exit();
 }

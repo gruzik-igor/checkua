@@ -10,6 +10,7 @@
  * Версія 2.0 (28.09.2015) - переписано код getAllDataById(), getAllDataByFieldInArray(), getCount(). Додано службову функцію makeWhere(). Додано запити по конструкції: prefix(), select(), join(), order(), limit(), get().
  * Версія 2.0.1 (26.03.2016) - до get() додано параметр debug, що дозволяє бачити кінцевий запит перед запуском, виправлено помилку декількаразового запуску get()
  * Версія 2.0.2 (01.04.2016) - до makeWhere() додано параметр сортування НЕ '!'
+ * Версія 2.0.3 (26.07.2016) - адаптовано до php7
  */
 
 class Db {
@@ -21,7 +22,7 @@ class Db {
     /*
      * Отримуємо дані для з'єднання з конфігураційного файлу
      */
-    function Db($cfg){
+    function __construct($cfg){
         $this->newConnect($cfg['host'], $cfg['user'], $cfg['password'], $cfg['database']);
     }
 

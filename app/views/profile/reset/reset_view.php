@@ -125,7 +125,7 @@
     
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src='https://www.google.com/recaptcha/api.js?hl=uk'></script>
-    <script src="<?=SITE_URL?>js/admin/apps.min.js"></script>
+    <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
     <!-- ================== END PAGE LEVEL JS ================== -->
 
     <script>

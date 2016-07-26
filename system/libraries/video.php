@@ -5,6 +5,7 @@
 	1.0  27.11.2015 - Створено. Підтримується youtube.com, vimeo.com
 	1.1  07.12.2015 - Додано задання розмірів по замовчуванню із конфігураційного файлу.
 	1.2  10.03.2016 - Додано setVideosToText - заміну відео формату {video-###} у $_SESSION['alias']->text, makeVideosInText()
+	1.2.1  26.07.2016 - адаптовано до php7
  */
 
 class video
@@ -16,7 +17,8 @@ class video
 	 /*
      * Отримуємо дані для розміру по замовчуванню з конфігураційного файлу
      */
-    function video($cfg = array()){
+    function __construct($cfg = array())
+    {
         if(!empty($cfg)){
         	$width = (isset($cfg['width']) && $cfg['width'] > 0) ? $cfg['width'] : 0;
         	$height = ($width > 0 && isset($cfg['height']) && $cfg['height'] > 0) ? $cfg['height'] : 0;

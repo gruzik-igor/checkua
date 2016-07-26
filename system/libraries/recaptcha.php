@@ -6,7 +6,7 @@ class Recaptcha {
 	public $public = false; 
 
 
-	function Recaptcha($data)
+	function __construct($data)
 	{
 		if(isset($data['secret']))
 			$this->public = $data['public'];

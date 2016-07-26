@@ -94,7 +94,7 @@
     <?php if($_SESSION['alias']->js_load){ foreach ($_SESSION['alias']->js_load as $js) { ?>
       <script src="<?=SITE_URL.$js?>"></script>
     <?php } } ?>
-    <script src="<?=SITE_URL?>js/admin/apps.min.js"></script>
+    <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
   <!-- ================== END PAGE LEVEL JS ================== -->
   
   <script>

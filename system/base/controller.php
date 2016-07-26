@@ -15,7 +15,7 @@ class Controller extends Loader {
          * це потрібно для надання логіки. Відтак для завантаження скажімо бібліотеки
          * ми не пишемо $this->library(library_name), а пишемо $this->load->library(library_name)
 	 */
-	function Controller(){
+	function __construct(){
             parent::__construct();
             $this->load = $this;
             $this->authorize();

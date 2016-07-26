@@ -126,7 +126,7 @@
 	<!-- ================== END BASE JS ================== -->
 	
 	<!-- ================== BEGIN PAGE LEVEL JS ================== -->
-	<script src="<?=SITE_URL?>js/admin/apps.min.js"></script>
+    <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
 	<!-- ================== END PAGE LEVEL JS ================== -->
 
 	<script>

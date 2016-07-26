@@ -35,7 +35,7 @@ class Facebook extends BaseFacebook
   /*
      * Отримуємо дані для з'єднання з конфігураційного файлу
      */
-  function Facebook($config)
+  function __construct($config)
   {
       if (!session_id()) {
         session_start();

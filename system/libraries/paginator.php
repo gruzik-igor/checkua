@@ -10,6 +10,7 @@
  *     $_SESSION['option']->paginator_per_page - кількість сторінок на сторінці
  *     $_GET['page'] - поточна сторінка
  * Версія 1.1 (12.10.2015) - додано можливість задання стилів по замовчуванню з конфігураційного файлу
+ * Версія 1.1.1 (26.07.2016) - адаптовано до php7
  */
 
 class Paginator {
@@ -34,7 +35,8 @@ class Paginator {
      * Отримуємо дані для стилю по замовчуванню з конфігураційного файлу
      * Формат [ключ] = [клас по замовчуванню|активний клас (згідно style())]
      */
-    function Paginator($cfg = array()){
+    function __construct($cfg = array())
+    {
         if(!empty($cfg)){
             foreach ($cfg as $element => $class) {
                 $class = explode('|', $class);
@@ -48,14 +50,16 @@ class Paginator {
         }
     }
 
-    public function get(){
+    public function get()
+    {
         if($this->current_page < 0) {
             $this->paginate();
         }
         return $this->make();
     }
 
-    public function paginate($current = 'auto', $total = 0, $per_page = 10){
+    public function paginate($current = 'auto', $total = 0, $per_page = 10)
+    {
         $this->current_page = 1;
         if($current == 'auto' && isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 0){
             $this->current_page = $_GET['page'];

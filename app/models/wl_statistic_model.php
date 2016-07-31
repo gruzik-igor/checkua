@@ -4,6 +4,8 @@ class wl_statistic_model{
 
 	public function set($link)
 	{	
+		if($this->searchBot()) return true;
+
 		$lastRow = $this->db->getQuery("SELECT id, day FROM `wl_statistic_views` WHERE ID = (SELECT MAX(ID) FROM `wl_statistic_views`)");
 		$today = strtotime('today');
 
@@ -51,8 +53,15 @@ class wl_statistic_model{
 			$update = $unique == true ? ' `unique` = `unique` + 1, `views` = `views` + 1 ' : ' `views` = `views` + 1 ';
 			$this->db->executeQuery("UPDATE `wl_statistic_pages` SET {$update} WHERE `id` = {$result->id}");
 		}
+	}
 
-
+	public function searchBot()
+	{
+		$bots = array('Googlebot', 'Yahoo', 'Slurp', 'MSNBot', 'Teoma', 'Scooter', 'ia_archiver', 'Lycos', 'Yandex', 'StackRambler', 'Mail.Ru', 'Aport', 'WebAlta', 'bot');
+		foreach ($bots as $bot) {
+			if ( stristr($_SERVER['HTTP_USER_AGENT'], $bot) ) return true;
+		}
+		return false;
 	}
 	
 }

@@ -67,19 +67,24 @@ class Loader {
 	 * @params $view назва подання
 	 * @params $data параметри
 	 */	
-	function view($view, $data = null){
+	function view($view, $data = null)
+	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
-		if($data){
-			foreach($data as $key => $value){
+		if($data)
+		{
+			foreach($data as $key => $value) {
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.$view.'.php';
-		if($_SESSION['alias']->service) {
-			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign == 2) $view_path = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view.'.php';
-			else $view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
+		if($_SESSION['alias']->service)
+		{
+			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign == 2)
+				$view_path = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view.'.php';
+			else
+				$view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
 		}
-		if(file_exists($view_path)){
+		if(file_exists($view_path)) {
 			require $view_path;
 		}
 	}
@@ -90,19 +95,25 @@ class Loader {
 	 * @params $view_file назва подання
 	 * @params $data параметри
 	 */	
-	function page_view($view_file = false, $data = null){
+	function page_view($view_file = false, $data = null)
+	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
-		if($data){
-			foreach($data as $key => $value){
+		if($data)
+		{
+			foreach($data as $key => $value) {
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
-		if($_SESSION['alias']->service && $view_file) {
-			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign > 0 && $view_file) $view_file = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
-			else $view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
+		if($_SESSION['alias']->service && $view_file)
+		{
+			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign > 0 && $view_file)
+				$view_file = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
+			else
+				$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
 		}		
-		if(file_exists($view_path)){
+		if(file_exists($view_path))
+		{
 			require $view_path;
 			exit();
 		}
@@ -113,23 +124,33 @@ class Loader {
 	 *
 	 * @params $data параметри
 	 */	
-	function notify_view($data = null){
-		if($data){
-			foreach($data as $key => $value){
+	function notify_view($data = null)
+	{
+		if($data)
+		{
+			foreach($data as $key => $value) {
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		$view_file = 'notify_view';
-		if(file_exists($view_path)){
+		if(file_exists($view_path))
+		{
 			require $view_path;
 			exit();
 		}
 	}
 
-	function page_404(){
+	function page_404()
+	{
 		header('HTTP/1.0 404 Not Found');
-		exit(file_get_contents('404.html'));
+		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
+		$view_file = '404_view';
+		if(file_exists($view_path))
+		{
+			require $view_path;
+			exit();
+		}
 	}
 
 	/**
@@ -138,16 +159,20 @@ class Loader {
 	 * @params $view_file назва подання
 	 * @params $data параметри
 	 */	
-	function admin_view($view_file = false, $data = null){
+	function admin_view($view_file = false, $data = null)
+	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
-		if($data){
-			foreach($data as $key => $value){
+		if($data)
+		{
+			foreach($data as $key => $value) {
 				$$key = $value;
 			}
 		}
 		$view_path = APP_PATH.'views'.DIRSEP.'admin/admin_view.php';
-		if($_SESSION['alias']->service && $view_file) $view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.$view_file;
-		if(file_exists($view_path)){
+		if($_SESSION['alias']->service && $view_file)
+			$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.$view_file;
+		if(file_exists($view_path))
+		{
 			require $view_path;
 			exit();
 		}
@@ -158,17 +183,19 @@ class Loader {
 	 *
 	 * @params $model назва моделі
 	 */	
-	function model($model){
+	function model($model)
+	{
 		if(isset($this->$model) && is_object($this->$model)) return true;
 
 		$model_path = APP_PATH.'models'.DIRSEP.$model.'.php';
-		if(file_exists($model_path)){
+		if(file_exists($model_path))
+		{
 			require_once $model_path;
 			$this->$model = new $model();
-			if(is_object($this->db)){
+			if(is_object($this->db)) {
 				$this->$model->db = $this->db;
 			}
-			if(isset($this->data) && is_object($this->data)){
+			if(isset($this->data) && is_object($this->data)) {
 				$this->$model->data = $this->data;
 			}
 		}
@@ -180,13 +207,17 @@ class Loader {
 	 *
 	 * @params $model назва моделі
 	 */	
-	function smodel($model){
-		if($_SESSION['service']->name){
+	function smodel($model)
+	{
+		if($_SESSION['service']->name)
+		{
 			$model_path = APP_PATH.'services'.DIRSEP.$_SESSION['service']->name.DIRSEP.'models'.DIRSEP.$model.'.php';
-			if(file_exists($model_path)){
+			if(file_exists($model_path))
+			{
 				require_once $model_path;
 				$this->$model = new $model();
-				if(is_object($this->db)){
+				if(is_object($this->db))
+				{
 					$this->$model->db = $this->db;
 					$this->$model->data = $this->data;
 				}
@@ -202,7 +233,8 @@ class Loader {
 	 * @params $data дані, що передаємо функції
 	 * @params $admin позначка що відповідає за режим доступу та контролер панелі керування
 	 */	
-	function function_in_alias($alias, $method = '', $data = array(), $admin = false){
+	function function_in_alias($alias, $method = '', $data = array(), $admin = false)
+	{
 		$rezult = NULL;
 		$old_alias = $_SESSION['alias']->id;
 		$this->library('db');
@@ -330,7 +362,8 @@ class Loader {
 	 * @params $class назва класу/файла
 	 * @params $ref посилання на обєкт
 	 */
-	function library($class, $ref){
+	function library($class, $ref)
+	{
 		if(empty($class)) return false;
 		$class = strtolower($class);
 		if($this->config($class)) {
@@ -392,16 +425,19 @@ class Loader {
 	 *
 	 * @return створений об'єкт
 	 */
-	function register($class, $params = null){
+	function register($class, $params = null)
+	{
 		$registry = Registry::singleton();
 		if($registry->get($class) !== null)
 			return $registry->get($class);
 		
 		$class_path = SYS_PATH.'libraries'.DIRSEP.$class.'.php';
-		if(file_exists($class_path)){
+		if(file_exists($class_path))
+		{
 			require $class_path;
 			$obj = new $class($params);
-			if(is_object($obj)){
+			if(is_object($obj))
+			{
 				$registry->set($class, $obj);
 				return $obj;
 			}

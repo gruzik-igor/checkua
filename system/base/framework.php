@@ -13,6 +13,7 @@ if(empty($_SESSION['user']))
 $_SESSION['option'] = null;
 
 $request = (empty($_GET['request'])) ? '' : $_GET['request'];
+$request = trim($request, '/\\');
 
 if($_SERVER["SERVER_NAME"] == 'localhost')
 {
@@ -157,37 +158,6 @@ else
 if($_SESSION['cache'] && empty($_POST) && count($_GET) < 2){
 	require 'cache.php';
 	$cache = new cache();
-	if($cache->load()){
-		$mem_end = memory_get_usage();
-		$time_end = microtime(true);
-		$time = $time_end - $time_start;
-		$mem = $mem_end - $mem_start;
-		$mem = round($mem/1024, 5);
-		echo '<div class="clear"></div><div style="color:black; text-align:center">Час виконання(сек): '.$time.' Використанок памяті(кб): '.$mem.'</div>';
-		exit();
-	} 
-	else {
-		$cache->create_start();
-		if($cache->layout){
-			foreach($cache->blocks as $block){
-				if($cache->check_block($block) == false){
-					start_route();
-					$cache->create_finish($block);
-				}
-			}
-			$cache->load();
-		} else {
-			start_route();
-			$cache->create_finish();
-			$mem_end = memory_get_usage();
-			$time_end = microtime(true);
-			$time = $time_end - $time_start;
-			$mem = $mem_end - $mem_start;
-			$mem = round($mem/1024, 5);
-			echo '<div class="clear"></div><div style="color:black; text-align:center">Час виконання(сек): '.$time.' Використанок памяті(кб): '.$mem.'</div>';
-			exit;
-		}
-	}
 }
 
 define('IMG_PATH', SERVER_URL.$images_folder.'/');

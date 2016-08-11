@@ -12,8 +12,10 @@ class Router extends Loader {
 	private $class;
 	private $method;
 	
-	function __construct($req = null){
-		if($req != null){
+	function __construct($req = null)
+	{
+		if($req != null)
+		{
 			$this->request = $req;
 			$this->findRoute();
 		}
@@ -22,45 +24,56 @@ class Router extends Loader {
 	/**
 	 * Шукаємо шлях
 	 */
-	function findRoute(){
+	function findRoute()
+	{
 		parent::library('db', $this);
 
-		$route = trim($this->request, '/\\');
-		$parts = explode('/', $route);
-				
+		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
 		$admin = false;
 
-		if($parts[0] == 'admin'){
-			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
-				if($_SESSION['user']->admin) $admin = true;
-    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions))) $admin = true;
-    			if($admin) {
-					if(count($parts) == 1) {
+		if($parts[0] == 'admin')
+		{
+			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+			{
+				if($_SESSION['user']->admin)
+					$admin = true;
+    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions)))
+    				$admin = true;
+    			if($admin)
+    			{
+					if(count($parts) == 1)
+					{
 						$parts[] = 'admin';
 						$_SESSION['alias'] = new stdClass();
 						$_SESSION['alias']->service = false;
 						$_SESSION['service'] = new stdClass();
-					} else {
+					}
+					else
+					{
 						parent::model('wl_alias_model');
 						$this->wl_alias_model->alias($parts[1]);
 						$this->wl_alias_model->admin_options();
 					}
-				} else {
-					parent::page_404();
 				}
-			} else {
-				header("Location: ".SITE_URL."login");
-				exit();
+				else
+					parent::page_404();
 			}
-		} else {
-			parent::model('wl_alias_model');
-			$this->wl_alias_model->alias($parts[0]);
+			else
+				parent::redirect('login');
+		}
+		else {
+			parent::model('wl_cache_model');
 
-			if(@!$_SESSION['user']->admin && !in_array($parts[0], array('images', 'assets', 'style'))){
+			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload'))){
 				parent::model('wl_statistic_model');
 				$this->wl_statistic_model->set($route);
+				$this->wl_cache_model->get_from_statistic($this->wl_statistic_model->alias, $this->wl_statistic_model->content);
 			}
+
+			parent::model('wl_alias_model');
+			$this->wl_alias_model->alias($parts[0]);
+			$this->wl_cache_model->get($this->request);
 		}
 
 		if($this->isservice())

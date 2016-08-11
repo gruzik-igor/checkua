@@ -1,14 +1,14 @@
 <?php  if (!defined('SYS_PATH')) exit('Access denied');
 
 /*
- * Шлях: SYS_PATH/libraries/cache.php
+ * Шлях: SYS_PATH/libraries/sitemap.php
  *
  * Отримуємо частини URI
  *
- * Версія 1.0.0 (10.08.2016) create library
+ * Версія 1.0.0 (11.08.2016) create library
  */
 
-class Cache {
+class SiteMap {
 
 	private $request;
 

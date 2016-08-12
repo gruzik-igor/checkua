@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1
--- Час створення: Сер 11 2016 р., 18:34
+-- Час створення: Сер 12 2016 р., 17:16
 -- Версія сервера: 5.7.9
 -- Версія PHP: 7.0.0
 
@@ -372,13 +372,12 @@ DROP TABLE IF EXISTS `wl_sitemap`;
 CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `link` text NOT NULL,
-  `alias` smallint(6) NOT NULL,
-  `content` int(11) NOT NULL,
-  `language` char(2) NOT NULL,
-  `code` smallint(5) UNSIGNED NOT NULL,
-  `cache` tinyint(1) NOT NULL,
-  `data` mediumtext NOT NULL,
-  `date` int(11) NOT NULL,
+  `alias` smallint(6) DEFAULT NULL,
+  `content` int(11) DEFAULT NULL,
+  `language` char(2) DEFAULT NULL,
+  `code` smallint(5) UNSIGNED DEFAULT NULL COMMENT '200 cache ok; 201 no cache, 301 redirect, 404',
+  `data` blob,
+  `time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -392,24 +391,17 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
 DROP TABLE IF EXISTS `wl_statistic_pages`;
 CREATE TABLE IF NOT EXISTS `wl_statistic_pages` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `link` text NOT NULL,
   `alias` int(11) DEFAULT NULL,
   `content` int(11) DEFAULT NULL,
+  `language` varchar(2) DEFAULT NULL,
   `day` int(10) UNSIGNED NOT NULL,
   `unique` int(10) UNSIGNED NOT NULL,
   `views` int(10) UNSIGNED NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
-
---
--- Дамп даних таблиці `wl_statistic_pages`
---
-
-INSERT INTO `wl_statistic_pages` (`id`, `link`, `alias`, `content`, `day`, `unique`, `views`) VALUES
-(1, 'main', NULL, NULL, 1469577600, 1, 1),
-(2, 'login', NULL, NULL, 1469577600, 1, 1),
-(3, 'login/process', NULL, NULL, 1469577600, 1, 1),
-(4, 'main', NULL, NULL, 1469923200, 1, 1);
+  PRIMARY KEY (`id`),
+  KEY `alias` (`alias`),
+  KEY `content` (`content`),
+  KEY `language` (`language`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -426,15 +418,7 @@ CREATE TABLE IF NOT EXISTS `wl_statistic_views` (
   `views` int(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   KEY `day` (`day`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
-
---
--- Дамп даних таблиці `wl_statistic_views`
---
-
-INSERT INTO `wl_statistic_views` (`id`, `day`, `cookie`, `unique`, `views`) VALUES
-(1, 1469577600, 0, 1, 3),
-(2, 1469923200, 0, 1, 1);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 

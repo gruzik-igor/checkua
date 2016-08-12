@@ -4,10 +4,8 @@ class wl_statistic_model {
 
 	public $new = false;
 	public $page_id = 0;
-	public $alias = 0;
-	public $content = 0;
 
-	public function set($link)
+	public function set($page)
 	{	
 		if($this->searchBot()) return true;
 
@@ -38,30 +36,30 @@ class wl_statistic_model {
 			$_SESSION['statistic']->pages = array();
 		}
 
-		if(!in_array($link, $_SESSION['statistic']->pages))
+		if(!in_array($page->uniq_link, $_SESSION['statistic']->pages))
 		{
-			$_SESSION['statistic']->pages[] = $link;
-			$this->updatePageViews($link, $today, true);
+			$_SESSION['statistic']->pages[] = $page->uniq_link;
+			$this->updatePageViews($page, $today, true);
 		}
 		else
-			$this->updatePageViews($link, $today);
+			$this->updatePageViews($page, $today);
 
 		setcookie('statisticViews', 'views', time() + 3600*24*31, '/');
 	}
 
-	private function updatePageViews($link, $today, $unique = false)
+	private function updatePageViews($page, $today, $unique = false)
 	{
-		$page['link'] = $link;
-		$page['day'] = $today;
+		$where['alias'] = $page->alias;
+		$where['content'] = $page->content;
+		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+		$where['day'] = $today;
 
-		$result = $this->db->getAllDataById('wl_statistic_pages', $page);
+		$result = $this->db->getAllDataById('wl_statistic_pages', $where);
 		if(!is_object($result))
 		{
-			$page['alias'] = 0;
-			$page['content'] = 0;
-			$page['unique'] = 1;
-			$page['views'] = 1;
-			$this->db->insertRow('wl_statistic_pages', $page);
+			$where['unique'] = 1;
+			$where['views'] = 1;
+			$this->db->insertRow('wl_statistic_pages', $where);
 			$this->page_id = $this->db->getLastInsertedId();
 			$this->new = true;
 		}

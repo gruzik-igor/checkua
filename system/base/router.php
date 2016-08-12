@@ -62,23 +62,29 @@ class Router extends Loader {
 			else
 				parent::redirect('login');
 		}
-		else {
-			parent::model('wl_cache_model');
+		else
+		{
+			if(empty($_POST) && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload')))
+			{
+				parent::model('wl_cache_model');
+				$this->wl_cache_model->init($this->request);
 
-			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload'))){
-				parent::model('wl_statistic_model');
-				$this->wl_statistic_model->set($route);
-				$this->wl_cache_model->get_from_statistic($this->wl_statistic_model->alias, $this->wl_statistic_model->content);
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					parent::model('wl_statistic_model');
+					$this->wl_statistic_model->set($this->wl_cache_model->page);
+				}
+
+				$this->wl_cache_model->get();
 			}
 
 			parent::model('wl_alias_model');
 			$this->wl_alias_model->alias($parts[0]);
-			$this->wl_cache_model->get($this->request);
 		}
 
-		if($this->isservice())
+		if($this->isService())
 		{
-			if($admin){
+			if($admin) {
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'admin';
 				$this->method = (!isset($parts[2])) ? 'index' : $parts[2];
 			} else {
@@ -109,21 +115,27 @@ class Router extends Loader {
 			$this->method = (empty($parts)) ? 'index' : $parts[0];
 		}
 		
-		if(is_readable($path.'.php')){
+		if(is_readable($path.'.php'))
+		{
 			require $path.'.php';
 			$this->callController();
-		} else {
+		}
+		else
+		{
 			parent::page_404();
 		}
+
+		$this->wl_cache_model->set();
 	}
 	
 	/**
 	 * Створюємо об'єкт і викликаємо метод
 	 */	
-	function callController(){
+	function callController()
+	{
 		$controller = new $this->class();
 		$method = $this->method;
-		if(is_callable(array($controller, '_remap'))){
+		if(is_callable(array($controller, '_remap'))) {
 			$controller->_remap($method);
 		} else if(is_callable(array($controller, $method)) && $method != 'library' && $method != 'db') {
 			$controller->$method();
@@ -132,15 +144,16 @@ class Router extends Loader {
 		}
 	}
 	
-	private function isservice(){
-		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service){
-			
+	private function isService()
+	{
+		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service)
+		{
 			$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP;
-			if(is_file($path.$_SESSION['alias']->service.'.php')){
+			if(is_file($path.$_SESSION['alias']->service.'.php'))
+			{
 				$this->class = $_SESSION['alias']->service;
 				return true;
 			}
-			
 		}
 		return false;
 	}

@@ -155,11 +155,6 @@ else
 	}
 }
 
-if($_SESSION['cache'] && empty($_POST) && count($_GET) < 2){
-	require 'cache.php';
-	$cache = new cache();
-}
-
 define('IMG_PATH', SERVER_URL.$images_folder.'/');
 $request = ($request == '') ? 'main' : $request;
 start_route($request);

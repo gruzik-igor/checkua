@@ -308,14 +308,7 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
   KEY `alias` (`alias`),
   KEY `content` (`content`),
   KEY `language` (`language`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-
---
--- Дамп даних таблиці `wl_ntkd`
---
-
-INSERT INTO `wl_ntkd` (`id`, `alias`, `content`, `language`, `name`, `title`, `description`, `keywords`, `text`, `list`) VALUES
-(1, 1, 0, NULL, 'whitelion.cms', NULL, NULL, NULL, NULL, NULL);
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -331,7 +324,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -441,14 +434,7 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
   `auth_id` text,
   `password` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
-
---
--- Дамп даних таблиці `wl_users`
---
-
-INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `photo`, `type`, `status`, `reset_key`, `reset_expires`, `registered`, `auth_id`, `password`) VALUES
-(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, NULL, 0, 1469650761, 'fa59781a3e597cfd96bac7edee86f93b', 'c0e5c5c47f28b4d132bc9f894c192cfc27716f3d');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -493,14 +479,8 @@ CREATE TABLE IF NOT EXISTS `wl_user_register` (
   `additionally` text,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
---
--- Дамп даних таблиці `wl_user_register`
---
-
-INSERT INTO `wl_user_register` (`id`, `date`, `do`, `user`, `additionally`) VALUES
-(1, 1469650761, 1, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -584,7 +564,7 @@ CREATE TABLE IF NOT EXISTS `wl_user_types` (
 INSERT INTO `wl_user_types` (`id`, `name`, `title`, `active`) VALUES
 (1, 'admin', 'Адміністратор', 1),
 (2, 'manager', 'Менеджер', 1),
-(3, 'reserved', 'Резерв', 1),
+(3, 'reserved', 'Резерв', 0),
 (4, 'single', 'Користувач', 1),
 (5, 'subscribe', 'Підписник', 1);
 

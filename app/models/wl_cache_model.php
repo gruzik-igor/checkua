@@ -78,23 +78,33 @@ class wl_cache_model extends Loader
 			else
 				$cache['data'] = (string) $content;
 
-
-			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
-
 			ob_end_flush();
 		}
-		$this->showTime('before');
+
+		if(!empty($cache))
+			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
+
+		$this->showTime();
 		exit;
 	}
 
-	private function showTime($after = '')
+	private function showTime()
 	{
 		$mem_end = memory_get_usage();
 		$time_end = microtime(true);
 		$time = $time_end - $GLOBALS['time_start'];
 		$mem = $mem_end - $GLOBALS['mem_start'];
 		$mem = round($mem/1024, 5);
-		echo 'Час виконання(сек): '.$time.' Використанок памяті(кб): '.$mem.' '.$after;
+		if($mem > 1024)
+		{
+			$mem = round($mem/1024, 5);
+			$mem = (string) $mem . ' Мб';
+		}
+		else
+			$mem = (string) $mem . ' Кб';
+
+		$after = ($_SESSION['cache']) ? 'Cache активний' : 'Cache відключено';
+		echo '<hr><center>Час виконання: '.round($time, 5).' сек. Використанок памяті: '.$mem.'. '.$after.'</center>';
 	}
 
 }

@@ -13,6 +13,7 @@ class wl_alias_model
 
 		$_SESSION['alias']->alias = $link;
 		$_SESSION['alias']->id = 0;
+		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->service = false;
 		$_SESSION['alias']->image = false;
 		$_SESSION['alias']->js_plugins = array();
@@ -121,6 +122,7 @@ class wl_alias_model
 				}
 			}
 		}
+		if($_SESSION['alias']->title == '') $_SESSION['alias']->title = $_SESSION['alias']->name;
     }
 
     public function admin_options()

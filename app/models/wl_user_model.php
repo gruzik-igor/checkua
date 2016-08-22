@@ -84,7 +84,8 @@ class wl_user_model {
                 $data['name'] = $user->name = $info['name'];
         		$data['photo'] = $user->photo = $info['photo'];
 		    	$data['type'] = $user->type = $new_user_type;
-		    	$data['status'] = $user->status = $status->id;
+                $data['status'] = $user->status = $status->id;
+		    	$data['last_login'] = time();
 		    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
                 if($set_password)
 		    	    $data['password'] = $user->password = $this->getPassword($user->id, $user->email, $info['password']);
@@ -108,7 +109,7 @@ class wl_user_model {
 	    	$data['type'] = $user->type = $new_user_type;
 	    	$data['status'] = $user->status = $status->id;
 	    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
-    		$data['registered'] = $user->registered = time();
+    		$data['registered'] = $user->registered = $data['last_login'] = $user->last_login = time();
 	    	if($this->db->insertRow('wl_users', $data))
 	    	{
 	    		$user->id = $this->db->getLastInsertedId();
@@ -261,7 +262,12 @@ class wl_user_model {
 				$this->setSession($user);
 				$auth_id = md5($user->email.'|'.$user->password.'|auth_id|'.time());
 				setcookie('auth_id', $auth_id, time() + 3600*24*31, '/');
-				$this->db->updateRow('wl_users', array('auth_id' => $auth_id), $user->id);
+
+                $update = array();
+                $update['last_login'] = time();
+                $update['auth_id'] = $auth_id;
+                
+				$this->db->updateRow('wl_users', $update, $user->id);
 				return $status;
 			}
 			elseif($user->status != 3)
@@ -342,7 +348,7 @@ class wl_user_model {
         $_SESSION['user']->name = $user->name;
         $_SESSION['user']->email = $user->email;
         $_SESSION['user']->status = $user->status;
-        $_SESSION['user']->permissions = array();
+        $_SESSION['user']->permissions = array('wl_users', 'wl_ntkd', 'wl_images', 'wl_video');
 
         if($user->type == 1)
             $_SESSION['user']->admin = 1; 

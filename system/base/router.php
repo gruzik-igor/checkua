@@ -84,10 +84,13 @@ class Router extends Loader {
 
 		if($this->isService())
 		{
-			if($admin) {
+			if($admin)
+			{
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'admin';
 				$this->method = (!isset($parts[2])) ? 'index' : $parts[2];
-			} else {
+			}
+			else
+			{
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.$_SESSION['alias']->service;
 				$this->method = (!isset($parts[1])) ? 'index' : $parts[1];
 			}

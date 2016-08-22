@@ -23,7 +23,7 @@ if(file_exists($file_config))
 	        $text = mb_eregi_replace($ua[$i], $en[$i], $text);
 	    }
 	    $alias = mb_eregi_replace("[.]{2,}", '.', $text);
-		$password = sha1($email . md5($_POST['admin_password']) . $SYS_PASSWORD . 1);
+		$password = sha1($email . md5($_POST['admin_password'] . $SYS_PASSWORD . 1));
 		$auth_id = md5($name.'|'.$_POST['admin_password'].'|auth_id|'.$email);
 		$time = time();
 
@@ -39,14 +39,6 @@ if(file_exists($file_config))
 
 		$_SESSION['SYS_PASSWORD'] = $SYS_PASSWORD;
 		setcookie('auth_id', $auth_id, $time + 3600*24*31, '/');
-
-		$_SESSION['user']->id = 1;
-        $_SESSION['user']->name = $name;
-        $_SESSION['user']->email = $email;
-        $_SESSION['user']->status = 1;
-        $_SESSION['user']->admin = 1;
-        $_SESSION['user']->manager = 0;
-        $_SESSION['user']->permissions = array();
 
 		header("Location: ".SITE_URL."step4");
 		exit();

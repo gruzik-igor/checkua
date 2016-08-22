@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /app/
+Disallow: /system/
+Disallow: /*index?

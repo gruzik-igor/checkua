@@ -70,6 +70,12 @@ class wl_cache_model extends Loader
 	{
 		$cache = array();
 
+		if($_SESSION['alias']->content !== NULL && $this->page->alias != $_SESSION['alias']->id)
+		{
+			$cache['alias'] = $_SESSION['alias']->id;
+			$cache['content'] = $_SESSION['alias']->content;
+		}
+
 		if($_SESSION['cache'] && $this->page->data == '')
 		{
 			$content = ob_get_contents();

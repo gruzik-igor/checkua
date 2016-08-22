@@ -128,7 +128,12 @@ class Router extends Loader {
 			parent::page_404();
 		}
 
-		$this->wl_cache_model->set();
+		if(empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
+		{
+			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				$this->wl_statistic_model->updatePageIndex();
+			$this->wl_cache_model->set();
+		}
 	}
 	
 	/**

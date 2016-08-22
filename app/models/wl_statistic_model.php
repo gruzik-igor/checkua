@@ -2,7 +2,6 @@
 
 class wl_statistic_model {
 
-	public $new = false;
 	public $page_id = 0;
 
 	public function set($page)
@@ -12,7 +11,7 @@ class wl_statistic_model {
 		$lastRow = $this->db->getQuery("SELECT id, day FROM `wl_statistic_views` WHERE ID = (SELECT MAX(ID) FROM `wl_statistic_views`)");
 		$today = strtotime('today');
 
-		if($today == $lastRow->day)
+		if($lastRow && $today == $lastRow->day)
 		{
 			if(!isset($_COOKIE['statisticViews'])) $update = ' `cookie` = `cookie` + 1, `unique` = `unique` + 1, `views` = `views` + 1 ';
 			elseif(!isset($_SESSION['statistic'])) $update = ' `unique` = `unique` + 1, `views` = `views` + 1 ';
@@ -50,7 +49,10 @@ class wl_statistic_model {
 	private function updatePageViews($page, $today, $unique = false)
 	{
 		$where['alias'] = $page->alias;
-		$where['content'] = $page->content;
+		if($page->alias == 0)
+			$where['content'] = $page->id;
+		else
+			$where['content'] = $page->content;
 		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
 		$where['day'] = $today;
 
@@ -61,13 +63,22 @@ class wl_statistic_model {
 			$where['views'] = 1;
 			$this->db->insertRow('wl_statistic_pages', $where);
 			$this->page_id = $this->db->getLastInsertedId();
-			$this->new = true;
 		}
 		else
 		{
 			$update = $unique == true ? ' `unique` = `unique` + 1, `views` = `views` + 1 ' : ' `views` = `views` + 1 ';
 			$this->db->executeQuery("UPDATE `wl_statistic_pages` SET {$update} WHERE `id` = {$result->id}");
 			$this->page_id = $result->id;
+		}
+	}
+
+	public function updatePageIndex()
+	{
+		if($_SESSION['alias']->content !== NULL && $_SESSION['alias']->id > 0)
+		{
+			$page['alias'] = $_SESSION['alias']->id;
+			$page['content'] = $_SESSION['alias']->content;
+			$this->db->updateRow('wl_statistic_pages', $page, $this->page_id);
 		}
 	}
 

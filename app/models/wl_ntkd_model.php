@@ -33,6 +33,7 @@ class wl_ntkd_model {
 
 	public function setContent($content = 0, $autoMain = true){
 		if(!is_numeric($content)) $content = 0;
+		$_SESSION['alias']->content = $content;
 		$language = '';
 		if($_SESSION['language']) $language = "AND `language` = '{$_SESSION['language']}'";
 		$this->db->executeQuery("SELECT * FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$content}' {$language}");

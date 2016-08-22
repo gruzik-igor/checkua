@@ -5,7 +5,7 @@
 		    <div class="widget-chart-content">
 		        <h4 class="chart-title">
 		            Аналітика відвідувань
-		            <small>тут може бути текст</small>
+		            <small>Статистика подобово за останній місяць. Дані менеджерів не враховуються.</small>
 		        </h4>
 		        <div id="visitors-line-chart" class="morris-inverse" style="height: 260px;"></div>
 		    </div>

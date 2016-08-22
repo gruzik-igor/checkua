@@ -12,8 +12,10 @@ class Router extends Loader {
 	private $class;
 	private $method;
 	
-	function __construct($req = null){
-		if($req != null){
+	function __construct($req = null)
+	{
+		if($req != null)
+		{
 			$this->request = $req;
 			$this->findRoute();
 		}
@@ -22,53 +24,73 @@ class Router extends Loader {
 	/**
 	 * Шукаємо шлях
 	 */
-	function findRoute(){
+	function findRoute()
+	{
 		parent::library('db', $this);
 
-		$route = trim($this->request, '/\\');
-		$parts = explode('/', $route);
-				
+		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
 		$admin = false;
 
-		if($parts[0] == 'admin'){
-			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
-				if($_SESSION['user']->admin) $admin = true;
-    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions))) $admin = true;
-    			if($admin) {
-					if(count($parts) == 1) {
+		if($parts[0] == 'admin')
+		{
+			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+			{
+				if($_SESSION['user']->admin)
+					$admin = true;
+    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions)))
+    				$admin = true;
+    			if($admin)
+    			{
+					if(count($parts) == 1)
+					{
 						$parts[] = 'admin';
 						$_SESSION['alias'] = new stdClass();
 						$_SESSION['alias']->service = false;
 						$_SESSION['service'] = new stdClass();
-					} else {
+					}
+					else
+					{
 						parent::model('wl_alias_model');
 						$this->wl_alias_model->alias($parts[1]);
 						$this->wl_alias_model->admin_options();
 					}
-				} else {
-					parent::page_404();
 				}
-			} else {
-				header("Location: ".SITE_URL."login");
-				exit();
+				else
+					parent::page_404();
 			}
-		} else {
+			else
+				parent::redirect('login');
+		}
+		else
+		{
+			if(empty($_POST) && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload')))
+			{
+				parent::model('wl_cache_model');
+				$this->wl_cache_model->init($this->request);
+
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					parent::model('wl_statistic_model');
+					$this->wl_statistic_model->set($this->wl_cache_model->page);
+				}
+
+				$this->wl_cache_model->get();
+			}
+
 			parent::model('wl_alias_model');
 			$this->wl_alias_model->alias($parts[0]);
-
-			if(@!$_SESSION['user']->admin && !in_array($parts[0], array('images', 'assets', 'style'))){
-				parent::model('wl_statistic_model');
-				$this->wl_statistic_model->set($route);
-			}
 		}
 
-		if($this->isservice())
+		if($this->isService())
 		{
-			if($admin){
+			if($admin)
+			{
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'admin';
 				$this->method = (!isset($parts[2])) ? 'index' : $parts[2];
-			} else {
+			}
+			else
+			{
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.$_SESSION['alias']->service;
 				$this->method = (!isset($parts[1])) ? 'index' : $parts[1];
 			}
@@ -96,21 +118,27 @@ class Router extends Loader {
 			$this->method = (empty($parts)) ? 'index' : $parts[0];
 		}
 		
-		if(is_readable($path.'.php')){
+		if(is_readable($path.'.php'))
+		{
 			require $path.'.php';
 			$this->callController();
-		} else {
+		}
+		else
+		{
 			parent::page_404();
 		}
+
+		$this->wl_cache_model->set();
 	}
 	
 	/**
 	 * Створюємо об'єкт і викликаємо метод
 	 */	
-	function callController(){
+	function callController()
+	{
 		$controller = new $this->class();
 		$method = $this->method;
-		if(is_callable(array($controller, '_remap'))){
+		if(is_callable(array($controller, '_remap'))) {
 			$controller->_remap($method);
 		} else if(is_callable(array($controller, $method)) && $method != 'library' && $method != 'db') {
 			$controller->$method();
@@ -119,15 +147,16 @@ class Router extends Loader {
 		}
 	}
 	
-	private function isservice(){
-		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service){
-			
+	private function isService()
+	{
+		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service)
+		{
 			$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP;
-			if(is_file($path.$_SESSION['alias']->service.'.php')){
+			if(is_file($path.$_SESSION['alias']->service.'.php'))
+			{
 				$this->class = $_SESSION['alias']->service;
 				return true;
 			}
-			
 		}
 		return false;
 	}

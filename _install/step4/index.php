@@ -2,6 +2,9 @@
 
 //--- CMS White Lion 1.0 ---//
 
+$time_start = microtime(true);
+$mem_start = memory_get_usage();
+
 session_start();
 
 error_reporting(E_ALL);

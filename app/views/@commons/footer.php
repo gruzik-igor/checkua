@@ -3,15 +3,10 @@
             <!-- begin container -->
         <div class="container">
             <div class="col-sm-5">
-                <span class="copyright">&copy; <?=date("Y")?>  Z&P GROUP All Right Reserved</span>
+                <span class="copyright"><img src="<?=SERVER_URL?>style/admin/images/whitelion-white.png" style="height:30px" alt="White Lion CMS"> &copy; <?=date("Y")?> White Lion CMS All Right Reserved</span>
             </div>
-            <div class="col-sm-5">
-                Розроблено за допомогою <a target="_blank" href="http://webspirit.com.ua/">Webspirit Creative Agency</a>
-            </div>
-            <div class="col-sm-2">
-                <ul class="social-media-list">
-                    <li><a target="_blank" href="https://www.facebook.com/zpgro/"><i class="fa fa-facebook"></i></a></li>
-                </ul>
+            <div class="col-sm-7 pull-right">
+                <a target="_blank" href="http://webspirit.com.ua/">Розроблено за допомогою WebSpirit Creative Agency <img src="<?=SERVER_URL?>style/admin/images/WebSpirit_logo_mini.png" style="height:30px" alt="WebSpirit Creative Agency"></a>
             </div>
             <!-- end container -->
         </div>

@@ -15,10 +15,11 @@ class Controller extends Loader {
          * це потрібно для надання логіки. Відтак для завантаження скажімо бібліотеки
          * ми не пишемо $this->library(library_name), а пишемо $this->load->library(library_name)
 	 */
-	function __construct(){
-            parent::__construct();
-            $this->load = $this;
-            $this->authorize();
+	function __construct()
+    {
+        parent::__construct();
+        $this->load = $this;
+        $this->authorize();
 	}
 	
 	/**
@@ -27,33 +28,39 @@ class Controller extends Loader {
 	 * @params $class ім'я класу
 	 * @params $var завжди не задана(null)
 	 */
-	function library($classname, $var = null){
+	function library($classname, $var = null)
+    {
 		parent::library($classname, $this);
 	}
 	
-	function authorize(){
-        if(isset($_COOKIE['auth_id'])){
+	function authorize()
+    {
+        if(isset($_COOKIE['auth_id']))
+        {
             $this->load->model('wl_auth_model');
             $this->wl_auth_model->authByCookies($_COOKIE['auth_id']);
         }
-		$_SESSION['user']->check = true;
     }
 
     public function userIs()
     {
-    	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
+    	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
     		return true;
-    	}
     	return false;
     }
 
     public function userCan($permissions = '')
     {
-    	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0) {
-    		if($_SESSION['user']->admin) return true;
-    		else {
-    			if($permissions == '') $permissions = $_SESSION['alias']->alias;
-    			if($_SESSION['user']->manager == 1 && in_array($permissions, $_SESSION['user']->permissions)) return true;
+    	if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+        {
+    		if($_SESSION['user']->admin)
+                return true;
+    		else
+            {
+    			if($permissions == '')
+                    $permissions = $_SESSION['alias']->alias;
+    			if($_SESSION['user']->manager == 1 && in_array($permissions, $_SESSION['user']->permissions))
+                    return true;
     		}
     	}
     	return false;

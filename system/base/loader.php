@@ -104,6 +104,7 @@ class Loader {
 				$$key = $value;
 			}
 		}
+		
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		if($_SESSION['alias']->service && $view_file)
 		{
@@ -111,12 +112,10 @@ class Loader {
 				$view_file = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
 			else
 				$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
-		}		
-		if(file_exists($view_path))
-		{
-			require $view_path;
-			exit();
 		}
+
+		if(file_exists($view_path))
+			require $view_path;
 	}
 	
 	/**

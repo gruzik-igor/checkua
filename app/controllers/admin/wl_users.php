@@ -82,7 +82,10 @@ class wl_users extends Controller {
             if($wl_users){
                 foreach ($wl_users as $user) {
                     $user->email = '<a href="'.SITE_URL.'admin/wl_users/'.$user->email.'">'.$user->email.'</a>';
-                    $user->registered = (string) date('d.m.Y', $user->registered);
+                    if($user->last_login > 0)
+                        $user->last_login = (string) date('d.m.Y H:i', $user->last_login);
+                    else
+                        $user->last_login = 'Дані відсутні';
                 }
             }
             header('Content-type: application/json');

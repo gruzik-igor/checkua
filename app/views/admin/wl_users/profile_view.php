@@ -55,6 +55,10 @@
                             <td>Дата реєстрації</td>
                             <td><?=date("d.m.Y H:i", $user->registered)?></td>
                         </tr>
+                        <tr>
+                            <td>Останній вхід у систему</td>
+                            <td><?=date("d.m.Y H:i", $user->last_login)?></td>
+                        </tr>
                     </tbody>
                 </table>
             </div>

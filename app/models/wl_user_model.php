@@ -85,7 +85,7 @@ class wl_user_model {
         		$data['photo'] = $user->photo = $info['photo'];
 		    	$data['type'] = $user->type = $new_user_type;
                 $data['status'] = $user->status = $status->id;
-		    	$data['last_login'] = time();
+		    	$data['last_login'] = 0;
 		    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
                 if($set_password)
 		    	    $data['password'] = $user->password = $this->getPassword($user->id, $user->email, $info['password']);
@@ -109,7 +109,8 @@ class wl_user_model {
 	    	$data['type'] = $user->type = $new_user_type;
 	    	$data['status'] = $user->status = $status->id;
 	    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
-    		$data['registered'] = $user->registered = $data['last_login'] = $user->last_login = time();
+    		$data['registered'] = $user->registered = time();
+            $data['last_login'] = $user->last_login = 0;
 	    	if($this->db->insertRow('wl_users', $data))
 	    	{
 	    		$user->id = $this->db->getLastInsertedId();
@@ -259,7 +260,7 @@ class wl_user_model {
 
 			if($user->status == 1)
 			{
-				$this->setSession($user);
+				$this->setSession($user, false);
 				$auth_id = md5($user->email.'|'.$user->password.'|auth_id|'.time());
 				setcookie('auth_id', $auth_id, time() + 3600*24*31, '/');
 
@@ -342,7 +343,7 @@ class wl_user_model {
 		return sha1($email . $password . SYS_PASSWORD . $id);
 	}
 
-	public function setSession($user)
+	public function setSession($user, $updateLastLogin = true)
 	{
 		$_SESSION['user']->id = $user->id;
         $_SESSION['user']->name = $user->name;
@@ -367,6 +368,10 @@ class wl_user_model {
         }
         else
             $_SESSION['user']->manager = 0;
+
+        if($updateLastLogin)
+            $this->db->updateRow('wl_users', array('last_login' => time()), $user->id);
+
         return true;
 	}
 	

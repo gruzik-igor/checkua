@@ -15,7 +15,7 @@ var handleDataTableCombinationSetting = function() {
 	            { "data": "name" },
 	            { "data": "type_name" },
 	            { "data": "status_name" },
-	            { "data": "registered" }
+	            { "data": "last_login" }
 	        ],
 	        responsive: true,
             lengthMenu: [20, 40, 60]

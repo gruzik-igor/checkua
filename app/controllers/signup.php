@@ -7,10 +7,6 @@ class Signup extends Controller {
     private $additionall = array('phone'); // false додаткові поля при реєстрації. Згодом можна використовувати у ідентифікації, тощо
     private $new_user_type = 4; // Ід типу новозареєстрованого користувача
 
-    function Controller() {
-        parent::Controller();
-    }
-
     public function index()
     {
     	if(!$this->userIs())

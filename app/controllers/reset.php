@@ -8,6 +8,9 @@ class Reset extends Controller {
 
     public function index()
     {
+    	$_SESSION['alias']->content = 0;
+        $_SESSION['alias']->code = 201;
+
 		if($this->userIs())
 		{
             header("Location: ". SITE_URL);
@@ -56,6 +59,8 @@ class Reset extends Controller {
 	// етап2:
 	public function go()
 	{
+    	$_SESSION['alias']->code = 201;
+
 		if(!isset($_SESSION['notify']->from))
 			$_SESSION['notify'] = new stdClass();
 

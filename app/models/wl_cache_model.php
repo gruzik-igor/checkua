@@ -20,7 +20,7 @@ class wl_cache_model extends Loader
 			$page['content'] = $this->page->content = 0;
 			$page['language'] = $this->page->language = $_SESSION['language'];
 			$page['code'] = $this->page->code = 200;
-			$page['data'] = $this->page->data = '';
+			$page['data'] = $this->page->data = NULL;
 			$page['time'] = $this->page->time = time();
 			$this->db->insertRow('wl_sitemap', $page);
 			$this->page->id = $this->db->getLastInsertedId();
@@ -36,7 +36,7 @@ class wl_cache_model extends Loader
 		{
 			switch ($this->page->code) {
 				case 200:
-					if($this->page->data != '')
+					if($this->page->data != '' && $this->page->data != NULL)
 					{
 						if(extension_loaded('zlib'))
 							echo ( gzdecode ($this->page->data) );
@@ -75,6 +75,9 @@ class wl_cache_model extends Loader
 			$cache['alias'] = $_SESSION['alias']->id;
 			$cache['content'] = $_SESSION['alias']->content;
 		}
+
+		if($_SESSION['alias']->code != $this->page->code)
+			$cache['code'] = $_SESSION['alias']->code;
 
 		if($_SESSION['cache'] && $this->page->data == '')
 		{

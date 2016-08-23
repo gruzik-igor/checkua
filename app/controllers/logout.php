@@ -2,11 +2,13 @@
 
 class Logout extends Controller {
 
-    function index(){
-		$this->db->executeQuery("UPDATE `wl_users` SET `active` = '0' WHERE `id` = '{$_SESSION['user']->id}'");
+    function index()
+    {
         session_destroy();
         setcookie('auth_id', '', time() - 3600, '/');
+        header ('HTTP/1.1 303 See Other');
         header('Location: '.SITE_URL);
+        exit();
     }
 
 }

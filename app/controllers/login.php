@@ -13,11 +13,13 @@ class Login extends Controller {
      */
     public function index()
     {
+    	$_SESSION['alias']->content = 0;
+    	$_SESSION['alias']->code = 201;
+    	
         if($this->userIs())
+        	$this->redirect($this->after);
+        else
         {
-            header("Location: ". SITE_URL.$this->after);
-            exit();
-        } else {
         	$this->load->library('facebook');
             $this->load->view('profile/login_view');
         }
@@ -76,6 +78,7 @@ class Login extends Controller {
 
 	public function confirmed()
 	{
+		$_SESSION['alias']->code = 201;
 		if($this->userIs())
 			$this->load->view('profile/signup/confirmed_view');
 		$this->load->redirect('login');
@@ -83,6 +86,7 @@ class Login extends Controller {
 
 	public function emailSend()
 	{
+		$_SESSION['alias']->code = 201;
 		$_SESSION['notify'] = new stdClass();
 		if ($this->userIs() && $_SESSION['user']->status != 1)
 		{
@@ -102,6 +106,7 @@ class Login extends Controller {
 
 	public function facebook()
 	{
+		$_SESSION['alias']->code = 201;
 		$this->load->library('facebook');
 		// Get User ID
 		$user = $this->facebook->getUser();
@@ -154,15 +159,6 @@ class Login extends Controller {
 		}
 	}
 
-	 // public function password()
-  //   {
-  //   	$id = 1;
-  //       $email = $this->db->sanitizeString('wrepeta@ukr.net');
-  //       $password = '123321';
-  //       $password = md5($password);
-  //       $password = sha1($email . $password . SYS_PASSWORD . $id);
-  //       echo($password);
-  //       // echo(time());
-  //   }
 }
+
 ?>

@@ -14,6 +14,9 @@ class Profile extends Controller {
 
     public function index($uri)
     {
+        $_SESSION['alias']->content = 0;
+        $_SESSION['alias']->code = 201;
+
         if($this->userIs())
         {
             $_SESSION['alias']->title = $_SESSION['user']->name.'. Кабінет користувача';
@@ -29,6 +32,7 @@ class Profile extends Controller {
 
     public function edit()
     {
+        $_SESSION['alias']->code = 201;
         if($this->userIs())
         {
             $_SESSION['alias']->title = $_SESSION['user']->name.'. Кабінет користувача';
@@ -166,18 +170,21 @@ class Profile extends Controller {
 
     public function register_list()
     {
-        if($this->userIs()){
+        $_SESSION['alias']->code = 201;
+        if($this->userIs())
+        {
             $_SESSION['alias']->title = $_SESSION['user']->name.'. Реєстр дій';
             $_SESSION['alias']->name = 'Реєстр дій';
             $this->load->page_view('users/register_view');
-        } else {
-            header("Location: ".SITE_URL.'login');
-            exit();
         }
+        else
+            $this->redirect('login');
     }
 
     public function create()
     {
+        $_SESSION['alias']->code = 201;
+
         if($_SESSION['user']->status == 1)
             $this->redirect('profile');
 

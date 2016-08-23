@@ -14,6 +14,7 @@ class wl_alias_model
 		$_SESSION['alias']->alias = $link;
 		$_SESSION['alias']->id = 0;
 		$_SESSION['alias']->content = NULL;
+		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;
 		$_SESSION['alias']->image = false;
 		$_SESSION['alias']->js_plugins = array();

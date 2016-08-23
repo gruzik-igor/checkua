@@ -11,7 +11,8 @@ class subscribe extends Controller {
         }
     }
 
-    public function index(){
+    public function index()
+    {
 		$this->load->library('validator');
         $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
 

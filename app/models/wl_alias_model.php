@@ -124,6 +124,7 @@ class wl_alias_model
 			}
 		}
 		if($_SESSION['alias']->title == '') $_SESSION['alias']->title = $_SESSION['alias']->name;
+		if($_SESSION['alias']->description == '') $_SESSION['alias']->description = $_SESSION['alias']->list;
     }
 
     public function admin_options()

@@ -28,13 +28,27 @@ if(file_exists($file_config))
 		$languages = implode("', '", $deleteEmptyLang);
 		$languages = "'{$languages}'";
 		foreach ($deleteEmptyLang as $value) {
-			$query = "INSERT INTO `wl_ntkd` (`alias`, `content`, `language`, `name`) VALUES (1, 0, '{$value}','{$site_name}');";
+			$query = "INSERT INTO `wl_ntkd` (`alias`, `content`, `language`, `name`) VALUES 
+						(1, 0, '{$value}', '{$site_name}'),
+						(2, 0, '{$value}', 'Пошук {$site_name}'),
+						(3, 0, '{$value}', 'Мій кабінет {$site_name}'),
+						(4, 0, '{$value}', 'Увійти у {$site_name}'),
+						(5, 0, '{$value}', 'Реєстрація {$site_name}'),
+						(6, 0, '{$value}', 'Відновлення паролю {$site_name}'),
+						(7, 0, '{$value}', 'Підписка');";
 			$connect->query($query);
 		}
 	}
 	else
 	{
-		$query = "INSERT INTO `wl_ntkd` (`alias`, `content`, `name`) VALUES (1, 0, '{$site_name}');";
+		$query = "INSERT INTO `wl_ntkd` (`alias`, `content`, `name`) VALUES 
+						(1, 0, '{$site_name}'),
+						(2, 0, 'Пошук {$site_name}'),
+						(3, 0, 'Мій кабінет {$site_name}'),
+						(4, 0, 'Увійти у {$site_name}'),
+						(5, 0, 'Реєстрація {$site_name}'),
+						(6, 0, 'Відновлення паролю {$site_name}'),
+						(7, 0, 'Підписка');";
 		$connect->query($query);
 	}
 	$connect->close();

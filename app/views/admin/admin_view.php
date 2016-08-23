@@ -1,14 +1,14 @@
 <!DOCTYPE html>
-<!--[if IE 8]> <html lang="en" class="ie8"> <![endif]-->
+<!--[if IE 8]> <html lang="uk" class="ie8"> <![endif]-->
 <!--[if !IE]><!-->
-<html lang="en">
+<html lang="uk">
 <!--<![endif]-->
 <head>
   <meta charset="utf-8" />
   <title><?=$_SESSION['alias']->name?> | Панель керування <?=SITE_NAME?></title>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <meta content="White Lion Web Studio" name="author" />
-  <link rel="icon" href="<?=SITE_URL?>style/favicon.ico" type="image/x-icon">
+  <link rel="shortcut icon" href="<?=SERVER_URL?>style/admin/images/whitelion-black.png">
   
   <!-- ================== BEGIN BASE CSS STYLE ================== -->
   <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,700,300,600,400&subset=latin,cyrillic' rel='stylesheet' type='text/css'>

@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1
--- Час створення: Сер 12 2016 р., 17:16
+-- Час створення: Сер 23 2016 р., 14:45
 -- Версія сервера: 5.7.9
 -- Версія PHP: 7.0.0
 
@@ -36,15 +36,20 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
   `admin_ico` text,
   `active` tinyint(1) DEFAULT '1',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_aliases`
 --
 
 INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `options`, `admin_ico`, `active`) VALUES
-(1, 'main', 0, '', 0, '', 1),
-(2, 'search', 0, '', 0, '', 1);
+(1, 'main', 0, NULL, 0, NULL, 1),
+(2, 'search', 0, NULL, 0, NULL, 1),
+(3, 'profile', 0, NULL, 0, NULL, 1),
+(4, 'login', 0, NULL, 0, NULL, 1),
+(5, 'signup', 0, NULL, 0, NULL, 1),
+(6, 'reset', 0, NULL, 0, NULL, 1),
+(7, 'subscribe', 0, NULL, 0, NULL, 1);
 
 -- --------------------------------------------------------
 
@@ -308,7 +313,14 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
   KEY `alias` (`alias`),
   KEY `content` (`content`),
   KEY `language` (`language`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_ntkd`
+--
+
+INSERT INTO `wl_ntkd` (`id`, `alias`, `content`, `language`, `name`, `title`, `description`, `keywords`, `text`, `list`) VALUES
+(1, 1, 0, NULL, 'whitelion.cms', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -324,7 +336,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -373,7 +385,21 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   `time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`,`language`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_sitemap`
+--
+
+INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, `data`, `time`) VALUES
+(1, 'main', 1, 0, NULL, 200, NULL, 1471428532),
+(2, 'search', 2, 0, NULL, 201, NULL, 0),
+(3, 'profile', 3, 0, NULL, 200, NULL, 0),
+(4, 'login', 4, 0, NULL, 201, NULL, 0),
+(5, 'signup', 5, 0, NULL, 200, NULL, 0),
+(6, 'reset', 6, 0, NULL, 200, NULL, 0),
+(7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
+(8, 'logout', 0, 0, NULL, 201, NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -394,7 +420,17 @@ CREATE TABLE IF NOT EXISTS `wl_statistic_pages` (
   KEY `alias` (`alias`),
   KEY `content` (`content`),
   KEY `language` (`language`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_statistic_pages`
+--
+
+INSERT INTO `wl_statistic_pages` (`id`, `alias`, `content`, `language`, `day`, `unique`, `views`) VALUES
+(1, 1, 0, NULL, 1471910400, 1, 2),
+(2, 5, 0, NULL, 1471910400, 1, 1),
+(3, 0, 8, NULL, 1471910400, 1, 1),
+(4, 4, 0, NULL, 1471910400, 1, 1);
 
 -- --------------------------------------------------------
 
@@ -411,7 +447,14 @@ CREATE TABLE IF NOT EXISTS `wl_statistic_views` (
   `views` int(10) UNSIGNED NOT NULL,
   PRIMARY KEY (`id`),
   KEY `day` (`day`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_statistic_views`
+--
+
+INSERT INTO `wl_statistic_views` (`id`, `day`, `cookie`, `unique`, `views`) VALUES
+(1, 1471910400, 0, 1, 5);
 
 -- --------------------------------------------------------
 
@@ -428,13 +471,21 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
   `photo` text,
   `type` smallint(2) NOT NULL DEFAULT '4',
   `status` tinyint(1) NOT NULL DEFAULT '2',
-  `reset_key` text,
-  `reset_expires` int(11) DEFAULT '0',
   `registered` int(11) DEFAULT '0',
+  `last_login` int(11) NOT NULL,
   `auth_id` text,
   `password` text,
+  `reset_key` text,
+  `reset_expires` int(11) DEFAULT '0',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_users`
+--
+
+INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `photo`, `type`, `status`, `registered`, `last_login`, `auth_id`, `password`, `reset_key`, `reset_expires`) VALUES
+(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, 1469650761, 1471963078, 'b3570abeb10984a70eb49c6ada0dfe54', 'c0e5c5c47f28b4d132bc9f894c192cfc27716f3d', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -479,8 +530,14 @@ CREATE TABLE IF NOT EXISTS `wl_user_register` (
   `additionally` text,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
+--
+-- Дамп даних таблиці `wl_user_register`
+--
+
+INSERT INTO `wl_user_register` (`id`, `date`, `do`, `user`, `additionally`) VALUES
+(1, 1469650761, 1, 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -564,7 +621,7 @@ CREATE TABLE IF NOT EXISTS `wl_user_types` (
 INSERT INTO `wl_user_types` (`id`, `name`, `title`, `active`) VALUES
 (1, 'admin', 'Адміністратор', 1),
 (2, 'manager', 'Менеджер', 1),
-(3, 'reserved', 'Резерв', 0),
+(3, 'reserved', 'Резерв', 1),
 (4, 'single', 'Користувач', 1),
 (5, 'subscribe', 'Підписник', 1);
 

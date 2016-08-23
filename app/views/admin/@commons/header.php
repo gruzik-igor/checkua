@@ -15,14 +15,14 @@
     
     <!-- begin header navigation right -->
     <ul class="nav navbar-nav navbar-right">
-      <!--<li>
+      <li>
         <form action="<?=SITE_URL?>admin/search" class="navbar-form full-width">
           <div class="form-group">
             <input name="by" type="text" class="form-control" placeholder="Enter keyword" />
             <button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
           </div>
         </form>
-      </li>-->
+      </li>
       <li class="dropdown navbar-user">
         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
           <img src="<?=SITE_URL?>style/admin/images/user-8.jpg" alt="" /> 

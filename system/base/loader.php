@@ -248,7 +248,7 @@ class Loader {
 		{
 			if($admin && !$this->userCan($alias->alias))
 			{
-				$this->page_404();
+				return false;
 			}
 
 			if(!isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
@@ -332,10 +332,11 @@ class Loader {
 				if(file_exists($model_path))
 				{
 					require_once $model_path;
-					if($method != ''){
+					if($method != '')
+					{
 						$controller = $service;
 						$service = new $service();
-						if(is_callable(array($service, '_remap'))){
+						if(is_callable(array($service, '_remap'))) {
 							$rezult = $service->_remap($method, $data);
 						} else if(is_callable(array($service, $method))) {
 							$rezult = $service->$method($data);

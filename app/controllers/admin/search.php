@@ -4,50 +4,52 @@ class Search extends Controller {
 
 	public function index()
 	{
-		$data = null;
+		$_SESSION['alias']->name = 'Пошук';
+        $_SESSION['alias']->breadcrumb = array('Пошук' => '');
+
+		$data = array();
+		$current = 0;
 		$this->load->library('validator');
 		$this->validator->setRules($this->text('search text'), $this->data->get('by'), 'required|3..100');
 		if($this->validator->run())
 		{
 			$this->load->model('wl_search_model');
-			$language_all = false;
-			if($this->data->get('language-all')) $language_all = true;
+			$language_all = ($this->data->get('language-all')) ? true : false;
 			$search_data = $this->wl_search_model->get($this->data->get('by'), $language_all);
 			if($search_data)
 			{
-				$services = array();
-				$contents = array();
 				$per_page = 0;
+				$start = 1;
+				if($this->data->get('page') > 1 && isset($_SESSION['option']->paginator_per_page)) {
+					$start = $this->data->get('page') * $_SESSION['option']->paginator_per_page;
+				}
 
-				foreach ($search_data as $search) {
-					$go = false;
-					if(!in_array($search->content, $contents) || (isset($_SESSION['language']) && $serch->language == $_SESSION['language']))
+				foreach ($search_data as $search)
+				{
+					$result = $this->load->function_in_alias($search->alias, '__get_Search', $search->content, true);
+					if($result)
 					{
-						if(isset($_SESSION['option']->paginator_per_page))
+						$current++;
+						$result->name = $search->name;
+						$result->list = $search->list;
+						$result->text = $search->text;
+						if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 						{
-							if($_SESSION['option']->paginator_per_page > 0 && $_SESSION['option']->paginator_per_page >= $per_page)
+							if($current >= $start && $current < ($start + $_SESSION['option']->paginator_per_page))
 							{
-								$go = true;
+								array_push($data, $result);
 							}
 						} else {
-							$go = true;
-						}
-						if(in_array($search->content, $contents)) $per_page--;
-					}
-					
-					if($go){
-						$per_page++;
-						if($search->service > 0){
-							if(isset($services[$search->service])){
-
-							}
+							array_push($data, $result);
 						}
 					}
-					
 				}
 			}
+		} else {
+			@$_SESSION['notify']->errors = $this->validator->getErrors();
 		}
-		$this->load->page_view('search_view', array('data' => $data, 'errors' => $this->validator->getErrors));
+		@$_SESSION['option']->paginator_total = $current;
+		$this->load->admin_view('search_view', array('data' => $data));
 	}
 
 }

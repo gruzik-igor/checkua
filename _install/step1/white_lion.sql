@@ -72,6 +72,25 @@ CREATE TABLE IF NOT EXISTS `wl_aliases_cooperation` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `wl_audio`
+--
+
+CREATE TABLE IF NOT EXISTS `wl_audio` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `author` int(11) NOT NULL,
+  `text` text NOT NULL,
+  `name` text NOT NULL,
+  `extension` text NOT NULL,
+  `alias` int(11) NOT NULL,
+  `content` int(11) NOT NULL,
+  `date_add` int(11) NOT NULL,
+  `position` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `wl_fields`
 --
 
@@ -448,7 +467,7 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
   `type` smallint(2) NOT NULL DEFAULT '4',
   `status` tinyint(1) NOT NULL DEFAULT '2',
   `registered` int(11) DEFAULT '0',
-  `last_login` int(11) NOT NULL,
+  `last_login` int(11) DEFAULT '0',
   `auth_id` text,
   `password` text,
   `reset_key` text,

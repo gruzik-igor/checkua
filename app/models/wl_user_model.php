@@ -31,13 +31,13 @@ class wl_user_model {
         	else
         	{
         		$where['user'] = $user->id;
-        		$where['key'] = explode(',', $additionall);
+        		$where['field'] = explode(',', $additionall);
         		$info = $this->db->getAllDataByFieldInArray('wl_user_info', $where);
         	}
         	if($info)
         	{
         		foreach ($info as $i) {
-        			$key = $i->key;
+        			$key = $i->field;
         			if(isset($user->$key))
         			{
         				if(is_array($user->$key)) array_push($user->$key, $i->value);
@@ -77,7 +77,7 @@ class wl_user_model {
     	$user = $this->db->getAllDataById('wl_users', $info['email'], 'email');
         if($user)
         {
-        	if($user->type == 5)
+        	if($user->type >= 5 && $set_password)
         	{
         		$data = array();
                 $data['alias'] = $user->alias = $this->makeAlias($info['name']);
@@ -92,6 +92,11 @@ class wl_user_model {
 		    	if($this->db->updateRow('wl_users', $data, $user->id))
 		    		$this->db->register('signup', $comment, $user->id);
         	}
+            elseif(!$set_password)
+            {
+                $this->user_errors = 'Користувач з таким е-мейлом вже є!';
+                return $user;
+            }
         	else
     		{
     			$this->user_errors = 'Користувач з таким е-мейлом вже є!';
@@ -132,7 +137,7 @@ class wl_user_model {
 				foreach ($additionall as $key => $value) {
 					$info = array();
 					$info['user'] = $user->id;
-					$info['key'] = $key;
+					$info['field'] = $key;
 					$info['value'] = $value;
 					$info['date'] = time();
 					$this->db->insertRow('wl_user_info', $info);
@@ -232,7 +237,7 @@ class wl_user_model {
 		}
 		else
 		{
-			$this->db->select('wl_user_info as ui', 'value as password', $key, 'key');
+			$this->db->select('wl_user_info as ui', 'value as password', $key, 'field');
 			$this->db->join('wl_users', 'id, email, name, type, status', '#ui.user');
 			$user = $this->db->get('single');
 		}
@@ -286,7 +291,7 @@ class wl_user_model {
     public function setAdditional($user, $key, $value)
     {
     	$where['user'] = $user;
-    	$where['key'] = $key;
+    	$where['field'] = $key;
     	$this->db->select('wl_user_info', 'id, value', $where);
     	$additionall = $this->db->get();
     	if(is_array($additionall))

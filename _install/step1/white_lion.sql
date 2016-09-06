@@ -568,17 +568,22 @@ CREATE TABLE IF NOT EXISTS `wl_user_status` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` text NOT NULL,
   `title` text NOT NULL,
+  `next` int(11) NOT NULL,
+  `load` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_user_status`
 --
 
-INSERT INTO `wl_user_status` (`id`, `name`, `title`) VALUES
-(1, 'confirmed', 'Підтверджений'),
-(2, 'registered', 'Новозареєстрований'),
-(3, 'banned', 'Заблокований');
+INSERT INTO `wl_user_status` (`id`, `name`, `title`, `next`, `load`) VALUES
+(1, 'confirmed', 'Підтверджений', 0, 'profile'),
+(2, 'registered', 'Новозареєстрований', 2, 'login/confirmed'),
+(3, 'banned', 'Заблокований', 0, ''),
+(4, 'create-1', 'Створити профіль 1: контактна інформація', 5, 'profile/create/step-1'),
+(5, 'create-2', 'Створити профіль 2: персональна інформація', 6, 'profile/create/step-2'),
+(6, 'create-3', 'Створити профіль 3: професійна інформація', 1, 'profile/create/step-3');
 
 -- --------------------------------------------------------
 

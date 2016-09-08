@@ -26,7 +26,7 @@ class Search extends Controller {
 
 				foreach ($search_data as $search)
 				{
-					$result = $this->load->function_in_alias($search->alias, '__get_Search', $search->content, true);
+					$result = $this->load->function_in_alias($search->alias_id, '__get_Search', $search->content, true);
 					if($result)
 					{
 						$current++;

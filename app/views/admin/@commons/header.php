@@ -18,7 +18,7 @@
       <li>
         <form action="<?=SITE_URL?>admin/search" class="navbar-form full-width">
           <div class="form-group">
-            <input name="by" type="text" class="form-control" placeholder="Enter keyword" />
+            <input name="by" type="text" class="form-control" placeholder="Ключове слово пошуку..." />
             <button type="submit" class="btn btn-search"><i class="fa fa-search"></i></button>
           </div>
         </form>

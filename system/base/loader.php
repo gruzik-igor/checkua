@@ -319,7 +319,13 @@ class Loader {
 					$model_path = APP_PATH.'controllers'.DIRSEP.$service.'.php';
 					if($admin)
 					{
-						$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
+						if($alias->id == 1)
+						{
+							$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.'admin.php';
+							$service = 'admin';
+						}
+						else
+							$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
 					}
 				}
 

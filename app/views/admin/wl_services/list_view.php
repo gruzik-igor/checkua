@@ -20,22 +20,22 @@
                         <thead>
                             <tr>
 								<th>id</th>
-								<th>name</th>
-								<th>title</th>
-								<th>service table</th>
-								<th>version</th>
-								<th>active</th>
+								<th>Група</th>
+								<th>Назва</th>
+								<th>Службова назва</th>
+								<th>Службова таблиця</th>
+								<th>Версія</th>
                             </tr>
                         </thead>
                         <tbody>
 						<?php if($services) foreach ($services as $s) { $services_name[] = $s->name; ?>
 							<tr>
-								<td><?=$s->id?></td>
-								<td><a href="<?=SITE_URL?>admin/wl_services/<?=$s->name?>"><?=$s->name?></a></td>
-								<td title="<?=$s->description?>"><?=$s->title?></td>
+								<td><a href="<?=SITE_URL?>admin/wl_services/<?=$s->name?>"><?=$s->id?></a></td>
+								<td><?=$s->group?></td>
+								<td title="<?=$s->description?>"><a href="<?=SITE_URL?>admin/wl_services/<?=$s->name?>"><?=$s->title?></a></td>
+								<td><?=$s->name?></td>
 								<td><?=$s->table?></td>
 								<td><?=$s->version?></td>
-								<td><?=$s->active?></td>
 							</tr>
 						<?php } ?>
                         </tbody>

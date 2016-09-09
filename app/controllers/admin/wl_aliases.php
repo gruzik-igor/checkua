@@ -119,6 +119,18 @@ class wl_aliases extends Controller {
                         
                         if(isset($install->options['folder'])) $install->options['folder'] = $alias->alias;
                         $options = $install->options;
+
+        //                 if(isset($this->options['folder']) && $this->options['folder'] != ''){
+        //     $path = IMG_PATH.$this->options['folder'];
+        //     if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+        //     if(!is_dir($path)) mkdir($path, 0777);
+        // }
+        //                 if($this->options['resize'] > 0){
+        //     $query = "INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
+        //                                          ( NULL, {$alias}, 1, 'Оригінал', '', 1, 1500, 1500),
+        //                                          ( NULL, {$alias}, 1, 'Preview', 's', 2, 200, 200);";
+        //     $this->db->executeQuery($query);
+        // }
                     }
                 }
             } 

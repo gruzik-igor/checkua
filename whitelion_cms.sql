@@ -3,9 +3,9 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1
--- Час створення: Сер 23 2016 р., 14:45
+-- Час створення: Вер 09 2016 р., 20:50
 -- Версія сервера: 5.7.9
--- Версія PHP: 7.0.0
+-- Версія PHP: 5.6.16
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 SET time_zone = "+00:00";
@@ -23,18 +23,34 @@ SET time_zone = "+00:00";
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `s_static_page`
+--
+
+DROP TABLE IF EXISTS `s_static_page`;
+CREATE TABLE IF NOT EXISTS `s_static_page` (
+  `id` int(11) NOT NULL,
+  `photo` text NOT NULL,
+  `author_add` int(11) NOT NULL,
+  `date_add` int(11) NOT NULL,
+  `author_edit` int(11) NOT NULL,
+  `date_edit` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `wl_aliases`
 --
 
 DROP TABLE IF EXISTS `wl_aliases`;
 CREATE TABLE IF NOT EXISTS `wl_aliases` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `alias` text COMMENT 'ссилка',
+  `alias` text NOT NULL COMMENT 'основне посилання',
   `service` int(11) DEFAULT '0',
   `table` text,
-  `options` tinyint(1) DEFAULT '0' COMMENT 'наявність опцій',
   `admin_ico` text,
-  `active` tinyint(1) DEFAULT '1',
+  `admin_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
@@ -42,14 +58,14 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
 -- Дамп даних таблиці `wl_aliases`
 --
 
-INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `options`, `admin_ico`, `active`) VALUES
-(1, 'main', 0, NULL, 0, NULL, 1),
-(2, 'search', 0, NULL, 0, NULL, 1),
-(3, 'profile', 0, NULL, 0, NULL, 1),
-(4, 'login', 0, NULL, 0, NULL, 1),
-(5, 'signup', 0, NULL, 0, NULL, 1),
-(6, 'reset', 0, NULL, 0, NULL, 1),
-(7, 'subscribe', 0, NULL, 0, NULL, 1);
+INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `admin_ico`, `admin_order`) VALUES
+(1, 'main', 0, NULL, NULL, NULL),
+(2, 'search', 0, NULL, NULL, NULL),
+(3, 'profile', 0, NULL, NULL, NULL),
+(4, 'login', 0, NULL, NULL, NULL),
+(5, 'signup', 0, NULL, NULL, NULL),
+(6, 'reset', 0, NULL, NULL, NULL),
+(7, 'subscribe', 0, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -155,10 +171,10 @@ CREATE TABLE IF NOT EXISTS `wl_images_sizes` (
   `alias` int(11) NOT NULL,
   `active` tinyint(1) DEFAULT NULL,
   `name` text,
-  `prefix` varchar(2) DEFAULT NULL,
+  `prefix` char(2) DEFAULT NULL,
   `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
-  `height` int(11) NOT NULL,
   `width` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
@@ -336,14 +352,15 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
 --
 
 INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
-(1, 0, 0, 'paginator_per_page', '20');
+(1, 0, 0, 'paginator_per_page', '20'),
+(2, 1, 0, 'folder', 'static_page');
 
 -- --------------------------------------------------------
 
@@ -360,12 +377,16 @@ CREATE TABLE IF NOT EXISTS `wl_services` (
   `table` text NOT NULL COMMENT 'службова таблиця',
   `group` tinytext NOT NULL,
   `multi_alias` tinyint(1) NOT NULL,
-  `order_alias` tinyint(4) NOT NULL,
   `version` text NOT NULL,
-  `active` tinyint(1) NOT NULL DEFAULT '1',
-  `admin_ico` text NOT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_services`
+--
+
+INSERT INTO `wl_services` (`id`, `name`, `title`, `description`, `table`, `group`, `multi_alias`, `version`) VALUES
+(1, 'static_pages', 'Статичні сторінки', '', 's_static_page', 'page', 1, '2');
 
 -- --------------------------------------------------------
 
@@ -485,7 +506,7 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
 --
 
 INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `photo`, `type`, `status`, `registered`, `last_login`, `auth_id`, `password`, `reset_key`, `reset_expires`) VALUES
-(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, 1469650761, 1471963078, 'b3570abeb10984a70eb49c6ada0dfe54', 'c0e5c5c47f28b4d132bc9f894c192cfc27716f3d', NULL, 0);
+(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, 1469650761, 1473453985, 'ce05f58b19a01483d3495cd8abe3e84a', 'c0e5c5c47f28b4d132bc9f894c192cfc27716f3d', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -530,14 +551,21 @@ CREATE TABLE IF NOT EXISTS `wl_user_register` (
   `additionally` text,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_user_register`
 --
 
 INSERT INTO `wl_user_register` (`id`, `date`, `do`, `user`, `additionally`) VALUES
-(1, 1469650761, 1, 1, NULL);
+(1, 1469650761, 1, 1, NULL),
+(2, 1473453532, 13, 1, '1. static_pages (2)'),
+(3, 1473453611, 14, 1, '1. static_pages (2)'),
+(4, 1473453639, 13, 1, '2. static_pages (2)'),
+(5, 1473453661, 14, 1, '2. static_pages (2)'),
+(6, 1473453664, 13, 1, '3. static_pages (2)'),
+(7, 1473454064, 14, 1, '3. static_pages (2)'),
+(8, 1473454185, 13, 1, '1. static_pages (2)');
 
 -- --------------------------------------------------------
 

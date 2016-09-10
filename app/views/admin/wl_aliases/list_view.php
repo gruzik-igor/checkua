@@ -19,10 +19,18 @@
                             </tr>
                         </thead>
                         <tbody>
-                        <?php if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
+                        <?php
+                        $this->db->select('wl_aliases');
+                		$this->db->join('wl_services', 'name as service_name, title as service_title', '#service');
+                		$this->db->order('id');
+                		$wl_aliases = $this->db->get('array');
+                        if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
 							<tr>
 								<td><?=$alias->id?></td>
-								<td><a href="<?=SITE_URL?>admin/wl_aliases/<?=$alias->alias?>"><?=$alias->alias?></a> <a href="<?=SITE_URL?><?=($alias->alias == 'main')?'':$alias->alias?>"><i class="fa fa-eye"></i></a></td>
+								<td>
+									<a href="<?=SITE_URL?>admin/wl_aliases/<?=$alias->alias?>"><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></a> 
+									<a href="<?=SITE_URL?><?=($alias->alias == 'main') ? '' : $alias->alias?>"><i class="fa fa-eye"></i></a>
+								</td>
 								<td><a href="<?=SITE_URL?>wl_services/<?=$alias->service_name?>"><?=$alias->service_title?></a></td>
 								<td><?=$alias->table?></td>
 								<td><?=$alias->admin_order?></td>

@@ -171,7 +171,7 @@ class wl_aliases extends Controller {
                         $go++;
                 }
                 if($go > 0)
-                    $_SESSION['notify']->errors = 'Поле "Адреса посилання" має бути унікальним!';
+                    $_SESSION['notify']->errorss = 'Поле "Адреса посилання" має бути унікальним!';
             }
                 
             $text = '';
@@ -192,28 +192,28 @@ class wl_aliases extends Controller {
             {
                 $go = 0;
                 foreach ($this->db->getAllData('wl_aliases') as $alias) {
-                    if($alias->alias == $_POST['alias'])
+                    if($alias->alias == $_POST['alias'] && $alias->id != $_POST['id'])
                         $go++;
                 }
 
                 $data = array();
                 $data['alias'] = $this->db->sanitizeString($_POST['alias']);
                 $data['service'] = $this->data->post('service');
-                $data['table'] = NULL;
                 $data['admin_ico'] = NULL;
                 $data['admin_order'] = 0;
 
                 if($_POST['id'] == 0 && $go == 0)
                 {
+                    $data['table'] = NULL;
                     $this->db->insertRow('wl_aliases', $data);
                     $alias = $this->db->getLastInsertedId();
                     $this->db->register('alias_add', $data['alias'].' ('.$alias.')');
-                    $update = array('table' => '_'.$alias.'_'.$data['alias']);
-
+                    
                     if($data['service'] > 0)
                     {
                         if($service = $this->db->getAllDataById('wl_services', $data['service']))
                         {
+                            $update = array('table' => '_'.$alias.'_'.$data['alias']);
                             $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
                             if(file_exists($path))
                             {
@@ -277,9 +277,9 @@ class wl_aliases extends Controller {
 
                                 $install->alias($alias, $update['table']);
                             }
+                            $this->db->updateRow('wl_aliases', $update, $alias);
                         }
                     }
-                    $this->db->updateRow('wl_aliases', $update, $alias);
 
                     $ntkd = array('alias' => $alias, 'content' => 0, 'language' => NULL, 'name' => $this->data->post('name'));
                     if($_SESSION['language'])
@@ -290,40 +290,42 @@ class wl_aliases extends Controller {
                     else
                         $this->db->insertRow('wl_ntkd', $ntkd);
 
-                    // $this->load->redirect('admin/wl_aliases/'.$data['alias']);
-                    exit;
-
-                } elseif($_POST['id'] > 0 && $go < 2) {
+                    $this->load->redirect('admin/wl_aliases/'.$data['alias']);
+                }
+                elseif($_POST['id'] > 0 && $go == 0)
+                {
                     $data['admin_ico'] = $this->data->post('admin_ico');
+                    $data['admin_order'] = $this->data->post('admin_order');
                     $this->db->updateRow('wl_aliases', $data, $_POST['id']);
-                    if($data['options'] > 0 && $data['service'] > 0){
-                        $options = array();
-                        $options_id = array();
-                        $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$data['service']}' AND alias = '0'");
-                        if($this->db->numRows() > 0){
-                            $options_all = $this->db->getRows('array');
+
+                    $options = array();
+                    $options_id = array();
+                    if($data['service'] > 0)
+                    {
+                        if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
                             foreach ($options_all as $option) {
                                 $options[$option->name] = $option->value;
                                 $options_id[$option->name] = 0;
                             }
-                        } 
-                        $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$data['service']}' AND alias = '{$_POST['id']}'");
-                        if($this->db->numRows() > 0){
-                            $options_all = $this->db->getRows('array');
-                            foreach ($options_all as $option) {
-                                $options[$option->name] = $option->value;
-                                $options_id[$option->name] = $option->id;
-                            }
-                        } 
+                    }
+                    if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => $_POST['id'])))
+                        foreach ($options_all as $option) {
+                            $options[$option->name] = $option->value;
+                            $options_id[$option->name] = $option->id;
+                        }
 
+                    if(!empty($options))
+                    {
                         $install = null;
                         $table = '';
 
-                        if($data['service'] > 0){
-                            $service = $this->db->getAllDataById('wl_services', $data['service']);
-                            if($service){
+                        if($data['service'] > 0)
+                        {
+                            if($service = $this->db->getAllDataById('wl_services', $data['service']))
+                            {
                                 $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
-                                if(file_exists($path)){
+                                if(file_exists($path))
+                                {
                                     require_once($path);
                                     $install = new install();
                                     $install->db = $this->db;
@@ -334,21 +336,23 @@ class wl_aliases extends Controller {
                             }
                         }
 
-                        if(!empty($options))
-                        {
-                            $reserved = array('id', 'service', 'alias', 'name');
-                            foreach ($options as $key => $value) if(!in_array($key, $reserved)) {
+                        $reserved = array('id', 'service', 'alias', 'name', 'admin_ico', 'admin_order');
+                        foreach ($options as $key => $value)
+                            if(!in_array($key, $reserved))
+                            {
                                 if(isset($_POST[$key]) && $_POST[$key] != $value)
                                 {
-                                    if(!empty($install)) $install->setOption($key, $_POST[$key], $_POST['id'], $table);
+                                    if(!empty($install)) $install->setOption($key, $this->data->post($key), $_POST['id'], $table);
 
                                     $option = array();
                                     $option['service'] = $data['service'];
                                     $option['alias'] = $_POST['id'];
                                     $option['name'] = $key;
-                                    $option['value'] = $_POST[$key];
-                                    if($options_id[$key] == 0) $this->db->insertRow('wl_options', $option);
-                                    else $this->db->updateRow('wl_options', $option, $options_id[$key]);
+                                    $option['value'] = $this->data->post($key);
+                                    if($options_id[$key] == 0)
+                                        $this->db->insertRow('wl_options', $option);
+                                    else
+                                        $this->db->updateRow('wl_options', $option, $options_id[$key]);
                                 }
                                 elseif(!isset($_POST[$key]) && $value != 0)
                                 {
@@ -356,98 +360,117 @@ class wl_aliases extends Controller {
                                     $option['service'] = $data['service'];
                                     $option['alias'] = $_POST['id'];
                                     $option['name'] = $key;
-                                    $option['value'] = 0;
-                                    if($options_id[$key] == 0) $this->db->insertRow('wl_options', $option);
-                                    else $this->db->updateRow('wl_options', $option, $options_id[$key]);
+                                    $option['value'] = $this->data->post($key);
+                                    if($options_id[$key] == 0)
+                                        $this->db->insertRow('wl_options', $option);
+                                    else
+                                        $this->db->updateRow('wl_options', $option, $options_id[$key]);
                                 }
                             }
-                        }
                     }
+                    $_SESSION['notify'] = new stdClass();
                     $_SESSION['notify']->success = 'Інформацію успішно оновлено!';
-                    header("Location: ".SITE_URL.'admin/wl_aliases/'.$_POST['alias']);
-                    exit();
-                } else {
-                    $_SESSION['notify']->error = 'Поле "Адреса посилання" має бути унікальним!';
-                    header("Location: ".$_SERVER['HTTP_REFERER']);
+                    $this->load->redirect('admin/wl_aliases/'.$_POST['alias']);
                     exit();
                 }
-            } else {
-                $_SESSION['notify']->error = 'Поле "Адреса посилання" є обов\'язковим!';
-                header("Location: ".$_SERVER['HTTP_REFERER']);
-                exit();
+                else
+                {
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->errors = 'Поле "Адреса посилання" має бути унікальним!';
+                }
             }
-        } else $this->load->page_404();
+            else
+            {
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->errors = 'Поле "Адреса посилання" є обов\'язковим!';
+            }
+            $this->load->redirect();
+        }
+        else
+            $this->load->page_404();
     }
 
     public function delete()
     {
-        if($_SESSION['user']->admin == 1 && isset($_POST['admin-password']) && isset($_POST['id'])){
-            $admin = $this->db->getAllDataById('wl_users', $_SESSION['user']->id);
-            $password = md5($_POST['admin-password']);
-            $password = sha1($_SESSION['user']->email . $password . SYS_PASSWORD . $_SESSION['user']->id);
-            if($password == $admin->password){
-                if($_POST['id'] > 1) {
-                    $alias = $this->db->getAllDataById('wl_aliases', $_POST['id']);
-                    if($alias) {
+        if($_SESSION['user']->admin == 1 && isset($_POST['admin-password']) && isset($_POST['id']))
+        {
+            $this->load->model('wl_user_model');
+            $admin = $this->wl_user_model->getInfo(0, false);
+            $password = $this->wl_user_model->getPassword($_SESSION['user']->id, $_SESSION['user']->email, $_POST['admin-password']);
+            if($password == $admin->password)
+            {
+                if($_POST['id'] > 1)
+                {
+                    if($alias = $this->db->getAllDataById('wl_aliases', $_POST['id']))
+                    {
                         $additionally = "{$alias->id}. {$alias->alias}. ";
+                        $where = array('service' => $alias->service, 'alias' => $alias->id, 'name' => 'folder');
+                        if($option = $this->db->getAllDataById('wl_options', $where))
+                        {
+                            $folder = $option->value;
 
-                        if($alias->service > 0){
-                            $service = $this->db->getAllDataById('wl_services', $alias->service);
-                            if($service){
+                            $path = IMG_PATH.$folder;
+                            $path = substr($path, strlen(SITE_URL));
+                            $this->data->removeDirectory($path);
+                        }
+
+                        if($alias->service > 0)
+                        {
+                            if($service = $this->db->getAllDataById('wl_services', $alias->service))
+                            {
                                 $additionally .= $service->name .' ('.$service->id.')';
                                 $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
-                                if(file_exists($path)){
+                                if(file_exists($path))
+                                {
                                     require_once($path);
                                     $install = new install();
                                     $install->db = $this->db;
-                                    if(isset($install->options['folder'])){
-                                        $where = array('service' => $alias->service, 'alias' => $alias->id, 'name' => 'folder');
-                                        $option = $this->db->getAllDataById('wl_options', $where);
-                                        if($option){
-                                            $install->options['folder'] = $option->value;
-                                        }
-                                    }
-                                    if(method_exists("install", "alias_delete")) $install->alias_delete($alias->id, $alias->table);
+
+                                    if(method_exists("install", "alias_delete"))
+                                        $install->alias_delete($alias->id, $alias->table);
                                 }
                             }
                         }
 
-                        $this->db->deleteRow('wl_aliases', $_POST['id']);
-                        $this->db->deleteRow('wl_ntkd', $_POST['id'], 'alias');
-                        $this->db->deleteRow('wl_options', $_POST['id'], 'alias');
-                        $this->db->deleteRow('wl_options', -$_POST['id'], 'alias');
-                        $this->db->deleteRow('wl_images', $_POST['id'], 'alias');
-                        $this->db->deleteRow('wl_images_sizes', $_POST['id'], 'alias');
-                        $this->db->deleteRow('wl_video', $_POST['id'], 'alias');
-                        // $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias1');
-                        //             $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias2');
-                        //             $this->db->deleteRow('wl_images', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_images_sizes', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_language_words', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_ntkd', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_sitemap', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_statistic_pages', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_video', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_audio', $alias->id, 'alias');
-                        //             $this->db->deleteRow('wl_user_permissions', $alias->id, 'permission');
+                        $this->db->deleteRow('wl_aliases', $alias->id);
+                        $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias1');
+                        $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias2');
+                        $this->db->deleteRow('wl_images', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_images_sizes', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_options', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_options', -$alias->id, 'alias');
+                        $this->db->deleteRow('wl_language_words', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_ntkd', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_sitemap', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_statistic_pages', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_video', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_audio', $alias->id, 'alias');
+                        $this->db->deleteRow('wl_user_permissions', $alias->id, 'permission');
 
                         $this->db->register('alias_delete', $additionally);
+                        $this->load->redirect("admin/wl_aliases");
 
-                        header("Location: ".SITE_URL."admin/wl_aliases");
                         exit();
-                    } else {
-                        $_SESSION['notify']->error = 'Адресу не знайдено!';
                     }
-                } else {
-                    $_SESSION['notify']->error = 'Видалити головну сторінку неможна!';
+                    else
+                    {
+                        $_SESSION['notify'] = new stdClass();
+                        $_SESSION['notify']->errors = 'Адресу не знайдено!';
+                    }
                 }
-            } else {
-                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
+                else
+                {
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->errors = 'Видалити головну сторінку неможна!';
+                }
+            }
+            else
+            {
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->errors = 'Невірний пароль адміністратора';
             }
         }
-
-        header("Location: ".$_SERVER['HTTP_REFERER']);
-        exit();
+        $this->load->redirect();
     }
 
     public function saveSubMenu()

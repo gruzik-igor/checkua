@@ -1,4 +1,6 @@
-<?php if($views) { ?>
+<?php 
+$this->load->model('wl_analytic_model');
+if($views = $this->wl_analytic_model->getViewers()) { ?>
 
 <div class="widget-chart with-sidebar bg-black">
     <div class="widget-chart-content">
@@ -21,7 +23,6 @@
         </ul>
     </div>
 </div>
-
 
 <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/morris.js/0.5.1/morris.css">
 <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.0/jquery.min.js"></script>
@@ -57,7 +58,7 @@ var e = "#0D888B",
 Morris.Line({
     element: "visitors-line-chart",
     data: [
-    <?php foreach($views->tableData as $data) {?>
+    <?php if($views->tableData) foreach($views->tableData as $data) {?>
     	{
 	        x: "<?= date('Y-m-d' ,$data->day)?>",
 	        w: <?= $data->views?>,
@@ -111,10 +112,10 @@ handleVisitorsDonutChart();
 
 <style>
 .morris-inverse .morris-hover {
-    background: rgba(0,0,0,.4)!important;
-    border: none!important;
-    padding: 8px!important;
-    color: #ccc!important;
+    background: rgba(0,0,0,.4) !important;
+    border: none !important;
+    padding: 8px !important;
+    color: #ccc !important;
 }
 </style>
 

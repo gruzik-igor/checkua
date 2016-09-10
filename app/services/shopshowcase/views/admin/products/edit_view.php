@@ -26,12 +26,7 @@
       $parent = $list[$parent]->parent;
     }
   }
-  if(empty($options_parents)) {
-    $options = $this->shop_model->getOptions();
-    if($options) array_unshift($options_parents, 0);
-  } else {
-    array_unshift($options_parents, 0);
-  }
+  array_unshift($options_parents, 0);
   
   $product_options = array();
   $options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
@@ -51,7 +46,7 @@
     <div class="panel panel-inverse">
       <div class="panel-heading">
         <div class="panel-heading-btn">
-          <a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$product->id?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:product_to']?></a>
+          <a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$product->alias?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:product_to']?></a>
           <?php
             $url = $this->data->url();
             array_shift($url);
@@ -107,10 +102,16 @@
         		</div>
           <?php } ?>
           <div class="tab-pane fade" id="tab-photo">
-            <?php require_once 'edit_tabs/tab-photo.php'; ?>
+            <?php
+            $PHOTOS = $product->photos;
+            $CONTENT_ID = $product->id;
+            $PHOTO_MAIN = $product->photo;
+            $PHOTO_FILE_NAME = $product->alias;
+            $PHOTO_UPDATE_TABLE = $this->shop_model->table('_products');
+            require_once APP_PATH.'views/admin/wl_images/_tab-photo.php'; ?>
           </div>
           <div class="tab-pane fade" id="tab-video">
-            <?php require_once 'edit_tabs/edit_videos_view.php'; ?>
+            <?php require_once APP_PATH.'views/admin/wl_video/_tab-video.php'; ?>
           </div>
         </div>
 

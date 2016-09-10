@@ -27,26 +27,26 @@
 
       <div class="panel-body">
         <ul class="nav nav-tabs">
-          <li class="active"><a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
           <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
-          	<li><a href="#tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
+          	<li <?=($_SESSION['language'] == $lang) ? 'class="active"' : ''?>><a href="#tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
           <?php } } else { ?>
-          	<li><a href="#tab-ntkd" data-toggle="tab" aria-expanded="true">Назва та опис</a></li>
+          	<li class="active"><a href="#tab-ntkd" data-toggle="tab" aria-expanded="true">Назва та опис</a></li>
           <?php } ?>
+          <li><a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
         </ul>
         <div class="tab-content">
-          <div class="tab-pane fade active in" id="tab-main">
-            <?php require_once 'edit_tabs/tab-main.php'; ?>
-          </div>
           <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
-            <div class="tab-pane fade" id="tab-<?=$lang?>">
+            <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="tab-<?=$lang?>">
               <?php require 'edit_tabs/tab-ntkd.php'; ?>
             </div>
           <?php } } else { $lang = 'lang'; ?>
-        		<div class="tab-pane fade" id="tab-ntkd">
+        		<div class="tab-pane fade active in" id="tab-ntkd">
         			<?php require 'edit_tabs/tab-ntkd.php'; ?>
         		</div>
           <?php } ?>
+          <div class="tab-pane fade" id="tab-main">
+            <?php require_once 'edit_tabs/tab-main.php'; ?>
+          </div>
         </div>
 
       </div>

@@ -1,7 +1,8 @@
-Service "Static Pages 2.0"
+Service "Static Pages 2.1"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.1 : 10.03.2016
 Date 2.0 : 01.12.2015
 Date 1.2 : 27.08.2015
 Date 1.1 : 26.12.2014
@@ -31,3 +32,6 @@ Versions:
 	1.1 	До адмінки у режимі мультимовності додано вкладки
 	1.2		install_model додано alias_delete()
 	2.0		Повністю переписано сервіс: панель керування, додано фото та відео
+	2.1		Додано підтримку відео в тексті за принципом {video-XXX}
+			Додано головне фото
+			Фотографії переведено із _photos -> wl_images

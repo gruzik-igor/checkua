@@ -1,4 +1,4 @@
-<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
+<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST">
 	<input type="hidden" name="id" value="<?=$article->id?>">
 	<table class="table table-striped table-bordered">
 		<?php if($_SESSION['option']->useGroups){
@@ -26,7 +26,7 @@
 				}
 
 				echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
-				if($_SESSION['option']->ArticleMultiGroup && !empty($list)){
+				if($_SESSION['option']->articleMultiGroup && !empty($list)){
 					function showList($article_group, $all, $list, $parent = 0, $level = 0, $parents = array())
 					{
 
@@ -67,7 +67,7 @@
 					}
 					showList($article->group, $list, $list);
 				} else {
-					echo('<select name="group">');
+					echo('<select name="group" class="form-control">');
 					echo ('<option value="0">Немає</option>');
 					if(!empty($list)){
 						function showList($article_group, $all, $list, $parent = 0, $level = 0)
@@ -103,10 +103,9 @@
 		} ?>
 		<tr>
 			<th style="width:25%">Власна адреса посилання</th>
-			<?php $article->alias = explode($_SESSION['option']->idExplodeLink, $article->alias); array_shift($article->alias); $article->alias = implode($_SESSION['option']->idExplodeLink, $article->alias); ?>
 			<td>
 				<div class="input-group">
-                    <span class="input-group-addon">/<?=$url.'/'.$article->id.$_SESSION['option']->idExplodeLink?></span>
+                    <span class="input-group-addon">/<?=$url.'/'?></span>
                     <input type="text" name="alias" value="<?=$article->alias?>" required class="form-control">
                 </div>
             </td>

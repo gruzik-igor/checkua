@@ -44,7 +44,7 @@
 									}
 
 									echo "<tr><th>Оберіть групу</th><td>";
-									if($_SESSION['option']->ArticleMultiGroup && !empty($list)){
+									if($_SESSION['option']->articleMultiGroup && !empty($list)){
 										function showList($all, $list, $parent = 0, $level = 0, $parents = array())
 										{
 

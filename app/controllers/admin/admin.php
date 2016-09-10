@@ -2,7 +2,7 @@
 
 class admin extends Controller {
                 
-    function _remap($method, $data = array())
+    public function _remap($method, $data = array())
     {
         if (method_exists($this, $method) && $method != 'library' && $method != 'db')
         {
@@ -13,7 +13,7 @@ class admin extends Controller {
             $this->index($method);
     }
 
-    function index()
+    public function index()
     {
         @$_SESSION['alias']->id = 0;
         $_SESSION['alias']->alias = 'admin';
@@ -49,17 +49,11 @@ class admin extends Controller {
                 $this->load->page_404();
         }
         else
-        {
-            $this->load->model('wl_analytic_model');
-            $views = $this->wl_analytic_model->getViewers();
-
-            $this->load->admin_view('index_view', array('views' => $views));
-        }
+            $this->load->admin_view('index_view');
     }
 
     public function __get_Search($value='')
     {
-        echo $value;
         $search = new stdClass();
         $search->id = 0;
         $search->link = '';

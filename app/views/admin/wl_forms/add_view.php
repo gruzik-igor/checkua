@@ -38,15 +38,15 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">type*</label>
 							<div class="col-md-9">
-								<input type="radio" name="type" value="get" required checked>GET
-								<input type="radio" name="type" value="post">POST
+								<input type="radio" name="type" value="get" required>GET
+								<input type="radio" name="type" value="post" checked>POST
 							</div>
 						</div>
 						<div class="form-group">
-							<label class="col-md-3 control-label">type_data*</label>
+							<label class="col-md-3 control-label">send_email*</label>
 							<div class="col-md-9">
-								<input type="radio" name="type_data" value="fields" required>fields
-								<input type="radio" name="type_data" value="values" checked>values
+								<input type="radio" name="send_mail" value="yes" required>yes
+								<input type="radio" name="send_mail" value="no" checked>no
 							</div>
 						</div>
 						<div class="form-group">

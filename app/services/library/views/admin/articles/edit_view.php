@@ -77,10 +77,16 @@
         		</div>
           <?php } ?>
           <div class="tab-pane fade" id="tab-photo">
-            <?php require_once 'edit_tabs/tab-photo.php'; ?>
+            <?php
+            $PHOTOS = $article->photos;
+            $CONTENT_ID = $article->id;
+            $PHOTO_MAIN = $article->photo;
+            $PHOTO_FILE_NAME = $article->alias;
+            $PHOTO_UPDATE_TABLE = $this->library_model->table();
+            require_once APP_PATH.'views/admin/wl_images/_tab-photo.php'; ?>
           </div>
           <div class="tab-pane fade" id="tab-video">
-            <?php require_once 'edit_tabs/edit_videos_view.php'; ?>
+            <?php require_once APP_PATH.'views/admin/wl_video/_tab-video.php'; ?>
           </div>
           <div class="tab-pane fade" id="tab-main">
             <?php require_once 'edit_tabs/tab-main.php'; ?>

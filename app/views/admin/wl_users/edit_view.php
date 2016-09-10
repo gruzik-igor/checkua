@@ -101,15 +101,9 @@
                         </div>
                     </div>
                     <div class="form-group">
-                        <label class="col-md-3 control-label">Дата реєстрації</label>
+                    	<label class="col-md-3 control-label">Дата реєстрації</label>
                         <div class="col-md-9">
                             <?=date("d.m.Y H:i", $user->registered)?>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                    	<label class="col-md-3 control-label">Останній вхід у систему</label>
-                        <div class="col-md-9">
-                            <?=($user->last_login > 0) ? date('d.m.Y H:i', $user->last_login) : 'Дані відсутні'?>
                         </div>
                     </div>
                     <div class="form-group">

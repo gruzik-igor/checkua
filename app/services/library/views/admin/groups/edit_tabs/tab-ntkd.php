@@ -23,7 +23,7 @@
 	<div class="col-md-12">
 		<label class="col-md-2 control-label">title:</label>
 		<div class="col-md-4">
-            <input type="text" onChange="save('title', this <?=$lang_text_1?>)" value="<?=$ntkd->title?>" class="form-control">
+            <input type="text" onChange="save('title', this <?=$lang_text_1?>)" placeholder="<?=$ntkd->name?>" value="<?=$ntkd->title?>" class="form-control">
         </div>
         <label class="col-md-2 control-label">keywords:</label>
 		<div class="col-md-4">

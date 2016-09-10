@@ -5,28 +5,28 @@
                 <div class="panel-heading-btn">
                 	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:product_add']?></a>
 					
-                    <?php if($_SESSION['option']->useGroups == 1){ ?>
+                    <?php if($_SESSION['option']->useGroups == 1) { ?>
 						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:products_to_all']?></a>
 						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:groups_to_all']?></a>
 					<?php } ?>
 
 					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:options_to_all']?></a>
+
+					<a href="<?=SITE_URL.'admin/wl_ntkd/'.$_SESSION['alias']->alias?><?=(isset($group))?'/-'.$group->id:''?>" class="btn btn-info btn-xs">SEO</a>
                 </div>
                 <h4 class="panel-title"><?=(isset($group))?$_SESSION['alias']->name .'. Список '.$_SESSION['admin_options']['word:products_to_all']:'Список всіх '.$_SESSION['admin_options']['word:products_to_all']?></h4>
             </div>
-            <?php if(isset($group)){ ?>
+            <?php if(isset($group)) { ?>
                 <div class="panel-heading">
-	            	<h4 class="panel-title">
-	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>"><?=$group->alias_name?></a> ->
-						<?php if(!empty($group->parents)){
+	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
+						<?php if(!empty($group->parents)) {
 							$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
 							foreach ($group->parents as $parent) { 
 								$link .= '/'.$parent->link;
-								echo '<a href="'.$link.'">'.$parent->name.'</a> -> ';
+								echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
 							}
-							echo($_SESSION['alias']->name);
 						} ?>
-	            	</h4>
+						<span class="btn btn-warning btn-xs"><?=$_SESSION['alias']->name?></span> 
 	            </div>
 	        <?php } ?>
             <div class="panel-body">
@@ -34,14 +34,19 @@
                     <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
                         <thead>
                             <tr>
-                                <th>Id</th>
+                                <th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'Id'?></th>
 								<th>Назва</th>
 								<th>Ціна (у.о.)</th>
-								<th>Адреса</th>
-								<?php if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 0){ 
-									$categories = $this->shop_model->getGroups(-1, false);
+								<?php if($_SESSION['option']->useAvailability == 1) { 
+									$this->db->select($this->shop_model->table('_availability').' as a');
+									$name = array('availability' => '#a.id');
+									if($_SESSION['language']) $name['language'] = $_SESSION['language'];
+									$this->db->join($this->shop_model->table('_availability_name'), 'name', $name);
+									$availability = $this->db->get();
 									?>
-									<th>Група</th>
+									<th>Наявність</th>
+								<?php } if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) { ?>
+									<th>Групи</th>
 								<?php } ?>
 								<th>Автор</th>
 								<th>Редаговано</th>
@@ -51,39 +56,39 @@
                         </thead>
                         <tbody>
                         	<?php
-                        	if(!empty($products)){ 
+                        	if(!empty($products)) { 
                         		$max = count($products); 
-                        		foreach($products as $a){ ?>
+                        		foreach($products as $a) { ?>
 									<tr>
-										<td><?=$a->id?></td>
-										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->name?></a></td>
+										<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
+										<td>
+											<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
+											<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
+										</td>
 										<td><?=$a->price?></td>
-										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->alias?></a></td>
-										<?php 
-										if($_SESSION['option']->useGroups == 1) {
-											if($_SESSION['option']->ProductMultiGroup) {
-												echo("<td>");
-												if(!empty($a->group) && is_array($a->group)) {
-                                                    foreach ($a->group as $group) {
-                                                        echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
-                                                    }
-                                                } else {
-                                                    echo("Не визначено");
-                                                }
-                                                echo("</td>");
-                                        	} else {
-                                        ?>
+										<?php if($_SESSION['option']->useAvailability == 1) { ?>
 											<td>
-												<select onchange="changeCategory(this, <?=$a->id?>)" class="form-control">
-													<option value="0">Немає</option>
-													<?php if(isset($categories)) foreach ($categories as $c) {
+												<select onchange="changeAvailability(this, <?=$a->id?>)" class="form-control">
+													<?php if(!empty($availability)) foreach ($availability as $c) {
 														echo('<option value="'.$c->id.'"');
-														if($c->id == $a->group) echo(' selected');
+														if($c->id == $a->availability) echo(' selected');
 														echo('>'.$c->name.'</option>');
 													} ?>
 												</select>
 											</td>
-										<?php } } ?>
+										<?php }
+										if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
+											echo("<td>");
+											if(!empty($a->group) && is_array($a->group)) {
+                                                foreach ($a->group as $group) {
+                                                    echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
+                                                }
+                                            } else {
+                                                echo("Не визначено");
+                                            }
+                                            echo("</td>");
+                                        	}
+                                        ?>
 										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
 										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
@@ -98,34 +103,22 @@
                         </tbody>
                     </table>
                 </div>
+                <?php
+                $this->load->library('paginator');
+                echo $this->paginator->get();
+                ?>
             </div>
         </div>
     </div>
 </div>
 
 <script type="text/javascript">
-	function changeAvailability(e, id){
+	function changeAvailability(e, id) {
 		$.ajax({
-			url: "<?=SITE_URL.$_SESSION['alias']->alias?>/changeAvailability",
+			url: "<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeAvailability",
 			type: 'POST',
 			data: {
 				availability :  e.value,
-				id :  id,
-				json : true
-			},
-			success: function(res){
-				if(res['result'] == false){
-					alert('Помилка! Спробуйте щераз');
-				}
-			}
-		});
-	}
-	function changeCategory(e, id){
-		$.ajax({
-			url: "<?=SITE_URL.$_SESSION['alias']->alias?>/changeGroup",
-			type: 'POST',
-			data: {
-				group :  e.value,
 				id :  id,
 				json : true
 			},

@@ -1,15 +1,15 @@
 <?php 
 	if($_SESSION['language'] && isset($lang)) { 
-		$where['alias'] = $_SESSION['alias']->id;
-		$where['content'] = -$group->id;
 		$where['language'] = $lang;
-		$ntkd = $this->db->getAllDataById('wl_ntkd', $where);
 		$lang_text_1 = ", '{$lang}'";
 		$lang_text_2 = "-{$lang}";
 	} else {
 		$lang_text_1 = "";
 		$lang_text_2 = "-lang";
 	}
+	$where['alias'] = $_SESSION['alias']->id;
+	$where['content'] = -$group->id;
+	$ntkd = $this->db->getAllDataById('wl_ntkd', $where);
 ?>
 
 <label class="col-md-2 control-label">Назва сторінки:</label>
@@ -21,7 +21,7 @@
 	<div class="col-md-12">
 		<label class="col-md-2 control-label">title:</label>
 		<div class="col-md-4">
-            <input type="text" onChange="save('title', this <?=$lang_text_1?>)" value="<?=$ntkd->title?>" class="form-control">
+            <input type="text" onChange="save('title', this <?=$lang_text_1?>)" value="<?=$ntkd->title?>" placeholder="<?=$ntkd->name?>" class="form-control">
         </div>
         <label class="col-md-2 control-label">keywords:</label>
 		<div class="col-md-4">

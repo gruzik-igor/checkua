@@ -2,14 +2,15 @@
 
 class products_model {
 
-	public function table($sufix = '_products')
+	public function table($sufix = '_products', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 	
 	public function getProducts($Group = 0, $active = true)
 	{
-		$where = array();
+		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active) {
 			$where['active'] = 1;
 		}
@@ -50,11 +51,14 @@ class products_model {
 		
 		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
 
-		$this->db->join($_SESSION['service']->table.'_availability', 'color as availability_color', '#p.availability');
-		
-		$where_availability_name['availability'] = '#p.availability';
-		if($_SESSION['language']) $where_availability_name['language'] = $_SESSION['language'];
-		$this->db->join($_SESSION['service']->table.'_availability_name', 'name as availability_name', $where_availability_name);
+		if($_SESSION['option']->useAvailability > 0)
+		{
+			$this->db->join($_SESSION['service']->table.'_availability', 'color as availability_color', '#p.availability');
+			
+			$where_availability_name['availability'] = '#p.availability';
+			if($_SESSION['language']) $where_availability_name['language'] = $_SESSION['language'];
+			$this->db->join($_SESSION['service']->table.'_availability_name', 'name as availability_name', $where_availability_name);
+		}
 
 		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
 		{
@@ -69,7 +73,7 @@ class products_model {
 		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
 
-		$this->db->order('position');
+		$this->db->order($_SESSION['option']->productOrder);
 
 		$products = $this->db->get('array');
         if($products)
@@ -77,7 +81,7 @@ class products_model {
         	$list = array();
         	if($_SESSION['option']->useGroups > 0)
         	{
-	            $all_groups = $this->db->getAllData($this->table('_groups'));
+	            $all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
 	            if($all_groups) foreach ($all_groups as $g) {
 	            	$list[$g->id] = clone $g;
 	            }
@@ -124,15 +128,18 @@ class products_model {
 	
 	public function getById($id)
 	{
-		$this->db->select($this->table().' as p', '*', $id);
+		$this->db->select($this->table().' as p', '*', array('wl_alias' => $_SESSION['alias']->id, 'id' => $id));
 
 		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
 
-		$this->db->join($_SESSION['service']->table.'_availability', 'color as availability_color', '#p.availability');
-		
-		$where_availability_name['availability'] = '#p.availability';
-		if($_SESSION['language']) $where_availability_name['language'] = $_SESSION['language'];
-		$this->db->join($_SESSION['service']->table.'_availability_name', 'name as availability_name', $where_availability_name);
+		if($_SESSION['option']->useAvailability)
+		{
+			$this->db->join($_SESSION['service']->table.'_availability', 'color as availability_color', '#p.availability');
+			
+			$where_availability_name['availability'] = '#p.availability';
+			if($_SESSION['language']) $where_availability_name['language'] = $_SESSION['language'];
+			$this->db->join($_SESSION['service']->table.'_availability_name', 'name as availability_name', $where_availability_name);
+		}
 
 		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
 		{
@@ -150,15 +157,26 @@ class products_model {
 		$product = $this->db->get('single');
         if($product)
         {
+        	if($product->photo != '')
+        	{
+				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
+				if($sizes){
+					foreach ($sizes as $resize) if($resize->active == 1){
+						$resize_name = $resize->prefix.'_photo';
+						$product->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$product->photo;
+					}
+				}
+				$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$product->photo;
+        	}
 			$product->photos = $this->getPhotos($product->id);
         	$product->options = $this->getOptions($product);
-        	$product->link = $product->alias;
+        	$product->link = $_SESSION['alias']->alias.'/'.$product->alias;
 
 			$product->parents = array();
 			if($_SESSION['option']->useGroups > 0)
 			{
 				$list = array();
-				$all_groups = $this->db->getAllData($this->table('_groups'));
+				$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
 	            if($all_groups) foreach ($all_groups as $g) {
 	            	$list[$g->id] = clone $g;
 	            }
@@ -191,8 +209,25 @@ class products_model {
 		return null;
 	}
 	
-	public function add(&$link = ''){
+	public function add(&$link = '', &$name = '')
+	{
+		if($_SESSION['option']->ProductUseArticle && $_POST['article'] != '')
+		{
+			$check['wl_alias'] = $_SESSION['alias']->id;
+			$check['article'] = trim($this->data->post('article'));
+			$check = $this->db->getAllDataByFieldInArray($this->table(), $check);
+			if($check)
+			{
+				$_SESSION['notify'] = new stdClass();
+				$_SESSION['notify']->errors = 'Артикул '.$_POST['article'].' вже використовується! <a href="'.SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$check[0]->alias.'" target="_blank">Перевірте артикул!</a>';
+				$_SESSION['post'] = $_POST;
+				return false;
+			}
+		}
+
 		$data = array();
+		$data['wl_alias'] = $_SESSION['alias']->id;
+		if(isset($_POST['article'])) $data['article'] = trim($this->data->post('article'));
 		$data['active'] = 1;
 		$data['availability'] = 1;
 		$data['price'] = 0;
@@ -215,7 +250,6 @@ class products_model {
 					$ntkd['language'] = $lang;
 					$name = trim($this->data->post('name_'.$lang));
 					$ntkd['name'] = $name;
-					$ntkd['title'] = $name;
 					if($lang == $_SESSION['language']){
 						$data['alias'] = $this->data->latterUAtoEN($name);
 					}
@@ -224,28 +258,34 @@ class products_model {
 			} else {
 				$name = trim($this->data->post('name'));
 				$ntkd['name'] = $name;
-				$ntkd['title'] = $name;
 				$data['alias'] = $this->data->latterUAtoEN($name);
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
-			$data['alias'] = $id . $_SESSION['option']->idExplodeLink . $data['alias'];
 			
-			if($_SESSION['option']->useGroups){
-				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group'])){
+			if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
+			{
+				$data['alias'] = $this->ckeckAlias($this->data->latterUAtoEN(trim($this->data->post('article'))) . '-' . $data['alias']);
+			} else {
+				$data['alias'] = $id . '-' . $data['alias'];
+			}
+			
+			if($_SESSION['option']->useGroups)
+			{
+				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group'])) {
 					foreach ($_POST['group'] as $group) {
 						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
 					}
-					$data['position'] = $this->db->getCount($this->table('_products'));
+					$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 				} else {
 					if(isset($_POST['group']) && is_numeric($_POST['group'])) {
 						$data['group'] = $_POST['group'];
-						$data['position'] = $this->db->getCount($this->table('_products', array('group' => $data['group'])));
+						$data['position'] = $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
 					} else {
-						$data['position'] = $this->db->getCount($this->table('_products'));
+						$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 					}
 				}
 			} else {
-				$data['position'] = $this->db->getCount($this->table('_products'));
+				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 			}
 			$link = $data['alias'];
 			if($this->db->updateRow($this->table('_products'), $data, $id)) return $id;
@@ -256,7 +296,15 @@ class products_model {
 	public function save($id)
 	{
 		$data = array('active' => 1, 'availability' => 1, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
-		if(isset($_POST['alias']) && $_POST['alias'] != '') $data['alias'] = $id . $_SESSION['option']->idExplodeLink . trim($this->data->post('alias'));
+		if($_SESSION['option']->ProductUseArticle)
+		{
+			$data['article'] = trim($this->data->post('article'));
+			$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+		}
+		else
+		{
+			$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+		}
 		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
 		if(isset($_POST['availability']) && is_numeric($_POST['availability']) && $_POST['availability'] > 1) $data['availability'] = $_POST['availability'];
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] >= 0) $data['price'] = $_POST['price'];
@@ -295,7 +343,7 @@ class products_model {
 		}
 		
 		$this->db->updateRow($this->table(), $data, $id);
-		return true;
+		return $data['alias'];
 	}
 
 	public function delete($id)
@@ -306,7 +354,6 @@ class products_model {
 			$this->db->deleteRow($this->table(), $product->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `id` > '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$product->id}'");
-			$this->db->executeQuery("DELETE FROM `{$this->table('_product_photos')}` WHERE `product` = '{$product->id}'");
 			
 			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$product->id;
 			$path = substr($path, strlen(SITE_URL));
@@ -408,18 +455,18 @@ class products_model {
 
 	public function getPhotos($product)
 	{
-		$this->db->executeQuery("SELECT p.*, u.name as user_name FROM {$this->table('_product_photos')} as p LEFT JOIN wl_users as u ON p.user = u.id WHERE p.product = {$product} ORDER BY p.main DESC");
-		if($this->db->numRows() > 0){
-			return $this->db->getRows('array');
-		}
-		return false;
+		$where['alias'] = $_SESSION['alias']->id;
+		$where['content'] = $product;
+		$this->db->select('wl_images', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		return $this->db->get('array');
 	}
 
 	private function getOptions($product){
 		$product_options = array();
 		$where_language = '';
         if($_SESSION['language']) $where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
-		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_group_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} ORDER BY go.position");
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} ORDER BY go.position");
 		if($this->db->numRows() > 0){
 			$options = $this->db->getRows('array');
 			foreach ($options as $option) if($option->value != '') {
@@ -463,6 +510,18 @@ class products_model {
 			}
 		}
 		return $product_options;
+	}
+
+	private function ckeckAlias($link){
+		$Group = $this->db->getAllDataById($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'alias' => $link));
+		$end = 0;
+		$link2 = $link;
+		while ($Group) {
+			$end++;
+			$link2 = $link.'-'.$end;
+		 	$Group = $this->db->getAllDataById($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'alias' => $link2));
+		}
+		return $link2;
 	}
 	
 }

@@ -1,23 +1,9 @@
-<?php if(!empty($_SESSION['notify']->error) || !empty($_SESSION['notify']->success)) { ?>
-<div class="row">
-    <!-- begin col-6 -->
-    <div class="col-md-6">
-    	<?php if(!empty($_SESSION['notify']->success)) { ?>
-	    	<div class="alert alert-success fade in m-b-15">
-				<?=$_SESSION['notify']->success?>
-				<span class="close" data-dismiss="alert">&times;</span>
-			</div>
-		<?php } if(!empty($_SESSION['notify']->error)) { ?>
-			<div class="alert alert-danger fade in m-b-15">
-				<strong>Помилка!</strong>
-				<?=$_SESSION['notify']->error?>
-				<span class="close" data-dismiss="alert">&times;</span>
-			</div>
-		<?php } ?>
-    </div>
-</div>
-<?php unset($_SESSION['notify']->success, $_SESSION['notify']->error); } ?>
-
+<?php
+if(isset($_SESSION['notify']))
+	require_once APP_PATH.'views/admin/notify_view.php';
+$_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
+?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
 <!-- begin row -->
 <div class="row">
     <!-- begin col-6 -->
@@ -25,7 +11,7 @@
         <!-- begin panel -->
         <div class="panel panel-inverse" data-sortable-id="form-stuff-1">
             <div class="panel-heading">
-                <h4 class="panel-title">Редагувати головний адрес "<?=$alias->alias?>"</h4>
+                <h4 class="panel-title"><?=($alias->id == 0) ? 'Додати' : 'Редагувати'?> головний адрес "<?=$alias->alias?>"</h4>
             </div>
             <div class="panel-body">
 	            <form action="<?=SITE_URL?>admin/wl_aliases/save" method="POST" class="form-horizontal">
@@ -40,22 +26,32 @@
 							</tr>
 							<tr>
 								<td>Назва сторінки</td>
-								<td><?php if($alias->id > 0){ ?>
+								<td><?php if($alias->id > 0) { ?>
 										<input type="text" value="<?=$alias->name?>" disabled class="form-control">
-										<input type="hidden" name="name" value="<?=$alias->name?>">
 									<?php } else { ?>
-										<input type="text" name="name" value="<?=$alias->name?>" class="form-control">
+										<input type="text" name="name" value="<?=$this->data->re_post('name', $alias->name)?>" class="form-control">
 									<?php } ?>
 								</td>
 							</tr>
 							<tr>
-								<td title="Обов'язкове поле">ADMIN ico</td>
-								<td><input type="text" name="admin_ico" value="<?=$alias->admin_ico?>" class="form-control"></td>
+								<td title="Обов'язкове поле">ADMIN іконка</td>
+								<td><input type="text" name="admin_ico" value="<?=$this->data->re_post('admin_ico', $alias->admin_ico)?>" class="form-control"></td>
 							</tr>
-							<?php if(isset($options)) foreach ($options as $key => $value) { ?>
+							<?php if($alias->id > 0) { ?>
 								<tr>
-									<td><?=$key?></td>
-									<td><input type="text" name="<?=$key?>" value="<?=$value?>" required class="form-control"></td>
+									<td>ADMIN вага сортування</td>
+									<td><input type="number" name="admin_order" value="<?=$this->data->re_post('admin_order', $alias->admin_order)?>" class="form-control"></td>
+								</tr>
+							<?php } if(isset($options)) foreach ($options as $option) { ?>
+								<tr>
+									<td><?=$option->title?></td>
+									<td>
+										<?php if($option->type == 'bool') { ?>
+											<input name="<?=$option->name?>" type="checkbox" data-render="switchery" <?=($option->value == 1) ? 'checked' : ''?> value="1" />
+										<?php } else { ?>
+											<input type="<?=$option->type?>" name="<?=$option->name?>" value="<?=$option->value?>" class="form-control">
+										<?php } ?>
+									</td>
 								</tr>
 							<?php } ?>
 							<tr>
@@ -166,6 +162,48 @@
 								</div>
 							</div>
 						</div>
+					<?php } else { ?>
+						<div class="note note-info">
+							<h4>Налаштування відсутні!</h4>
+						</div>
+					<?php } ?>
+	            </div>
+	        </div>
+	    </div>
+
+	    <div class="col-md-6">
+	        <div class="panel panel-inverse">
+	            <div class="panel-heading">
+	            	<div class="panel-heading-btn">
+	                	<a href="<?=SITE_URL?>admin/wl_aliases/add_admin_option/<?=$alias->alias?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати налаштування</a>
+	                </div>
+	                <h4 class="panel-title">Адреси співпраці</h4>
+	            </div>
+	            <div class="panel-body">
+	            	<?php
+	            	$cooperation = $this->db->getQuery("SELECT c.*, a1.alias as alias1_name, a2.alias as alias2_name FROM wl_aliases_cooperation as c LEFT JOIN wl_aliases as a1 ON c.alias1 = a1.id LEFT JOIN wl_aliases as a2 ON c.alias2 = a2.id WHERE c.alias1 = {$alias->id} OR c.alias2 = {$alias->id}", 'array');
+					if($cooperation) {
+					?>
+						<table class="table table-striped table-bordered">
+							<thead>
+								<tr>
+									<th>Адреса 1</th>
+									<th>Адреса 2</th>
+									<th>Тип співпраці</th>
+								</tr>
+							</thead>
+							<tbody>
+								<?php 
+								foreach ($cooperation as $row) {
+								?>
+									<tr>
+										<td><a href="<?=SITE_URL.'admin/wl_aliases/'.$row->alias1_name?>"><?=$row->alias1.' '.$row->alias1_name?></a></td>
+										<td><a href="<?=SITE_URL.'admin/wl_aliases/'.$row->alias2_name?>"><?=$row->alias2.' '.$row->alias2_name?></a></td>
+										<td><?=$row->type?></td>
+									</tr>
+								<?php } ?>
+							</tbody>
+						</table>
 					<?php } else { ?>
 						<div class="note note-info">
 							<h4>Налаштування відсутні!</h4>

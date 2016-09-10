@@ -1,7 +1,7 @@
 <?php
 
-class install{
-
+class install
+{
 	public $service = null;
 	
 	public $name = "library";
@@ -13,9 +13,11 @@ class install{
 	public $multi_alias = 1;
 	public $order_alias = 60;
 	public $admin_ico = 'fa-book';
-	public $version = "2.2.1";
+	public $version = "2.4";
 
-	public $options = array('useGroups' => 1, 'ArticleMultiGroup' => 0, 'resize' => 1, 'folder' => 'library', 'idExplodeLink' => '-');
+	public $options = array('useGroups' => 1, 'articleMultiGroup' => 0, 'useAvailability' => 0, 'folder' => 'library', 'articleOrder' => 'position DESC', 'groupOrder' => 'position ASC');
+	public $options_type = array('useGroups' => 'bool', 'articleMultiGroup' => 'bool', 'useAvailability' => 'bool', 'folder' => 'text', 'articleOrder' => 'text', 'groupOrder' => 'text');
+	public $options_title = array('useGroups' => 'Наявність груп', 'articleMultiGroup' => 'Мультигрупи (1 стаття більше ніж 1 група)', 'useAvailability' => 'Використання доступності', 'folder' => 'Папка для зображень', 'articleOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
 	public $options_admin = array (
 					'word:articles_to_all' => 'статтей',
 					'word:article_to' => 'До статті',
@@ -30,8 +32,8 @@ class install{
 				);
 	public $sub_menu = array("add" => "Додати статтю", "all" => "До всіх статтей", "groups" => "Групи");
 
-	public $seo_name = "Бібліотека статей";
-	public $seo_title = "Бібліотека статей";
+	public $seo_name = "Блог";
+	public $seo_title = "Блог";
 	public $seo_description = "";
 	public $seo_keywords = "";
 
@@ -39,41 +41,15 @@ class install{
 	{
 		if($alias == 0) return false;
 
-		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_articles{$table}` (
-					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `group` int(11) NOT NULL,
-					  `alias` text NOT NULL,
-					  `position` int(11) NOT NULL,
-					  `photo` text NOT NULL,
-					  `active` tinyint(1) NOT NULL,
-					  `author_add` int(11) NOT NULL,
-					  `date_add` int(11) NOT NULL,
-					  `author_edit` int(11) NOT NULL,
-					  `date_edit` int(11) NOT NULL,
-					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
-					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
-		$this->db->executeQuery($query);
-
-		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_photos{$table}` (
-					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `article` int(11) NOT NULL,
-					  `name` text NOT NULL,
-					  `date` int(11) NOT NULL,
-					  `user` int(11) NOT NULL,
-					  `title` text NOT NULL,
-					  `main` int(11) NOT NULL,
-					  PRIMARY KEY (`id`)
-					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
-		$this->db->executeQuery($query);
-
-		if($this->options['useGroups'] > 0){
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups{$table}` (
+		if($this->options['useGroups'] > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `wl_alias` int(11) NOT NULL,
 						  `alias` text NOT NULL,
 						  `parent` int(11),
 						  `position` int(11) NOT NULL,
-						  `photo` int(11) NOT NULL,
+						  `photo` text NOT NULL,
 						  `active` tinyint(1) NOT NULL,
 						  `author_add` int(11) NOT NULL,
 						  `date_add` int(11) NOT NULL,
@@ -84,8 +60,9 @@ class install{
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 
-			if($this->options['ArticleMultiGroup'] > 0){
-				$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group{$table}` (
+			if($this->options['articleMultiGroup'] > 0)
+			{
+				$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group` (
 						  `article` int(11) NOT NULL,
 						  `group` int(11) NOT NULL
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
@@ -93,12 +70,10 @@ class install{
 			}
 		}
 
-		if($this->options['resize'] > 0){
-			$query = "INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
-												 ( NULL, {$alias}, 1, 'Оригінал', '', 1, 1500, 1500),
-												 ( NULL, {$alias}, 1, 'Preview', 's', 2, 200, 200);";
-			$this->db->executeQuery($query);
-		}
+		$query = "INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
+											 ( NULL, {$alias}, 1, 'Оригінал', '', 1, 1500, 1500),
+											 ( NULL, {$alias}, 1, 'Preview', 's', 2, 200, 200);";
+		$this->db->executeQuery($query);
 
 		$path = IMG_PATH.$this->options['folder'];
 		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
@@ -113,11 +88,25 @@ class install{
 
 	public function alias_delete($alias = 0, $table = '')
 	{
-		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_articles{$table}");
-		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_article_photos{$table}");
-		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_groups{$table}");
-		$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_article_group{$table}");
-		if($alias > 0) @$this->db->deleteRow('wl_images_sizes', $alias, 'alias');
+		if($alias > 0) {
+			$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
+			if(!empty($articles))
+			{
+				$this->db->deleteRow($this->table_service.'_articles', $alias, 'wl_alias');
+				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+
+				foreach ($articles as $article) {
+					$this->db->executeQuery("DELETE FROM `wl_images` WHERE `alias` = {$alias} AND `content` = {$article->id}");
+					$this->db->deleteRow($this->table_service.'_article_group', $article->id, 'article');
+				}
+			}
+
+			$groups = $this->db->getAllDataByFieldInArray($this->table_service.'_groups', $alias, 'wl_alias');
+			if(!empty($groups))
+			{
+				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+			}
+		}
 
 		$path = IMG_PATH.$this->options['folder'];
 		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
@@ -126,13 +115,15 @@ class install{
 		return true;
 	}
 
-	public function setOption($option, $value, $table = '')
+	public function setOption($option, $value, $alias, $table = '')
 	{
 		$this->options[$option] = $value;
 
-		if ($option == 'useGroups' AND $value > 0) {
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups{$table}` (
+		if ($option == 'useGroups' AND $value > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `wl_alias` int(11) NOT NULL,
 						  `alias` text NOT NULL,
 						  `parent` int(11),
 						  `position` int(11) NOT NULL,
@@ -147,16 +138,25 @@ class install{
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 		}
-		if($option == 'ArticleMultiGroup' AND $value > 0){
-			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group{$table}` (
+		if($option == 'articleMultiGroup' AND $value > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group` (
 						  `article` int(11) NOT NULL,
 						  `group` int(11) NOT NULL
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
-			$groups = $this->db->getCount($this->table_service.'_article_group'.$table);
-			if($groups == 0){
-				$articles = $this->db->getAllData($this->table_service.$table);
-				if($articles){
+
+			$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
+			if($articles)
+			{
+				$list = array();
+				foreach ($articles as $article) {
+					$list[] = $article->id;
+				}
+
+				$count = $this->db->getCount($this->table_service.'_article_group', array('article' => $list));
+				if($count > 0)
+				{
 					foreach ($articles as $article) {
 						$this->db->insertRow($this->table_service.'_article_group'.$table, array('article' => $article->id, 'group' => $article->group));
 					}
@@ -165,7 +165,26 @@ class install{
 		}
 	}
 
-	function install_go(){
+	public function install_go()
+	{
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_articles` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `wl_alias` int(11) NOT NULL,
+					  `alias` text NOT NULL,
+					  `group` int(11) NOT NULL,
+					  `availability` int(11) NOT NULL,
+					  `photo` text NOT NULL,
+					  `active` tinyint(1) NOT NULL,
+					  `position` int(11) NOT NULL,
+					  `author_add` int(11) NOT NULL,
+					  `date_add` int(11) NOT NULL,
+					  `author_edit` int(11) NOT NULL,
+					  `date_edit` int(11) NOT NULL,
+					  PRIMARY KEY (`id`),
+					  UNIQUE KEY `id` (`id`)
+					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
+		$this->db->executeQuery($query);
+
 		return true;
 	}
 
@@ -175,6 +194,10 @@ class install{
 			$path = IMG_PATH.$this->options['folder'];
 			if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
 			if(is_dir($path)) $this->removeDirectory($path);
+
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_articles");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_article_group");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_groups");
 		}
 	}
 

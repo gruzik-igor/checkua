@@ -1,7 +1,13 @@
 <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
 	<input type="hidden" name="id" value="<?=$product->id?>">
 	<table class="table table-striped table-bordered">
-		<?php if($_SESSION['option']->useGroups){
+		<?php if($_SESSION['option']->ProductUseArticle) { ?>
+    		<tr>
+				<th>Артикул</th>
+				<td><input type="text" name="article" value="<?=$product->article?>" class="form-control" required></td>
+			</tr>
+		<?php }
+		if($_SESSION['option']->useGroups){
 			$this->load->smodel('shop_model');
 			$groups = $this->shop_model->getGroups(-1);
 			if($groups){
@@ -67,7 +73,7 @@
 					}
 					showList($product->group, $list, $list);
 				} else {
-					echo('<select name="group">');
+					echo('<select name="group" class="form-control">');
 					echo ('<option value="0">Немає</option>');
 					if(!empty($list)){
 						function showList($product_group, $all, $list, $parent = 0, $level = 0)
@@ -103,11 +109,19 @@
 		} ?>
 		<tr>
 			<th style="width:25%">Власна адреса посилання</th>
-			<?php $product->alias = explode('-', $product->alias); array_shift($product->alias); $product->alias = implode('-', $product->alias); ?>
 			<td>
 				<div class="input-group">
-                    <span class="input-group-addon">/<?=$url.'/'.$product->id?>-</span>
-                    <input type="text" name="alias" value="<?=$product->alias?>" required class="form-control">
+					<?php
+					if($_SESSION['option']->ProductUseArticle) {
+						$product->article = $this->data->latterUAtoEN($product->article);
+						$alias = substr($product->alias, strlen($product->article) + 1);
+						echo('<span class="input-group-addon">/'.$url.'/'.$product->article.'-</span>');
+					} else {
+						$alias = explode('-', $product->alias); array_shift($alias); $alias = implode('-', $alias);
+						echo('<span class="input-group-addon">/'.$url.'/'.$product->id.'-</span>');
+					}
+					?>
+                    <input type="text" name="alias" value="<?=$alias?>" required class="form-control">
                 </div>
             </td>
 		</tr>
@@ -118,7 +132,7 @@
 				<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
 			</td>
 		</tr>
-		<?php if($_SESSION['option']->useOptions){ ?>
+		<?php if($_SESSION['option']->useAvailability) { ?>
 			<tr>
 				<th>Наявність</th>
 				<td>
@@ -139,7 +153,7 @@
 			<th>Вартість (y.o.)</th>
 			<td>
 				<div class="input-group">
-                    <input type="number" name="price" value="<?=$product->price?>" min="0" required class="form-control">
+                    <input type="number" name="price" value="<?=$product->price?>" min="0" step="0.01" required class="form-control">
                     <span class="input-group-addon">y.o.</span>
                 </div>
 			</td>
@@ -149,9 +163,9 @@
 			<tr>
 				<td colspan="2"><h3>Властивості <?=$_SESSION['admin_options']['word:products']?></h3></td>
 			</tr>
-			<?php
+			<?php $this->load->smodel('options_model');
 				foreach ($options_parents as $option_id) {
-					$options = $this->shop_model->getOptions($option_id);
+					$options = $this->options_model->getOptions($option_id);
 					if($options){
 						foreach ($options as $option) if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea')) {
 							$value = '';
@@ -164,7 +178,7 @@
 								$where = '';
 								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
 								if($this->db->numRows() > 0){
 				                    $option_values = $this->db->getRows('array');
 				                }
@@ -180,11 +194,12 @@
 								$where = '';
 								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
 								if($this->db->numRows() > 0){
 				                    $option_values = $this->db->getRows('array');
 				                }
 								if(!empty($option_values)){
+									echo('<input type="radio" name="option-'.$option->id.'" value="0" id="option-'.$option->id.'-0" '.$checked.'> <label for="option-'.$option->id.'-0">Не вказано</label> ');
 									foreach ($option_values as $ov) {
 										$checked = '';
 										if($value == $ov->id) $checked = ' checked';
@@ -195,11 +210,12 @@
 								$where = '';
 								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
 								if($this->db->numRows() > 0){
 				                    $option_values = $this->db->getRows('array');
 				                }
 								echo('<select name="option-'.$option->id.'" class="form-control"> ');
+								echo("<option value='0'>Не вказано</option>");
 								if(!empty($option_values)){
 									foreach ($option_values as $ov) {
 										$selected = '';

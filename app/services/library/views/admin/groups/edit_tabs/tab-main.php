@@ -5,7 +5,7 @@
 			<th>Фото</th>
 			<td>
 				<?php if($group->photo > 0){ ?>
-					<img src="<?=IMG_PATH.$_SESSION['option']->folder.'/groups/'.$group->photo?>.jpg" class="f-left">
+					<img src="<?=IMG_PATH.$_SESSION['option']->folder.'/groups/'.$group->photo?>" class="f-left">
 					Змінити фото:<br>
 				<?php } ?>
 				<input type="file" name="photo" class="form-control">

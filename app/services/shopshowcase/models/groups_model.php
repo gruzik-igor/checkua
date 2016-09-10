@@ -2,25 +2,26 @@
 
 class groups_model {
 
-	public function table($sufix = '_groups')
+	public function table($sufix = '_groups', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 
 	public function getGroups($parent = 0, $active = true)
 	{
-		$where = array();
+		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active) $where['active'] = 1;
 		if($parent >= 0) $where['parent'] = $parent;
 		$this->db->select($this->table() .' as c', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
-		$this->db->order('position');
+		$this->db->order($_SESSION['option']->groupOrder);
 		
 		$categories = $this->db->get('array');
 		if($categories)
 		{
             $list = array();
-            $groups = $this->db->getAllData($this->table());
+            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
             foreach ($groups as $Group) {
             	$list[$Group->id] = clone $Group;
             }
@@ -49,6 +50,7 @@ class groups_model {
 
 	public function getByAlias($alias, $parent = 0)
 	{
+		$where['wl_alias'] = $_SESSION['alias']->id;
 		$where['alias'] = $alias;
 		$where['parent'] = $parent;
 		$this->db->select($this->table() .' as c', '*', $where);
@@ -58,7 +60,7 @@ class groups_model {
 
 	public function getById($id)
 	{
-		$this->db->select($this->table() .' as g', '*', $id);
+		$this->db->select($this->table() .' as g', '*', array('wl_alias' => $_SESSION['alias']->id, 'id' => $id));
 		$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = '#-g.id';
@@ -69,13 +71,13 @@ class groups_model {
 		return $this->db->get('single');
 	}
 
-	public function add($photo = -1)
+	public function add(&$alias)
 	{
 		$data = array();
+		$data['wl_alias'] = $_SESSION['alias']->id;
 		$data['parent'] = 0;
 		if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] > 0) $data['parent'] = $_POST['parent'];
 		$data['active'] = 1;
-		$data['photo'] = $photo;
 		$data['author_add'] = $_SESSION['user']->id;
 		$data['date_add'] = time();
 		$data['author_edit'] = $_SESSION['user']->id;
@@ -83,7 +85,7 @@ class groups_model {
 		if($this->db->insertRow($this->table(), $data)){
 			$id = $this->db->getLastInsertedId();
 
-			$position = $this->db->getCount($this->table(), $data['parent'], 'parent');
+			$position = $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
 
 			$data = array();
 			$data['alias'] = '';
@@ -95,7 +97,6 @@ class groups_model {
 				foreach ($_SESSION['all_languages'] as $lang) {
 					$ntkd['language'] = $lang;
 					$ntkd['name'] = $this->data->post('name_'.$lang);
-					$ntkd['title'] = $this->data->post('name_'.$lang);
 					if($lang == $_SESSION['language']){
 						$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 					}
@@ -103,20 +104,21 @@ class groups_model {
 				}
 			} else {
 				$ntkd['name'] = $this->data->post('name');
-				$ntkd['title'] = $this->data->post('name');
 				$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
+
 			$data['alias'] = $this->makeLink($data['alias']);
-			if($position == 0)	$data['position'] = $this->db->getCount($this->table());
+			$alias = $data['alias'];
+			if($position == 0)	$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
 			else $data['position'] = $position;
-			if($photo > 0) $data['photo'] = $id;
+			
 			if($this->db->updateRow($this->table(), $data, $id)) return $id;
 		}
 		return false;
 	}
 
-	public function save($id)
+	public function save($id, &$alias)
 	{
 		$group = $this->db->getAllDataById($this->table(), $id);
 		if($group)
@@ -138,13 +140,12 @@ class groups_model {
 					$data[$field] = $this->data->post($field);
 				}
 			}
-			if(!empty($_FILES['photo']['name'])) {
-				$data['photo'] = $id;
-			}
 			if($group->parent != $data['parent']) {
 				$this->changeParent($group->id, $group->parent, $data['parent']);
 			}
-			if($this->db->updateRow($this->table(), $data, $id)){
+			if($this->db->updateRow($this->table(), $data, $id))
+			{
+				$alias = $data['alias'];
 				return true;
 			}
 		}
@@ -163,7 +164,7 @@ class groups_model {
 				$list = array();
 				$childs1 = array();
 				$emptyParentsList = array();
-	            $groups = $this->db->getAllData($this->table());
+	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
 	            foreach ($groups as $g) {
 	            	$list[$g->id] = clone $g;
 	            	$list[$g->id]->childs = array();
@@ -203,7 +204,7 @@ class groups_model {
 							}
 							
 							foreach ($prefix as $p) {
-								$filename = $path.$p.$list[$g]->photo.'.jpg';
+								$filename = $path.$p.$list[$g]->photo;
 								@unlink ($filename);
 							}
 						}
@@ -212,9 +213,9 @@ class groups_model {
 			}
 			else
 			{
-				$groups = $this->db->getAllDataByFieldInArray($this->table(), $group->id, 'parent');
+				$groups = $this->db->getAllDataByFieldInArray($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $group->id));
 				if($groups){
-					$count = $this->db->getCount($this->table(), $group->parent, 'parent');
+					$count = $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $group->parent));
 		            foreach ($groups as $g) {
 		            	$count++;
 		            	$this->db->updateRow($this->table(), array('parent' => $group->parent, 'position' => $count), $g->id);
@@ -240,7 +241,7 @@ class groups_model {
 				}
 				
 				foreach ($prefix as $p) {
-					$filename = $path.$p.$group->photo.'.jpg';
+					$filename = $path.$p.$group->photo;
 					@unlink ($filename);
 				}
 			}
@@ -252,7 +253,7 @@ class groups_model {
 
 	private function changeParent($id, $old, $new)
 	{
-		$groups = $this->db->getAllData($this->table());
+		$groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
 		if($groups)
 		{
 			$level_1 = array();
@@ -288,7 +289,7 @@ class groups_model {
 			}
 			if(in_array($new, $level_1) || in_array($new, $childs)){
 				$position = $list[$id]->position;
-				$groups = $this->db->getAllDataByFieldInArray($this->table(), array('parent' => $old, 'position' => '>'.$list[$id]->position), 'position ASC');
+				$groups = $this->db->getAllDataByFieldInArray($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $old, 'position' => '>'.$list[$id]->position), 'position ASC');
 				foreach ($level_1 as $group) {
 					$this->db->updateRow($this->table(), array('parent' => $old, 'position' => $position), $group);
 					$position++;
@@ -301,7 +302,7 @@ class groups_model {
 					}
 				}
 			} else {
-				$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = `position` - 1 WHERE `parent` = '{$old}' AND `position` > '{$list[$id]->position}'");
+				$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = `position` - 1 WHERE `wl_alias` = {$_SESSION['alias']->id} AND `parent` = '{$old}' AND `position` > '{$list[$id]->position}'");
 			}
 			$position = $this->db->getCount($this->table(), $new, 'parent');
             $position++;
@@ -376,7 +377,7 @@ class groups_model {
 				}
 				
 				foreach ($prefix as $p) {
-					$filename = $path.$p.$a->photo.'.jpg';
+					$filename = $path.$p.$a->photo;
 					@unlink ($filename);
 				}
 			}

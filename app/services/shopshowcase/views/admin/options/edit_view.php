@@ -182,7 +182,7 @@
 
 					<?php if($options){ ?>
 						<div class="form-group">
-                            <label class="col-md-3 control-label">Єлемент фільтру (для пошуку)</label>
+                            <label class="col-md-3 control-label">Елемент фільтру (для пошуку)</label>
                             <div class="col-md-9">
                                 <label class="radio-inline">
                                 	<input type="radio" name="filter" value="1" <?=($option->filter == 1)?'checked':''?>>

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.1"
+ 	Service "Shop Showcase 2.2"
 	for WhiteLion 1.0
 
 */
@@ -23,56 +23,54 @@ class shopshowcase extends Controller {
     public function index($uri)
     {
     	$this->load->smodel('shop_model');
-    	$_SESSION['option']->paginator_per_page = 0;
-		
-		$url = $this->data->url();
-		$id = end($url);
-		$id = explode($_SESSION['option']->idExplodeLink, $id);
-		$id = $id[0];
+    	$_SESSION['option']->paginator_per_page = 50;
 
-		if(is_numeric($id))
+    	if(count($this->data->url()) > 2)
 		{
-			$this->edit($id);
+			$type = null;
+			$url = $this->data->url();
+			array_shift($url);
+			$product = $this->shop_model->routeURL($url, $type, true);
+
+			if($type == 'product' && $product)
+			{
+				$this->edit($product);
+			}
+
+			if($_SESSION['option']->useGroups && $type == 'group' && $product)
+			{
+				$group = clone $product;
+				unset($product);
+
+				$group->alias_name = $_SESSION['alias']->name;
+				$group->parents = array();
+				if($group->parent > 0)
+				{
+					$list = array();
+		            $groups = $this->db->getAllData($this->shop_model->table('_groups'));
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
+				}
+				$this->load->model('wl_ntkd_model');
+				$this->wl_ntkd_model->setContent(($group->id * -1));
+
+				$list = $this->shop_model->getGroups($group->id, false);
+				if (empty($list) || $_SESSION['option']->ProductMultiGroup == 1) {
+					$list = $this->shop_model->getProducts($group->id, 0, false);
+					$this->load->admin_view('products/list_view', array('group' => $group, 'products' => $list));
+				} else {
+					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
+				}
+			}
+
+			$this->load->page_404();
 		}
-		elseif($id != '' && $id != $_SESSION['alias']->alias)
+		else
 		{
 			if($_SESSION['option']->useGroups)
 			{
-				$group = false;
-				$parent = 0;
-				array_shift($url);
-				foreach ($url as $uri) {
-					$group = $this->shop_model->getGroupByAlias($uri, $parent);
-					if($group){
-						$parent = $group->id;
-					} else $group = false;
-				}
-
-				if($group){
-					$group->alias_name = $_SESSION['alias']->name;
-					$group->parents = array();
-					if($group->parent > 0){
-						$list = array();
-			            $groups = $this->db->getAllData($this->shop_model->table('_groups'));
-			            foreach ($groups as $Group) {
-			            	$list[$Group->id] = clone $Group;
-			            }
-						$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
-					}
-					$this->load->model('wl_ntkd_model');
-					$this->wl_ntkd_model->setContent(($group->id * -1));
-
-					$list = $this->shop_model->getGroups($group->id, false);
-					if (empty($list) || $_SESSION['option']->ProductMultiGroup == 1) {
-						$list = $this->shop_model->getProducts($group->id, 0, false);
-						$this->load->admin_view('products/list_view', array('group' => $group, 'products' => $list));
-					} else {
-						$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
-					}
-				} else $this->load->page_404();
-			} else $this->load->page_404();
-		} else {
-			if($_SESSION['option']->useGroups){
 				$list = $this->shop_model->getGroups(0, false);
 				if (empty($list) || $_SESSION['option']->ProductMultiGroup == 1) {
 					$list = $this->shop_model->getProducts(-1, 0, false);
@@ -80,8 +78,9 @@ class shopshowcase extends Controller {
 				} else {
 					$this->load->admin_view('index_view', array('groups' => $list));
 				}
-				
-			} else {
+			}
+			else
+			{
 				$products = $this->shop_model->getProducts(-1, 0, false);
 				$this->load->admin_view('products/list_view', array('products' => $products));
 			}
@@ -102,29 +101,28 @@ class shopshowcase extends Controller {
 		$this->load->admin_view('products/add_view');
 	}
 	
-	private function edit($id = 0){
-		$this->load->smodel('shop_model');
-		$product = $this->shop_model->getProductById($id);
-		if($product){
-			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
-			$_SESSION['alias']->name = 'Редагувати '.$product->name;
+	private function edit($product){
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
+		$_SESSION['alias']->name = 'Редагувати '.$product->name;
 
-			$groups = null;
-			if($_SESSION['option']->useGroups){
-				$groups = $this->shop_model->getGroups();
-				if($_SESSION['option']->ProductMultiGroup){
-					$activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product->id, 'product');
-					$product->group = array();
-					if($activeGroups){
-						foreach ($activeGroups as $ag) {
-							$product->group[] = $ag->group;
-						}
+		$groups = null;
+		if($_SESSION['option']->useGroups)
+		{
+			$groups = $this->shop_model->getGroups();
+			if($_SESSION['option']->ProductMultiGroup)
+			{
+				$activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product->id, 'product');
+				$product->group = array();
+				if($activeGroups)
+				{
+					foreach ($activeGroups as $ag) {
+						$product->group[] = $ag->group;
 					}
 				}
 			}
+		}
 
-			$this->load->admin_view('products/edit_view', array('product' => $product, 'groups' => $groups));
-		} else $this->load->page_404();
+		$this->load->admin_view('products/edit_view', array('product' => $product, 'groups' => $groups));
 	}
 	
 	public function save()
@@ -135,7 +133,8 @@ class shopshowcase extends Controller {
 			if($_POST['id'] == 0)
 			{
 				$link = '';
-				$id = $this->products_model->add($link);
+				$name = '';
+				$id = $this->products_model->add($link, $name);
 				if($id){
 					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$id;
 					$path = substr($path, strlen(SITE_URL));
@@ -143,36 +142,40 @@ class shopshowcase extends Controller {
 						mkdir($path, 0777);
 					}
 					if(!empty($_FILES['photo']['name'])) {
-						$data['product'] = $id;
-						$data['user'] = $_SESSION['user']->id;
-						$data['date'] = time();
-						$data['main'] = time();
-						$this->db->insertRow($this->products_model->table('_product_photos'), $data);
+						$data['alias'] = $_SESSION['alias']->id;
+						$data['content'] = $id;
+						$data['title'] = $name;
+						$data['author'] = $_SESSION['user']->id;
+						$data['date_add'] = time();
+						$this->db->insertRow('wl_images', $data);
 						$photo_id = $this->db->getLastInsertedId();
 						$photo = $link . '-' . $photo_id;
 						$extension = $this->savephoto('photo', $path.'/', $photo);
-						if($extension){
+						if($extension)
+						{
 							$photo .= '.'.$extension;
 							$this->db->updateRow($this->products_model->table('_products'), array('photo' => $photo), $id);
-							$this->db->updateRow($this->products_model->table('_product_photos'), array('name' => $photo), $photo_id);
+							$this->db->updateRow('wl_images', array('file_name' => $photo), $photo_id);
 						}
 					}
 					$this->redirect("admin/{$_SESSION['alias']->alias}/{$link}");
 				}
+				$this->redirect();
 			}
 			else
 			{
-				$this->products_model->save($_POST['id']);
+				$link = $this->products_model->save($_POST['id']);
 				$this->products_model->saveProductOptios($_POST['id']);
 
-				if(isset($_POST['to']) && $_POST['to'] == 'new'){
+				if(isset($_POST['to']) && $_POST['to'] == 'new') {
 					$this->redirect("admin/{$_SESSION['alias']->alias}/add");
 				} elseif(isset($_POST['to']) && $_POST['to'] == 'category') {
 					$link = 'admin/'.$_SESSION['alias']->alias;
 					$product = $this->products_model->getById($_POST['id']);
 					$product->link = explode('/', $product->link);
 					array_pop ($product->link);
-					if(!empty($product->link)){
+					if(!empty($product->link))
+					{
 						$product->link = implode('/', $product->link);
 						$link .= '/'.$product->link;
 					}
@@ -181,7 +184,7 @@ class shopshowcase extends Controller {
 
 				$_SESSION['notify'] = new stdClass();
 				$_SESSION['notify']->success = 'Дані успішно оновлено!';
-				$this->redirect();
+				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link);
 			}
 		}
 	}
@@ -228,24 +231,10 @@ class shopshowcase extends Controller {
 		}
 	}
 
-	function changeGroup(){
-		$res = array('result' => false);
-		if($this->userCan($_SESSION['alias']->alias)){
-			if(isset($_POST['group']) && is_numeric($_POST['group']) && isset($_POST['id']) && is_numeric($_POST['id'])){
-				if($this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, array('group' => $_POST['group']), $_POST['id'])){
-					$res['result'] = true;
-				}
-			}
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
-	}
-
 	function changeAvailability(){
 		$res = array('result' => false);
 		if(isset($_POST['availability']) && is_numeric($_POST['availability']) && isset($_POST['id']) && is_numeric($_POST['id'])){
-			if($this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, array('availability' => $_POST['availability']), $_POST['id'])){
+			if($this->db->updateRow($_SESSION['service']->table.'_products', array('availability' => $_POST['availability']), $_POST['id'])){
 				$res['result'] = true;
 			}
 		}
@@ -308,15 +297,14 @@ class shopshowcase extends Controller {
 
 			if($_POST['id'] == 0)
 			{
-				$photo = false;
-				if(!empty($_FILES['photo']['name'])) {
-					$photo = true;
-				}
-				$id = $this->groups_model->add($photo);
+				$alias = false;
+				$id = $this->groups_model->add($alias);
 				if($id)
 				{
 					if(!empty($_FILES['photo']['name'])) {
-						$this->savephoto('photo', $path, $id);
+						$alias = $id .'-'. $alias;
+						$ext = $this->savephoto('photo', $path, $alias);
+						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $id);
 					}
 					$_SESSION['notify']->success = 'Групу успішно додано! Продовжіть наповнення сторінки.';
 					$this->redirect('admin/'.$_SESSION['alias']->alias.'/groups/'.$id);
@@ -324,10 +312,13 @@ class shopshowcase extends Controller {
 			}
 			else
 			{
-				if($this->groups_model->save($_POST['id']))
+				$alias = false;
+				if($this->groups_model->save($_POST['id'], $alias))
 				{
 					if(!empty($_FILES['photo']['name'])) {
-						$this->savephoto('photo', $path, $_POST['id']);
+						$alias = $_POST['id'] .'-'. $alias;
+						$ext = $this->savephoto('photo', $path, $alias);
+						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $_POST['id']);
 					}
 					$_SESSION['notify']->success = 'Дані успішно оновлено!';
 				} else {
@@ -502,7 +493,7 @@ class shopshowcase extends Controller {
 			$this->load->smodel('options_model');
 			$this->load->model('wl_position_model');
 			
-			$option = $this->db->getAllDataById($this->options_model->table('_group_options'), $_POST['id']);
+			$option = $this->db->getAllDataById($this->options_model->table('_options'), $_POST['id']);
 			if($option) {
 				$parent = $option->group;
 			}
@@ -534,156 +525,25 @@ class shopshowcase extends Controller {
 		}
 	}
 
-	// --- photo
-	public function photo_add()
+	private function savephoto($name_field, $path, $name, $array = false, $i = 0)
 	{
-		$res = array();
-		$id = $this->data->uri(3);
-		if(is_numeric($id)){
-			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id;
-			$name_field = 'photos';
-			$error = 0;
-			if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-			if(!is_dir($path)){
-				if(mkdir($path, 0777) == false){
-					$error++;
-					$res['error'] = 'Error create dir ' . $path;
-				} 
-			}
-			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id.'/';
-
-			$this->load->smodel('shop_model');
-			$product = $this->db->getAllDataById($this->shop_model->table('_products'), $id);
-
-			if($product && !empty($_FILES[$name_field]['name'][0]) && $error == 0){
-				$length = count($_FILES[$name_field]['name']);
-				for($i = 0; $i < $length; $i++){
-					$data['product'] = $product->id;
-					$data['user'] = $_SESSION['user']->id;
-					$data['date'] = time();
-					$data['main'] = time();
-					$this->db->insertRow($this->shop_model->table('_product_photos'), $data);
-					$photo_id = $this->db->getLastInsertedId();
-					$photo_name = $product->alias . '-' . $photo_id;
-					
-					$extension = $this->savephoto($name_field, $path, $photo_name, true, $i);
-					if($extension){
-						$photo_name .= '.'.$extension;
-						$this->db->updateRow($this->shop_model->table('_products'), array('author_edit' => $_SESSION['user']->id, 'date_edit' => time(), 'photo' => $photo_name), $id);
-						$this->db->updateRow($this->shop_model->table('_product_photos'), array('name' => $photo_name), $photo_id);
-
-						$photo['id'] = $photo_id;
-						$photo['name'] = '';
-						$photo['date'] = date('d.m.Y H:i');
-						$photo['url'] = $path.$photo_name;
-						$photo['thumbnailUrl'] = $path.'/s_'.$photo_name;
-						$res[] = $photo;
-					} else {
-						$error++;
-					}
-				}
-			}
-			if($error > 0){
-				$photo['result'] = false;
-				$photo['error'] = "Access Denied!";
-				$res[] = $photo;
-			}
-		}
-
-		if(empty($res)){
-			$photo['result'] = false;
-			$photo['error'] = "Access Denied!";
-			$res[] = $photo;
-		}
-
-		header('Content-type: application/json');
-		echo json_encode(array('files' => $res));
-		exit;
-	}
-
-	public function photo_save()
-	{
-		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-		if(isset($_POST['photo']) && is_numeric($_POST['photo']) && isset($_POST['name'])){
-			$photo = $this->db->getAllDataById($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo']);
-			if(!empty($photo)){
-				$data = array();
-				if($_POST['name'] == 'title') $data['title'] = $this->db->sanitizeString($_POST['title']);
-				if($_POST['name'] == 'active'){
-					$data['main'] = time();
-					$this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, array('author_edit' => $_SESSION['user']->id, 'date_edit' => time(), 'photo' => $photo->name), $photo->product);
-				} 
-				if(!empty($data)) if($this->db->updateRow($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $data, $_POST['photo'])){
-					$res['result'] = true;
-					$res['error'] = '';
-				}
-			} else $res['error'] = 'Фотографію не знайдено!';
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
-	}
-	
-	public function photo_delete()
-	{
-		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-		if(isset($_POST['photo']) && is_numeric($_POST['photo'])){
-			$photo = $this->db->getAllDataById($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo']);
-			if(!empty($photo)){
-				if($this->db->deleteRow($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $_POST['photo'])){
-					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$photo->product.'/';
-					if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-					$prefix = array('');
-					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$prefix[] = $resize->prefix.'_';
-						}
-					}
-					foreach ($prefix as $p) {
-						$filename = $path.$p.$photo->name;
-						@unlink ($filename);
-					}
-					$res['result'] = true;
-					$res['error'] = '';
-
-					$product = $this->db->getAllDataById($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, $photo->product);
-					if($product) {
-						$data['author_edit'] = time();
-						$data['date_edit'] = time();
-						if($product->photo == $photo->name){
-							$data['photo'] = 0;
-							$photos = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_product_photos'.$_SESSION['alias']->table, $product->id, 'product', 'main DESC');
-							if($photos) $data['photo'] = $photos[0]->name;
-							else $data['photo'] = '';
-						}
-						$this->db->updateRow($_SESSION['service']->table.'_products'.$_SESSION['alias']->table, $data, $product->id);
-					}
-				}
-			} else $res['error'] = 'Фотографію не знайдено!';
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
-	}
-
-	private function savephoto($name_field, $path, $name, $array = false, $i = 0){
-		if(!empty($_FILES[$name_field]['name'])){
+		if(!empty($_FILES[$name_field]['name']))
+		{
 			$this->load->library('image');
 			if($array) $this->image->uploadArray($name_field, $i, $path, $name);
 			else $this->image->upload($name_field, $path, $name);
 			$extension = $this->image->getExtension();
 			$this->image->save();
-			if($this->image->getErrors() == ''){
-				if($_SESSION['option']->resize > 0){
-					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$this->image->loadImage($path, $name, $extension);
-							if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
-							if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
-							$this->image->save($path, $resize->prefix);
-						}
+			if($this->image->getErrors() == '')
+			{
+				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
+				if($sizes)
+				{
+					foreach ($sizes as $resize) if($resize->active == 1){
+						$this->image->loadImage($path, $name, $extension);
+						if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
+						if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
+						$this->image->save($path, $resize->prefix);
 					}
 				}
 				return $this->image->getExtension();

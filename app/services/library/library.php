@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.3"
+ 	Service "Library 2.4"
 	for WhiteLion 1.0
 
 */
@@ -11,6 +11,11 @@ class library extends Controller {
 				
     function _remap($method, $data = array())
     {
+    	if(isset($_SESSION['alias']->name) && $_SESSION['alias']->service == 'library')
+    	{
+    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
+    	}
+    	
         if (method_exists($this, $method)) {
         	if(empty($data)) $data = null;
             return $this->$method($data);
@@ -21,68 +26,68 @@ class library extends Controller {
 
     public function index($uri)
     {
+    	$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
     	$this->load->smodel('library_model');
 		
-		$url = $this->data->url();
-		$id = end($url);
-		$id = explode($_SESSION['option']->idExplodeLink, $id);
-		$id = $id[0];
-
-		if(is_numeric($id))
+		if(count($this->data->url()) > 1)
 		{
-			$article = $this->library_model->getArticleById($id);
-			if($article && ($article->active == 1 || $this->userCan())){
+			$type = null;
+			$article = $this->library_model->routeURL($this->data->url(), $type);
 
-				$url = implode('/', $url);
-				if($url != $article->link) {
-					header ('HTTP/1.1 301 Moved Permanently');
-					header ('Location: '. SITE_URL. $article->link);
-					exit();
-				}
-
-				$_SESSION['alias']->image = $article->photo;
-				$article->alias_name = $_SESSION['alias']->name;
-
+			if($type == 'article' && $article && ($article->active == 1 || $this->userCan($_SESSION['alias']->alias)))
+			{
 				$this->load->model('wl_ntkd_model');
 				$this->wl_ntkd_model->setContent($article->id);
-				$otherArticlesByGroup = $this->library_model->getArticles($article->group);
+				$videos = $this->wl_ntkd_model->getVideosFromText();
+				if($videos)
+				{
+					$this->load->library('video');
+					$this->video->setVideosToText($videos);
+				}
+				$_SESSION['alias']->image = $article->photo;
 				
-				$this->load->page_view('detal_view', array('article' => $article, 'otherArticlesByGroup' => $otherArticlesByGroup));
-			} else $this->load->page_404();
-		}
-		elseif($id != '' && count($url) > 1)
-		{
-			if($_SESSION['option']->useGroups)
+				$this->load->page_view('detal_view', array('article' => $article));
+			}
+
+			if($_SESSION['option']->useGroups && $type == 'group' && $article && ($article->active == 1 || $this->userCan($_SESSION['alias'])))
 			{
-				$group = false;
-				$parent = 0;
-				array_shift($url);
-				foreach ($url as $uri) {
-					$group = $this->library_model->getGroupByAlias($uri, $parent);
-					if($group){
-						$parent = $group->id;
-					} else $group = false;
+				$group = clone $article;
+				unset($article);
+
+				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
+				$group->parents = array();
+				if($group->parent > 0){
+					$list = array();
+		            $groups = $this->db->getAllDataByFieldInArray($this->library_model->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+					$group->parents = $this->library_model->makeParents($list, $group->parent, $group->parents);
+					$link = $_SESSION['alias']->alias;
+					foreach ($group->parents as $parent) {
+						$link .= '/'.$parent->alias;
+						$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+					}
+					$group->link = $link;
 				}
 
-				if($group && ($group->active == 1 || $this->userCan($_SESSION['alias']))){
-					$_SESSION['alias']->image = $group->photo;
-					$group->alias_name = $_SESSION['alias']->name;
-					$group->parents = array();
-					if($group->parent > 0){
-						$list = array();
-			            $groups = $this->db->getAllData($this->library_model->table('_groups'));
-			            foreach ($groups as $Group) {
-			            	$list[$Group->id] = clone $Group;
-			            }
-						$group->parents = $this->library_model->makeParents($list, $group->parent, $group->parents);
-					}
-					$this->load->model('wl_ntkd_model');
-					$this->wl_ntkd_model->setContent(($group->id * -1));
+				$this->load->model('wl_ntkd_model');
+				$this->wl_ntkd_model->setContent(($group->id * -1));
+				$videos = $this->wl_ntkd_model->getVideosFromText();
+				if($videos)
+				{
+					$this->load->library('video');
+					$this->video->setVideosToText($videos);
+				}
+				$_SESSION['alias']->image = $group->photo;
+				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
-					$articles = $this->library_model->getArticles($group->id);
-					$this->load->page_view('group_view', array('group' => $group, 'articles' => $articles));
-				} else $this->load->page_404();
-			} else $this->load->page_404();
+				$groups = $this->library_model->getGroups($group->id);
+				$articles = $this->library_model->getArticles($group->id);
+				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'articles' => $articles));
+			}
+
+			$this->load->page_404();
 		}
 		else
 		{
@@ -94,7 +99,6 @@ class library extends Controller {
 			}
 			else
 			{
-				$articles = $this->library_model->getArticles();
 				$this->load->page_view('index_view', array('articles' => $articles));
 			}
 		}
@@ -154,10 +158,10 @@ class library extends Controller {
 		return $this->library_model->getArticles($group);
 	}
 
-	public function __get_Groups($parent = 0)
+	public function __get_Groups()
 	{
 		$this->load->smodel('library_model');
-		return $this->library_model->getGroups($parent);
+		return $this->library_model->getGroups();
 	}
 	
 }

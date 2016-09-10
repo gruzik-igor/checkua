@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.2"
+ 	Service "Library 2.4"
 	for WhiteLion 1.0
 
 */
@@ -23,65 +23,65 @@ class library extends Controller {
     public function index($uri)
     {
     	$this->load->smodel('library_model');
-		
-		$url = $this->data->url();
-		$id = end($url);
-		$id = explode($_SESSION['option']->idExplodeLink, $id);
-		$id = $id[0];
+    	$_SESSION['option']->paginator_per_page = 50;
 
-		if(is_numeric($id))
+    	if(count($this->data->url()) > 2)
 		{
-			$this->edit($id);
+			$type = null;
+			$url = $this->data->url();
+			array_shift($url);
+			$article = $this->library_model->routeURL($url, $type, true);
+
+			if($type == 'article' && $article)
+			{
+				$this->edit($article);
+			}
+
+			if($_SESSION['option']->useGroups && $type == 'group' && $article)
+			{
+				$group = clone $article;
+				unset($article);
+
+				$group->alias_name = $_SESSION['alias']->name;
+				$group->parents = array();
+				if($group->parent > 0)
+				{
+					$list = array();
+		            $groups = $this->db->getAllData($this->library_model->table('_groups'));
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+					$group->parents = $this->library_model->makeParents($list, $group->parent, $group->parents);
+				}
+				$this->load->model('wl_ntkd_model');
+				$this->wl_ntkd_model->setContent(($group->id * -1));
+
+				$list = $this->library_model->getGroups($group->id, false);
+				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1) {
+					$list = $this->library_model->getArticles($group->id, 0, false);
+					$this->load->admin_view('articles/list_view', array('group' => $group, 'articles' => $list));
+				} else {
+					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
+				}
+			}
+
+			$this->load->page_404();
 		}
-		elseif($id != '' && count($url) > 2)
+		else
 		{
 			if($_SESSION['option']->useGroups)
 			{
-				$group = false;
-				$parent = 0;
-				array_shift($url);
-				foreach ($url as $uri) {
-					$group = $this->library_model->getGroupByAlias($uri, $parent);
-					if($group){
-						$parent = $group->id;
-					} else $group = false;
-				}
-
-				if($group){
-					$group->alias_name = $_SESSION['alias']->name;
-					$group->parents = array();
-					if($group->parent > 0){
-						$list = array();
-			            $groups = $this->db->getAllData($this->library_model->table('_groups'));
-			            foreach ($groups as $Group) {
-			            	$list[$Group->id] = clone $Group;
-			            }
-						$group->parents = $this->library_model->makeParents($list, $group->parent, $group->parents);
-					}
-					$this->load->model('wl_ntkd_model');
-					$this->wl_ntkd_model->setContent(($group->id * -1));
-
-					$list = $this->library_model->getGroups($group->id, false);
-					if (empty($list) || $_SESSION['option']->ArticleMultiGroup == 1) {
-						$list = $this->library_model->getArticles($group->id, false);
-						$this->load->admin_view('articles/list_view', array('group' => $group, 'articles' => $list));
-					} else {
-						$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
-					}
-				} else $this->load->page_404();
-			} else $this->load->page_404();
-		} else {
-			if($_SESSION['option']->useGroups){
 				$list = $this->library_model->getGroups(0, false);
-				if (empty($list) || $_SESSION['option']->ArticleMultiGroup == 1) {
-					$list = $this->library_model->getArticles();
+				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1) {
+					$list = $this->library_model->getArticles(-1, 0, false);
 					$this->load->admin_view('articles/list_view', array('articles' => $list));
 				} else {
 					$this->load->admin_view('index_view', array('groups' => $list));
 				}
-				
-			} else {
-				$articles = $this->library_model->getarticles(-1, false);
+			}
+			else
+			{
+				$articles = $this->library_model->getArticles(-1, 0, false);
 				$this->load->admin_view('articles/list_view', array('articles' => $articles));
 			}
 		}
@@ -101,30 +101,28 @@ class library extends Controller {
 		$this->load->admin_view('articles/add_view');
 	}
 	
-	private function edit($id = 0){
-		$this->load->smodel('library_model');
-		$article = $this->library_model->getArticleById($id);
-		if($article){
-			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
-			$_SESSION['alias']->name = 'Редагувати '.$article->name;
+	private function edit($article){
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
+		$_SESSION['alias']->name = 'Редагувати '.$article->name;
 
-			$groups = null;
-			if($_SESSION['option']->useGroups){
-				$groups = $this->library_model->getGroups();
-				if($_SESSION['option']->ArticleMultiGroup){
-					$activeGroups = $this->db->getAllDataByFieldInArray($this->library_model->table('_article_group'), $article->id, 'article');
-					$article->group = array();
-					if($activeGroups){
-						foreach ($activeGroups as $ag) {
-							$article->group[] = $ag->group;
-						}
+		$groups = null;
+		if($_SESSION['option']->useGroups)
+		{
+			$groups = $this->library_model->getGroups();
+			if($_SESSION['option']->articleMultiGroup)
+			{
+				$activeGroups = $this->db->getAllDataByFieldInArray($this->library_model->table('_article_group'), $article->id, 'article');
+				$article->group = array();
+				if($activeGroups)
+				{
+					foreach ($activeGroups as $ag) {
+						$article->group[] = $ag->group;
 					}
 				}
-			} 
-			$photos = $this->library_model->getArticlePhotos($article->id);
+			}
+		}
 
-			$this->load->admin_view('articles/edit_view', array('article' => $article, 'groups' => $groups, 'photos' => $photos));
-		} else $this->load->page_404();
+		$this->load->admin_view('articles/edit_view', array('article' => $article, 'groups' => $groups));
 	}
 	
 	public function save()
@@ -135,7 +133,8 @@ class library extends Controller {
 			if($_POST['id'] == 0)
 			{
 				$link = '';
-				$id = $this->articles_model->add($link);
+				$name = '';
+				$id = $this->articles_model->add($link, $name);
 				if($id){
 					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$id;
 					$path = substr($path, strlen(SITE_URL));
@@ -143,44 +142,51 @@ class library extends Controller {
 						mkdir($path, 0777);
 					}
 					if(!empty($_FILES['photo']['name'])) {
-						$data['article'] = $id;
-						$data['user'] = $_SESSION['user']->id;
-						$data['date'] = time();
-						$data['main'] = time();
-						$this->db->insertRow($this->articles_model->table('_article_photos'), $data);
+						$data['alias'] = $_SESSION['alias']->id;
+						$data['content'] = $id;
+						$data['title'] = $name;
+						$data['author'] = $_SESSION['user']->id;
+						$data['date_add'] = time();
+						$this->db->insertRow('wl_images', $data);
 						$photo_id = $this->db->getLastInsertedId();
 						$photo = $link . '-' . $photo_id;
 						$extension = $this->savephoto('photo', $path.'/', $photo);
-						if($extension){
+						if($extension)
+						{
 							$photo .= '.'.$extension;
 							$this->db->updateRow($this->articles_model->table('_articles'), array('photo' => $photo), $id);
-							$this->db->updateRow($this->articles_model->table('_article_photos'), array('name' => $photo), $photo_id);
+							$this->db->updateRow('wl_images', array('file_name' => $photo), $photo_id);
 						}
 					}
 					$this->redirect("admin/{$_SESSION['alias']->alias}/{$link}");
 				}
+				$this->redirect();
 			}
 			else
 			{
-				$this->articles_model->save($_POST['id']);
-
-				if(isset($_POST['to']) && $_POST['to'] == 'new'){
-					$this->redirect("admin/{$_SESSION['alias']->alias}/add");
-				} elseif(isset($_POST['to']) && $_POST['to'] == 'category') {
-					$link = 'admin/'.$_SESSION['alias']->alias;
-					$article = $this->articles_model->getById($_POST['id']);
-					$article->link = explode('/', $article->link);
-					array_pop ($article->link);
-					if(!empty($article->link)){
-						$article->link = implode('/', $article->link);
-						$link .= '/'.$article->link;
-					}
-					$this->redirect($link);
-				}
-
 				$_SESSION['notify'] = new stdClass();
-				$_SESSION['notify']->success = 'Дані успішно оновлено!';
-				$this->redirect();
+
+				$link = $this->articles_model->save($_POST['id']);
+				if(empty($_SESSION['notify']->errors))
+				{
+					if(isset($_POST['to']) && $_POST['to'] == 'new') {
+						$this->redirect("admin/{$_SESSION['alias']->alias}/add");
+					} elseif(isset($_POST['to']) && $_POST['to'] == 'category') {
+						$link = 'admin/'.$_SESSION['alias']->alias;
+						$article = $this->articles_model->getById($_POST['id']);
+						$article->link = explode('/', $article->link);
+						array_pop ($article->link);
+						if(!empty($article->link))
+						{
+							$article->link = implode('/', $article->link);
+							$link .= '/'.$article->link;
+						}
+						$this->redirect($link);
+					}
+
+					$_SESSION['notify']->success = 'Дані успішно оновлено!';
+				}
+				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link);
 			}
 		}
 	}
@@ -204,7 +210,7 @@ class library extends Controller {
 			$this->load->smodel('articles_model');
 			$this->load->model('wl_position_model');
 			
-			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ArticleMultiGroup == 0)
+			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->articleMultiGroup == 0)
 			{
 				$article = $this->db->getAllDataById($this->articles_model->table(), $_POST['id']);
 				if($article) {
@@ -217,20 +223,6 @@ class library extends Controller {
 				$this->redirect();
 			}
 		}
-	}
-
-	function changeGroup(){
-		$res = array('result' => false);
-		if($this->userCan($_SESSION['alias']->alias)){
-			if(isset($_POST['group']) && is_numeric($_POST['group']) && isset($_POST['id']) && is_numeric($_POST['id'])){
-				if($this->db->updateRow($_SESSION['service']->table.'_articles'.$_SESSION['alias']->table, array('group' => $_POST['group']), $_POST['id'])){
-					$res['result'] = true;
-				}
-			}
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
 	}
 
 	public function groups()
@@ -287,15 +279,14 @@ class library extends Controller {
 
 			if($_POST['id'] == 0)
 			{
-				$photo = false;
-				if(!empty($_FILES['photo']['name'])) {
-					$photo = true;
-				}
-				$id = $this->groups_model->add($photo);
+				$alias = false;
+				$id = $this->groups_model->add($alias);
 				if($id)
 				{
 					if(!empty($_FILES['photo']['name'])) {
-						$this->savephoto('photo', $path, $id);
+						$alias = $id .'-'. $alias;
+						$ext = $this->savephoto('photo', $path, $alias);
+						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $id);
 					}
 					$_SESSION['notify']->success = 'Групу успішно додано! Продовжіть наповнення сторінки.';
 					$this->redirect('admin/'.$_SESSION['alias']->alias.'/groups/'.$id);
@@ -303,10 +294,13 @@ class library extends Controller {
 			}
 			else
 			{
-				if($this->groups_model->save($_POST['id']))
+				$alias = false;
+				if($this->groups_model->save($_POST['id'], $alias))
 				{
 					if(!empty($_FILES['photo']['name'])) {
-						$this->savephoto('photo', $path, $_POST['id']);
+						$alias = $_POST['id'] .'-'. $alias;
+						$ext = $this->savephoto('photo', $path, $alias);
+						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $_POST['id']);
 					}
 					$_SESSION['notify']->success = 'Дані успішно оновлено!';
 				} else {
@@ -348,139 +342,6 @@ class library extends Controller {
 		$this->load->page_404();
 	}
 
-	// --- photo
-	public function photo_add()
-	{
-		$res = array();
-		$id = $this->data->uri(3);
-		if(is_numeric($id)){
-			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id;
-			$name_field = 'photos';
-			$error = 0;
-			$path = substr($path, strlen(SITE_URL));
-			if(!is_dir($path)){
-				if(mkdir($path, 0777) == false){
-					$error++;
-					$res['error'] = 'Error create dir ' . $path;
-				} 
-			}
-			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$id.'/';
-
-			$this->load->smodel('library_model');
-			$article = $this->db->getAllDataById($this->library_model->table('_articles'), $id);
-
-			if($article && !empty($_FILES[$name_field]['name'][0]) && $error == 0){
-				$length = count($_FILES[$name_field]['name']);
-				for($i = 0; $i < $length; $i++){
-					$data['article'] = $article->id;
-					$data['user'] = $_SESSION['user']->id;
-					$data['date'] = time();
-					$data['main'] = time();
-					$this->db->insertRow($this->library_model->table('_article_photos'), $data);
-					$photo_id = $this->db->getLastInsertedId();
-					$photo_name = $article->alias . '-' . $photo_id;
-					
-					$extension = $this->savephoto($name_field, $path, $photo_name, true, $i);
-					if($extension){
-						$photo_name .= '.'.$extension;
-						$this->db->updateRow($this->library_model->table('_articles'), array('author_edit' => $_SESSION['user']->id, 'date_edit' => time(), 'photo' => $photo_name), $id);
-						$this->db->updateRow($this->library_model->table('_article_photos'), array('name' => $photo_name), $photo_id);
-
-						$photo['id'] = $photo_id;
-						$photo['name'] = '';
-						$photo['date'] = date('d.m.Y H:i');
-						$photo['url'] = $path.$photo_name;
-						$photo['thumbnailUrl'] = $path.'/s_'.$photo_name;
-						$res[] = $photo;
-					} else {
-						$error++;
-					}
-				}
-			}
-			if($error > 0){
-				$photo['result'] = false;
-				$photo['error'] = "Access Denied!";
-				$res[] = $photo;
-			}
-		}
-
-		if(empty($res)){
-			$photo['result'] = false;
-			$photo['error'] = "Access Denied!";
-			$res[] = $photo;
-		}
-
-		header('Content-type: application/json');
-		echo json_encode(array('files' => $res));
-		exit;
-	}
-
-	public function photo_save()
-	{
-		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-		if(isset($_POST['photo']) && is_numeric($_POST['photo']) && isset($_POST['name'])){
-			$photo = $this->db->getAllDataById($_SESSION['service']->table.'_article_photos'.$_SESSION['alias']->table, $_POST['photo']);
-			if(!empty($photo)){
-				$data = array();
-				if($_POST['name'] == 'title') $data['title'] = $this->db->sanitizeString($_POST['title']);
-				if($_POST['name'] == 'active'){
-					$data['main'] = time();
-					$this->db->updateRow($_SESSION['service']->table.'_articles'.$_SESSION['alias']->table, array('author_edit' => $_SESSION['user']->id, 'date_edit' => time(), 'photo' => $photo->name), $photo->article);
-				} 
-				if(!empty($data)) if($this->db->updateRow($_SESSION['service']->table.'_article_photos'.$_SESSION['alias']->table, $data, $_POST['photo'])){
-					$res['result'] = true;
-					$res['error'] = '';
-				}
-			} else $res['error'] = 'Фотографію не знайдено!';
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
-	}
-	
-	public function photo_delete()
-	{
-		$res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-		if(isset($_POST['photo']) && is_numeric($_POST['photo'])){
-			$photo = $this->db->getAllDataById($_SESSION['service']->table.'_article_photos'.$_SESSION['alias']->table, $_POST['photo']);
-			if(!empty($photo)){
-				if($this->db->deleteRow($_SESSION['service']->table.'_article_photos'.$_SESSION['alias']->table, $_POST['photo'])){
-					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$photo->article.'/';
-					if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-					$prefix = array('');
-					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$prefix[] = $resize->prefix.'_';
-						}
-					}
-					foreach ($prefix as $p) {
-						$filename = $path.$p.$photo->name;
-						@unlink ($filename);
-					}
-					$res['result'] = true;
-					$res['error'] = '';
-
-					$article = $this->db->getAllDataById($_SESSION['service']->table.'_articles'.$_SESSION['alias']->table, $photo->article);
-					if($article) {
-						$data['author_edit'] = time();
-						$data['date_edit'] = time();
-						if($article->photo == $photo->name){
-							$data['photo'] = 0;
-							$photos = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_article_photos'.$_SESSION['alias']->table, $article->id, 'article', 'main DESC');
-							if($photos) $data['photo'] = $photos[0]->name;
-							else $data['photo'] = '';
-						}
-						$this->db->updateRow($_SESSION['service']->table.'_articles'.$_SESSION['alias']->table, $data, $article->id);
-					}
-				}
-			} else $res['error'] = 'Фотографію не знайдено!';
-		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
-	}
-
 	private function savephoto($name_field, $path, $name, $array = false, $i = 0)
 	{
 		if(!empty($_FILES[$name_field]['name']))
@@ -490,16 +351,16 @@ class library extends Controller {
 			else $this->image->upload($name_field, $path, $name);
 			$extension = $this->image->getExtension();
 			$this->image->save();
-			if($this->image->getErrors() == ''){
-				if($_SESSION['option']->resize > 0){
-					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$this->image->loadImage($path, $name, $extension);
-							if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
-							if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
-							$this->image->save($path, $resize->prefix);
-						}
+			if($this->image->getErrors() == '')
+			{
+				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
+				if($sizes)
+				{
+					foreach ($sizes as $resize) if($resize->active == 1){
+						$this->image->loadImage($path, $name, $extension);
+						if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
+						if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
+						$this->image->save($path, $resize->prefix);
 					}
 				}
 				return $this->image->getExtension();

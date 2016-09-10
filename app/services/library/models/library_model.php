@@ -2,13 +2,65 @@
 
 class library_model {
 
-	public function table($sufix = '')
+	public function table($sufix = '', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
+	}
+
+	public function routeURL($url = array(), &$type = null, $admin = false)
+	{		
+		$i = 1;
+		$last_i = count($url) - 1;
+		$type = false;
+
+		if($_SESSION['option']->useGroups)
+		{
+			$parent = 0;
+			$group = false;
+			
+			for (; $i <= $last_i ; $i++) {
+				$all_info = ($url[$i] == $url[$last_i]) ? true : false;
+				$group = $this->getGroupByAlias($url[$i], $parent, $all_info);
+				if($group)
+				{
+					$parent = $group->id;
+					$type = 'group';
+					if($i == $last_i) return $group;
+				}
+				else
+				{
+					$type = false;
+					if($i != $last_i) return false;
+					break;
+				}
+			}
+
+			if($i == ++$last_i) return $group;
+		}
+
+		if($article = $this->getArticle(end($url)))
+		{
+			$url = implode('/', $url);
+			if($url != $article->link)
+			{
+				$link = SITE_URL;
+				if($admin) $link .= 'admin/';
+				header ('HTTP/1.1 301 Moved Permanently');
+				header ('Location: '. $link. $article->link);
+				exit();
+			}
+
+			$type = 'article';
+			return $article;
+		}
+
+		return false;
 	}
 	
-	public function getArticles($Group = 0, $active = true){
-		$where = array();
+	public function getArticles($Group = 0, $noInclude = 0, $active = true)
+	{
+		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active) {
 			$where['active'] = 1;
 		}
@@ -21,21 +73,21 @@ class library_model {
 				foreach ($Group as $g) {
 					$articles = $this->db->getAllDataByFieldInArray($this->table('_article_group'), $g->id, 'group');
 					if($articles) {
-						foreach ($articles as $article) {
+						foreach ($articles as $article) if($article->article != $noInclude) {
 							array_push($where['id'], $article->article);
 						}
 					}
 				}
 			}
-			elseif($Group > 0)
+			elseif($Group >= 0)
 			{
-				if($_SESSION['option']->ArticleMultiGroup == 0) {
+				if($_SESSION['option']->articleMultiGroup == 0 || $Group == 0) {
 					$where['group'] = $Group;
 				} else {
 					$articles = $this->db->getAllDataByFieldInArray($this->table('_article_group'), $Group, 'group');
 					if($articles) {
 						$where['id'] = array();
-						foreach ($articles as $article) {
+						foreach ($articles as $article) if($article->article != $noInclude) {
 							array_push($where['id'], $article->article);
 						}
 					} else {
@@ -43,61 +95,68 @@ class library_model {
 					}
 				}
 			}
+			elseif($noInclude > 0)
+			{
+				$where['id'] = '!'.$noInclude;
+			}
+		}
+		elseif($noInclude > 0)
+		{
+			$where['id'] = '!'.$noInclude;
 		}
 		
-		if(count($_GET) > 1){
-			foreach ($_GET as $key => $value) {
-				if(isset($_GET['name']) && $_GET['name'] != '')
+		if(isset($_GET['name']) && $_GET['name'] != '')
+		{
+			$articles = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => '>0', 'name' => '%'.$this->data->get('name')));
+			if(!empty($articles))
+			{
+				if(!isset($where['id']))
 				{
-					$articles = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => '>0', 'name' => '%'.$this->data->get('name')));
-					if(!empty($articles))
-					{
-						if(!isset($where['id']))
-						{
-							$where['id'] = array();
-							foreach ($articles as $p) {
-								array_push($where['id'], $p->content);
-							}
-						}
-						else
-						{
-							$ids = $where['id'];
-							$where['id'] = array();
-							foreach ($articles as $p) {
-								if(in_array($p->content, $ids)) {
-									array_push($where['id'], $p->content);
-								}
-							}
-						}
-					} else {
-						return false;
+					$where['id'] = array();
+					foreach ($articles as $p) {
+						array_push($where['id'], $p->content);
 					}
 				}
+				else
+				{
+					$ids = clone $where['id'];
+					$where['id'] = array();
+					foreach ($articles as $p) {
+						if(in_array($p->content, $ids)) {
+							array_push($where['id'], $p->content);
+						}
+					}
+				}
+			} else {
+				return false;
 			}
 		}
 		
-		$this->db->select($this->table('_articles').' as p', '*', $where);
+		$this->db->select($this->table('_articles').' as a', '*', $where);
 		
-		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
-		
-		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ArticleMultiGroup == 0)
+		$this->db->join('wl_users as aa', 'name as author_add_name', '#a.author_add');
+			$this->db->join('wl_users as e', 'name as author_edit_name', '#a.author_edit');
+
+		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->articleMultiGroup == 0)
 		{
 			$where_gn['alias'] = $_SESSION['alias']->id;
-			$where_gn['content'] = "#-p.group";
+			$where_gn['content'] = "#-a.group";
 			if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
 			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
 		}
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;
-		$where_ntkd['content'] = "#p.id";
+		$where_ntkd['content'] = "#a.id";
 		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
+		$this->db->order($_SESSION['option']->articleOrder);
 
-		$this->db->order('position DESC');
-
-		if($active && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
 			$start = 0;
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0) {
+				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
+			}
 			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) {
 				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
 			}
@@ -107,25 +166,22 @@ class library_model {
 		$articles = $this->db->get('array', false);
         if($articles)
         {
-			$_SESSION['option']->paginator_total = $this->db->get('count');;
+			$_SESSION['option']->paginator_total = $this->db->get('count');
 
             $list = array();
         	if($_SESSION['option']->useGroups > 0)
         	{
-	            $all_groups = $this->db->getAllData($this->table('_groups'));
+	            $all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
 	            if($all_groups) foreach ($all_groups as $g) {
 	            	$list[$g->id] = clone $g;
 	            }
 	        }
-	        $sizes = false;
-	        if($_SESSION['option']->resize > 0){
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-			}
+
+			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
 
             foreach ($articles as $article)
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
-            	$article->videos = $this->getArticleVideos($article->id);
             	$article->photos = $this->getArticlePhotos($article->id);
             	if($article->photo != '')
             	{
@@ -134,6 +190,15 @@ class library_model {
 							$resize_name = $resize->prefix.'_photo';
 							$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$article->photo;
 						}
+						if(!empty($article->photos))
+						{
+							foreach ($article->photos as $photo) {
+								foreach ($sizes as $resize) if($resize->active == 1){
+									$resize_name = $resize->prefix.'_file_address';
+									$photo->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
+								}
+							}
+						}
 					}
 					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$article->photo;
             	}
@@ -141,14 +206,18 @@ class library_model {
 				$article->parents = array();
 				if($_SESSION['option']->useGroups > 0)
 				{
-					if($_SESSION['option']->ArticleMultiGroup == 0 && $article->group > 0){
+					if($_SESSION['option']->articleMultiGroup == 0 && $article->group > 0)
+					{
 						$article->parents = $this->makeParents($list, $article->group, $article->parents);
-						$link = $_SESSION['alias']->alias.'/';
+						$link = '/';
 						foreach ($article->parents as $parent) {
 							$link .= $parent->alias .'/';
 						}
-						$article->link = $link . $article->alias;
-					} elseif($_SESSION['option']->ArticleMultiGroup == 1){
+						$article->group_link = $_SESSION['alias']->alias . $link;
+						$article->link = $_SESSION['alias']->alias . $link . $article->alias;
+					}
+					elseif($_SESSION['option']->articleMultiGroup == 1)
+					{
 						$article->group = array();
 
 						$this->db->select($this->table('_article_group') .' as pg', '', $article->id, 'article');
@@ -157,9 +226,9 @@ class library_model {
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$article->group = $this->db->get('array');
 
-			            if(!empty($article->group)) foreach ($article->group as $g) {
+			            foreach ($article->group as $g) {
 			            	if($g->parent > 0) {
-			            		$g->link = $_SESSION['alias']->alias.'/'.$this->makeLink($list, $g->parent, $g->alias);
+			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
 			            	}
 			            }
 					}
@@ -172,64 +241,87 @@ class library_model {
 		return null;
 	}
 	
-	public function getArticleById($id)
+	function getArticle($alias, $key = 'alias', $all_info = true)
 	{
-		$this->db->select($this->table('_articles').' as p', '*', $id);
+		$this->db->select($this->table('_articles').' as p', '*', array('wl_alias' => $_SESSION['alias']->id, $key => $alias));
 
-		$this->db->join('wl_users as a', 'name as author_add_name', '#p.author_add');
-		$this->db->join('wl_users as e', 'name as author_edit_name', '#p.author_edit');
-		
-		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ArticleMultiGroup == 0)
+		if($all_info)
 		{
-			$where_gn['alias'] = $_SESSION['alias']->id;
-			$where_gn['content'] = "#-p.group";
-			if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
-			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
-		}
+			$this->db->join('wl_users as a', 'name as author_add_name', '#p.author_add');
+			$this->db->join('wl_users as e', 'name as author_edit_name', '#p.author_edit');
 
-		$where_ntkd['alias'] = $_SESSION['alias']->id;
-		$where_ntkd['content'] = "#p.id";
-		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
-		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
+			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->articleMultiGroup == 0)
+			{
+				$where_gn['alias'] = $_SESSION['alias']->id;
+				$where_gn['content'] = "#-p.group";
+				if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
+				$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
+			}
+
+			$where_ntkd['alias'] = $_SESSION['alias']->id;
+			$where_ntkd['content'] = "#p.id";
+			if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+			$this->db->join('wl_ntkd as n', 'name', $where_ntkd);
+		}
 
 		$article = $this->db->get('single');
         if($article)
         {
-        	if($article->photo != '')
+        	if(isset($_SESSION['alias']->breadcrumbs))
         	{
-        		if($_SESSION['option']->resize > 0)
-        		{
+        		$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
+        	}
+        	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
+
+        	if($all_info)
+        	{
+        		$article->photos = $this->getArticlePhotos($article->id);
+			
+	        	if($article->photo != '')
+	        	{
 					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
 					if($sizes){
 						foreach ($sizes as $resize) if($resize->active == 1){
 							$resize_name = $resize->prefix.'_photo';
 							$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$article->photo;
 						}
+						if(!empty($article->photos))
+						{
+							foreach ($article->photos as $photo) {
+								$photo->file_address = $_SESSION['option']->folder.'/'.$article->id.'/'.$photo->file_name;
+								foreach ($sizes as $resize) if($resize->active == 1){
+									$resize_name = $resize->prefix.'_file_address';
+									$photo->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
+								}
+							}
+						}
 					}
-				}
-				$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$article->photo;
-        	}
-			$article->photos = $this->getArticlePhotos($article->id);
-			$article->videos = $this->getArticleVideos($article->id);
-        	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
+					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$article->photo;
+	        	}
+	        }
 
 			$article->parents = array();
 			if($_SESSION['option']->useGroups > 0)
 			{
 				$list = array();
-				$all_groups = $this->db->getAllData($this->table('_groups'));
+				$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
 	            if($all_groups) foreach ($all_groups as $g) {
 	            	$list[$g->id] = clone $g;
 	            }
 
-				if($_SESSION['option']->ArticleMultiGroup == 0 && $article->group > 0){
+				if($_SESSION['option']->articleMultiGroup == 0 && $article->group > 0)
+				{
 					$article->parents = $this->makeParents($list, $article->group, $article->parents);
-					$link = $_SESSION['alias']->alias.'/';
+					$link = $_SESSION['alias']->alias . '/';
 					foreach ($article->parents as $parent) {
 						$link .= $parent->alias .'/';
+						if(isset($_SESSION['alias']->breadcrumbs)) $_SESSION['alias']->breadcrumbs[$parent->name] = $link;
 					}
+					$article->group_link = $link;
 					$article->link = $link . $article->alias;
-				} elseif($_SESSION['option']->ArticleMultiGroup == 1){
+				}
+				elseif($_SESSION['option']->articleMultiGroup == 1)
+				{
 					$article->group = array();
 
 					$this->db->select($this->table('_article_group') .' as pg', '', $article->id, 'article');
@@ -238,13 +330,15 @@ class library_model {
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					$article->group = $this->db->get('array');
 
-		            if(!empty($article->group)) foreach ($article->group as $g) {
+		            foreach ($article->group as $g) {
 		            	if($g->parent > 0) {
-		            		$g->link = $_SESSION['alias']->alias.'/'.$this->makeLink($list, $g->parent, $g->alias);
+		            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
 		            	}
 		            }
 				}
 			}
+        	if($all_info && isset($_SESSION['alias']->breadcrumbs)) $_SESSION['alias']->breadcrumbs[$article->name] = '';
+
             return $article;
 		}
 		return null;
@@ -252,42 +346,19 @@ class library_model {
 
 	public function getArticlePhotos($article)
 	{
-		$this->db->executeQuery("SELECT p.*, u.name as user_name FROM {$this->table('_article_photos')} as p LEFT JOIN wl_users as u ON p.user = u.id WHERE p.article = {$article} ORDER BY p.main DESC");
-		if($this->db->numRows() > 0){
-			$photos = $this->db->getRows('array');
-			if($_SESSION['option']->resize > 0)
-    		{
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-			}
-			foreach ($photos as $photo) {
-				$photo->path = $_SESSION['option']->folder.'/'.$article.'/'.$photo->name;
-				if($sizes){
-					foreach ($sizes as $resize) if($resize->active == 1){
-						$resize_name = $resize->prefix.'_path';
-						$photo->$resize_name = $_SESSION['option']->folder.'/'.$article.'/'.$resize->prefix.'_'.$photo->name;
-					}
-				}
-			}
-			return $photos;
-		}
-		return false;
-	}
-
-	public function getArticleVideos($article)
-	{
-		$this->db->executeQuery("SELECT v.*, u.name as user_name FROM wl_video as v LEFT JOIN wl_users as u ON v.author = u.id WHERE v.alias = {$_SESSION['alias']->id} AND v.content = {$article} AND v.active = 1 ORDER BY v.date_add DESC");
-		if($this->db->numRows() > 0){
-			return $this->db->getRows('array');
-		}
-		return false;
+		$where['alias'] = $_SESSION['alias']->id;
+		$where['content'] = $article;
+		$this->db->select('wl_images', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		return $this->db->get('array');
 	}
 
 	public function getGroups($parent = 0)
 	{
+		$where['wl_alias'] = $_SESSION['alias']->id;
 		$where['active'] = 1;
 		if($parent >= 0) $where['parent'] = $parent;
 		$this->db->select($this->table('_groups') .' as g', '*', $where);
-
 		$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;
@@ -295,7 +366,7 @@ class library_model {
 		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd', "name, text, list", $where_ntkd);
 
-		$this->db->order('position');
+		$this->db->order($_SESSION['option']->groupOrder);
 		
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0 && $parent >= 0){
 			$start = 0;
@@ -311,20 +382,17 @@ class library_model {
 			@$_SESSION['option']->count_all_articles = $this->db->get('count');
 
             $list = array();
-            $groups = $this->db->getAllData($this->table('_groups'));
+            $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
             foreach ($groups as $Group) {
             	$list[$Group->id] = clone $Group;
             }
 
-            $sizes = false;
-	        if($_SESSION['option']->resize > 0){
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-			}
+			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
 
             foreach ($categories as $Group) {
-            	$Group->link = $Group->alias;
+            	$Group->link = $_SESSION['alias']->alias.'/'.$Group->alias;
             	if($Group->parent > 0) {
-            		$Group->link = $this->makeLink($list, $Group->parent, $Group->alias);
+            		$Group->link = $_SESSION['alias']->alias.'/'.$this->makeLink($list, $Group->parent, $Group->alias);
             	}
 
             	if($Group->photo != '')
@@ -332,10 +400,10 @@ class library_model {
 					if($sizes){
 						foreach ($sizes as $resize) if($resize->active == 1){
 							$resize_name = $resize->prefix.'_photo';
-							$Group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$Group->photo.'.jpg';
+							$Group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$Group->photo;
 						}
 					}
-					$Group->photo = $_SESSION['option']->folder.'/groups/'.$Group->photo.'.jpg';
+					$Group->photo = $_SESSION['option']->folder.'/groups/'.$Group->photo;
             	}
             }
 
@@ -363,35 +431,26 @@ class library_model {
 		return $parents;
 	}
 
-	public function getGroupByAlias($alias, $parent = 0)
+	public function getGroupByAlias($alias, $parent = 0, $all_info = true)
 	{
+		$where['wl_alias'] = $_SESSION['alias']->id;
 		$where['alias'] = $alias;
 		$where['parent'] = $parent;
 		$this->db->select($this->table('_groups') .' as c', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
-		return $this->db->get('single');
-	}
-
-	public function GroupLink($link){
-		$Group = $this->getGroupByAlias($link);
-		$end = 0;
-		$link2 = $link;
-		while ($Group) {
-			$end++;
-			$link2 = $link.'-'.$end;
-		 	$Group = $this->getGroupByAlias($link2);
+		if($all_info) $this->db->join('wl_users', 'name as user_name', '#c.author_edit');
+		$group = $this->db->get('single');
+		if($group && $group->photo > 0 && $all_info)
+		{
+			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
+			if($sizes) {
+				foreach ($sizes as $resize) if($resize->active == 1){
+					$resize_name = $resize->prefix.'_photo';
+					$group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$group->photo;
+				}
+			}
+			$group->photo = $_SESSION['option']->folder.'/groups/'.$group->photo;
 		}
-		return $link2;
-	}
-
-	public function getGroupParents($all, $list)
-	{
-		$childs = array();
-		foreach ($list as $group) {
-			$childs[] = $group;
-			if(!empty($all[$group]->childs)) $childs = array_merge($childs, $this->getGroupParents($all, $all[$group]->childs));
-		}
-		return $childs;
+		return $group;
 	}
 
 	private function makeLink($all, $parent, $link)

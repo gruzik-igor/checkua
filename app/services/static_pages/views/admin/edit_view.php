@@ -58,7 +58,13 @@
         		</div>
           <?php } ?>
           <div class="tab-pane fade" id="tab-photo">
-            <?php require_once '_tab-photo.php'; ?>
+            <?php
+            $PHOTOS = $article->photos;
+            $CONTENT_ID = $article->id;
+            $PHOTO_MAIN = $article->photo;
+            $PHOTO_FILE_NAME = $_SESSION['alias']->alias;
+            $PHOTO_UPDATE_TABLE = $this->static_page_model->table();
+            require_once APP_PATH.'views/admin/wl_images/_tab-photo.php'; ?>
           </div>
           <div class="tab-pane fade" id="tab-video">
             <?php require_once '_tab-video.php'; ?>

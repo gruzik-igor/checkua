@@ -18,19 +18,6 @@
 					</div>
 				</div>
 				<div class="form-group">
-					<label class="col-md-3 control-label">user_type</label>
-					<div class="col-md-9">
-						<select name="user_type" class="form-control" required>
-							<option value="0">Всі</option>
-							<?php $user_types = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
-							foreach ($user_types as $type) {
-								echo('<option value="'.$type->id.'"');
-								echo('>'.$type->name.'</option>');
-							} ?>
-						</select>
-					</div>
-				</div>
-				<div class="form-group">
 					<label class="col-md-3 control-label">name</label>
 					<div class="col-md-9">
 						<input type="text" class="form-control" name="name" id="name" value="<?=$field_name->name?>">
@@ -55,7 +42,7 @@
 						<?php if(isset($field_name->options)) { foreach ($field_name->options as $option) { ?>
 						<input type="text" class="form-control" name="value[]" value="<?=$option->value?>" required>
 						<?php } } else { ?>
-						<input type="text" class="form-control" name="value[]" required>
+						<input type="text" class="form-control" name="value[]">
 						<input type="text" class="form-control" name="value[]">
 						<?php } ?>
 						<button class="btn btn-sm btn-warning" onclick="addAnotherValue()"> Додати поле</button>
@@ -65,14 +52,7 @@
 					<label class="col-md-3 control-label">required</label>
 					<div class="col-md-9">
 						<input type="radio" name="required" value="1" <?= ($field_name->required == 1)?'checked':'' ?>>Так
-					<input type="radio" name="required" value="0" <?= ($field_name->required == 0)?'checked':'' ?>>Ні
-				</div>
-				</div>
-					<div class="form-group">
-						<label class="col-md-3 control-label">can_change</label>
-						<div class="col-md-9">
-							<input type="radio" name="can_change" value="1" <?= ($field_name->can_change == 1)?'checked':'' ?>>Так
-						<input type="radio" name="can_change" value="0" <?= ($field_name->can_change == 0)?'checked':'' ?>>Ні
+						<input type="radio" name="required" value="0" <?= ($field_name->required == 0)?'checked':'' ?>>Ні
 					</div>
 				</div>
 				<div class="form-group">

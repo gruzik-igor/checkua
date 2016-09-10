@@ -16,6 +16,9 @@ class static_pages extends Controller {
     {
         $this->load->smodel('static_page_model');
         $page = $this->static_page_model->get($_SESSION['alias']->id);
+        $this->load->library('video');
+        $this->video->makeVideosInText();
+        $_SESSION['alias']->image = $page->photo;
         $this->load->page_view('index_view', array('page' => $page));
     }
 

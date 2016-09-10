@@ -1,0 +1,255 @@
+<?php if(isset($_SESSION['notify'])){ 
+require APP_PATH.'views/admin/notify_view.php';
+} ?>
+      
+<div class="row">
+    <div class="col-md-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+            	<div class="panel-heading-btn">
+					<button onClick="showUninstalForm()" class="btn btn-danger btn-xs">Видалити накладну</button>
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$product->id?>" class="btn btn-info btn-xs">До всіх накладної</a>
+            	</div>
+                <h4 class="panel-title">Накладна #<?=$product->id?></h4>
+            </div>
+            <div class="panel-body">
+	            <div id="uninstall-form" class="alert alert-danger fade in" style="display: none;">
+					<i class="fa fa-trash fa-2x pull-left"></i>
+					<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete" method="POST">
+						<p>Ви впевнені що бажаєте видалити накладну?</p>
+						<input type="hidden" name="id" value="<?=$product->id?>">
+						<input type="submit" value="Видалити" class="btn btn-danger">
+						<button type="button" style="margin-left:25px" onClick="showUninstalForm()" class="btn btn-info">Скасувати</button>
+					</form>
+				</div>
+                <div class="table-responsive">
+	                <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
+						<input type="hidden" name="id" value="<?=$product->id?>">
+		                <div class="table-responsive">
+		                    <table class="table table-striped table-bordered nowrap" width="100%">
+		                    	<?php if($_SESSION['option']->productUseArticle) { ?>
+		                    		<tr>
+										<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+										<td><?=$product->info->article?></td>
+									</tr>
+								<?php } else { ?>
+									<tr>
+										<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+										<td><?=$product->info->id?></td>
+									</tr>
+								<?php } ?>
+								<tr>
+									<th>Ціна прихідна</th>
+									<td><input type="number" name="price_in" id="price_in" value="<?=$product->price_in?>" min="0" onchange="setPrice(this.value)" class="form-control" required></td>
+								</tr>
+								<tr>
+									<th>Кількість</th>
+									<td><input type="number" name="amount" value="<?=$product->amount?>" min="1" class="form-control" required></td>
+								</tr>
+								<?php if($_SESSION['option']->markUpByUserTypes) { ?>
+									<tr>
+										<th colspan="2"><center>Ціна вихідна</center></th>
+									</tr>
+									<?php
+									$groups = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
+									$price_out = 0;
+									if(is_numeric($product->price_out)) $price_out = $product->price_out;
+									else $product->price_out = unserialize($product->price_out);
+									foreach($groups as $group){ ?>
+										<tr>
+											<td><?=$group->title?> (Націнка <?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?>%)</td>
+											<td>
+												<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="<?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?>" min="0" step="0.01" class="form-control price_out">
+											</td>
+										</tr>
+									<?php }
+								} else { ?>
+									<tr>
+										<th>Ціна вихідна</th>
+										<td>
+											<input type="number" name="price_out" id="price_out" value="<?=$product->price_out?>" min="0" step="0.01" class="form-control" required>
+											<input type="hidden" id="markup" value="<?=(isset($storage->markup))?$storage->markup : 0?>">
+										</td>
+									</tr>
+								<?php } ?>
+								<tr>
+									<th>Дата приходу</th>
+									<td><input type="text" name="date_in" value="<?=date('d.m.Y', $product->date_in)?>" class="form-control" required></td>
+								</tr>
+								<tr>
+									<th>Дата останньої операції</th>
+									<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
+								</tr>
+								<tr>
+									<th>Квитанцію додано</th>
+									<td><?=date('d.m.Y', $product->date_add)?> by <?=$product->manager_add_name?></td>
+								</tr>
+								<tr>
+									<th>Квитанцію редаговано</th>
+									<td><?=date('d.m.Y', $product->date_edit)?> by <?=$product->manager_edit_name?></td>
+								</tr>
+								<tr>
+									<td>
+										Після збереження:
+									</td>
+									<td id="after_save">
+										<input type="radio" name="to" value="edit" id="to_edit" checked="checked"><label for="to_edit">проглянути накладну</label>
+										<input type="radio" name="to" value="new" id="to_new"><label for="to_new">додати нову накладну</label>
+									</td>
+								</tr>
+								<tr>
+									<td></td>
+									<td><input id="submit" type="submit" class="btn btn-sm btn-success" value="Зберегти"></td>
+								</tr>
+		                    </table>
+		                </div>
+		            </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="panel panel-inverse">
+            <div class="panel-heading">
+            	<div class="panel-heading-btn">
+					<a href="<?=SITE_URL.'admin/'.$product->info->link?>" class="btn btn-info btn-xs">До <?=$_SESSION['admin_options']['word:product_to']?></a>
+            	</div>
+                <h4 class="panel-title">Інформація про <?=$_SESSION['admin_options']['word:product']?></h4>
+            </div>
+            <div class="panel-body" id="product">
+	                <div id="product-info" class="table-responsive">
+	                    <table class="table table-striped table-bordered nowrap" width="100%">
+	                    	<?php if($_SESSION['option']->productUseArticle) { ?>
+	                    		<tr>
+									<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<td><?=$product->info->article?></td>
+								</tr>
+							<?php } else { ?>
+								<tr>
+									<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<td><?=$product->info->id?></td>
+								</tr>
+							<?php } ?>
+							<tr>
+								<th>Назва</th>
+								<td><?=$product->info->name?></td>
+							</tr>
+							<tr>
+								<th>Стандартна ціна</th>
+								<td><?=$product->info->price?></td>
+							</tr>
+							<?php if(is_numeric($product->info->group)) { ?>
+								<tr>
+									<th>Група</th>
+									<td><?=$product->info->group_name?></td>
+								</tr>
+							<?php } if(!empty($product->info->group) && is_array($product->info->group)) { ?>
+								<tr>
+									<th>Групи</th>
+									<td>
+										<?php
+										$groups = array();
+										foreach ($product->info->group as $group) {
+											$groups[] = $group->name;
+										}
+										echo(implode(', ', $groups));
+										?>
+									</td>
+								</tr>
+							<?php } if($product->info->availability) { ?>
+								<tr>
+									<th>Доступність</th>
+									<td><?=$product->info->availability_name?></td>
+								</tr>
+							<?php } if(!empty($product->info->options)) { foreach($product->info->options as $option) { ?>
+								<tr>
+									<th><?=$option->name?></th>
+									<td><?=$option->value?> <?=$option->sufix?></td>
+								</tr>
+							<?php } } ?>
+	                    </table>	                    
+	                </div>
+	            </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<?php if(count($product->history) > 1 ) { ?>
+	<div class="row">
+	    <div class="col-md-12">
+	        <div class="panel panel-inverse">
+	            <div class="panel-heading">
+	                <div class="panel-heading-btn">
+	                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати накладну</a>
+	                </div>
+	                <h4 class="panel-title">Список всіх накладних по товару <?=($_SESSION['option']->productUseArticle) ? $product->info->article : $product->info->id?> <?=$product->info->name?></h4>
+	            </div>
+	            <div class="panel-body">
+	                <div class="table-responsive">
+	                    <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
+	                        <thead>
+	                            <tr>
+	                                <th>Накладна №</th>
+	                                <th></th>
+									<th>Ціна прихідна</th>
+									<th>Кількість / Залишок</th>
+									<?php if($_SESSION['option']->markUpByUserTypes == 1) {
+										foreach($groups as $group){
+										?>
+										<th>Ціна для <?=$group->title?></th>
+									<?php } } else { ?>
+										<th>Ціна вихідна</th>
+									<?php } ?>
+									<th>Остання операція</th>
+									<th>Дата приходу</th>
+	                            </tr>
+	                        </thead>
+	                        <tbody>
+	                        	<?php
+	                        	if(!empty($product->history)) { 
+	                        		foreach($product->history as $history) if($history->id != $product->id) { ?>
+										<tr>
+											<td><?=$history->id?></td>
+											<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$history->id?>" class="btn btn-info btn-xs">Детальніше</a></td>
+											<td><?=$history->price_in?></td>
+											<td><?=$history->amount?></td>
+											<?php if($_SESSION['option']->markUpByUserTypes == 1) {
+												$price_out = 0;
+												if(is_numeric($history->price_out)) $price_out = $history->price_out;
+												else $history->price_out = unserialize($history->price_out);
+												foreach($groups as $group){ ?>
+													<td><?=(isset($history->price_out[$group->id])) ? $history->price_out[$group->id] : $price_out?></td>
+											<?php } } else {
+												echo("<td>{$history->price_out}</td>");
+	                                        	}
+	                                        ?>
+											<td><?=($history->date_out > 0) ? date("d.m.Y H:i", $history->date_out) : 'Відсутня'?></td>
+											<td><?=date("d.m.Y H:i", $history->date_in)?></td>
+										</tr>
+								<?php } } ?>
+	                        </tbody>
+	                    </table>
+	                </div>
+	            </div>
+	        </div>
+	    </div>
+	</div>
+<?php } ?>
+
+<script type="text/javascript">
+function setPrice(price) {
+	<?php if($_SESSION['option']->markUpByUserTypes) { foreach($groups as $group){ ?>
+		$('#price_out-<?=$group->id?>').val(<?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?> * price / 100 + Math.floor(price));
+	<?php } } else { ?>
+		$('#price_out').val(<?=(isset($storage->markup))?$storage->markup : 0?> * price / 100 + Math.floor(price));
+	<?php } ?>
+}
+function showUninstalForm () {
+		if($('#uninstall-form').is(":hidden")){
+			$('#uninstall-form').slideDown("slow");
+		} else {
+			$('#uninstall-form').slideUp("fast");
+		}
+	}
+</script>

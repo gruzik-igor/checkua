@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.1"
+ 	Service "Shop Showcase 2.2"
 	for WhiteLion 1.0
 
 */
@@ -11,6 +11,11 @@ class shopshowcase extends Controller {
 				
     function _remap($method, $data = array())
     {
+    	if(isset($_SESSION['alias']->name) && $_SESSION['alias']->service == 'shopshowcase')
+    	{
+    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
+    	}
+    	
         if (method_exists($this, $method)) {
         	if(empty($data)) $data = null;
             return $this->$method($data);
@@ -21,69 +26,68 @@ class shopshowcase extends Controller {
 
     public function index($uri)
     {
+    	$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
     	$this->load->smodel('shop_model');
 		
-		$url = $this->data->url();
-		$id = end($url);
-		$id = explode($_SESSION['option']->idExplodeLink, $id);
-		$id = $id[0];
-
-		if(is_numeric($id))
+		if(count($this->data->url()) > 1)
 		{
-			$product = $this->shop_model->getProductById($id);
-			if($product && ($product->active == 1 || $this->userCan($_SESSION['alias']->alias))){
+			$type = null;
+			$product = $this->shop_model->routeURL($this->data->url(), $type);
 
-				$url = implode('/', $url);
-				if($url != $product->link){
-					header ('HTTP/1.1 301 Moved Permanently');
-					header ('Location: '. SITE_URL. $product->link);
-					exit();
-				}
-
-				$product->alias_name = $_SESSION['alias']->name;
-
+			if($type == 'product' && $product && ($product->active == 1 || $this->userCan($_SESSION['alias']->alias)))
+			{
 				$this->load->model('wl_ntkd_model');
 				$this->wl_ntkd_model->setContent($product->id);
+				$videos = $this->wl_ntkd_model->getVideosFromText();
+				if($videos)
+				{
+					$this->load->library('video');
+					$this->video->setVideosToText($videos);
+				}
 				$_SESSION['alias']->image = $product->photo;
-
-				$otherProductsByGroup = $this->shop_model->getProducts($product->group, $product->id);
 				
-				$this->load->page_view('detal_view', array('product' => $product, 'otherProductsByGroup' => $otherProductsByGroup));
-			} else $this->load->page_404();
-		}
-		elseif($id != '' && $id != $_SESSION['alias']->alias)
-		{
-			if($_SESSION['option']->useGroups)
+				$this->load->page_view('detal_view', array('product' => $product));
+			}
+
+			if($_SESSION['option']->useGroups && $type == 'group' && $product && ($product->active == 1 || $this->userCan($_SESSION['alias'])))
 			{
-				$group = false;
-				$parent = 0;
-				array_shift($url);
-				foreach ($url as $uri) {
-					$group = $this->shop_model->getGroupByAlias($uri, $parent);
-					if($group){
-						$parent = $group->id;
-					} else $group = false;
+				$group = clone $product;
+				unset($product);
+
+				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
+				$group->parents = array();
+				if($group->parent > 0){
+					$list = array();
+		            $groups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
+					$link = $_SESSION['alias']->alias;
+					foreach ($group->parents as $parent) {
+						$link .= '/'.$parent->alias;
+						$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+					}
+					$group->link = $link;
 				}
 
-				if($group && ($group->active == 1 || $this->userCan($_SESSION['alias']))){
-					$group->alias_name = $_SESSION['alias']->name;
-					$group->parents = array();
-					if($group->parent > 0){
-						$list = array();
-			            $groups = $this->db->getAllData($this->shop_model->table('_groups'));
-			            foreach ($groups as $Group) {
-			            	$list[$Group->id] = clone $Group;
-			            }
-						$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
-					}
-					$this->load->model('wl_ntkd_model');
-					$this->wl_ntkd_model->setContent(($group->id * -1));
-					$_SESSION['alias']->image = $group->photo;
+				$this->load->model('wl_ntkd_model');
+				$this->wl_ntkd_model->setContent(($group->id * -1));
+				$videos = $this->wl_ntkd_model->getVideosFromText();
+				if($videos)
+				{
+					$this->load->library('video');
+					$this->video->setVideosToText($videos);
+				}
+				$_SESSION['alias']->image = $group->photo;
+				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
-					$products = $this->shop_model->getProducts($group->id);
-					$this->load->page_view('group_view', array('group' => $group, 'products' => $products));
-				} else $this->load->page_404();
-			} else $this->load->page_404();
+				$groups = $this->shop_model->getGroups($group->id);
+				$products = $this->shop_model->getProducts($group->id);
+				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'products' => $products));
+			}
+
+			$this->load->page_404();
 		}
 		else
 		{
@@ -131,6 +135,30 @@ class shopshowcase extends Controller {
 			$products = $this->shop_model->getProducts($group);
 			$this->load->page_view('group_view', array('products' => $products));
 		}
+		if(isset($_GET['id']) || isset($_GET['article']))
+		{
+			$this->load->smodel('shop_model');
+			$id = 0;
+			$key = 'id';
+			if(isset($_GET['article']))
+			{
+				$id = $this->data->get('article');
+				$key = 'article';
+			}
+			else
+			{
+				$id = $this->data->get('id');
+			}
+			$product = $this->shop_model->getProduct($id, $key, false);
+			if($product)
+			{
+				$this->redirect($product->link);
+			}
+			else
+			{
+				$this->load->page_view('group_view', array('products' => null));
+			}
+		}
 	}
 
     public function __get_Search($content)
@@ -139,10 +167,18 @@ class shopshowcase extends Controller {
     	return $this->shop_search_model->getByContent($content);
     }
 
+    // $id['key'] може мати любий ключ _products. Рекомендовано: id, article, alias.
 	public function __get_Product($id = 0)
 	{
+		$key = 'id';
+		if(is_array($id))
+		{
+			if(isset($id['key'])) $key = $id['key'];
+			if(isset($id['id'])) $id = $id['id'];
+			if(isset($id['article'])) $id = $id['article'];
+		}
 		$this->load->smodel('shop_model');
-		return $this->shop_model->getProductById($id);
+		return $this->shop_model->getProduct($id, $key);
 	}
 
 	public function __get_Products($data = array())
@@ -155,10 +191,10 @@ class shopshowcase extends Controller {
 		return $this->shop_model->getProducts($group);
 	}
 
-	public function __get_Groups()
+	public function __get_Groups($parent = 0)
 	{
 		$this->load->smodel('shop_model');
-		return $this->shop_model->getGroups();
+		return $this->shop_model->getGroups($parent);
 	}
 
 	public function __get_Options_By_Group($data = array())

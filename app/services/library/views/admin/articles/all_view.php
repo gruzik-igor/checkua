@@ -42,7 +42,7 @@
 										<?php
                                         if($_SESSION['option']->useGroups == 1) {
                                             echo("<td>");
-                                            if($_SESSION['option']->ArticleMultiGroup) {
+                                            if($_SESSION['option']->articleMultiGroup) {
                                                 if(!empty($a->group) && is_array($a->group)) {
                                                     foreach ($a->group as $group) {
                                                         echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
@@ -56,7 +56,7 @@
                                             echo("</td>");
                                         }
                                         ?>
-										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
+										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
 										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
 									</tr>

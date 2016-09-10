@@ -21,7 +21,7 @@
                                 <th >Ім'я</th>
                                 <th >Тип користувача</th>
                                 <th>Статус</th>
-                                <th>Останній вхід</th>
+                                <th>Дата реєстрації</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -40,7 +40,7 @@
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colReorder.js'; 
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colVis.js'; 
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.responsive.js'; 
-  $_SESSION['alias']->js_load[] = 'assets/white-lion/table-users.js'; 
+  $_SESSION['alias']->js_load[] = 'js/admin/table-users.js'; 
   $_SESSION['alias']->js_init[] = 'TableManageCombine.init();'; 
 ?>
 <link href="<?=SITE_URL?>assets/DataTables/css/data-table.css" rel="stylesheet" />

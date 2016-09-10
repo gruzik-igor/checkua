@@ -1,3 +1,7 @@
+<?php if(isset($_SESSION['notify'])){ 
+require APP_PATH.'views/admin/notify_view.php';
+} ?>
+      
 <div class="row">
     <div class="col-md-6">
         <div class="panel panel-inverse">
@@ -15,6 +19,12 @@
 					<input type="hidden" name="id" value="0">
 	                <div class="table-responsive">
 	                    <table class="table table-striped table-bordered nowrap" width="100%">
+	                    	<?php if($_SESSION['option']->ProductUseArticle) { ?>
+	                    		<tr>
+									<th>Артикул</th>
+									<td><input type="text" name="article" value="<?=(isset($_SESSION['post']['article'])) ? $_SESSION['post']['article'] : ''?>" class="form-control" required></td>
+								</tr>
+							<?php } ?>
 						    <tr>
 								<th>Фото</th>
 								<td><input type="file" name="photo" class="form-control"></td>
@@ -98,6 +108,7 @@
 													if(empty($g->child)){
 														$selected = '';
 														if(isset($_GET['group']) && $_GET['group'] == $g->id) $selected = 'selected';
+														if(isset($_SESSION['post']['group']) && $_SESSION['post']['group'] == $g->id) $selected = 'selected';
 														echo('<option value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
 													} else {
 														echo('<optgroup label="'.$prefix.$g->name.'">');
@@ -129,17 +140,17 @@
 							if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $lang) { ?>
 								<tr>
 									<th>Назва <?=$lang?></th>
-									<td><input type="text" name="name_<?=$lang?>" value="" class="form-control" required></td>
+									<td><input type="text" name="name_<?=$lang?>" value="<?=(isset($_SESSION['post']['name_'.$lang])) ? $_SESSION['post']['name_'.$lang] : ''?>" class="form-control" required></td>
 								</tr>
 							<?php } else { ?>
 								<tr>
 									<th>Назва</th>
-									<td><input type="text" name="name" value="" class="form-control" required></td>
+									<td><input type="text" name="name" value="<?=(isset($_SESSION['post']['name'])) ? $_SESSION['post']['name'] : ''?>" class="form-control" required></td>
 								</tr>
 							<?php } ?>
 							<tr>
 								<th>Ціна</th>
-								<td><input type="number" name="price" value="0" min="0" class="form-control" required></td>
+								<td><input type="number" name="price" value="<?=(isset($_SESSION['post']['price'])) ? $_SESSION['post']['price'] : 0?>" min="0" step="0.01" class="form-control" required></td>
 							</tr>
 							<tr>
 								<td></td>
@@ -152,7 +163,7 @@
         </div>
     </div>
 </div>
-
+<?php unset($_SESSION['post']) ?>
 
 
 

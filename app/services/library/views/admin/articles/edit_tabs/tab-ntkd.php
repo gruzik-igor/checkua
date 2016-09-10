@@ -4,7 +4,7 @@
 	<small style="text-align: center; cursor: pointer; display: block" onClick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description</small>
 	<br>
 	<div id="tkd-<?=$lang?>" class="tkd">
-		<label>title:</label> <input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>" class="form-control"><br>
+		<label>title:</label> <input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>" class="form-control" placeholder="<?=$ntkd[$lang]->name?>"><br>
 		<label>keywords:</label> <input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>" class="form-control"><br>
 		<label>description:</label><br>
 		<textarea onChange="save('description', this, '<?=$lang?>')" class="form-control"><?=$ntkd[$lang]->description?></textarea>
@@ -23,7 +23,7 @@
 	<small style="text-align: center; cursor: pointer; display: block" onClick="showEditTKD('block')">Редагувати title, keywords, description</small>
 	<br>
 	<div id="tkd-block" class="tkd">
-		<label>title:</label> <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" class="form-control"><br>
+		<label>title:</label> <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" class="form-control" placeholder="<?=$ntkd->name?>"><br>
 		<label>keywords:</label> <input type="text" onChange="save('keywords', this)" value="<?=$ntkd->keywords?>" class="form-control"><br>
 		<label>description:</label><br>
 		<textarea onChange="save('description', this)" class="form-control"><?=$ntkd->description?></textarea>

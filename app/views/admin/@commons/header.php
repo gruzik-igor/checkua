@@ -25,7 +25,7 @@
       </li>
       <li class="dropdown navbar-user">
         <a href="javascript:;" class="dropdown-toggle" data-toggle="dropdown">
-          <img src="<?=SITE_URL?>style/admin/images/user-8.jpg" alt="" /> 
+          <img src="<?=SITE_URL?>style/admin/images/user-<?=$_SESSION['user']->type?>.jpg" alt="" /> 
           <span class="hidden-xs"><?=$_SESSION['user']->name?></span> <b class="caret"></b>
         </a>
         <ul class="dropdown-menu animated fadeInLeft">

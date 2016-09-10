@@ -12,19 +12,17 @@
                 </div>
                 <h4 class="panel-title"><?=(isset($group))?$_SESSION['alias']->name .'. Список '.$_SESSION['admin_options']['word:articles_to_all']:'Список всіх '.$_SESSION['admin_options']['word:articles_to_all']?></h4>
             </div>
-            <?php if(isset($group)){ ?>
+            <?php if(isset($group)) { ?>
                 <div class="panel-heading">
-	            	<h4 class="panel-title">
-	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>"><?=$group->alias_name?></a> ->
-						<?php if(!empty($group->parents)){
+	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
+						<?php if(!empty($group->parents)) {
 							$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
 							foreach ($group->parents as $parent) { 
 								$link .= '/'.$parent->link;
-								echo '<a href="'.$link.'">'.$parent->name.'</a> -> ';
+								echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
 							}
-							echo($_SESSION['alias']->name);
 						} ?>
-	            	</h4>
+						<span class="btn btn-warning btn-xs"><?=$_SESSION['alias']->name?></span> 
 	            </div>
 	        <?php } ?>
             <div class="panel-body">
@@ -35,10 +33,8 @@
                                 <th>Id</th>
 								<th>Назва</th>
 								<th>Адреса</th>
-								<?php if($_SESSION['option']->useGroups == 1){ 
-									if($_SESSION['option']->ArticleMultiGroup == 0) $categories = $this->library_model->getGroups(-1, false);
-									?>
-									<th>Група</th>
+								<?php if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->articleMultiGroup){ ?>
+									<th>Групи</th>
 								<?php } ?>
 								<th>Автор</th>
 								<th>Редаговано</th>
@@ -48,39 +44,26 @@
                         </thead>
                         <tbody>
                         	<?php
-                        	if(!empty($articles)){ 
+                        	if(!empty($articles)) { 
                         		$max = count($articles); 
-                        		foreach($articles as $a){ ?>
+                        		foreach($articles as $a) { ?>
 									<tr>
 										<td><?=$a->id?></td>
 										<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a></td>
-										<td><a href="<?=SITE_URL.$a->link?>"><?=$a->alias?></a></td>
+										<td><a href="<?=SITE_URL.$a->link?>"><?=$a->link?></a></td>
 										<?php 
-										if($_SESSION['option']->useGroups == 1) {
-											if($_SESSION['option']->ArticleMultiGroup) {
-												echo("<td>");
-												if(!empty($a->group) && is_array($a->group)) {
-                                                    foreach ($a->group as $group) {
-                                                        echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->alias.'">'.$group->name.'</a> ');
-                                                    }
-                                                } else {
-                                                    echo("Не визначено");
+										if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->articleMultiGroup) {
+											echo("<td>");
+											if(!empty($a->group) && is_array($a->group)) {
+                                                foreach ($a->group as $group) {
+                                                    echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->alias.'">'.$group->name.'</a> ');
                                                 }
-                                                echo("</td>");
-                                        	} else {
-                                        ?>
-											<td>
-												<select onchange="changeCategory(this, <?=$a->id?>)" class="form-control">
-													<option value="0">Немає</option>
-													<?php if(isset($categories)) foreach ($categories as $c) {
-														echo('<option value="'.$c->id.'"');
-														if($c->id == $a->group) echo(' selected');
-														echo('>'.$c->name.'</option>');
-													} ?>
-												</select>
-											</td>
-										<?php } } ?>
-										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
+                                            } else {
+                                                echo("Не визначено");
+                                            }
+                                            echo("</td>");
+                                        } ?>
+										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
 										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
 										<td>
@@ -99,27 +82,8 @@
     </div>
 </div>
 
-<script type="text/javascript">
-	function changeCategory(e, id){
-		$.ajax({
-			url: "<?=SITE_URL.$_SESSION['alias']->alias?>/changeGroup",
-			type: 'POST',
-			data: {
-				group :  e.value,
-				id :  id,
-				json : true
-			},
-			success: function(res){
-				if(res['result'] == false){
-					alert('Помилка! Спробуйте щераз');
-				}
-			}
-		});
-	}
-</script>
-
 <style type="text/css">
-	input[type="number"]{
+	input[type="number"] {
 		min-width: 50px;
 	}
 	select {

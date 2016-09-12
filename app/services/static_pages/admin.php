@@ -15,9 +15,16 @@ class static_pages extends Controller {
 
     public function index()
     {
+        $this->load->model('wl_alias_model');
+        $this->wl_alias_model->setContent();
     	$this->load->smodel('static_page_model');
-        $page = $this->static_page_model->get($_SESSION['alias']->id);
-        $this->load->admin_view('edit_view', array('article' => $page));
+        $this->load->admin_view('index_view', array('page' => $this->static_page_model->get()));
+    }
+
+    public function __get_Search($content)
+    {
+        $this->load->smodel('static_pages_search_model');
+        return $this->static_pages_search_model->getByContent($content, true);
     }
 	
 }

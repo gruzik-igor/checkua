@@ -1,7 +1,8 @@
-Service "Static Pages 2.1"
+Service "Static Pages 2.2"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.2 : 12.09.2016
 Date 2.1 : 10.03.2016
 Date 2.0 : 01.12.2015
 Date 1.2 : 27.08.2015
@@ -10,7 +11,6 @@ Date 1.0 : 19.05.2014
 
 Description: Статичні сторінки
 Options:
-	resize		(0, 1)		при заливанні фото на сервер здійсювати створення мініатюр, зміну розмірів
 	folder		(текст)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми
 
 SEO (name, title, keywords, description) and text use wl_ntkd
@@ -19,13 +19,11 @@ Need to work: jquery-1.8.3.js+
 
 Public links:
 	/index() - static page
-	/__get_Search()				повертає об'єкт пошуку
+	/__get_Search()	- повертає об'єкт пошуку
 
-Private links (admin access):
+Admin links:
 	/index() - edit page
-	/photo_add - upload and add_save photo
-	/photo_save - save title, main_photo info
-	/photo_delete - delete photo
+	/__get_Search() - повертає об'єкт пошуку
 
 Versions:
 	1.0 	Основа модулю, включно із ajax збереженням даних
@@ -35,3 +33,4 @@ Versions:
 	2.1		Додано підтримку відео в тексті за принципом {video-XXX}
 			Додано головне фото
 			Фотографії переведено із _photos -> wl_images
+	2.2		Сервіс адаптовано до WL1.0. Оновлено інсталяційну модель, керування контентом переведоно до системних бібліотек.

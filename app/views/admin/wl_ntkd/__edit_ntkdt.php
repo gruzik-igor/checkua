@@ -20,7 +20,7 @@ else
 }
 
 ?>
-<label>Назва:</label> <input type="text" onChange="save('name', this)" value="<?=$ntkd->name?>" class="form-control"><br>
+<label>Назва:</label> <input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd->name?>" class="form-control"><br>
 <br>
 <small style="text-align: center; cursor: pointer; display: block" onClick="showEditTKD('block')">Редагувати title, keywords, description</small>
 <br>

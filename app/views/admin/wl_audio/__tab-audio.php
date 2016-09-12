@@ -3,7 +3,7 @@
 	<div class="col-md-6">
 		<form method="post" action="<?=SITE_URL?>admin/wl_audio/save" enctype="multipart/form-data" class="form-horizontal" onsubmit="$('#saveing').css('display', 'block');">
 			<input type="hidden" name="alias" value="<?=$_SESSION['alias']->id?>">
-			<input type="hidden" name="content" value="<?=$article->id?>">
+			<input type="hidden" name="content" value="<?=$_SESSION['alias']->content?>">
 			<div class="form-group">
 		        <label>Виберіть аудіо: (audio/mp3, wma, mpeg, wav, ogg)</label>
 		        <input type="file" name="audio[]"  class="form-control" multiple required>
@@ -19,8 +19,9 @@
 
 <ol id="sortable">
 <?php
-	$audios = $this->db->getAllDataByFieldInArray('wl_audio', array('alias' => $_SESSION['alias']->id, 'content' => $article->id), 'position');
-	if($audios){
+	$audios = $this->db->getAllDataByFieldInArray('wl_audio', array('alias' => $_SESSION['alias']->id, 'content' => $_SESSION['alias']->content), 'position');
+	if($audios)
+	{
 		foreach ($audios as $audio) {
 			echo("<li class=\"ui-state-default\" id=\"audio-{$audio->id}\"> "); ?>
 			<audio controls>
@@ -29,7 +30,7 @@
 			</audio>
 			<input type="text" id="text-audio-<?=$audio->id?>" value="<?=$audio->text?>" class="form-control" onChange="saveAudioText(<?=$audio->id?>, this)">
 			<span style="float:left">Додано: <?=date('d.m.Y H:i', $audio->date_add)?></span>
-			<?php echo(" <a class='btn btn-danger btn-xs' href=\" ".SITE_URL."admin/wl_audio/delete?id={$audio->id}&position={$audio->position}&alias={$_SESSION['alias']->id}&content={$article->id}&name={$audio->name}\">Видалити</a></li>");
+			<?php echo(" <a class='btn btn-danger btn-xs' href=\" ".SITE_URL."admin/wl_audio/delete?id={$audio->id}&position={$audio->position}&alias={$_SESSION['alias']->id}&content={$audio->content}&name={$audio->name}\">Видалити</a></li>");
 		}
 	}
 ?>
@@ -67,7 +68,7 @@
 			            type: 'POST',
 			            data: {
 							alias: <?=$_SESSION['alias']->id?>,
-							content: <?=$article->id?>,
+							content: <?=$_SESSION['alias']->content?>,
 			                id: ui.item.attr('id'),
 			                position: ui.item.index(),
 			                json: true

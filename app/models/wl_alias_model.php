@@ -16,10 +16,10 @@ class wl_alias_model
 		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;
-		$_SESSION['alias']->image = false;
-		$_SESSION['alias']->js_plugins = array();
-		$_SESSION['alias']->js_load = array();
-		$_SESSION['alias']->js_init = array();
+		$_SESSION['alias']->name = ($_GET['request']) ? $_GET['request'] : SITE_NAME;
+		$_SESSION['alias']->title = $_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = '';
+		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
+		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = array();
 
 		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
 			foreach($options as $opt) {
@@ -35,7 +35,7 @@ class wl_alias_model
 			$_SESSION['alias']->table = $alias->table;
 			if($alias->service > 0)
 			{
-				$this->db->executeQuery("SELECT `name`, `table` FROM `wl_services` WHERE `id` = {$alias->service} AND `active` = 1");
+				$this->db->executeQuery("SELECT `name`, `table` FROM `wl_services` WHERE `id` = {$alias->service}");
 				if($this->db->numRows() == 1)
 				{
 					$service = $this->db->getRows();
@@ -55,71 +55,70 @@ class wl_alias_model
 					$key = $opt->name;
 					$_SESSION['option']->$key = $opt->value;
 				}
-
-			$where = array();
-			$where['alias'] = $alias->id;
-			$where['content'] = 0;
-			if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-
-			if($data = $this->db->getAllDataById('wl_ntkd', $where))
-			{
-				$_SESSION['alias']->name = $data->name;
-				$_SESSION['alias']->title = $data->title;
-				$_SESSION['alias']->description = $data->description;
-				$_SESSION['alias']->keywords = $data->keywords;
-				$_SESSION['alias']->text = $data->text;
-				$_SESSION['alias']->list = $data->list;
-			}
-			else
-			{
-				$where['alias'] = 1;
-				if($data = $this->db->getAllDataById('wl_ntkd', $where))
-				{
-					$_SESSION['alias']->name = $data->name;
-					$_SESSION['alias']->title = $data->title;
-					$_SESSION['alias']->description = $data->description;
-					$_SESSION['alias']->keywords = $data->keywords;
-					$_SESSION['alias']->text = $data->text;
-					$_SESSION['alias']->list = $data->list;
-				}
-			}
 		}
-		else
-		{
-			$where = array();
-			$where['alias'] = 1;
-			if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-
-			if($data = $this->db->getAllDataById('wl_ntkd', $where))
-			{
-				$_SESSION['alias']->name = $data->name;
-				$_SESSION['alias']->title = $data->title;
-				$_SESSION['alias']->description = $data->description;
-				$_SESSION['alias']->keywords = $data->keywords;
-				$_SESSION['alias']->text = $data->text;
-				$_SESSION['alias']->list = $data->list;
-			}
-			else
-			{
-				if($data = $this->db->getAllDataById('wl_ntkd', 1, 'alias'))
-				{
-					$_SESSION['alias']->name = $data->name;
-					$_SESSION['alias']->title = $data->title;
-					$_SESSION['alias']->description = $data->description;
-					$_SESSION['alias']->keywords = $data->keywords;
-					$_SESSION['alias']->text = $data->text;
-					$_SESSION['alias']->list = $data->list;
-				}
-			}
-		}
-
-		if($_SESSION['alias']->title == '')
-			$_SESSION['alias']->title = $_SESSION['alias']->name;
-		if($_SESSION['alias']->description == '')
-			$_SESSION['alias']->description = $this->getShortText($_SESSION['alias']->list);
-
 		return true;
     }
+
+    public function setContent($content = 0, $code = 200)
+    {
+		if(!is_numeric($content))
+			return false;
+		$_SESSION['alias']->content = $content;
+		$_SESSION['alias']->code = $code;
+
+		$where = array();
+		$where['alias'] = $_SESSION['alias']->id;
+		$where['content'] = $content;
+
+		$this->db->select('wl_images', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		$this->db->order('main ASC');
+		$_SESSION['alias']->images = $this->db->get('array');
+		if(!empty($_SESSION['alias']->images))
+		{
+			$sizes = $this->getAliasImageSizes();
+			foreach ($_SESSION['alias']->images as $photo) {
+				if($sizes)
+					foreach ($sizes as $resize) {
+						$resize_name = $resize->prefix.'_path';
+						$photo->$resize_name = $_SESSION['option']->folder.'/'.$_SESSION['alias']->id.'/'.$resize->prefix.'_'.$photo->file_name;
+					}
+				$photo->path = $_SESSION['option']->folder.'/'.$_SESSION['alias']->id.'/'.$photo->file_name;
+			}
+			if(isset($_SESSION['alias']->images[0]->header_path))
+				$_SESSION['alias']->image = $_SESSION['alias']->images[0]->header_path;
+			else
+				$_SESSION['alias']->image = $_SESSION['alias']->images[0]->path;
+		}
+
+		$this->db->select('wl_video', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		$_SESSION['alias']->videos = $this->db->get('array');
+
+		$this->db->select('wl_audio', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		$this->db->order('position ASC');
+		$_SESSION['alias']->audios = $this->db->get('array');
+
+		if($_SESSION['language'])
+			$where['language'] = $_SESSION['language'];
+		if($data = $this->db->getAllDataById('wl_ntkd', $where))
+		{    	
+			$_SESSION['alias']->name = $data->name;
+			$_SESSION['alias']->title = $data->title;
+			$_SESSION['alias']->description = $data->description;
+			$_SESSION['alias']->keywords = $data->keywords;
+			$_SESSION['alias']->text = $data->text;
+			$_SESSION['alias']->list = $data->list;
+
+			if($_SESSION['alias']->title == '')
+				$_SESSION['alias']->title = $_SESSION['alias']->name;
+			if($_SESSION['alias']->description == '')
+				$_SESSION['alias']->description = $this->getShortText($_SESSION['alias']->list);
+		}
+
+		return null;
+	}
 
     public function admin_options()
     {

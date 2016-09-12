@@ -171,7 +171,7 @@ class wl_aliases extends Controller {
                         $go++;
                 }
                 if($go > 0)
-                    $_SESSION['notify']->errorss = 'Поле "Адреса посилання" має бути унікальним!';
+                    $_SESSION['notify']->errors = 'Поле "Адреса посилання" має бути унікальним!';
             }
                 
             $text = '';

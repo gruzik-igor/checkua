@@ -11,6 +11,7 @@
  * Версія 2.0.1 (26.03.2016) - до get() додано параметр debug, що дозволяє бачити кінцевий запит перед запуском, виправлено помилку декількаразового запуску get()
  * Версія 2.0.2 (01.04.2016) - до makeWhere() додано параметр сортування НЕ '!'
  * Версія 2.0.3 (26.07.2016) - адаптовано до php7
+ * Версія 2.0.4 (12.09.2016) - додано getAliasImageSizes()
  */
 
 class Db {
@@ -484,15 +485,47 @@ class Db {
     public function register($do, $additionally = '', $user = 0)
     {
         $register = $this->getAllDataById('wl_user_register_do', $do, 'name');
-        if($register){
+        if($register)
+        {
             $data['date'] = time();
             $data['do'] = $register->id;
-            if($user == 0) $data['user'] = $_SESSION['user']->id;
-            else $data['user'] = $user;
+            if($user == 0)
+                $data['user'] = $_SESSION['user']->id;
+            else
+                $data['user'] = $user;
             $data['additionally'] = $additionally;
-            if($this->insertRow('wl_user_register', $data)) return true;
+            if($this->insertRow('wl_user_register', $data))
+                return true;
         }
         return false;
+    }
+
+    public function getAliasImageSizes($alias = 0)
+    {
+        if($alias == 0)
+            $alias = $_SESSION['alias']->id;
+        $sizes_all = $this->db->getAllDataByFieldInArray('wl_images_sizes', array('alias' => 0, 'active' => 1));
+        $sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', array('alias' => $alias, 'active' => 1));
+        if($sizes)
+        {
+            $sizes_all_index = array();
+            if($sizes_all)
+                foreach ($sizes_all as $key => $size) {
+                    $sizes_all_index[$size->prefix] = $key;
+                }
+            foreach ($sizes as $size) {
+                if(array_key_exists($size->prefix, $sizes_all_index))
+                {
+                    $key = $sizes_all_index[$size->prefix];
+                    $sizes_all[$key]->type = $size->type;
+                    $sizes_all[$key]->width = $size->width;
+                    $sizes_all[$key]->height = $size->height;
+                }
+                else
+                    array_push($sizes_all, $size);
+            }
+        }
+        return $sizes_all;
     }
 
 }

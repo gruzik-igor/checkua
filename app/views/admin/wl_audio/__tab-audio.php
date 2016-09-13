@@ -1,12 +1,12 @@
 <div class="row">
 	<div class="col-md-3"></div>
 	<div class="col-md-6">
-		<form method="post" action="<?=SITE_URL?>admin/wl_audio/save" enctype="multipart/form-data" class="form-horizontal" onsubmit="$('#saveing').css('display', 'block');">
+		<form method="POST" action="<?=SITE_URL?>admin/wl_audio/save" enctype="multipart/form-data" class="form-horizontal" onsubmit="$('#saveing').css('display', 'block');">
 			<input type="hidden" name="alias" value="<?=$_SESSION['alias']->id?>">
 			<input type="hidden" name="content" value="<?=$_SESSION['alias']->content?>">
 			<div class="form-group">
 		        <label>Виберіть аудіо: (audio/mp3, wma, mpeg, wav, ogg)</label>
-		        <input type="file" name="audio[]"  class="form-control" multiple required>
+		        <input type="file" name="audio[]" class="form-control" multiple required>
 			</div>
 			<div class="form-group">
 				<div class="center">
@@ -58,40 +58,40 @@
 </style>
 
 <script>
-	document.onreadystatechange = function () {
-     	if (document.readyState == "complete") {
-     		$( "#sortable" ).sortable({
-				update: function( event, ui ) {
-					$('#saveing').css("display", "block");
-			        $.ajax({
-			            url: "<?=SITE_URL?>admin/wl_audio/change_position",
-			            type: 'POST',
-			            data: {
-							alias: <?=$_SESSION['alias']->id?>,
-							content: <?=$_SESSION['alias']->content?>,
-			                id: ui.item.attr('id'),
-			                position: ui.item.index(),
-			                json: true
-			            },
-			            success: function(res){
-			                if(res['result'] == false){
-			                    alert(res['error']);
-			                }
-			                $('#saveing').css("display", "none");
-			            },
-			            error: function(){
-			                alert("Помилка! Спробуйте ще раз!");
-			                $('#saveing').css("display", "none");
-			            },
-			            timeout: function(){
-			                alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
-			                $('#saveing').css("display", "none");
-			            }
-			        });
-				}
-			});
-			$( "#sortable" ).disableSelection();
-   }
+document.onreadystatechange = function () {
+ 	if (document.readyState == "complete") {
+ 		$( "#sortable" ).sortable({
+			update: function( event, ui ) {
+				$('#saveing').css("display", "block");
+		        $.ajax({
+		            url: "<?=SITE_URL?>admin/wl_audio/change_position",
+		            type: 'POST',
+		            data: {
+						alias: <?=$_SESSION['alias']->id?>,
+						content: <?=$_SESSION['alias']->content?>,
+		                id: ui.item.attr('id'),
+		                position: ui.item.index(),
+		                json: true
+		            },
+		            success: function(res){
+		                if(res['result'] == false){
+		                    alert(res['error']);
+		                }
+		                $('#saveing').css("display", "none");
+		            },
+		            error: function(){
+		                alert("Помилка! Спробуйте ще раз!");
+		                $('#saveing').css("display", "none");
+		            },
+		            timeout: function(){
+		                alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
+		                $('#saveing').css("display", "none");
+		            }
+		        });
+			}
+		});
+		$( "#sortable" ).disableSelection();
+   	}
  }
  function saveAudioText(id, e){
     $('#saveing').css("display", "block");

@@ -13,6 +13,7 @@
             </div>
 
             <?php
+            $PHOTO_FILE_NAME = $_SESSION['alias']->alias;
             $ADDITIONAL_TABLE = $_SESSION['service']->table;
             $ADDITIONAL_TABLE_ID = $page->id;
             $ADDITIONAL_FIELDS = 'author_edit=>user,date_edit=>time';

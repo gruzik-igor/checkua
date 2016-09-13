@@ -27,7 +27,6 @@ class install {
 		if($alias == 0) return false;
 
 		$page['id'] = $alias;
-		$page['photo'] = NULL;
 		$page['author_add'] = $page['author_edit'] = $_SESSION['user']->id;
 		$page['date_add'] = $page['date_edit'] = time();
 		$this->db->insertRow($this->table_service, $page);
@@ -51,7 +50,6 @@ class install {
 	{
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}` (
 					  `id` int(11) NOT NULL,
-					  `photo` text NULL,
 					  `author_add` int(11) NOT NULL,
 					  `date_add` int(11) NOT NULL,
 					  `author_edit` int(11) NOT NULL,

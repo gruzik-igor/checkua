@@ -16,7 +16,8 @@ class wl_Video extends Controller {
     	exit();
 	}
 	
-	function save(){
+	function save()
+	{
 		if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['content']) && is_numeric($_POST['content']) && $_POST['video'] != ''){
 			$videolink = $this->data->post('video', true); 
 			$controler_video=parse_url($videolink);

@@ -15,16 +15,10 @@ class static_pages_search_model
 			$search = new stdClass();
 			$search->id = $_SESSION['alias']->id;
 			$search->link = $_SESSION['alias']->alias;
-			$search->image = false;
 			$search->date = $article->date_edit;
 			$search->author = $article->author_edit;
 			$search->author_name = $article->author_name;
 			$search->additional = false;
-
-			if($article->photo != '')
-			{
-				$search->image = $_SESSION['option']->folder.'/s_'.$article->photo;
-			}
 		}
 		
 		return $search;

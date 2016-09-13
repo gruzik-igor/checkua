@@ -35,10 +35,8 @@ class wl_alias_model
 			$_SESSION['alias']->table = $alias->table;
 			if($alias->service > 0)
 			{
-				$this->db->executeQuery("SELECT `name`, `table` FROM `wl_services` WHERE `id` = {$alias->service}");
-				if($this->db->numRows() == 1)
+				if($service = $this->db->getQuery("SELECT `name`, `table` FROM `wl_services` WHERE `id` = {$alias->service}"))
 				{
-					$service = $this->db->getRows();
 					$_SESSION['alias']->service = $service->name;
 					$_SESSION['service']->name = $service->name;
 					$_SESSION['service']->table = $service->table;
@@ -76,14 +74,14 @@ class wl_alias_model
 		$_SESSION['alias']->images = $this->db->get('array');
 		if(!empty($_SESSION['alias']->images))
 		{
-			$sizes = $this->getAliasImageSizes();
+			$sizes = $this->db->getAliasImageSizes();
 			foreach ($_SESSION['alias']->images as $photo) {
 				if($sizes)
 					foreach ($sizes as $resize) {
 						$resize_name = $resize->prefix.'_path';
-						$photo->$resize_name = $_SESSION['option']->folder.'/'.$_SESSION['alias']->id.'/'.$resize->prefix.'_'.$photo->file_name;
+						$photo->$resize_name = $_SESSION['option']->folder.'/'.$_SESSION['alias']->content.'/'.$resize->prefix.'_'.$photo->file_name;
 					}
-				$photo->path = $_SESSION['option']->folder.'/'.$_SESSION['alias']->id.'/'.$photo->file_name;
+				$photo->path = $_SESSION['option']->folder.'/'.$_SESSION['alias']->content.'/'.$photo->file_name;
 			}
 			if(isset($_SESSION['alias']->images[0]->header_path))
 				$_SESSION['alias']->image = $_SESSION['alias']->images[0]->header_path;

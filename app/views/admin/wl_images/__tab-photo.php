@@ -27,21 +27,27 @@
 
 <div class="clear"> </div>
 
-<?php if(!empty($PHOTOS)) { ?>
-    <table id="PHOTOS" class="table">
-        <tbody class="files">
-            <?php foreach($PHOTOS as $photo) { ?>
+<table id="PHOTOS" class="table">
+    <tbody class="files">
+        <?php if(!empty($_SESSION['alias']->images)) {
+            foreach($_SESSION['alias']->images as $photo) { 
+                $main = false;
+                if(isset($photo->header_path) && $photo->header_path == $_SESSION['alias']->image)
+                    $main = true;
+                elseif($_SESSION['alias']->image == $photo->path)
+                    $main = true;
+            ?>
                 <tr id="photo-<?=$photo->id?>" class="template-download fade in">
                     <td class="preview">
-                        <a href="<?=IMG_PATH.$photo->file_address?>">
-                            <img src="<?=IMG_PATH.$photo->a_file_address?>">
+                        <a href="<?=IMG_PATH.$photo->path?>">
+                            <img src="<?=IMG_PATH.$photo->admin_path?>">
                         </a>
                     </td>
                     <td>
                         <textarea name="title" onChange="savePhoto(<?=$photo->id?>, this)"><?=$photo->title?></textarea>
                     </td>
                     <td class="navigation">
-    	                <button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto(<?=$photo->id?>, this)" <?= (isset($PHOTO_MAIN) && $PHOTO_MAIN == $photo->file_address) ? 'disabled="disabled"' : '' ?>>
+    	                <button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto(<?=$photo->id?>, this)" <?= ($main) ? 'disabled="disabled"' : '' ?>>
     					    <i class="glyphicon glyphicon-eye-open"></i>
     					    <span>Головне</span>
     					</button>
@@ -56,10 +62,9 @@
                         <span id="pea-saveing-<?=$photo->id?>" class="saveing"><img src="<?=SITE_URL?>style/admin/images/icon-loading.gif">Зберігання..</span>
                     </td>
                 </tr>
-            <?php } ?>
-        </tbody>
-    </table>
-<?php } ?>
+        <?php } } ?>
+    </tbody>
+</table>
 
 <!-- The blueimp Gallery widget -->
 <div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls" data-filter=":even">
@@ -121,9 +126,9 @@
         </td>
         <td class="navigation">
         	<button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto({%=file.id%}, this)" disabled="disabled">
-					    <i class="glyphicon glyphicon-eye-open"></i>
-					    <span>Головне</span>
-					</button>
+			    <i class="glyphicon glyphicon-eye-open"></i>
+			    <span>Головне</span>
+			</button>
             <button class="btn btn-danger delete" onClick="deletePhoto({%=file.id%})">
                 <i class="glyphicon glyphicon-trash"></i>
                 <span>Видалити</span>
@@ -150,7 +155,6 @@ $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.fileupload-audio.js";
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.fileupload-video.js";
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/cors/jquery.xdr-transport.js";
-$_SESSION['alias']->js_load[] = 'js/admin/_tab-photo.js';
 ?>
 
 
@@ -160,30 +164,6 @@ $_SESSION['alias']->js_load[] = 'js/admin/_tab-photo.js';
 <script src="http://blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
 <!-- The Canvas to Blob plugin is included for image resizing functionality -->
 <script src="http://blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
-
-
-<script type="text/javascript">
-    var ALIAS_ID = <?=$_SESSION['alias']->id?>;
-    var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
-    var CONTENT_ID = <?=$CONTENT_ID?>;
-    var PHOTO_MAIN = '<?=$PHOTO_MAIN?>';
-    var PHOTO_FILE_NAME = '<?=$PHOTO_FILE_NAME?>';
-    var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
-    var PHOTO_UPDATE_TABLE = '<?=(isset($PHOTO_UPDATE_TABLE)) ? $PHOTO_UPDATE_TABLE : ''?>';
-    var PHOTO_UPDATE_FIELD = '<?=(isset($PHOTO_UPDATE_FIELD)) ? $PHOTO_UPDATE_FIELD : 'photo'?>';
-
-    document.getElementById('PHOTOS').onclick = function (event) {
-        event = event || window.event;
-        var target = event.target || event.srcElement;
-        if(target.tagName == "IMG")
-        {
-            var link = target.src ? target.parentNode : target,
-                options = {index: link, event: event},
-                links = this.getElementsByTagName('a');
-            blueimp.Gallery(links, options);
-        }
-    };
-</script>
 
 <style type="text/css">
     .fileupload-progress .progress-extended {

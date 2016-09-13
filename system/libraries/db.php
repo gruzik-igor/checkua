@@ -504,8 +504,8 @@ class Db {
     {
         if($alias == 0)
             $alias = $_SESSION['alias']->id;
-        $sizes_all = $this->db->getAllDataByFieldInArray('wl_images_sizes', array('alias' => 0, 'active' => 1));
-        $sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', array('alias' => $alias, 'active' => 1));
+        $sizes_all = $this->getAllDataByFieldInArray('wl_images_sizes', array('alias' => 0, 'active' => 1));
+        $sizes = $this->getAllDataByFieldInArray('wl_images_sizes', array('alias' => $alias, 'active' => 1));
         if($sizes)
         {
             $sizes_all_index = array();

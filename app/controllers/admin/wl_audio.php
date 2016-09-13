@@ -11,7 +11,8 @@ class wl_Audio extends Controller {
         }
     }
 
-    function index(){
+    public function index()
+    {
     	header("Location: ".SITE_URL);
     	exit();
 	}

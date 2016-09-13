@@ -3,7 +3,7 @@
 	<div class="col-md-6">
 		<form method="post" action="<?=SITE_URL?>admin/wl_video/save">
 			<input type="hidden" name="alias" value="<?=$_SESSION['alias']->id?>">
-			<input type="hidden" name="content" value="<?=$CONTENT_ID?>">
+			<input type="hidden" name="content" value="<?=$_SESSION['alias']->content?>">
 			<div class="input-group">
 		        <span class="input-group-addon">Додати відео:</span>
 		        <input type="text" name="video" placeholder="Адреса відеозапису" class="form-control" required>
@@ -17,8 +17,8 @@
 </div>
 
 <?php
-	$videos = $this->db->getAllDataByFieldInArray('wl_video', array('alias' => $_SESSION['alias']->id, 'content' => $CONTENT_ID));
- 	if(!empty($videos)) { 
+ 	if($videos = $this->db->getAllDataByFieldInArray('wl_video', array('alias' => $_SESSION['alias']->id, 'content' => $_SESSION['alias']->content)))
+ 	{
 		foreach($videos as $video){ ?>
 			<div class="f-left center video">
 				<?php if($video->site == 'youtube'){ ?>
@@ -36,7 +36,7 @@
 				<?php } } ?>
 				<a href="<?=SITE_URL?>admin/wl_video/delete?id=<?=$video->id?>" class="<?=$_SESSION['alias']->alias?>">Видалити</a>
 			</div>
-<?php 	} } ?>
+<?php } } ?>
 
 <div style="clear:both"></div>
 

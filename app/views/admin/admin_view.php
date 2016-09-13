@@ -76,6 +76,9 @@
   <!-- end page container -->
   
   <!-- ================== BEGIN BASE JS ================== -->
+  <script type="text/javascript">
+    var SITE_URL = '<?=SITE_URL?>';
+  </script>
   <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
   <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
   <script src="<?=SITE_URL?>assets/jquery-ui/ui/minified/jquery-ui.min.js"></script>
@@ -97,8 +100,7 @@
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
   <!-- ================== END PAGE LEVEL JS ================== -->
   
-  <script>
-    var SITE_URL = '<?=SITE_URL?>';
+  <script type="text/javascript">
     $(document).ready(function() {
       App.init();
       <?php if($_SESSION['alias']->js_init){ foreach ($_SESSION['alias']->js_init as $js) { echo($js .' '); } } ?>

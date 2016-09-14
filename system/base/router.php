@@ -128,6 +128,7 @@ class Router extends Loader {
 			parent::page_404();
 		}
 
+		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
 		if(!$admin && empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
 		{
 			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)

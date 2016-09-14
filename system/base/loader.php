@@ -173,6 +173,7 @@ class Loader {
 		if(file_exists($view_path))
 		{
 			require $view_path;
+			$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
 			exit();
 		}
 	}
@@ -411,6 +412,7 @@ class Loader {
 	{
 		header('Content-type: application/json');
 		echo json_encode($value);
+		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
 		exit();
 	}
 

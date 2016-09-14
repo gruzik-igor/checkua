@@ -1,8 +1,4 @@
-<?php
-if(isset($_SESSION['notify']))
-	require_once APP_PATH.'views/admin/notify_view.php';
-$_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
-?>
+<?php $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js'; ?>
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
 <!-- begin row -->
 <div class="row">
@@ -11,6 +7,11 @@ $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
         <!-- begin panel -->
         <div class="panel panel-inverse" data-sortable-id="form-stuff-1">
             <div class="panel-heading">
+            	<?php if($alias->id > 0) { ?>
+            		<div class="panel-heading-btn">
+	                	<a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>/main" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> Редагувати назву</a>
+	                </div>
+            	<?php } ?>
                 <h4 class="panel-title"><?=($alias->id == 0) ? 'Додати' : 'Редагувати'?> головний адрес "<?=$alias->alias?>"</h4>
             </div>
             <div class="panel-body">

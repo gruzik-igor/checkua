@@ -60,7 +60,14 @@
       <h1 class="page-header"><?=$_SESSION['alias']->name?></h1>
       <!-- end page-header -->
 
-      <?php if(!empty($view_file)) require_once($view_file.'.php'); else require_once('index_view.php'); ?> 
+      <?php
+      if(isset($_SESSION['notify']))
+        require_once 'notify_view.php';
+      if(!empty($view_file))
+        require_once($view_file.'.php');
+      else
+        require_once('index_view.php');
+      ?> 
 
       <div id="saveing">
         <img src="<?=SITE_URL?>style/admin/images/icon-loading.gif">

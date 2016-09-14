@@ -1,4 +1,3 @@
-<?php if(isset($_SESSION['notify'])) require APP_PATH.'views/admin/notify_view.php'; ?>
 <div class="panel-body">
     <ul class="nav nav-tabs">
         <?php

@@ -46,12 +46,15 @@ else
 	    <span class="input-group-addon">keywords</span>
 	    <input type="text" value="<?=$ntkd->keywords?>" class="form-control" placeholder="keywords" onChange="save('keywords', this <?=$language_attr?>)">
 	</div>
-	<label>description:</label><br>
-	<textarea onChange="save('description', this <?=$language_attr?>)" class="form-control" placeholder="<?=$ntkd->list?>"><?=$ntkd->description?></textarea>
+	<div class="input-group">
+	    <span class="input-group-addon">description</span>
+	    <input type="text" value="<?=$ntkd->description?>" class="form-control" placeholder="<?=$ntkd->list?>" onChange="save('description', this <?=$language_attr?>)" maxlength="155">
+	    <span class="input-group-addon">max: 155</span>
+	</div>
 </div>
 <br>
-<label class="control-label">Короткий опис (анонс):</label><br>
-<textarea onChange="save('list', this <?=$language_attr?>)"><?=$ntkd->list?></textarea>
+<label class="control-label">Короткий опис (анонс у списку):</label><br>
+<textarea class="form-control" onChange="save('list', this <?=$language_attr?>)"><?=$ntkd->list?></textarea>
 <label>Опис:</label><br>
 <textarea onChange="save('text', this <?=$language_attr?>)" id="editor<?=$language_block?>"><?=html_entity_decode($ntkd->text, ENT_QUOTES, 'utf-8')?></textarea>
 <button class="btn btn-success m-t-5" onClick="saveText(<?=$language_block_name?>)"><i class="fa fa-save"></i> Зберегти текст опису сторінки</button>

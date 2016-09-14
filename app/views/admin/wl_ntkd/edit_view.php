@@ -61,23 +61,33 @@
     					<div class="col-md-12">
 							<label class="col-md-2 control-label">title:</label>
 							<div class="col-md-4">
-		                        <input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>" class="form-control">
+		                        <input type="text" onChange="save('title', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->title?>" placeholder="<?=$ntkd[$lang]->name?>" class="form-control">
 		                    </div>
 		                    <label class="col-md-2 control-label">keywords:</label>
 							<div class="col-md-4">
 		                        <input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>" class="form-control">
 		                    </div>
-		                    <label class="col-md-2 control-label m-t-5">description:</label>
+		                    <label class="col-md-2 control-label m-t-5">description: (max 155)</label>
 							<div class="col-md-10 m-t-5">
-		                        <textarea onChange="save('description', this, '<?=$lang?>')"><?=$ntkd[$lang]->description?></textarea>
+		                        <input class="form-control" onChange="save('description', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->description?>" maxlength="155">
 		                    </div>
     					</div>
     				</div>
-					
-					<br>
-					<label class="control-label">Вміст сторінки:</label><br>
-					<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
-					<button class="btn btn-success m-t-5" onClick="saveText('<?=$lang?>')"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+    				<div class="row m-t-5">
+	    				<dic class="col-md-12">
+	    					<label class="col-md-2 control-label m-t-5">Короткий опис (анонс у списку):</label>
+							<div class="col-md-10 m-t-5">
+		                        <textarea class="form-control" onChange="save('list', this, '<?=$lang?>')"><?=$ntkd[$lang]->list?></textarea>
+		                    </div>
+	    				</dic>
+	    			</div>
+					<div class="row m-t-5">
+						<dic class="col-md-12">
+							<label class="control-label">Вміст сторінки:</label><br>
+							<textarea class="t-big" onChange="save('text', this, '<?=$lang?>')" id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
+							<button class="btn btn-success m-t-5" onClick="saveText('<?=$lang?>')"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+						</dic>
+					</div>
 				</div>
 			<?php } ?>
 		</div>
@@ -91,23 +101,33 @@
 			<div class="col-md-12">
 				<label class="col-md-2 control-label">title:</label>
 				<div class="col-md-4">
-                    <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" class="form-control">
+                    <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" placeholder="<?=$ntkd->name?>" class="form-control">
                 </div>
                 <label class="col-md-2 control-label">keywords:</label>
 				<div class="col-md-4">
                     <input type="text" onChange="save('keywords', this)" value="<?=$ntkd->keywords?>" class="form-control">
                 </div>
-                <label class="col-md-2 control-label m-t-5">description:</label>
+                <label class="col-md-2 control-label m-t-5">description: (max 155)</label>
 				<div class="col-md-10 m-t-5">
-                    <textarea onChange="save('description', this)"><?=$ntkd->description?></textarea>
+                    <input class="form-control" onChange="save('description', this)" value="<?=$ntkd->description?>" maxlength="155">
                 </div>
 			</div>
 		</div>
-		
-		<br>
-		<label class="control-label">Вміст сторінки:</label><br>
-		<textarea class="t-big" onChange="save('text', this)" id="editor"><?=$ntkd->text?></textarea>
-		<button class="btn btn-success m-t-5" onClick="saveText(false)"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+		<div class="row m-t-5">
+			<dic class="col-md-12">
+				<label class="col-md-2 control-label m-t-5">Короткий опис (анонс у списку):</label>
+				<div class="col-md-10 m-t-5">
+	                <textarea class="form-control" onChange="save('list', this)"><?=$ntkd->list?></textarea>
+	            </div>
+			</dic>
+		</div>
+		<div class="row m-t-5">
+			<dic class="col-md-12">
+				<label class="control-label">Вміст сторінки:</label><br>
+				<textarea class="t-big" onChange="save('text', this)" id="editor"><?=$ntkd->text?></textarea>
+				<button class="btn btn-success m-t-5" onClick="saveText(false)"><i class="fa fa-save"></i> Зберегти текст вмісту сторінки</button>
+			</dic>
+		</div>
 	<?php } ?>
 
 	</div>
@@ -180,10 +200,6 @@
 </script>
 
 <style type="text/css">
-	textarea{
-		width: 100%;
-		height: 100px;
-	}
 	textarea.t-big{
 		height: 450px;
 	}

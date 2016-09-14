@@ -17,7 +17,9 @@
             <li><a href="#tab-photo" data-toggle="tab" aria-expanded="true">Фото</a></li>
         <?php } ?>
         <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
-        <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
+        <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
+            <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
+        <?php } ?>
     </ul>
 
     <div class="tab-content">
@@ -37,9 +39,11 @@
         <div class="tab-pane fade" id="tab-video">
             <?php require_once 'wl_video/__tab-video.php'; ?>
         </div>
-        <div class="tab-pane fade" id="tab-audio">
-            <?php require_once 'wl_audio/__tab-audio.php'; ?>
-        </div>
+        <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
+            <div class="tab-pane fade" id="tab-audio">
+                <?php require_once 'wl_audio/__tab-audio.php'; ?>
+            </div>
+        <?php } ?>
     </div>
 </div>
 

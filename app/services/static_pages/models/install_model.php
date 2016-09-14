@@ -17,7 +17,7 @@ class install {
 
 	public $options = array('folder' => 'static_page');
 	public $options_type = array('folder' => 'text');
-	public $options_title = array('folder' => 'Папка для зображень');
+	public $options_title = array('folder' => 'Папка для зображень/аудіо');
 	public $options_admin = array();
 	public $sub_menu = array();
 	public $sub_menu_access = array();

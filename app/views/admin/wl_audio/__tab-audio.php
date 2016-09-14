@@ -3,6 +3,7 @@
 	<div class="col-md-6">
 		<form method="POST" action="<?=SITE_URL?>admin/wl_audio/save" enctype="multipart/form-data" class="form-horizontal" onsubmit="$('#saveing').css('display', 'block');">
 			<input type="hidden" name="alias" value="<?=$_SESSION['alias']->id?>">
+			<input type="hidden" name="alias_folder" value="<?=$_SESSION['option']->folder?>">
 			<input type="hidden" name="content" value="<?=$_SESSION['alias']->content?>">
 			<div class="form-group">
 		        <label>Виберіть аудіо: (audio/mp3, wma, mpeg, wav, ogg)</label>
@@ -25,7 +26,7 @@
 		foreach ($audios as $audio) {
 			echo("<li class=\"ui-state-default\" id=\"audio-{$audio->id}\"> "); ?>
 			<audio controls>
-				  <source src="<?= SITE_URL.'audio/'.$audio->alias.'/'.$audio->content.'/'.$audio->name?>" type="audio/<?= $audio->extension?>">
+				  <source src="<?= SITE_URL.'audio/'.$_SESSION['option']->folder.'/'.$audio->content.'/'.$audio->name?>" type="audio/<?= $audio->extension?>">
 				  Ваш браузер не підтримує аудіо формат.
 			</audio>
 			<input type="text" id="text-audio-<?=$audio->id?>" value="<?=$audio->text?>" class="form-control" onChange="saveAudioText(<?=$audio->id?>, this)">

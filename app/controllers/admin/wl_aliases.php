@@ -133,7 +133,7 @@ class wl_aliases extends Controller {
                 {
                     $alias->service = $service->id;
 
-                    $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models/install_model.php';
+                    $path = APP_PATH.'services'.DIRSEP.$service->name.DIRSEP.'models'.DIRSEP.'install_model.php';
                     if(file_exists($path))
                     {
                         require_once($path);
@@ -251,6 +251,9 @@ class wl_aliases extends Controller {
                                     {
                                         $path = IMG_PATH.$install->options['folder'];
                                         $path = substr($path, strlen(SITE_URL));
+                                        if(!is_dir($path)) mkdir($path, 0777);
+
+                                        $path = 'audio'.DIRSEP.$install->options['folder'];
                                         if(!is_dir($path)) mkdir($path, 0777);
                                     }
 
@@ -411,6 +414,9 @@ class wl_aliases extends Controller {
 
                             $path = IMG_PATH.$folder;
                             $path = substr($path, strlen(SITE_URL));
+                            $this->data->removeDirectory($path);
+
+                            $path = 'audio'.DIRSEP.$folder;
                             $this->data->removeDirectory($path);
                         }
 

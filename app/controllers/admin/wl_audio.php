@@ -19,7 +19,7 @@ class wl_Audio extends Controller {
 
 	public function save()
 	{
-		if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['content']) && is_numeric($_POST['content']) && isset($_FILES['audio']) && is_array($_FILES["audio"]["name"]))
+		if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['alias_folder']) && isset($_POST['content']) && is_numeric($_POST['content']) && isset($_FILES['audio']) && is_array($_FILES["audio"]["name"]))
 		{
 			$alias = $this->data->post('alias');
 			$content = $this->data->post('content');
@@ -35,7 +35,7 @@ class wl_Audio extends Controller {
 					$text = $path_info['filename'];
 					$name = $this->data->latterUAtoEN($text).'.'.$extension;
 
-					$path = "audio/" . $alias;
+					$path = "audio/" . $this->data->post('alias_folder');
 					if(!is_dir($path)) {
 						mkdir($path, 0777);
 					}

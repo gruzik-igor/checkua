@@ -5,7 +5,7 @@ class install
 	public $service = null;
 	
 	public $name = "library";
-	public $title = "Бібліотека статей";
+	public $title = "Бібліотека статей (Блог)";
 	public $description = "Бібліотека статей із підтримкою категорій. Мультимовна.";
 	public $group = "page";
 	public $table_service = "s_library";
@@ -13,11 +13,11 @@ class install
 	public $multi_alias = 1;
 	public $order_alias = 60;
 	public $admin_ico = 'fa-book';
-	public $version = "2.4";
+	public $version = "2.5";
 
 	public $options = array('useGroups' => 1, 'articleMultiGroup' => 0, 'useAvailability' => 0, 'folder' => 'library', 'articleOrder' => 'position DESC', 'groupOrder' => 'position ASC');
 	public $options_type = array('useGroups' => 'bool', 'articleMultiGroup' => 'bool', 'useAvailability' => 'bool', 'folder' => 'text', 'articleOrder' => 'text', 'groupOrder' => 'text');
-	public $options_title = array('useGroups' => 'Наявність груп', 'articleMultiGroup' => 'Мультигрупи (1 стаття більше ніж 1 група)', 'useAvailability' => 'Використання доступності', 'folder' => 'Папка для зображень', 'articleOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
+	public $options_title = array('useGroups' => 'Наявність груп', 'articleMultiGroup' => 'Мультигрупи (1 стаття більше ніж 1 група)', 'useAvailability' => 'Використання доступності', 'folder' => 'Папка для зображень/аудіо', 'articleOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
 	public $options_admin = array (
 					'word:articles_to_all' => 'статтей',
 					'word:article_to' => 'До статті',
@@ -31,11 +31,7 @@ class install
 					'word:group_add' => 'Додати групу статтей'
 				);
 	public $sub_menu = array("add" => "Додати статтю", "all" => "До всіх статтей", "groups" => "Групи");
-
-	public $seo_name = "Блог";
-	public $seo_title = "Блог";
-	public $seo_description = "";
-	public $seo_keywords = "";
+	public $sub_menu_access = array("add" => 2, "all" => 2, "groups" => 2);
 
 	function alias($alias = 0, $table = '')
 	{
@@ -70,47 +66,35 @@ class install
 			}
 		}
 
-		$query = "INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `height`, `width`) VALUES
-											 ( NULL, {$alias}, 1, 'Оригінал', '', 1, 1500, 1500),
-											 ( NULL, {$alias}, 1, 'Preview', 's', 2, 200, 200);";
-		$this->db->executeQuery($query);
-
-		$path = IMG_PATH.$this->options['folder'];
-		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-		if(!is_dir($path)) mkdir($path, 0777);
-
 		$path = IMG_PATH.$this->options['folder'].'/groups';
-		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-		if(!is_dir($path)) mkdir($path, 0777);
+		$path = substr($path, strlen(SITE_URL));
+		if(!is_dir($path))
+			mkdir($path, 0777);
 
 		return true;
 	}
 
 	public function alias_delete($alias = 0, $table = '')
 	{
-		if($alias > 0) {
-			$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
-			if(!empty($articles))
-			{
-				$this->db->deleteRow($this->table_service.'_articles', $alias, 'wl_alias');
-				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+		$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
+		if(!empty($articles))
+		{
+			$this->db->deleteRow($this->table_service.'_articles', $alias, 'wl_alias');
+			$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
 
-				foreach ($articles as $article) {
-					$this->db->executeQuery("DELETE FROM `wl_images` WHERE `alias` = {$alias} AND `content` = {$article->id}");
-					$this->db->deleteRow($this->table_service.'_article_group', $article->id, 'article');
-				}
-			}
-
-			$groups = $this->db->getAllDataByFieldInArray($this->table_service.'_groups', $alias, 'wl_alias');
-			if(!empty($groups))
-			{
-				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+			foreach ($articles as $article) {
+				$this->db->deleteRow($this->table_service.'_article_group', $article->id, 'article');
 			}
 		}
 
-		$path = IMG_PATH.$this->options['folder'];
-		if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-		if(is_dir($path)) $this->removeDirectory($path);
+		$groups = $this->db->getAllDataByFieldInArray($this->table_service.'_groups', $alias, 'wl_alias');
+		if(!empty($groups))
+			$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+
+		$path = IMG_PATH.$this->options['folder'].'/groups';
+		$path = substr($path, strlen(SITE_URL));
+		if(is_dir($path))
+			$this->removeDirectory($path);
 
 		return true;
 	}
@@ -173,7 +157,6 @@ class install
 					  `alias` text NOT NULL,
 					  `group` int(11) NOT NULL,
 					  `availability` int(11) NOT NULL,
-					  `photo` text NOT NULL,
 					  `active` tinyint(1) NOT NULL,
 					  `position` int(11) NOT NULL,
 					  `author_add` int(11) NOT NULL,
@@ -190,15 +173,13 @@ class install
 
 	public function uninstall($service = 0)
 	{
-		if(isset($_POST['content']) && $_POST['content'] == 1){
-			$path = IMG_PATH.$this->options['folder'];
-			if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-			if(is_dir($path)) $this->removeDirectory($path);
-
+		if(isset($_POST['content']) && $_POST['content'] == 1)
+		{
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_articles");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_article_group");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_groups");
 		}
+		return true;
 	}
 
 	private function removeDirectory($dir) {

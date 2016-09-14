@@ -1,6 +1,6 @@
 <?php
 
-class shop_search_model
+class library_search_model
 {
 
 	public function table($sufix = '', $useAliasTable = false)
@@ -28,10 +28,12 @@ class shop_search_model
 				$search->author = $product->author_edit;
 				$search->author_name = $product->author_name;
 				$search->additional = false;
-
-				if($product->photo != '')
+				$search->folder = false;
+				if(isset($_SESSION['option']->folder))
+					$search->folder = $_SESSION['option']->folder;
+				if($admin)
 				{
-					$search->image = $_SESSION['option']->folder.'/'.$product->id.'/s_'.$product->photo;
+					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/'.$product->alias;
 				}
 
 				if($_SESSION['option']->useGroups)
@@ -94,11 +96,14 @@ class shop_search_model
 				$search->author = $group->author_edit;
 				$search->author_name = $group->author_name;
 				$search->additional = false;
+				$search->folder = false;
+				if($admin)
+				{
+					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/groups/'.$group->id;
+				}
 
 				if($group->photo > 0)
-				{
 					$search->image = $_SESSION['option']->folder.'/groups/s_'.$group->photo.'.jpg';
-				}
 
 				if($group->parent > 0)
 				{
@@ -130,7 +135,8 @@ class shop_search_model
 		$where = '';
         if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
         $this->db->executeQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
-    	if($this->db->numRows() == 1){
+    	if($this->db->numRows() == 1)
+    	{
     		$ntkd = $this->db->getRows();
     		$group->name = $ntkd->name;
     	}

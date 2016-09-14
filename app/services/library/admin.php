@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.4"
+ 	Service "Library 2.5"
 	for WhiteLion 1.0
 
 */
@@ -11,13 +11,12 @@ class library extends Controller {
 				
     function _remap($method, $data = array())
     {
-    	$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
-        if (method_exists($this, $method)) {
-        	if(empty($data)) $data = null;
+    	if(isset($_SESSION['alias']->name))
+    		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
+        if (method_exists($this, $method))
             return $this->$method($data);
-        } else {
+        else
         	$this->index($method);
-        }
     }
 
     public function index($uri)
@@ -33,9 +32,7 @@ class library extends Controller {
 			$article = $this->library_model->routeURL($url, $type, true);
 
 			if($type == 'article' && $article)
-			{
 				$this->edit($article);
-			}
 
 			if($_SESSION['option']->useGroups && $type == 'group' && $article)
 			{
@@ -53,31 +50,33 @@ class library extends Controller {
 		            }
 					$group->parents = $this->library_model->makeParents($list, $group->parent, $group->parents);
 				}
-				$this->load->model('wl_ntkd_model');
-				$this->wl_ntkd_model->setContent(($group->id * -1));
+				$this->wl_alias_model->setContent(($group->id * -1));
 
 				$list = $this->library_model->getGroups($group->id, false);
-				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1) {
+				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1)
+				{
 					$list = $this->library_model->getArticles($group->id, 0, false);
 					$this->load->admin_view('articles/list_view', array('group' => $group, 'articles' => $list));
-				} else {
-					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
 				}
+				else
+					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
 			}
 
 			$this->load->page_404();
 		}
 		else
 		{
+			$this->wl_alias_model->setContent();
 			if($_SESSION['option']->useGroups)
 			{
 				$list = $this->library_model->getGroups(0, false);
-				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1) {
+				if (empty($list) || $_SESSION['option']->articleMultiGroup == 1)
+				{
 					$list = $this->library_model->getArticles(-1, 0, false);
 					$this->load->admin_view('articles/list_view', array('articles' => $list));
-				} else {
-					$this->load->admin_view('index_view', array('groups' => $list));
 				}
+				else
+					$this->load->admin_view('index_view', array('groups' => $list));
 			}
 			else
 			{
@@ -135,18 +134,20 @@ class library extends Controller {
 				$link = '';
 				$name = '';
 				$id = $this->articles_model->add($link, $name);
-				if($id){
+				if($id)
+				{
 					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$id;
 					$path = substr($path, strlen(SITE_URL));
-					if(!is_dir($path)){
+					if(!is_dir($path))
 						mkdir($path, 0777);
-					}
-					if(!empty($_FILES['photo']['name'])) {
+
+					if(!empty($_FILES['photo']['name']))
+					{
 						$data['alias'] = $_SESSION['alias']->id;
 						$data['content'] = $id;
 						$data['title'] = $name;
 						$data['author'] = $_SESSION['user']->id;
-						$data['date_add'] = time();
+						$data['date_add'] = $data['main'] = time();
 						$this->db->insertRow('wl_images', $data);
 						$photo_id = $this->db->getLastInsertedId();
 						$photo = $link . '-' . $photo_id;
@@ -154,7 +155,6 @@ class library extends Controller {
 						if($extension)
 						{
 							$photo .= '.'.$extension;
-							$this->db->updateRow($this->articles_model->table('_articles'), array('photo' => $photo), $id);
 							$this->db->updateRow('wl_images', array('file_name' => $photo), $photo_id);
 						}
 					}
@@ -169,9 +169,10 @@ class library extends Controller {
 				$link = $this->articles_model->save($_POST['id']);
 				if(empty($_SESSION['notify']->errors))
 				{
-					if(isset($_POST['to']) && $_POST['to'] == 'new') {
+					if(isset($_POST['to']) && $_POST['to'] == 'new')
 						$this->redirect("admin/{$_SESSION['alias']->alias}/add");
-					} elseif(isset($_POST['to']) && $_POST['to'] == 'category') {
+					elseif(isset($_POST['to']) && $_POST['to'] == 'category')
+					{
 						$link = 'admin/'.$_SESSION['alias']->alias;
 						$article = $this->articles_model->getById($_POST['id']);
 						$article->link = explode('/', $article->link);
@@ -265,7 +266,8 @@ class library extends Controller {
 		$this->load->page_404();
 	}
 
-	public function save_group(){
+	public function save_group()
+	{
 		if(isset($_POST['id']) && is_numeric($_POST['id']))
 		{
 			$this->load->smodel('groups_model');
@@ -273,9 +275,8 @@ class library extends Controller {
 
 			$path = IMG_PATH.$_SESSION['option']->folder.'/groups/';
 			$path = substr($path, strlen(SITE_URL));
-			if(!is_dir($path)) {
+			if(!is_dir($path))
 				mkdir($path, 0777);
-			}
 
 			if($_POST['id'] == 0)
 			{
@@ -283,7 +284,8 @@ class library extends Controller {
 				$id = $this->groups_model->add($alias);
 				if($id)
 				{
-					if(!empty($_FILES['photo']['name'])) {
+					if(!empty($_FILES['photo']['name']))
+					{
 						$alias = $id .'-'. $alias;
 						$ext = $this->savephoto('photo', $path, $alias);
 						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $id);
@@ -297,7 +299,8 @@ class library extends Controller {
 				$alias = false;
 				if($this->groups_model->save($_POST['id'], $alias))
 				{
-					if(!empty($_FILES['photo']['name'])) {
+					if(!empty($_FILES['photo']['name']))
+					{
 						$alias = $_POST['id'] .'-'. $alias;
 						$ext = $this->savephoto('photo', $path, $alias);
 						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $_POST['id']);
@@ -311,8 +314,10 @@ class library extends Controller {
 		}
 	}
 
-	public function delete_group(){
-		if(isset($_POST['id']) && is_numeric($_POST['id'])){
+	public function delete_group()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']))
+		{
 			$this->load->smodel('groups_model');
 			$this->groups_model->delete($_POST['id']);
 			$this->redirect("admin/{$_SESSION['alias']->alias}/groups");
@@ -327,17 +332,15 @@ class library extends Controller {
 			$this->load->model('wl_position_model');
 			
 			$group = $this->db->getAllDataById($this->groups_model->table(), $_POST['id']);
-			if($group) {
+			if($group)
 				$parent = $group->parent;
-			}
 			
 			$this->wl_position_model->table = $this->groups_model->table();
-			if($parent >= 0) {
+			if($parent >= 0)
 				$this->wl_position_model->where = "`parent` = '{$parent}'";
-			}
-			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
+
+			if($this->wl_position_model->change($_POST['id'], $_POST['position']))
 				$this->redirect();
-			}
 		}
 		$this->load->page_404();
 	}
@@ -353,10 +356,9 @@ class library extends Controller {
 			$this->image->save();
 			if($this->image->getErrors() == '')
 			{
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-				if($sizes)
+				if($sizes = $this->db->getAliasImageSizes())
 				{
-					foreach ($sizes as $resize) if($resize->active == 1){
+					foreach ($sizes as $resize) {
 						$this->image->loadImage($path, $name, $extension);
 						if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
 						if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);

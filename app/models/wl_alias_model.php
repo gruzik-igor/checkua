@@ -118,6 +118,30 @@ class wl_alias_model
 		return null;
 	}
 
+	public function getVideosFromText()
+	{
+		$video = false;
+		if(preg_match_all("#\{video-[0-9]+\}#is", $_SESSION['alias']->text, $video) > 0)
+		{
+			$videos = array();
+			$videos_id = array();
+			foreach ($video[0] as $v) {
+				$id = substr($v, 7);
+				$id = substr($id, 0, -1);
+				$videos_id[$id] = $v;
+			}
+			foreach ($videos_id as $id => $text) {
+				$video = $this->db->getAllDataById('wl_video', $id);
+				if($video) {
+					$video->replace_text = $text;
+					$videos[] = $video;
+				}
+			}
+			return $videos;
+		}
+		return false;
+	}
+
     public function admin_options()
     {
 		$_SESSION['admin_options'] = array();

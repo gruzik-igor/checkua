@@ -16,7 +16,7 @@ class wl_alias_model
 		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;
-		$_SESSION['alias']->name = ($_GET['request']) ? $_GET['request'] : SITE_NAME;
+		$_SESSION['alias']->name = (isset($_GET['request'])) ? $_GET['request'] : SITE_NAME;
 		$_SESSION['alias']->title = $_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = '';
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = array();

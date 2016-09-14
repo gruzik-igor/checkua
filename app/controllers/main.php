@@ -2,9 +2,10 @@
 
 class Main extends Controller {
 
-    function index()
+    public function index()
     {
-    	$_SESSION['alias']->content = 0;
+    	$this->load->model('wl_alias_model');
+        $this->wl_alias_model->setContent();
         $this->load->page_view('index_view');
     }
 

@@ -28,14 +28,14 @@ class Controller extends Loader {
 	 * @params $class ім'я класу
 	 * @params $var завжди не задана(null)
 	 */
-	function library($classname, $var = null)
+	public function library($classname, $var = null)
     {
 		parent::library($classname, $this);
 	}
 	
-	function authorize()
+	private function authorize()
     {
-        if(isset($_COOKIE['auth_id']))
+        if(isset($_COOKIE['auth_id']) && !$this->userIs())
         {
             $this->load->model('wl_auth_model');
             $this->wl_auth_model->authByCookies($_COOKIE['auth_id']);

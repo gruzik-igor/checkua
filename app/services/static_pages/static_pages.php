@@ -16,7 +16,6 @@ class static_pages extends Controller {
 
     public function index()
     {
-        $this->load->model('wl_alias_model');
         $this->wl_alias_model->setContent();
         $this->load->library('video');
         $this->video->makeVideosInText();

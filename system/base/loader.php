@@ -15,9 +15,8 @@ class Loader {
 	function __construct()
 	{
 		if($this->config('autoload'))
-		{
 			$this->autoload( $this->config('autoload') );
-		}
+		$this->model('wl_alias_model');
 	}
 	
 	/**
@@ -31,13 +30,9 @@ class Loader {
 	{
 		require APP_PATH.'config.php';
 		if(array_key_exists($key, $config))
-		{
 			return $config[$key];
-		}
 		else
-		{
 			return null;
-		}
 	}
 	
 	/**
@@ -47,17 +42,12 @@ class Loader {
 	 */
 	function autoload($arr)
 	{
-		foreach($arr as $class)
-		{
+		foreach($arr as $class) {
 			$class = strtolower($class);
 			if($this->config($class))
-			{
 				$this->$class = $this->register($class, $this->config($class));
-			}
 			else
-			{
 				$this->$class = $this->register($class);
-			}
 		}
 	}
 	
@@ -71,11 +61,9 @@ class Loader {
 	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data)
-		{
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		}
 		$view_path = APP_PATH.'views'.DIRSEP.$view.'.php';
 		if($_SESSION['alias']->service)
 		{
@@ -84,9 +72,8 @@ class Loader {
 			else
 				$view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
 		}
-		if(file_exists($view_path)) {
+		if(file_exists($view_path))
 			require $view_path;
-		}
 	}
 	
 	/**
@@ -99,12 +86,9 @@ class Loader {
 	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data)
-		{
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		}
-		
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		if($_SESSION['alias']->service && $view_file)
 		{
@@ -113,7 +97,6 @@ class Loader {
 			else
 				$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
 		}
-
 		if(file_exists($view_path))
 			require $view_path;
 	}
@@ -126,11 +109,9 @@ class Loader {
 	function notify_view($data = null)
 	{
 		if($data)
-		{
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		}
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		$view_file = 'notify_view';
 		if(file_exists($view_path))
@@ -162,11 +143,9 @@ class Loader {
 	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data)
-		{
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		}
 		$view_path = APP_PATH.'views'.DIRSEP.'admin/admin_view.php';
 		if($_SESSION['alias']->service && $view_file)
 			$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.$view_file;
@@ -185,19 +164,17 @@ class Loader {
 	 */	
 	function model($model)
 	{
-		if(isset($this->$model) && is_object($this->$model)) return true;
-
+		if(isset($this->$model) && is_object($this->$model))
+			return true;
 		$model_path = APP_PATH.'models'.DIRSEP.$model.'.php';
 		if(file_exists($model_path))
 		{
 			require_once $model_path;
 			$this->$model = new $model();
-			if(is_object($this->db)) {
+			if(is_object($this->db))
 				$this->$model->db = $this->db;
-			}
-			if(isset($this->data) && is_object($this->data)) {
+			if(isset($this->data) && is_object($this->data))
 				$this->$model->data = $this->data;
-			}
 		}
 	}
 	
@@ -239,64 +216,58 @@ class Loader {
 		$old_alias = $_SESSION['alias']->id;
 		$this->library('db');
 
-		if(is_numeric($alias)) {
+		if(is_numeric($alias))
 			$alias = $this->db->getAllDataById('wl_aliases', $alias);
-		} else {
+		else
 			$alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
-		}
 
 		if(is_object($alias))
 		{
 			if($admin && !$this->userCan($alias->alias))
-			{
 				return false;
-			}
 
 			if(!isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
 			{
 				$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
 				$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
-				if(isset($_SESSION['option'])) {
+				if(isset($_SESSION['option']))
 					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
-				} else {
+				else
 					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
-				}
-				if(isset($_SESSION['service'])) {
+				if(isset($_SESSION['service']))
 					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
-				} else {
+				else
 					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
-				}
 			}
 
-			if($admin == false)
+			if(isset($_SESSION['alias-cache'][$alias->id]))
 			{
-				if(isset($_SESSION['alias-cache'][$alias->id]))
+				if($alias->id != $_SESSION['alias']->id)
 				{
-					if($alias->id != $_SESSION['alias']->id)
-					{
-						$_SESSION['alias'] = $_SESSION['alias-cache'][$alias->id]->alias;
-						$_SESSION['option'] = $_SESSION['alias-cache'][$alias->id]->options;
-						$_SESSION['service'] = $_SESSION['alias-cache'][$alias->id]->service;
-					}
-					
+					$_SESSION['alias'] = $_SESSION['alias-cache'][$alias->id]->alias;
+					$_SESSION['option'] = $_SESSION['alias-cache'][$alias->id]->options;
+					$_SESSION['service'] = $_SESSION['alias-cache'][$alias->id]->service;
+				}
+				
+				if($admin == false)
+				{
 					$service = $alias->alias;
 					if(isset($this->$service) && is_object($this->$service))
 					{
-						if(is_callable(array($this->$service, '_remap'))){
+						if(is_callable(array($this->$service, '_remap')))
 							$rezult = $this->$service->_remap($method, $data);
-						} else if(is_callable(array($this->$service, $method))) {
+						else if(is_callable(array($this->$service, $method)))
 							$rezult = $this->$service->$method($data);
-						}
 					}
 				}
-				else
-				{
-					$_SESSION['alias'] = $alias;
-					$_SESSION['alias-cache'][$alias->id] = new stdClass();
-					$_SESSION['alias-cache'][$alias->id]->alias = clone $alias;
-					$_SESSION['alias-cache'][$alias->id]->options = null;
-					$_SESSION['alias-cache'][$alias->id]->service = null;
-				}
+			}
+			else
+			{
+				$_SESSION['alias'] = $alias;
+				$_SESSION['alias-cache'][$alias->id] = new stdClass();
+				$_SESSION['alias-cache'][$alias->id]->alias = clone $alias;
+				$_SESSION['alias-cache'][$alias->id]->options = null;
+				$_SESSION['alias-cache'][$alias->id]->service = null;
 			}
 
 			if($rezult === NULL)
@@ -309,11 +280,11 @@ class Loader {
 						$service = $_SESSION['alias']->service;
 						$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';
 						if($admin)
-						{
 							$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.'admin.php';
-						}
 					}
-				} else {
+				}
+				else
+				{
 					$this->model('wl_alias_model');
 					$this->wl_alias_model->alias($alias->alias);
 					$service = $alias->alias;
@@ -343,15 +314,12 @@ class Loader {
 					{
 						$controller = $service;
 						$service = new $service();
-						if(is_callable(array($service, '_remap'))) {
+						if(is_callable(array($service, '_remap')))
 							$rezult = $service->_remap($method, $data);
-						} else if(is_callable(array($service, $method))) {
+						else if(is_callable(array($service, $method)))
 							$rezult = $service->$method($data);
-						}
 						if($admin == false)
-						{
 							$this->$controller = clone $service;
-						}
 					}
 				}
 			}
@@ -371,13 +339,13 @@ class Loader {
 	 */
 	function library($class, $ref)
 	{
-		if(empty($class)) return false;
+		if(empty($class))
+			return false;
 		$class = strtolower($class);
-		if($this->config($class)) {
+		if($this->config($class))
 			$this->$class = $this->register($class, $this->config($class));
-		} else {
+		else
 			$this->$class = $this->register($class);
-		}
 	}
 
 	/**
@@ -391,18 +359,12 @@ class Loader {
 		if($link == '' || $link[0] == '#')
 		{
 			if($_SERVER['HTTP_REFERER'])
-			{
 				$link = $_SERVER['HTTP_REFERER'] . $link;
-			}
 			else
-			{
 				$link = SITE_URL;
-			}
 		}
 		elseif($use_SITE_URL)
-		{
 			$link = SITE_URL . $link;
-		}
 		header ('HTTP/1.1 303 See Other');
 		header("Location: {$link}");
 		exit();
@@ -450,7 +412,6 @@ class Loader {
 				return $obj;
 			}
 		}
-
 		return null;
 	}
 	

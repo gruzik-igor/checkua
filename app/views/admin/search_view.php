@@ -67,12 +67,12 @@
                     <li>
                         <?php if($search->image) { ?>
                             <div class="result-image">
-                                <a href="<?=SITE_URL.'admin'.$search->link?>"><img src="<?=IMG_PATH.$search->image?>" alt="<?=$search->name?>" title="<?=$search->name?>" /></a>
+                                <a href="<?=SITE_URL.$search->edit_link?>"><img src="<?=IMG_PATH.$search->image?>" alt="<?=$search->name?>" title="<?=$search->name?>" /></a>
                             </div>
                         <?php } ?>
                         <div class="result-info">
-                            <h4 class="title"><a href="<?=SITE_URL.'admin'.$search->link?>"><?=$search->name?></a></h4>
-                            <p class="location"><a href="<?=SITE_URL.$search->link?>" target="_blank"><?=SITE_URL.$search->link?></a></p>
+                            <h4 class="title"><a href="<?=SITE_URL.$search->edit_link?>"><?=$search->name?></a></h4>
+                            <p class="location"><a href="<?=SITE_URL.$search->link?>" target="_blank"><?=SITE_URL.$search->link?></a> <?=date('d.m.Y H:i', $search->date)?> By <a href="<?=SITE_URL?>admin/wl_users/<?=$search->author?>"><?=$search->author_name?></a></p>
                             <p class="desc">
                                 <?php
                                 if($search->list != '')
@@ -82,11 +82,15 @@
                                 ?>
                             </p>
                             <div class="btn-row">
-                                <a href="javascript:;" data-toggle="tooltip" data-container="body" data-title="Analytics"><i class="fa fa-fw fa-bar-chart-o"></i></a>
-                                <a href="<?=SITE_URL.$search->link?>" data-toggle="tooltip" data-container="body" data-title="Tasks"><i class="fa fa-fw fa-tasks"></i></a>
-                                <a href="javascript:;" data-toggle="tooltip" data-container="body" data-title="Configuration"><i class="fa fa-fw fa-cog"></i></a>
-                                <a href="javascript:;" data-toggle="tooltip" data-container="body" data-title="Performance"><i class="fa fa-fw fa-tachometer"></i></a>
-                                <a href="<?=SITE_URL?>admin/wl_users/<?=$search->author?>" data-toggle="tooltip" data-container="body" data-title="Автор"><i class="fa fa-fw fa-user"></i> <?=date('d.m.Y', $search->date).' By '.$search->author_name?></a>
+                                <a href="<?=SITE_URL.$search->link?>" data-toggle="tooltip" data-container="body" data-title="Дивитись сторінку на сайті"><i class="fa fa-fw fa-cloud-upload"></i></a>
+                                <a href="<?=SITE_URL.'admin/'.$search->edit_link?>" data-toggle="tooltip" data-container="body" data-title="Редагувати"><i class="fa fa-fw fa-cog"></i></a>
+                                <?php if($search->folder) { ?>
+                                    <a href="<?=SITE_URL.$search->edit_link?>#tab-photo" data-toggle="tooltip" data-container="body" data-title="Редагувати зображення"><i class="fa fa-fw fa-camera"></i></a>
+                                    <a href="<?=SITE_URL.$search->edit_link?>#tab-audio" data-toggle="tooltip" data-container="body" data-title="Редагувати аудіо"><i class="fa fa-fw fa-tasks"></i></a>
+                                <?php } ?>
+                                <a href="<?=SITE_URL.$search->edit_link?>#tab-video" data-toggle="tooltip" data-container="body" data-title="Редагувати відео"><i class="fa fa-fw fa-video-camera"></i></a>
+                                <a href="<?=SITE_URL.$search->edit_link?>" data-toggle="tooltip" data-container="body" data-title="Analytics"><i class="fa fa-fw fa-bar-chart-o"></i></a>
+                                <a href="<?=SITE_URL?>admin/wl_users/<?=$search->author?>" data-toggle="tooltip" data-container="body" data-title="Автор"><i class="fa fa-fw fa-user"></i></a>
                             </div>
                         </div>
                     </li>
@@ -111,9 +115,7 @@
                     За даним запитом нічого не знайдено. Уточніть ключове слово пошуку.
                 </div>
             <?php } ?>
-
         </div>
-        <?php print_r($data) ?>
     </div>
     <!-- end col-12 -->
 </div>

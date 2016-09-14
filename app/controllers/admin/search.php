@@ -33,13 +33,20 @@ class Search extends Controller {
 						$result->name = $search->name;
 						$result->list = $search->list;
 						$result->text = $search->text;
+						$result->image = false;
 						if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 						{
 							if($current >= $start && $current < ($start + $_SESSION['option']->paginator_per_page))
 							{
+								if($result->folder)
+									$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder);
 								array_push($data, $result);
 							}
-						} else {
+						}
+						else
+						{
+							if($result->folder)
+								$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder);
 							array_push($data, $result);
 						}
 					}

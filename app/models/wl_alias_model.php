@@ -70,7 +70,7 @@ class wl_alias_model
 
 		$this->db->select('wl_images', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#author');
-		$this->db->order('main ASC');
+		$this->db->order('main DESC');
 		$_SESSION['alias']->images = $this->db->get('array');
 		if(!empty($_SESSION['alias']->images))
 		{

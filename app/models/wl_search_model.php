@@ -11,6 +11,19 @@ class wl_search_model {
 		return $this->db->get('array');
 	}
 
+	public function getImage($alias, $content, $folder = '')
+	{
+		$where = array();
+		$where['alias'] = $alias;
+		$where['content'] = $content;
+		$this->db->select('wl_images', '*', $where);
+		$this->db->order('main DESC');
+		$this->db->limit(1);
+		if($image = $this->db->get())
+			return $folder.'/'.$content.'/admin_'.$image->file_name;
+		return false;
+	}
+
 }
 
 ?>

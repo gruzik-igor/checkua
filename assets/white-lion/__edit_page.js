@@ -6,7 +6,7 @@ function save (field, e, lang) {
     else value = data;
 
     $.ajax({
-        url: "<?=SITE_URL?>admin/wl_ntkd/save",
+        url: SITE_URL + "admin/wl_ntkd/save",
         type: 'POST',
         data: {
             alias: ALIAS_ID,
@@ -67,37 +67,39 @@ function showEditTKD (lang) {
 	}
 }
 
-$(function () {
-    'use strict';
+if(ALIAS_FOLDER) {
+    $(function () {
+        'use strict';
 
-    // Initialize the jQuery File Upload widget:
-    $('#fileupload').fileupload({
-        url: SITE_URL+'admin/wl_photos/add/'+CONTENT_ID,
-        formData: {
-            ALIAS_ID : ALIAS_ID,
-            ALIAS_FOLDER : ALIAS_FOLDER,
-            PHOTO_FILE_NAME : PHOTO_FILE_NAME,
-            PHOTO_TITLE : PHOTO_TITLE,
-            additional_table : ADDITIONAL_TABLE,
-            additional_table_id : ADDITIONAL_TABLE_ID,
-            additional_fields : ADDITIONAL_FIELDS,
-            json : true
-        },
-        autoUpload: true,
-        acceptFileTypes: /(\.|\/)(jpe?g|png)$/i
+        // Initialize the jQuery File Upload widget:
+        $('#fileupload').fileupload({
+            url: SITE_URL+'admin/wl_photos/add/'+CONTENT_ID,
+            formData: {
+                ALIAS_ID : ALIAS_ID,
+                ALIAS_FOLDER : ALIAS_FOLDER,
+                PHOTO_FILE_NAME : PHOTO_FILE_NAME,
+                PHOTO_TITLE : PHOTO_TITLE,
+                additional_table : ADDITIONAL_TABLE,
+                additional_table_id : ADDITIONAL_TABLE_ID,
+                additional_fields : ADDITIONAL_FIELDS,
+                json : true
+            },
+            autoUpload: true,
+            acceptFileTypes: /(\.|\/)(jpe?g|png)$/i
+        });
     });
-});
 
-document.getElementById('PHOTOS').onclick = function (event) {
-    event = event || window.event;
-    var target = event.target || event.srcElement;
-    if(target.tagName == "IMG")
-    {
-        var link = target.src ? target.parentNode : target,
-            options = {index: link, event: event},
-            links = this.getElementsByTagName('a');
-        blueimp.Gallery(links, options);
-    }
+    document.getElementById('PHOTOS').onclick = function (event) {
+        event = event || window.event;
+        var target = event.target || event.srcElement;
+        if(target.tagName == "IMG")
+        {
+            var link = target.src ? target.parentNode : target,
+                options = {index: link, event: event},
+                links = this.getElementsByTagName('a');
+            blueimp.Gallery(links, options);
+        }
+    };
 };
 
 function savePhoto(id, e)

@@ -1,25 +1,3 @@
-<div class="intro">
-    <div class="dtable hw100">
-        <div class="dtable-cell hw100">
-            <div class="container text-center">
-                <h1 class="intro-title animated fadeInDown"> Пошук автозапчастин </h1>
-                <p class="sub animateme fittext3 animated fadeIn">KIA & HYUNDAI Оригінали та Замінники</p>
-                <div class="row search-row animated fadeInUp">
-                    <form action="<?=SITE_URL?>parts/search">
-                        <div class="col-lg-8 col-sm-8 search-col relative locationicon">
-                            <i class="fa fa-pencil icon-append"></i>
-                            <input type="text" name="article" class="form-control locinput input-rel searchtag-input has-icon" placeholder="Артикул" value="<?=$this->data->get('article')?>" required="required">
-                        </div>
-                        <div class="col-lg-4 col-sm-4 search-col">
-                            <button class="btn btn-primary btn-search btn-block"><i class="fa fa-search"></i><strong> Знайти</strong></button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php
 if($products){ 
 ?>
@@ -62,9 +40,7 @@ if($products){
                                 <th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'Id'?></th>
                                 <th>Назва</th>
                                 <th>Ціна (у.о.)</th>
-                                <?php if($_SESSION['option']->useAvailability == 1) { ?>
-                                    <th>Наявність</th>
-                                <?php } if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) { ?>
+                                <?php if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) { ?>
                                     <th>Групи</th>
                                 <?php } ?>
                                 <th>Редаговано</th>
@@ -79,9 +55,7 @@ if($products){
                                         <a href="<?=SITE_URL.$a->link?>"><?=$a->name?></a> 
                                     </td>
                                     <td><?=$a->price?></td>
-                                    <?php if($_SESSION['option']->useAvailability == 1) { ?>
-                                        <td><?=$a->availability_name?></td>
-                                    <?php }
+                                    <?php
                                     if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
                                         echo("<td>");
                                         if(!empty($a->group) && is_array($a->group)) {

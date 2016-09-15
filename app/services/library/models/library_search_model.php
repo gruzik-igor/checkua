@@ -15,25 +15,24 @@ class library_search_model
 
 		if($content > 0)
 		{
-			$this->db->select($this->table('_products').' as p', '*', $content);
+			$this->db->select($this->table('_articles').' as p', '*', $content);
 			$this->db->join('wl_users', 'name as author_name', '#p.author_edit');
-			$product = $this->db->get('single');
-			if($product && ($product->active || $admin))
+			$article = $this->db->get('single');
+			if($article && ($article->active || $admin))
 			{
 				$search = new stdClass();
-				$search->id = $product->id;
-				$search->link = $_SESSION['alias']->alias.'/'.$product->alias;
-				$search->image = false;
-				$search->date = $product->date_edit;
-				$search->author = $product->author_edit;
-				$search->author_name = $product->author_name;
+				$search->id = $article->id;
+				$search->link = $_SESSION['alias']->alias.'/'.$article->alias;
+				$search->date = $article->date_edit;
+				$search->author = $article->author_edit;
+				$search->author_name = $article->author_name;
 				$search->additional = false;
 				$search->folder = false;
 				if(isset($_SESSION['option']->folder))
 					$search->folder = $_SESSION['option']->folder;
 				if($admin)
 				{
-					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/'.$product->alias;
+					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/'.$article->alias;
 				}
 
 				if($_SESSION['option']->useGroups)
@@ -46,19 +45,19 @@ class library_search_model
 		            	$list[$g->id] = clone $g;
 		            }
 
-					if($_SESSION['option']->ProductMultiGroup == 0 && $product->group > 0)
+					if($_SESSION['option']->articleMultiGroup == 0 && $article->group > 0)
 					{
-						$parents = $this->makeParents($list, $product->group, array());
+						$parents = $this->makeParents($list, $article->group, array());
 						$link = $_SESSION['alias']->alias .'/';
 						foreach ($parents as $parent) {
 							$link .= $parent->alias .'/';
 							$search->additional[$link] = $parent->name;
 						}
-						$search->link = $link . $product->alias;
+						$search->link = $link . $article->alias;
 					}
-					elseif($_SESSION['option']->ProductMultiGroup == 1)
+					elseif($_SESSION['option']->articleMultiGroup == 1)
 					{
-						$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
+						$this->db->select($this->table('_article_group') .' as pg', '', $article->id, 'article');
 						$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
 						$where_ntkd['alias'] = $_SESSION['alias']->id;
 						$where_ntkd['content'] = "#-pg.group";
@@ -91,19 +90,17 @@ class library_search_model
 				$search = new stdClass();
 				$search->id = $group->id;
 				$search->link = $_SESSION['alias']->alias.'/'.$group->alias;
-				$search->image = false;
 				$search->date = $group->date_edit;
 				$search->author = $group->author_edit;
 				$search->author_name = $group->author_name;
 				$search->additional = false;
 				$search->folder = false;
+				if(isset($_SESSION['option']->folder))
+					$search->folder = $_SESSION['option']->folder;
 				if($admin)
 				{
 					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/groups/'.$group->id;
 				}
-
-				if($group->photo > 0)
-					$search->image = $_SESSION['option']->folder.'/groups/s_'.$group->photo.'.jpg';
 
 				if($group->parent > 0)
 				{

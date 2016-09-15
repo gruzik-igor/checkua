@@ -66,7 +66,7 @@
 												<td style="padding: 1px 5px;">
 													<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 														<input type="hidden" name="id" value="<?=$g->id?>">
-														<input type="number" name="position" min="1" max="<?=$count_childs?>" value="<?=$g->position?>" onchange="this.form.submit();" autocomplete="off" style="margin-left: <?=$ml?>px">
+														<input type="number" name="position" min="1" max="<?=$count_childs?>" value="<?=$g->position?>" onchange="this.form.submit();" autocomplete="off" style="height:35px; padding-left:5px; min-width:80px; margin-left: <?=$ml?>px">
 													</form>
 												</td>
 											</tr>

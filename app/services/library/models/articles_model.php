@@ -81,7 +81,6 @@ class articles_model {
 
             foreach ($articles as $article)
             {
-            	$article->photos = $this->getPhotos($article->id);
             	$article->link = $article->alias;
 
 				$article->parents = array();
@@ -140,18 +139,6 @@ class articles_model {
 		$article = $this->db->get('single');
         if($article)
         {
-        	if($article->photo != '')
-        	{
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-				if($sizes){
-					foreach ($sizes as $resize) if($resize->active == 1){
-						$resize_name = $resize->prefix.'_photo';
-						$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$article->photo;
-					}
-				}
-				$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$article->photo;
-        	}
-			$article->photos = $this->getPhotos($article->id);
         	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
 
 			$article->parents = array();
@@ -196,14 +183,13 @@ class articles_model {
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		$data['active'] = 1;
-		$data['availability'] = 0;
-		$data['photo'] = '';
 		$data['author_add'] = $_SESSION['user']->id;
 		$data['date_add'] = time();
 		$data['author_edit'] = $_SESSION['user']->id;
 		$data['date_edit'] = time();
 
-		if($this->db->insertRow($this->table(), $data)){
+		if($this->db->insertRow($this->table(), $data))
+		{
 			$id = $this->db->getLastInsertedId();
 			$data = array();
 			$data['alias'] = '';
@@ -231,15 +217,20 @@ class articles_model {
 			
 			if($_SESSION['option']->useGroups)
 			{
-				if($_SESSION['option']->articleMultiGroup && isset($_POST['group']) && is_array($_POST['group'])) {
+				if($_SESSION['option']->articleMultiGroup && isset($_POST['group']) && is_array($_POST['group']))
+				{
 					foreach ($_POST['group'] as $group) {
 						$this->db->insertRow($this->table('_article_group'), array('article' => $id, 'group' => $group));
 					}
 					$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
-				} else {
-					if(isset($_POST['group']) && is_numeric($_POST['group'])) {
+				}
+				else
+				{
+					if(isset($_POST['group']) && is_numeric($_POST['group']))
+					{
 						$data['group'] = $_POST['group'];
 						$data['position'] = $this->db->getCount($this->table('_articles'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
+						$data['position']++;
 
 						if($data['group'] > 0)
 						{
@@ -250,7 +241,9 @@ class articles_model {
 				            }
 							$link = $this->makeLink($groups, $_POST['group'], $link);
 						}
-					} else {
+					}
+					else
+					{
 						$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
 					}
 				}
@@ -281,7 +274,6 @@ class articles_model {
 		if(isset($data['alias'])) $check_article->link = $data['alias'];
 
 		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
-		if(isset($_POST['availability']) && is_numeric($_POST['availability'])) $data['availability'] = $_POST['availability'];
 		if($_SESSION['option']->useGroups)
 		{
 			if($_SESSION['option']->articleMultiGroup)
@@ -346,7 +338,7 @@ class articles_model {
 			if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->articleMultiGroup == 0){
 				$article->link = explode('/', $article->link);
 				array_pop ($article->link);
-				$link = '/'.implode('/', $article->link);
+				$link = implode('/', $article->link);
 			}
 			return $link;
 		}
@@ -373,15 +365,6 @@ class articles_model {
     	array_unshift ($parents, $group);
 		if($all[$parent]->parent > 0) $parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
 		return $parents;
-	}
-
-	public function getPhotos($article)
-	{
-		$where['alias'] = $_SESSION['alias']->id;
-		$where['content'] = $article;
-		$this->db->select('wl_images', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#author');
-		return $this->db->get('array');
 	}
 
 	private function ckeckAlias($link){

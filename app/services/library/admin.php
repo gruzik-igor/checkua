@@ -102,7 +102,7 @@ class library extends Controller {
 	
 	private function edit($article){
 		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
-		$_SESSION['alias']->name = 'Редагувати '.$article->name;
+		$this->wl_alias_model->setContent($article->id);
 
 		$groups = null;
 		if($_SESSION['option']->useGroups)
@@ -136,28 +136,8 @@ class library extends Controller {
 				$id = $this->articles_model->add($link, $name);
 				if($id)
 				{
-					$path = IMG_PATH.$_SESSION['alias']->alias.'/'.$id;
-					$path = substr($path, strlen(SITE_URL));
-					if(!is_dir($path))
-						mkdir($path, 0777);
-
 					if(!empty($_FILES['photo']['name']))
-					{
-						$data['alias'] = $_SESSION['alias']->id;
-						$data['content'] = $id;
-						$data['title'] = $name;
-						$data['author'] = $_SESSION['user']->id;
-						$data['date_add'] = $data['main'] = time();
-						$this->db->insertRow('wl_images', $data);
-						$photo_id = $this->db->getLastInsertedId();
-						$photo = $link . '-' . $photo_id;
-						$extension = $this->savephoto('photo', $path.'/', $photo);
-						if($extension)
-						{
-							$photo .= '.'.$extension;
-							$this->db->updateRow('wl_images', array('file_name' => $photo), $photo_id);
-						}
-					}
+						$this->savephoto('photo', $id, $this->data->latterUAtoEN($name), $name);
 					$this->redirect("admin/{$_SESSION['alias']->alias}/{$link}");
 				}
 				$this->redirect();
@@ -258,8 +238,8 @@ class library extends Controller {
 		$group = $this->groups_model->getById($id, false);
 		if($group)
 		{
+			$this->wl_alias_model->setContent(($group->id * -1));
 			$groups = $this->groups_model->getGroups(-1);
-			$_SESSION['alias']->name = 'Редагувати групу "'.$group->name.'"';
 			$_SESSION['alias']->breadcrumb = array('Групи' => 'admin/'.$_SESSION['alias']->alias.'/groups', 'Редагувати групу' => '');
 			$this->load->admin_view('groups/edit_view', array('group' => $group, 'groups' => $groups));
 		}
@@ -273,43 +253,24 @@ class library extends Controller {
 			$this->load->smodel('groups_model');
 			$_SESSION['notify'] = new stdClass();
 
-			$path = IMG_PATH.$_SESSION['option']->folder.'/groups/';
-			$path = substr($path, strlen(SITE_URL));
-			if(!is_dir($path))
-				mkdir($path, 0777);
-
 			if($_POST['id'] == 0)
 			{
-				$alias = false;
-				$id = $this->groups_model->add($alias);
-				if($id)
+				$alias = $title = false;
+				if($id = $this->groups_model->add($alias, $title))
 				{
-					if(!empty($_FILES['photo']['name']))
-					{
-						$alias = $id .'-'. $alias;
-						$ext = $this->savephoto('photo', $path, $alias);
-						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $id);
-					}
+					if(!empty($_FILES['photo']['name']) && $alias)
+						$this->savephoto('photo', -$id, $alias, $title);
 					$_SESSION['notify']->success = 'Групу успішно додано! Продовжіть наповнення сторінки.';
 					$this->redirect('admin/'.$_SESSION['alias']->alias.'/groups/'.$id);
 				}
 			}
 			else
 			{
-				$alias = false;
-				if($this->groups_model->save($_POST['id'], $alias))
-				{
-					if(!empty($_FILES['photo']['name']))
-					{
-						$alias = $_POST['id'] .'-'. $alias;
-						$ext = $this->savephoto('photo', $path, $alias);
-						if($ext) $this->db->updateRow($this->groups_model->table(), array('photo' => $alias.'.'.$ext), $_POST['id']);
-					}
+				if($this->groups_model->save($_POST['id']))
 					$_SESSION['notify']->success = 'Дані успішно оновлено!';
-				} else {
+				else
 					$_SESSION['notify']->errors = 'Сталася помилка, спробуйте ще раз!';
-				}
-				$this->redirect();
+				$this->redirect('#tab-main');
 			}
 		}
 	}
@@ -345,16 +306,32 @@ class library extends Controller {
 		$this->load->page_404();
 	}
 
-	private function savephoto($name_field, $path, $name, $array = false, $i = 0)
+	private function savephoto($name_field, $content, $name, $title = '')
 	{
-		if(!empty($_FILES[$name_field]['name']))
+		if(!empty($_FILES[$name_field]['name']) && $_SESSION['option']->folder)
 		{
-			$this->load->library('image');
-			if($array) $this->image->uploadArray($name_field, $i, $path, $name);
-			else $this->image->upload($name_field, $path, $name);
+			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$content;
+            $path = substr($path, strlen(SITE_URL));
+
+            if(!is_dir($path))
+            	mkdir($path, 0777);
+            $path .= '/';
+
+            $data['alias'] = $_SESSION['alias']->id;
+            $data['content'] = $content;
+            $data['file_name'] = '';
+            $data['title'] = $title;
+            $data['author'] = $_SESSION['user']->id;
+            $data['date_add'] = $data['main'] = time();
+            $this->db->insertRow('wl_images', $data);
+            $photo_id = $this->db->getLastInsertedId();
+            $name .= '-' . $photo_id;
+
+            $this->load->library('image');
+			$this->image->upload($name_field, $path, $name);
 			$extension = $this->image->getExtension();
 			$this->image->save();
-			if($this->image->getErrors() == '')
+			if($extension && $this->image->getErrors() == '')
 			{
 				if($sizes = $this->db->getAliasImageSizes())
 				{
@@ -365,11 +342,19 @@ class library extends Controller {
 						$this->image->save($path, $resize->prefix);
 					}
 				}
-				return $this->image->getExtension();
-			}
+				$name .= '.'.$extension;
+                $this->db->updateRow('wl_images', array('file_name' => $name), $photo_id);
+                return $name;
+			}			
 		}
 		return false;
 	}
+
+	public function __get_Search($content)
+    {
+    	$this->load->smodel('library_search_model');
+    	return $this->library_search_model->getByContent($content, true);
+    }
 	
 }
 

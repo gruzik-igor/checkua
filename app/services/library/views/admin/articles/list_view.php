@@ -66,7 +66,7 @@
 										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
 										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
-										<td>
+										<td style="padding:2px 5px">
 											<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeposition">
 												<input type="hidden" name="id" value="<?=$a->id?>">
 												<input type="number" name="position" min="1" max="<?=$max?>" value="<?=$a->position?>" onchange="this.form.submit();" autocomplete="off" class="form-control">
@@ -85,8 +85,5 @@
 <style type="text/css">
 	input[type="number"] {
 		min-width: 50px;
-	}
-	select {
-		max-width: 200px;
 	}
 </style>

@@ -182,25 +182,6 @@ class library_model {
             foreach ($articles as $article)
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
-     //        	if($article->photo != '')
-     //        	{
-					// if($sizes){
-					// 	foreach ($sizes as $resize) if($resize->active == 1){
-					// 		$resize_name = $resize->prefix.'_photo';
-					// 		$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$article->photo;
-					// 	}
-					// 	if(!empty($article->photos))
-					// 	{
-					// 		foreach ($article->photos as $photo) {
-					// 			foreach ($sizes as $resize) if($resize->active == 1){
-					// 				$resize_name = $resize->prefix.'_file_address';
-					// 				$photo->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
-					// 			}
-					// 		}
-					// 	}
-					// }
-					// $article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$article->photo;
-     //        	}
 
 				$article->parents = array();
 				if($_SESSION['option']->useGroups > 0)

@@ -37,13 +37,23 @@ class Data {
 		if(!empty($_POST))
 		{
 			foreach ($_POST as $key => $value) {
-				$_SESSION['_POST'][$key] = $this->post($key);
+				if(is_array($value))
+					foreach ($value as $key2 => $value2) {
+						$_SESSION['_POST'][$key][$key2] = $this->xss_clean($value2);
+					}
+				else
+					$_SESSION['_POST'][$key] = $this->post($key);
 			}
 		}
 		if(!empty($_GET))
 		{
 			foreach ($_GET as $key => $value) {
-				$_SESSION['_GET'][$key] = $this->get($key);
+				if(is_array($value))
+					foreach ($value as $key2 => $value2) {
+						$_SESSION['_GET'][$key][$key2] = $this->xss_clean($value2);
+					}
+				else
+					$_SESSION['_GET'][$key] = $this->get($key);
 			}
 		}
 	}

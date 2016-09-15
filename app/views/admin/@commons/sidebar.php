@@ -99,6 +99,7 @@
                 <li <?=($_SESSION['alias']->alias == 'wl_ntkd')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_ntkd">SEO</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_images')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_images">Розміри зображень</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_forms')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_forms">Форми</a></li>
+                <li <?=($_SESSION['alias']->alias == 'wl_mail_template')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_mail_template">Розсилка</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_aliases')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_aliases">Адреси</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_services')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_services">Сервіси</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_language_words')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_language_words">Мультимовність</a></li>

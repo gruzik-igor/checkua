@@ -80,8 +80,8 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">send_email*</label>
 							<div class="col-md-9">
-								<input type="radio" name="send_mail" onclick="showTemplates(this)" value="yes" required <?= $form->send_mail == 1 ? 'checked' : '' ?> >yes
-								<input type="radio" name="send_mail" onclick="showTemplates(this)" value="no" <?= $form->send_mail == 0 ? 'checked' : '' ?> >no
+								<input type="radio" name="send_mail" onclick="show(this, 'templates')" value="yes" required <?= $form->send_mail == 1 ? 'checked' : '' ?> >yes
+								<input type="radio" name="send_mail" onclick="show(this, 'templates')" value="no" <?= $form->send_mail == 0 ? 'checked' : '' ?> >no
 							</div>
 						</div>
 
@@ -104,6 +104,20 @@
 									<option value="3" <?= $form->success == 3 ? 'selected' : '' ?> >Інша сторінка</option>
 								</select>
 								<input type="text" class="form-control" value="<?= $form->success_data?>" name="afterValue" id="doAfterValue" <?= $form->success <= 1 ? 'style="display:none" disabled' : '' ?> >
+							</div>
+						</div>
+
+						<div class="form-group">
+							<label class="col-md-3 control-label">send_sms*</label>
+							<div class="col-md-9">
+								<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="yes" required <?= $form->send_sms == 1 ? 'checked' : '' ?> >yes
+								<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="no" <?= $form->send_sms == 0 ? 'checked' : '' ?> >no
+							</div>
+						</div>
+						<div class="form-group" id="sms_text" <?= $form->send_sms == 0 ? 'hidden' : '' ?> >
+							<label class="col-md-3 control-label">Смс текст</label>
+							<div class="col-md-9">
+								<input type="text" class="form-control" value="<?= $form->sms_text?>" name="sms_text" id="sms_text" >
 							</div>
 						</div>
 
@@ -188,13 +202,13 @@
 		el.style.display = (el.style.display == 'none') ? '' : 'none'
 	}
 
-	function showTemplates (el) {
+	function show (el, name) {
 		if($(el).val() == 'yes'){
-			$('#templates').show();
-			$("input[name=templates]").removeAttr("disabled");
+			$('#'+name).show();
+			$("input[name="+name+"]").removeAttr("disabled");
 		} else {
-			$('#templates').hide();
-			$("input[name=templates]").attr("disabled", "disabled");
+			$('#'+name).hide();
+			$("input[name="+name+"]").attr("disabled", "disabled");
 		}
 	}
 

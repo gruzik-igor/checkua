@@ -64,7 +64,7 @@
 				<div class="form-group">
 					<div class="col-lg-3"></div>
 					<div class="col-lg-9">
-						<input type="submit" id="submit" class="btn btn-sm btn-warning " value="Зберегти" onclick="checkName()">
+						<input type="submit" id="submit" class="btn btn-sm btn-warning " value="Зберегти" <?= $diff_name ? 'onclick="checkName()"' : '' ?> >
 						<span id="name_error" style="color:red"></span>
 					</div>
 				</div>

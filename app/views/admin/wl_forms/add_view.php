@@ -50,6 +50,13 @@
 							</div>
 						</div>
 						<div class="form-group">
+							<label class="col-md-3 control-label">send_sms*</label>
+							<div class="col-md-9">
+								<input type="radio" name="send_sms" value="yes" required>yes
+								<input type="radio" name="send_sms" value="no" checked>no
+							</div>
+						</div>
+						<div class="form-group">
 	                    	<div class="col-md-3"></div>
 	                        <div class="col-md-9">
 	                        	<input type="submit" class="btn btn-sm btn-warning " value="Додати">

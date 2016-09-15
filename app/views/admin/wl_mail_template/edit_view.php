@@ -36,7 +36,7 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Форма</label>
 							<div class="col-md-9">
-								<?php foreach($allForms as $form) { ?>
+								<?php if($allForms) foreach($allForms as $form) { ?>
 									<label><input type="checkbox" name="form[]" value="<?= $form->id?>" <?= (isset($form->checked) && $form->checked == 1) ? 'checked' : '' ?> ><?= $form->name?></label><br>
 								<?php } ?>
 							</div>
@@ -106,7 +106,7 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Слова</label>
 							<div class="col-md-9">
-								<span>SITE_URL, IMAGE_PATH<?php if(!empty($fields)) foreach($fields as $field) echo (", ".$field->name); ?></span>
+								<span>SITE_URL, IMAGE_PATH<?php if(is_array($fields) || $fields->name != '') foreach($fields as $field) echo (", ".$field->name); ?></span>
 							</div>
 						</div>
 						<div class="form-group">

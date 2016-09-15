@@ -73,8 +73,6 @@
 								<th>id</th>
 								<th>alias</th>
 								<th>table</th>
-								<th>options</th>
-								<th>active</th>
 							</tr>
 						</thead>
 						<tbody>
@@ -83,8 +81,6 @@
 									<td><?=$alias->id?></td>
 									<td><a href="<?=SITE_URL.'admin/wl_aliases/'.$alias->alias?>"><?=$alias->alias?></a></td>
 									<td><?=$alias->table?></td>
-									<td><?=$alias->options?></td>
-									<td><?=$alias->active?></td>
 								</tr>
 							<?php } ?>
 						</tbody>

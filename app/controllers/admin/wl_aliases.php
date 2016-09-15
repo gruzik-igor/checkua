@@ -454,15 +454,13 @@ class wl_aliases extends Controller {
                         $this->db->deleteRow('wl_user_permissions', $alias->id, 'permission');
 
                         $this->db->register('alias_delete', $additionally);
-                        $this->load->redirect("admin/wl_aliases");
-
-                        exit();
                     }
                     else
                     {
                         $_SESSION['notify'] = new stdClass();
                         $_SESSION['notify']->errors = 'Адресу не знайдено!';
                     }
+                    $this->load->redirect("admin/wl_aliases");
                 }
                 else
                 {

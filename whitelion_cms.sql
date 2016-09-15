@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1
--- Час створення: Вер 10 2016 р., 16:11
+-- Час створення: Вер 15 2016 р., 10:53
 -- Версія сервера: 5.7.9
 -- Версія PHP: 7.0.0
 
@@ -29,7 +29,6 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `s_static_page`;
 CREATE TABLE IF NOT EXISTS `s_static_page` (
   `id` int(11) NOT NULL,
-  `photo` text,
   `author_add` int(11) NOT NULL,
   `date_add` int(11) NOT NULL,
   `author_edit` int(11) NOT NULL,
@@ -41,8 +40,8 @@ CREATE TABLE IF NOT EXISTS `s_static_page` (
 -- Дамп даних таблиці `s_static_page`
 --
 
-INSERT INTO `s_static_page` (`id`, `photo`, `author_add`, `date_add`, `author_edit`, `date_edit`) VALUES
-(9, '', 1, 1473521215, 1, 1473521215);
+INSERT INTO `s_static_page` (`id`, `author_add`, `date_add`, `author_edit`, `date_edit`) VALUES
+(11, 1, 1473867272, 1, 1473875539);
 
 -- --------------------------------------------------------
 
@@ -59,7 +58,7 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
   `admin_ico` text,
   `admin_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=12 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_aliases`
@@ -73,8 +72,7 @@ INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `admin_ico`, `admin
 (5, 'signup', 0, NULL, NULL, NULL),
 (6, 'reset', 0, NULL, NULL, NULL),
 (7, 'subscribe', 0, NULL, NULL, NULL),
-(8, 'about', 1, '_8_about', 'fa-newspaper-o', 10),
-(9, 'about2', 1, '_9_about2', 'fa-newspaper-o', 10);
+(11, 'about', 1, '_11_about', 'fa-newspaper-o', 10);
 
 -- --------------------------------------------------------
 
@@ -113,7 +111,7 @@ CREATE TABLE IF NOT EXISTS `wl_audio` (
   `position` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -184,10 +182,19 @@ CREATE TABLE IF NOT EXISTS `wl_images` (
   `title` text,
   `author` int(11) NOT NULL,
   `date_add` int(11) NOT NULL,
+  `main` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`),
   KEY `content` (`content`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_images`
+--
+
+INSERT INTO `wl_images` (`id`, `alias`, `content`, `file_name`, `title`, `author`, `date_add`, `main`) VALUES
+(3, 11, 0, 'about-3.jpg', 'Про нас', 1, 1473873034, 1473875539),
+(4, 11, 0, 'about-4.jpg', 'Про нас', 1, 1473875455, 1473875478);
 
 -- --------------------------------------------------------
 
@@ -216,7 +223,7 @@ CREATE TABLE IF NOT EXISTS `wl_images_sizes` (
 INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `width`, `height`) VALUES
 (1, 0, 1, 'Значення по замовчуванню. Оригінал', NULL, 1, 1500, 1500),
 (2, 0, 1, 'Значення по замовчуванню. Панель керування', 'admin', 2, 150, 150),
-(3, 0, 1, 'Значення по замовчуванню. Preview ', 'small', 2, 150, 150);
+(3, 0, 1, 'Значення по замовчуванню. Header для соц. мереж', 'header', 2, 600, 315);
 
 -- --------------------------------------------------------
 
@@ -368,7 +375,7 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
   KEY `alias` (`alias`),
   KEY `content` (`content`),
   KEY `language` (`language`)
-) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_ntkd`
@@ -376,8 +383,7 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
 
 INSERT INTO `wl_ntkd` (`id`, `alias`, `content`, `language`, `name`, `title`, `description`, `keywords`, `text`, `list`) VALUES
 (1, 1, 0, NULL, 'whitelion.cms', NULL, NULL, NULL, NULL, NULL),
-(2, 8, 0, '', 'Про нас', NULL, NULL, NULL, NULL, NULL),
-(3, 9, 0, '', 'Про нас', NULL, NULL, NULL, NULL, NULL);
+(5, 11, 0, '', 'Про нас', NULL, NULL, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -393,7 +399,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=7 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -402,8 +408,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
 INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (1, 0, 0, 'paginator_per_page', '20'),
 (2, 1, 0, 'folder', 'static_page'),
-(3, 1, 8, 'folder', 'about'),
-(4, 1, 9, 'folder', 'about');
+(6, 1, 11, 'folder', 'about');
 
 -- --------------------------------------------------------
 
@@ -449,7 +454,7 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   `time` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`,`language`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_sitemap`
@@ -463,7 +468,11 @@ INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, 
 (5, 'signup', 5, 0, NULL, 200, NULL, 0),
 (6, 'reset', 6, 0, NULL, 200, NULL, 0),
 (7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
-(8, 'logout', 0, 0, NULL, 201, NULL, 0);
+(8, 'logout', 0, 0, NULL, 201, NULL, 0),
+(10, 'audio/9/0/dagadana-tango-.mp3', 0, 0, '', 200, '', 1473781671),
+(11, 'login/show', 0, 0, '', 200, '', 1473839202),
+(13, 'about', 11, 0, '', 200, '', 1473867278),
+(14, 'adminadmin/about', 0, 0, '', 200, '', 1473875522);
 
 -- --------------------------------------------------------
 
@@ -549,7 +558,7 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
 --
 
 INSERT INTO `wl_users` (`id`, `alias`, `email`, `name`, `photo`, `type`, `status`, `registered`, `last_login`, `auth_id`, `password`, `reset_key`, `reset_expires`) VALUES
-(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, 1469650761, 1473453985, 'ce05f58b19a01483d3495cd8abe3e84a', 'c0e5c5c47f28b4d132bc9f894c192cfc27716f3d', NULL, 0);
+(1, 'admin', 'levso7@gmail.com', 'admin', NULL, 1, 1, 1469650761, 1473453985, 'ce05f58b19a01483d3495cd8abe3e84a', '0742dd44efe0250055472606d9951c788ee2e62d', NULL, 0);
 
 -- --------------------------------------------------------
 
@@ -594,7 +603,7 @@ CREATE TABLE IF NOT EXISTS `wl_user_register` (
   `additionally` text,
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=11 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_user_register`
@@ -610,7 +619,12 @@ INSERT INTO `wl_user_register` (`id`, `date`, `do`, `user`, `additionally`) VALU
 (7, 1473454064, 14, 1, '3. static_pages (2)'),
 (8, 1473454185, 13, 1, '1. static_pages (2)'),
 (9, 1473519819, 11, 1, 'about (8)'),
-(10, 1473521215, 11, 1, 'about2 (9)');
+(10, 1473521215, 11, 1, 'about2 (9)'),
+(11, 1473844120, 12, 1, '9. about2. static_pages (1)'),
+(12, 1473845296, 11, 1, 'contact (10)'),
+(13, 1473848427, 12, 1, '10. contact. static_pages (1)'),
+(14, 1473867259, 12, 1, '8. about. static_pages (1)'),
+(15, 1473867272, 11, 1, 'about (11)');
 
 -- --------------------------------------------------------
 
@@ -707,16 +721,16 @@ INSERT INTO `wl_user_types` (`id`, `name`, `title`, `active`) VALUES
 DROP TABLE IF EXISTS `wl_video`;
 CREATE TABLE IF NOT EXISTS `wl_video` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `author` int(11) NOT NULL,
-  `date_add` int(11) NOT NULL,
   `alias` int(11) NOT NULL,
   `content` int(11) NOT NULL,
+  `author` int(11) NOT NULL,
+  `date_add` int(11) NOT NULL,
   `site` text COMMENT 'youtube, vimeo',
   `link` text,
   `active` int(1) DEFAULT '1' COMMENT '0 - видалене',
   PRIMARY KEY (`id`),
   KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
 
 --
 -- Індекси збережених таблиць

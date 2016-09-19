@@ -29,7 +29,7 @@
 	                <div class="form-group">
                         <label class="col-md-3 control-label">Фото</label>
                         <div class="col-md-9">
-                            <input type="file" name="photo" class="form-control">
+                            <input type="file" name="photo">
                         </div>
                     </div>
 

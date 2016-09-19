@@ -3,27 +3,25 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_option<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати властивість</a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_option<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:option_add']?></a>
                 </div>
                 <h4 class="panel-title">Поточні налаштування</h4>
             </div>
             <?php
-            
-            if(isset($_SESSION['notify'])){ 
+            if(isset($_SESSION['notify'])) { 
 	        	require APP_PATH.'views/admin/notify_view.php';
 	        }
-
-	        if(isset($group)){ ?>
+	        if(isset($group)) { ?>
             	<div class="panel-heading">
             		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options"><?=$group->alias_name?></a> -> 
             		<?php 
-            		if(!empty($group->parents)){
+            		if(!empty($group->parents)) {
 						$link = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/options';
 						foreach ($group->parents as $parent) { $link .= '/'.$parent->alias; ?>
 							<a href="<?=$link?>"><?=$parent->name?></a> -> 
 					<?php } 
 					} 
-					echo($_SESSION['alias']->name); 
+					echo($group->group_name); 
 					?>
             	</div>
             <?php } ?>
@@ -43,7 +41,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                        	<?php if(!empty($options)){ $max = count($options); foreach($options as $a){ ?>
+                        	<?php if(!empty($options)) { $max = count($options); foreach($options as $a) { ?>
 							<tr>
 								<td><?=$a->id?></td>
 								<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options/<?=$a->alias?>"><?=$a->name?></a></td>
@@ -68,7 +66,7 @@
 	</div>
 </div>
 
-<?php if(!empty($groups)){ ?>
+<?php if(!empty($groups)) { ?>
 	<div class="row">
 		<div class="col-md-12">
 	        <div class="panel panel-inverse">
@@ -86,7 +84,7 @@
 	                            </tr>
 	                        </thead>
 	                        <tbody>
-								<?php foreach($groups as $g){ ?>
+								<?php foreach($groups as $g) { ?>
 									<tr>
 										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options/<?=$g->link?>"><?=$g->name?></a></td>
 										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$g->link?>">admin/<?=$_SESSION['alias']->alias.'/'.$g->link?>/*</a></td>
@@ -103,7 +101,9 @@
 <?php } ?>
 
 <style type="text/css">
-	input[type="number"]{
+	input[type="number"] {
+		height:35px;
+		padding-left:5px;
 		min-width: 50px;
 	}
 	select {

@@ -11,14 +11,17 @@ class options_model {
 	public function getOptions($group = 0, $active = true)
 	{
 		$where = ''; $where_gn = ''; $select_gn = '';
-		if($active) $where = 'AND o.active = 1';
-		else {
+		if($active)
+			$where = 'AND o.active = 1';
+		else
+		{
 			$select_gn = ', g.name as group_name';
 			$where_gn = "LEFT JOIN `wl_ntkd` as g ON g.content = '-{$group}' AND g.alias = '{$_SESSION['alias']->id}'";
 			if($_SESSION['language']) $where_gn .= " AND g.language = '{$_SESSION['language']}'";
 		}
 		$this->db->executeQuery("SELECT o.*, t.name as type_name {$select_gn} FROM `{$this->table('_options')}` as o LEFT JOIN wl_input_types as t ON t.id = o.type {$where_gn} WHERE o.wl_alias = '{$_SESSION['alias']->id}' AND o.group = '{$group}' {$where} ORDER BY o.position ASC");
-        if($this->db->numRows() > 0){
+        if($this->db->numRows() > 0)
+        {
             $options = $this->db->getRows('array');
 
 			$where = '';
@@ -37,7 +40,8 @@ class options_model {
 		return null;
 	}
 
-	public function add_option($property = false){
+	public function add_option($property = false)
+	{
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];

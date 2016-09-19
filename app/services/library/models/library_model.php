@@ -177,8 +177,6 @@ class library_model {
 	            }
 	        }
 
-			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-
             foreach ($articles as $article)
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;

@@ -131,10 +131,8 @@ class library extends Controller {
 			$this->load->smodel('articles_model');
 			if($_POST['id'] == 0)
 			{
-				$link = '';
-				$name = '';
-				$id = $this->articles_model->add($link, $name);
-				if($id)
+				$link = $name = '';
+				if($id = $this->articles_model->add($link, $name))
 				{
 					if(!empty($_FILES['photo']['name']))
 						$this->savephoto('photo', $id, $this->data->latterUAtoEN($name), $name);

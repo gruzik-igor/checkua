@@ -220,7 +220,6 @@ class products_model {
 			{
 				$_SESSION['notify'] = new stdClass();
 				$_SESSION['notify']->errors = 'Артикул '.$_POST['article'].' вже використовується! <a href="'.SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$check[0]->alias.'" target="_blank">Перевірте артикул!</a>';
-				$_SESSION['post'] = $_POST;
 				return false;
 			}
 		}
@@ -228,34 +227,33 @@ class products_model {
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		if(isset($_POST['article'])) $data['article'] = trim($this->data->post('article'));
-		$data['active'] = 1;
-		$data['availability'] = 1;
+		$data['active'] = $data['availability'] = 1;
 		$data['price'] = 0;
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] > 0) $data['price'] = $_POST['price'];
-		$data['photo'] = '';
-		$data['author_add'] = $_SESSION['user']->id;
-		$data['date_add'] = time();
-		$data['author_edit'] = $_SESSION['user']->id;
-		$data['date_edit'] = time();
+		$data['author_add'] = $data['author_edit'] = $_SESSION['user']->id;
+		$data['date_add'] = $data['date_edit'] = time();
 
-		if($this->db->insertRow($this->table(), $data)){
+		if($this->db->insertRow($this->table(), $data))
+		{
 			$id = $this->db->getLastInsertedId();
 			$data = array();
 			$data['alias'] = '';
 
 			$ntkd['alias'] = $_SESSION['alias']->id;
 			$ntkd['content'] = $id;
-			if($_SESSION['language']){
+			if($_SESSION['language'])
+			{
 				foreach ($_SESSION['all_languages'] as $lang) {
 					$ntkd['language'] = $lang;
 					$name = trim($this->data->post('name_'.$lang));
 					$ntkd['name'] = $name;
-					if($lang == $_SESSION['language']){
+					if($lang == $_SESSION['language'])
 						$data['alias'] = $this->data->latterUAtoEN($name);
-					}
 					$this->db->insertRow('wl_ntkd', $ntkd);
 				}
-			} else {
+			}
+			else
+			{
 				$name = trim($this->data->post('name'));
 				$ntkd['name'] = $name;
 				$data['alias'] = $this->data->latterUAtoEN($name);
@@ -263,32 +261,36 @@ class products_model {
 			}
 			
 			if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
-			{
 				$data['alias'] = $this->ckeckAlias($this->data->latterUAtoEN(trim($this->data->post('article'))) . '-' . $data['alias']);
-			} else {
+			else
 				$data['alias'] = $id . '-' . $data['alias'];
-			}
 			
 			if($_SESSION['option']->useGroups)
 			{
-				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group'])) {
+				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group']))
+				{
 					foreach ($_POST['group'] as $group) {
 						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
 					}
 					$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
-				} else {
-					if(isset($_POST['group']) && is_numeric($_POST['group'])) {
+				}
+				else
+				{
+					if(isset($_POST['group']) && is_numeric($_POST['group']))
+					{
 						$data['group'] = $_POST['group'];
 						$data['position'] = $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
-					} else {
-						$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 					}
+					else
+						$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 				}
-			} else {
-				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 			}
+			else
+				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 			$link = $data['alias'];
-			if($this->db->updateRow($this->table('_products'), $data, $id)) return $id;
+			
+			if($this->db->updateRow($this->table('_products'), $data, $id))
+				return $id;
 		}
 		return false;
 	}

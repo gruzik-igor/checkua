@@ -3,11 +3,10 @@
 	$wl_aliases = $this->db->getAllData('wl_aliases');
 	$wl_services = $this->db->getAllData('wl_services');
 	$services_title = array(0 => '');
-	if($wl_services){
-		foreach ($wl_services as $s) if($s->active == 1) {
+	if($wl_services)
+		foreach ($wl_services as $s) {
 			$services_title[$s->id] = $s->title;
 		}
-	}
 	
 ?>
 

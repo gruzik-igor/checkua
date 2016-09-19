@@ -73,7 +73,7 @@
         </form>
       </div>
 
-      <?php if(isset($_SESSION['notify'])){ 
+      <?php if(isset($_SESSION['notify'])) { 
         require APP_PATH.'views/admin/notify_view.php';
       } ?>
 
@@ -87,6 +87,7 @@
           <?php } ?>
           <li><a href="#tab-photo" data-toggle="tab" aria-expanded="true">Фото</a></li>
           <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
+          <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
         </ul>
         <div class="tab-content">
           <div class="tab-pane fade active in" id="tab-main">
@@ -103,15 +104,16 @@
           <?php } ?>
           <div class="tab-pane fade" id="tab-photo">
             <?php
-            $PHOTOS = $product->photos;
-            $CONTENT_ID = $product->id;
-            $PHOTO_MAIN = $product->photo;
-            $PHOTO_FILE_NAME = $product->alias;
-            $PHOTO_UPDATE_TABLE = $this->shop_model->table('_products');
-            require_once APP_PATH.'views/admin/wl_images/_tab-photo.php'; ?>
+            $ADDITIONAL_TABLE_ID = $product->id;
+            $ADDITIONAL_FIELDS = 'author_edit=>user,date_edit=>time';
+            $ADDITIONAL_TABLE = $this->shop_model->table('_products');
+            require_once APP_PATH.'views/admin/wl_images/__tab-photo.php'; ?>
           </div>
           <div class="tab-pane fade" id="tab-video">
-            <?php require_once APP_PATH.'views/admin/wl_video/_tab-video.php'; ?>
+            <?php require_once APP_PATH.'views/admin/wl_video/__tab-video.php'; ?>
+          </div>
+          <div class="tab-pane fade" id="tab-audio">
+            <?php require_once APP_PATH.'views/admin/wl_audio/__tab-audio.php'; ?>
           </div>
         </div>
 
@@ -120,78 +122,21 @@
   </div>
 </div>
 
-<script type="text/javascript" src="<?=SITE_URL?>assets/ckeditor/ckeditor.js"></script>
-<script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
-  <?php if($_SESSION['language']) foreach($_SESSION['all_languages'] as $lng) echo "CKEDITOR.replace( 'editor-{$lng}' ); "; else echo "CKEDITOR.replace( 'editor' ); "; ?>
-    CKFinder.setupCKEditor( null, {
-    basePath : '<?=SITE_URL?>assets/ckfinder/',
-    filebrowserBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html',
-    filebrowserImageBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html?type=Images',
-    filebrowserFlashBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html?type=Flash',
-    filebrowserUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Files',
-    filebrowserImageUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Images',
-    filebrowserFlashUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Flash',
-  });
-</script>
+    var ALIAS_ID = <?=$_SESSION['alias']->id?>;
+    var CONTENT_ID = <?=$_SESSION['alias']->content?>;
+    var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
+    var PHOTO_FILE_NAME = '<?=$product->alias?>';
+    var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
+    var ADDITIONAL_TABLE = '<?=$ADDITIONAL_TABLE?>';
+    var ADDITIONAL_TABLE_ID = <?=$ADDITIONAL_TABLE_ID?>;
+    var ADDITIONAL_FIELDS = '<?=$ADDITIONAL_FIELDS?>';
+    <?php
+    $_SESSION['alias']->js_load[] = 'assets/ckeditor/ckeditor.js';
+    $_SESSION['alias']->js_load[] = 'assets/ckfinder/ckfinder.js';
+    $_SESSION['alias']->js_load[] = 'assets/white-lion/__edit_page.js';
+    ?>
 
-<script type="text/javascript">
-  var data;
-  function save (field, e, lang) {
-    $('#saveing').css("display", "block");
-    var value = '';
-    if(e != false) value = e.value;
-    else value = data;
-
-    $.ajax({
-      url: "<?=SITE_URL?>admin/wl_ntkd/save",
-      type: 'POST',
-      data: {
-        alias: '<?=$_SESSION['alias']->id?>',
-        content: '<?=$product->id?>',
-        field: field,
-        data: value,
-        language: lang,
-        additional_table : '<?=$this->shop_model->table('_products')?>',
-        additional_table_id : '<?=$product->id?>',
-        additional_fields : 'author_edit=>user,date_edit=>time',
-        json: true
-      },
-      success: function(res){
-        if(res['result'] == false){
-            $.gritter.add({title:"Помилка!",text:res['error']});
-        } else {
-          language = '';
-          if(lang) language = lang;
-          $.gritter.add({title:field+' '+language,text:"Дані успішно збережено!"});
-        }
-        $('#saveing').css("display", "none");
-      },
-      error: function(){
-        $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
-        $('#saveing').css("display", "none");
-      },
-      timeout: function(){
-        $.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
-        $('#saveing').css("display", "none");
-      }
-    });
-  }
-  function saveText(lang){
-    if(lang != false){
-      data = CKEDITOR.instances['editor-'+lang].getData();
-    } else {
-      data = CKEDITOR.instances['editor'].getData();
-    }
-    save('text', false, lang);
-  }
-  function showEditTKD (lang) {
-    if($('#tkd-'+lang).is(":hidden")){
-      $('#tkd-'+lang).slideDown("slow");
-      } else {
-      $('#tkd-'+lang).slideUp("fast");
-      }
-  }
   function saveOption (e, label) {
     $('#saveing').css("display", "block");
     $.ajax({

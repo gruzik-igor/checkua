@@ -71,12 +71,13 @@ class groups_model {
 		return $this->db->get('single');
 	}
 
-	public function add(&$alias)
+	public function add(&$alias, &$name)
 	{
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		$data['parent'] = 0;
-		if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] > 0) $data['parent'] = $_POST['parent'];
+		if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] > 0)
+			$data['parent'] = $_POST['parent'];
 		$data['active'] = 1;
 		$data['author_add'] = $_SESSION['user']->id;
 		$data['date_add'] = time();
@@ -93,46 +94,52 @@ class groups_model {
 			$ntkd['alias'] = $_SESSION['alias']->id;
 			$ntkd['content'] = $id;
 			$ntkd['content'] *= -1;
-			if($_SESSION['language']){
+			if($_SESSION['language'])
+			{
 				foreach ($_SESSION['all_languages'] as $lang) {
 					$ntkd['language'] = $lang;
 					$ntkd['name'] = $this->data->post('name_'.$lang);
-					if($lang == $_SESSION['language']){
+					if($lang == $_SESSION['language'])
+					{
 						$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
+						$name = $ntkd['name'];
 					}
 					$this->db->insertRow('wl_ntkd', $ntkd);
 				}
-			} else {
+			}
+			else
+			{
 				$ntkd['name'] = $this->data->post('name');
 				$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 				$this->db->insertRow('wl_ntkd', $ntkd);
+				$name = $ntkd['name'];
 			}
 
 			$data['alias'] = $this->makeLink($data['alias']);
 			$alias = $data['alias'];
-			if($position == 0)	$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
-			else $data['position'] = $position;
+			if($position == 0)
+				$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
+			else
+				$data['position'] = $position;
 			
-			if($this->db->updateRow($this->table(), $data, $id)) return $id;
+			if($this->db->updateRow($this->table(), $data, $id))
+				return $id;
 		}
 		return false;
 	}
 
-	public function save($id, &$alias)
+	public function save($id)
 	{
 		$group = $this->db->getAllDataById($this->table(), $id);
 		if($group)
 		{
 			$data = array('active' => 1);
-			if(isset($_POST['alias']) && $_POST['alias'] != '') {
+			if(isset($_POST['alias']) && $_POST['alias'] != '')
 				$data['alias'] = $this->data->post('alias');
-			}
-			if(isset($_POST['active']) && $_POST['active'] == 0) {
+			if(isset($_POST['active']) && $_POST['active'] == 0)
 				$data['active'] = 0;
-			}
-			if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] >= 0) {
+			if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] >= 0)
 				$data['parent'] = $_POST['parent'];
-			}
 			if (isset($_SESSION['admin_options']['groups:additional_fields']) && $_SESSION['admin_options']['groups:additional_fields'] != '')
 			{
 				$fields = explode(',', $_SESSION['admin_options']['groups:additional_fields']);
@@ -140,14 +147,10 @@ class groups_model {
 					$data[$field] = $this->data->post($field);
 				}
 			}
-			if($group->parent != $data['parent']) {
+			if($group->parent != $data['parent'])
 				$this->changeParent($group->id, $group->parent, $data['parent']);
-			}
 			if($this->db->updateRow($this->table(), $data, $id))
-			{
-				$alias = $data['alias'];
 				return true;
-			}
 		}
 		return false;
 	}
@@ -191,23 +194,6 @@ class groups_model {
 						$this->deleteProductsByGroup($g);
 						$this->db->deleteRow($this->table(), $g);
 						$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$g}'");
-						if($list[$g]->photo > 0){
-							$path = IMG_PATH.$_SESSION['option']->folder.'/groups/';
-							$path = substr($path, strlen(SITE_URL));
-
-							$prefix = array('');
-							$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-							if($sizes){
-								foreach ($sizes as $resize) if($resize->active == 1 && $resize->prefix != ''){
-									$prefix[] = $resize->prefix .'_';
-								}
-							}
-							
-							foreach ($prefix as $p) {
-								$filename = $path.$p.$list[$g]->photo;
-								@unlink ($filename);
-							}
-						}
 					}
 				}
 			}
@@ -227,24 +213,10 @@ class groups_model {
 			$this->db->deleteRow($this->table(), $group->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$group->position}'");
 			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
-			if($group->photo > 0)
-			{
-				$path = IMG_PATH.$_SESSION['option']->folder.'/groups/';
-				$path = substr($path, strlen(SITE_URL));
 
-				$prefix = array('');
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-				if($sizes){
-					foreach ($sizes as $resize) if($resize->active == 1 && $resize->prefix != ''){
-						$prefix[] = $resize->prefix .'_';
-					}
-				}
-				
-				foreach ($prefix as $p) {
-					$filename = $path.$p.$group->photo;
-					@unlink ($filename);
-				}
-			}
+			$path = IMG_PATH.$_SESSION['option']->folder.'/-'.$group->id;
+			$path = substr($path, strlen(SITE_URL));
+			$this->data->removeDirectory($path);
 
 			return true;
 		}
@@ -361,27 +333,15 @@ class groups_model {
 	private function deleteProductsByGroup($group)
 	{
 		$products = $this->db->getAllDataByFieldInArray($this->table('_products'), $group, 'group');
-		if($products) foreach ($products as $a) {
-			$this->db->deleteRow($this->table('_products'), $a->id);
-			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
-			if($a->photo > 0){
-				$path = IMG_PATH.$_SESSION['option']->folder.'/';
-				if(strlen(IMG_PATH) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+		if($products)
+			foreach ($products as $a) {
+				$this->db->deleteRow($this->table('_products'), $a->id);
+				$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
 
-				$prefix = array('');
-				$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-				if($sizes){
-					foreach ($sizes as $resize) if($resize->active == 1 && $resize->prefix != ''){
-						$prefix[] = $resize->prefix .'_';
-					}
-				}
-				
-				foreach ($prefix as $p) {
-					$filename = $path.$p.$a->photo;
-					@unlink ($filename);
-				}
+				$path = IMG_PATH.$_SESSION['option']->folder.'/'.$a->id;
+				$path = substr($path, strlen(SITE_URL));
+				$this->data->removeDirectory($path);
 			}
-		}
 		return true;
 	}
 	

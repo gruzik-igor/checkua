@@ -1,4 +1,4 @@
-<?php if(isset($_SESSION['notify'])){ 
+<?php if(isset($_SESSION['notify'])) { 
 require APP_PATH.'views/admin/notify_view.php';
 } ?>
       
@@ -15,31 +15,33 @@ require APP_PATH.'views/admin/notify_view.php';
                 <h4 class="panel-title"><?=$_SESSION['admin_options']['word:product_add']?></h4>
             </div>
             <div class="panel-body">
-            	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
+            	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data" class="form-horizontal">
 					<input type="hidden" name="id" value="0">
-	                <div class="table-responsive">
-	                    <table class="table table-striped table-bordered nowrap" width="100%">
 	                    	<?php if($_SESSION['option']->ProductUseArticle) { ?>
-	                    		<tr>
-									<th>Артикул</th>
-									<td><input type="text" name="article" value="<?=(isset($_SESSION['post']['article'])) ? $_SESSION['post']['article'] : ''?>" class="form-control" required></td>
-								</tr>
+	                    		<div class="form-group">
+			                        <label class="col-md-3 control-label">Артикул</label>
+			                        <div class="col-md-9">
+			                            <input type="text" class="form-control" name="article" value="<?=$this->data->re_post('article')?>" placeholder="Артикул" required>
+			                        </div>
+			                    </div>
 							<?php } ?>
-						    <tr>
-								<th>Фото</th>
-								<td><input type="file" name="photo" class="form-control"></td>
-							</tr>
-							<?php if($_SESSION['option']->useGroups){
+							<div class="form-group">
+		                        <label class="col-md-3 control-label">Фото</label>
+		                        <div class="col-md-9">
+		                            <input type="file" name="photo">
+		                        </div>
+		                    </div>
+							<?php if($_SESSION['option']->useGroups) {
 								$this->load->smodel('shop_model');
 								$groups = $this->shop_model->getGroups(-1);
-								if($groups){
-
+								if($groups)
+								{
 									$list = array();
 									$emptyChildsList = array();
 									foreach ($groups as $g) {
 										$list[$g->id] = $g;
 										$list[$g->id]->child = array();
-										if(isset($emptyChildsList[$g->id])){
+										if(isset($emptyChildsList[$g->id])) {
 											foreach ($emptyChildsList[$g->id] as $c) {
 												$list[$g->id]->child[] = $c;
 											}
@@ -53,11 +55,12 @@ require APP_PATH.'views/admin/notify_view.php';
 										}
 									}
 
-									echo "<tr><th>Оберіть групу</th><td>";
-									if($_SESSION['option']->ProductMultiGroup && !empty($list)){
+									echo ('<div class="form-group">');
+			                        echo ('<label class="col-md-3 control-label">Оберіть групу</label>');
+			                        echo ('<div class="col-md-9">');
+									if($_SESSION['option']->ProductMultiGroup && !empty($list)) {
 										function showList($all, $list, $parent = 0, $level = 0, $parents = array())
 										{
-
 											$ml = 15 * $level;
 											foreach ($list as $g) if($g->parent == $parent) {
 												$class = '';
@@ -108,7 +111,7 @@ require APP_PATH.'views/admin/notify_view.php';
 													if(empty($g->child)){
 														$selected = '';
 														if(isset($_GET['group']) && $_GET['group'] == $g->id) $selected = 'selected';
-														if(isset($_SESSION['post']['group']) && $_SESSION['post']['group'] == $g->id) $selected = 'selected';
+														if(isset($_SESSION['_POST']['group']) && $_SESSION['_POST']['group'] == $g->id) $selected = 'selected';
 														echo('<option value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
 													} else {
 														echo('<optgroup label="'.$prefix.$g->name.'">');
@@ -127,35 +130,46 @@ require APP_PATH.'views/admin/notify_view.php';
 										}
 										echo('</select>');
 									}
-									echo "</td></tr>";
+									echo "</div></div>";
 								} else { ?>
 									<div class="note note-info">
 										<h4>Увага! В налаштуваннях адреси не створено жодної групи!</h4>
 										<p>
-										    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group">Додати групу</a>
+										    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
 		                                </p>
 									</div>
 								<?php }
 							}
 							if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $lang) { ?>
-								<tr>
-									<th>Назва <?=$lang?></th>
-									<td><input type="text" name="name_<?=$lang?>" value="<?=(isset($_SESSION['post']['name_'.$lang])) ? $_SESSION['post']['name_'.$lang] : ''?>" class="form-control" required></td>
-								</tr>
+								<div class="form-group">
+			                        <label class="col-md-3 control-label">Назва <?=$lang?></label>
+			                        <div class="col-md-9">
+			                            <input type="text" class="form-control" name="name_<?=$lang?>" value="<?=$this->data->re_post('name_'.$lang)?>" placeholder="Назва <?=$lang?>" required>
+			                        </div>
+			                    </div>
 							<?php } else { ?>
-								<tr>
-									<th>Назва</th>
-									<td><input type="text" name="name" value="<?=(isset($_SESSION['post']['name'])) ? $_SESSION['post']['name'] : ''?>" class="form-control" required></td>
-								</tr>
+								<div class="form-group">
+			                        <label class="col-md-3 control-label">Назва</label>
+			                        <div class="col-md-9">
+			                            <input type="text" class="form-control" name="name" value="<?=$this->data->re_post('name')?>" placeholder="Назва" required>
+			                        </div>
+			                    </div>
 							<?php } ?>
-							<tr>
-								<th>Ціна</th>
-								<td><input type="number" name="price" value="<?=(isset($_SESSION['post']['price'])) ? $_SESSION['post']['price'] : 0?>" min="0" step="0.01" class="form-control" required></td>
-							</tr>
-							<tr>
-								<td></td>
-								<td><input type="submit" class="btn btn-sm btn-success" value="Додати"></td>
-							</tr>
+							<div class="form-group">
+		                        <label class="col-md-3 control-label">Ціна</label>
+		                        <div class="col-md-9">
+			                        <div class="input-group">
+			                            <input type="number" class="form-control" name="price" value="<?=$this->data->re_post('price', 0)?>" placeholder="99.99" min="0" step="0.01" required>
+			                            <span class="input-group-addon">y.o.</span>
+			                        </div>
+		                        </div>
+		                    </div>
+							<div class="form-group">
+		                        <label class="col-md-3 control-label"></label>
+		                        <div class="col-md-9">
+		                            <button type="submit" class="btn btn-sm btn-success">Додати</button>
+		                        </div>
+		                    </div>
 	                    </table>
 	                </div>
 	            </form>
@@ -163,9 +177,6 @@ require APP_PATH.'views/admin/notify_view.php';
         </div>
     </div>
 </div>
-<?php unset($_SESSION['post']) ?>
-
-
 
 <script>
 	function setChilds (parent) {

@@ -10,9 +10,11 @@
             </div>
 
             <?php
-            if(isset($_SESSION['notify'])){ 
+            if(isset($_SESSION['notify'])) { 
 	        	require APP_PATH.'views/admin/notify_view.php';
 	        }
+
+	        if(!empty($groups)) {
             ?>
 
             <div class="panel-body">
@@ -30,7 +32,7 @@
                             </tr>
                         </thead>
                         <tbody>
-							<?php if(!empty($groups)){
+							<?php 
 								$list = array();
 								$emptyParentsList = array();
 								$count_level_0 = 0;
@@ -54,7 +56,7 @@
 								if(!empty($list)){
 									function showList($all, $list, $count_childs, $parent = 0, $level = 0)
 									{
-										$pl = 15 * $level;
+										$pl = 15 * $level + 5;
 										$ml = 10 * $level;
 										foreach ($list as $g) if($g->parent == $parent) { ?>
 											<tr>
@@ -67,7 +69,7 @@
 												<td style="padding: 1px 5px;">
 													<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 														<input type="hidden" name="id" value="<?=$g->id?>">
-														<input type="number" name="position" min="1" max="<?=$count_childs?>" value="<?=$g->position?>" onchange="this.form.submit();" autocomplete="off" style="margin-left: <?=$ml?>px">
+														<input type="number" name="position" min="1" max="<?=$count_childs?>" value="<?=$g->position?>" onchange="this.form.submit();" autocomplete="off" style="height:35px; padding-left:5px; min-width:80px; margin-left: <?=$ml?>px">
 													</form>
 												</td>
 											</tr>
@@ -85,11 +87,19 @@
 									}
 									showList($list, $list, $count_level_0);
 								}
-							} ?>
+							?>
                         </tbody>
                     </table>
                 </div>
             </div>
+            <?php } else { ?>
+            	<div class="note note-info">
+					<h4>Увага! В налаштуваннях адреси не створено жодної групи!</h4>
+					<p>
+					    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
+	                </p>
+				</div>
+			<?php } ?>
         </div>
     </div>
 </div>

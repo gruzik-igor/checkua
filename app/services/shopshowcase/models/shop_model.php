@@ -239,26 +239,17 @@ class shop_model {
             foreach ($products as $product)
             {
             	$product->link = $_SESSION['alias']->alias.'/'.$product->alias;
-            	$product->photos = $this->getProductPhotos($product->id);
             	$product->options = $this->getProductOptions($product);
-            	if($product->photo != '')
+            	$product->photo = null;
+
+            	if($photo = $this->getProductPhoto($product->id))
             	{
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$resize_name = $resize->prefix.'_photo';
-							$product->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$product->photo;
+					if($sizes = $this->db->getAliasImageSizes())
+						foreach ($sizes as $resize) {
+							$resize_name = $resize->prefix.'_path';
+							$photo->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
-						if(!empty($product->photos))
-						{
-							foreach ($product->photos as $photo) {
-								foreach ($sizes as $resize) if($resize->active == 1){
-									$resize_name = $resize->prefix.'_file_address';
-									$photo->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
-								}
-							}
-						}
-					}
-					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$product->photo;
+					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$photo->file_name;
             	}
 
 				$product->parents = array();
@@ -273,7 +264,8 @@ class shop_model {
 						}
 						$product->group_link = $_SESSION['alias']->alias . $link;
 						$product->link = $_SESSION['alias']->alias . $link . $product->alias;
-					} elseif($_SESSION['option']->ProductMultiGroup == 1)
+					}
+					elseif($_SESSION['option']->ProductMultiGroup == 1)
 					{
 						$product->group = array();
 
@@ -332,39 +324,11 @@ class shop_model {
 		$product = $this->db->get('single');
         if($product)
         {
-        	if(isset($_SESSION['alias']->breadcrumbs))
-        	{
-        		$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
-        	}
         	$product->link = $_SESSION['alias']->alias.'/'.$product->alias;
-
+        	if(isset($_SESSION['alias']->breadcrumbs))
+        		$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
         	if($all_info)
-        	{
-        		$product->photos = $this->getProductPhotos($product->id);
         		$product->options = $this->getProductOptions($product);
-			
-	        	if($product->photo != '')
-	        	{
-					$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$resize_name = $resize->prefix.'_photo';
-							$product->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$product->photo;
-						}
-						if(!empty($product->photos))
-						{
-							foreach ($product->photos as $photo) {
-								$photo->file_address = $_SESSION['option']->folder.'/'.$product->id.'/'.$photo->file_name;
-								foreach ($sizes as $resize) if($resize->active == 1){
-									$resize_name = $resize->prefix.'_file_address';
-									$photo->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
-								}
-							}
-						}
-					}
-					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$product->photo;
-	        	}
-	        }
 
 			$product->parents = array();
 			if($_SESSION['option']->useGroups > 0)
@@ -414,13 +378,15 @@ class shop_model {
 		return null;
 	}
 
-	public function getProductPhotos($product)
+	public function getProductPhoto($product)
 	{
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $product;
 		$this->db->select('wl_images', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#author');
-		return $this->db->get('array');
+		$this->db->order('main DESC');
+		$this->db->limit(1);
+		return $this->db->get();
 	}
 
 	private function getProductOptions($product)
@@ -429,7 +395,8 @@ class shop_model {
 		$where_language = '';
         if($_SESSION['language']) $where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
 		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} ORDER BY go.position");
-		if($this->db->numRows() > 0){
+		if($this->db->numRows() > 0)
+		{
 			$options = $this->db->getRows('array');
 			foreach ($options as $option) if($option->value != '') {
 				@$product_options[$option->alias]->id = $option->id;
@@ -504,31 +471,28 @@ class shop_model {
 			@$_SESSION['option']->count_all_products = $this->db->get('count');
 
             $list = array();
+            $sizes = $this->db->getAliasImageSizes();
             $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
             foreach ($groups as $Group) {
             	$list[$Group->id] = clone $Group;
             }
 
-			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-
             foreach ($categories as $Group) {
             	$Group->link = $_SESSION['alias']->alias.'/'.$Group->alias;
-            	if($Group->parent > 0) {
+            	$Group->photo = false;
+            	if($Group->parent > 0)
             		$Group->link = $_SESSION['alias']->alias.'/'.$this->makeLink($list, $Group->parent, $Group->alias);
-            	}
-
-            	if($Group->photo != '')
+            	
+            	if($photo = $this->getProductPhoto(-$Group->id))
             	{
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$resize_name = $resize->prefix.'_photo';
-							$Group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$Group->photo;
+					if($sizes)
+						foreach ($sizes as $resize) {
+							$resize_name = $resize->prefix.'_path';
+							$photo->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
-					}
-					$Group->photo = $_SESSION['option']->folder.'/groups/'.$Group->photo;
+					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
             }
-
             return $categories;
 		}
 		else

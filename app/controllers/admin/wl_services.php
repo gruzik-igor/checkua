@@ -124,7 +124,7 @@ class wl_services extends Controller {
                                             $this->data->removeDirectory($path);
                                         }
                                     }
-                                    if(method_exists("install", "alias_delete")) $install->alias_delete($alias->id, $alias->table);
+                                    if(method_exists("install", "alias_delete")) $install->alias_delete($alias->id, $alias->table, true);
       
                                     $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias1');
                                     $this->db->deleteRow('wl_aliases_cooperation', $alias->id, 'alias2');

@@ -34,10 +34,10 @@ class install {
 		return true;
 	}
 
-	public function alias_delete($alias = 0, $table = '')
+	public function alias_delete($alias = 0, $table = '', $uninstall_service = false)
 	{
-		$this->db->deleteRow($this->table_service, $alias);
-			
+		if(!$uninstall_service)
+			$this->db->deleteRow($this->table_service, $alias);
 		return true;
 	}
 

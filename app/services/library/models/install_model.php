@@ -73,28 +73,29 @@ class install
 		return true;
 	}
 
-	public function alias_delete($alias = 0, $table = '')
+	public function alias_delete($alias = 0, $table = '', $uninstall_service = false)
 	{
-		$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
-		if(!empty($articles))
+		if(!$uninstall_service)
 		{
-			$this->db->deleteRow($this->table_service.'_articles', $alias, 'wl_alias');
+			$articles = $this->db->getAllDataByFieldInArray($this->table_service.'_articles', $alias, 'wl_alias');
+			if(!empty($articles))
+			{
+				$this->db->deleteRow($this->table_service.'_articles', $alias, 'wl_alias');
+				if($this->options['useGroups'] > 0)
+					$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+				
+				if($this->options['articleMultiGroup'] > 0)
+					foreach ($articles as $article) {
+						$this->db->deleteRow($this->table_service.'_article_group', $article->id, 'article');
+					}
+			}
 			if($this->options['useGroups'] > 0)
-				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
-			
-			if($this->options['articleMultiGroup'] > 0)
-				foreach ($articles as $article) {
-					$this->db->deleteRow($this->table_service.'_article_group', $article->id, 'article');
-				}
+			{
+				$groups = $this->db->getAllDataByFieldInArray($this->table_service.'_groups', $alias, 'wl_alias');
+				if(!empty($groups))
+					$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
+			}
 		}
-
-		if($this->options['useGroups'] > 0)
-		{
-			$groups = $this->db->getAllDataByFieldInArray($this->table_service.'_groups', $alias, 'wl_alias');
-			if(!empty($groups))
-				$this->db->deleteRow($this->table_service.'_groups', $alias, 'wl_alias');
-		}
-
 		return true;
 	}
 

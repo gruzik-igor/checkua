@@ -226,24 +226,24 @@ class wl_aliases extends Controller {
 
                                 if(!empty($install->options))
                                 {
-                                    $options = array();
-
-                                    foreach ($install->options as $option => $value) {
-                                        $options[$option] = $value;
-                                    }
-
                                     $option = array();
                                     $option['service'] = $data['service'];
                                     $option['alias'] = $alias;
 
-                                    $reserved = array('id', 'service', 'alias', 'name');
-                                    foreach ($_POST as $key => $value) {
-                                        if(!in_array($key, $reserved) && isset($options[$key]) && $options[$key] != $value)
+                                    foreach ($install->options as $key => $value) {
+                                        if(isset($_POST[$key]) && $_POST[$key] != $value)
                                         {
                                             $option['name'] = $key;
-                                            $option['value'] = $value;
+                                            $option['value'] = $_POST[$key];
                                             $this->db->insertRow('wl_options', $option);
-                                            $install->options[$key] = $value;
+                                            $install->options[$key] = $_POST[$key];
+                                        }
+                                        else if(!isset($_POST[$key]) && $value != 0)
+                                        {
+                                            $option['name'] = $key;
+                                            $option['value'] = 0;
+                                            $this->db->insertRow('wl_options', $option);
+                                            $install->options[$key] = 0;
                                         }
                                     }
 
@@ -253,6 +253,7 @@ class wl_aliases extends Controller {
                                         $path = substr($path, strlen(SITE_URL));
                                         if(!is_dir($path)) mkdir($path, 0777);
 
+                                        if(!is_dir('audio')) mkdir('audio', 0777);
                                         $path = 'audio'.DIRSEP.$install->options['folder'];
                                         if(!is_dir($path)) mkdir($path, 0777);
                                     }

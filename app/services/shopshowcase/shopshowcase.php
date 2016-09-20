@@ -36,16 +36,12 @@ class shopshowcase extends Controller {
 
 			if($type == 'product' && $product && ($product->active == 1 || $this->userCan($_SESSION['alias']->alias)))
 			{
-				$this->load->model('wl_ntkd_model');
-				$this->wl_ntkd_model->setContent($product->id);
-				$videos = $this->wl_ntkd_model->getVideosFromText();
-				if($videos)
+				$this->wl_alias_model->setContent($product->id);
+				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				$_SESSION['alias']->image = $product->photo;
-				
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
 
@@ -71,15 +67,12 @@ class shopshowcase extends Controller {
 					$group->link = $link;
 				}
 
-				$this->load->model('wl_ntkd_model');
-				$this->wl_ntkd_model->setContent(($group->id * -1));
-				$videos = $this->wl_ntkd_model->getVideosFromText();
-				if($videos)
+				$this->wl_alias_model->setContent(($group->id * -1));
+				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				$_SESSION['alias']->image = $group->photo;
 				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
 				$groups = $this->shop_model->getGroups($group->id);
@@ -91,6 +84,7 @@ class shopshowcase extends Controller {
 		}
 		else
 		{
+			$this->wl_alias_model->setContent();
 			$products = $this->shop_model->getProducts();
 			if($_SESSION['option']->useGroups)
 			{

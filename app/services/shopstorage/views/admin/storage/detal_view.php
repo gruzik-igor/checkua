@@ -41,8 +41,16 @@ require APP_PATH.'views/admin/notify_view.php';
 							<td><?=$product->price_in?></td>
 						</tr>
 						<tr>
-							<th>Кількість / залишок</th>
+							<th>Загальна наявність</th>
 							<td><?=$product->amount?></td>
+						</tr>
+						<tr>
+							<th>Резервовано</th>
+							<td><?=$product->amount_reserved?></td>
+						</tr>
+						<tr>
+							<th>Доступно</th>
+							<td><strong><?=$product->amount_free?></strong></td>
 						</tr>
 						<?php if($_SESSION['option']->markUpByUserTypes) { ?>
 							<tr>
@@ -53,22 +61,27 @@ require APP_PATH.'views/admin/notify_view.php';
 							$price_out = 0;
 							if(is_numeric($product->price_out)) $price_out = $product->price_out;
 							else $product->price_out = unserialize($product->price_out);
-							foreach($groups as $group){ ?>
+							foreach($groups as $group) if($group->id > 1) { ?>
 								<tr>
 									<td><?=$group->title?></td>
 									<td><?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?></td>
 								</tr>
-							<?php }
-						} else { ?>
+							<?php } ?>
+							<tr>
+								<td>Неавторизований користувач / гість</td>
+								<td><?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?></td>
+							</tr>
+						<?php } else { ?>
 							<tr>
 								<th>Ціна вихідна</th>
 								<td><?=$product->price_out?></td>
 							</tr>
-						<?php } ?>
+						<?php } /* ?>
 						<tr>
 							<th>Дата приходу</th>
 							<td><?=date('d.m.Y', $product->date_in)?></td>
 						</tr>
+						*/ ?>
 						<tr>
 							<th>Дата останньої операції</th>
 							<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>

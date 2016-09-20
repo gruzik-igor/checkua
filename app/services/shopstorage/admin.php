@@ -25,31 +25,65 @@ class shopstorage extends Controller {
     	$this->load->smodel('storage_model');
     	if(is_numeric($uri))
     	{
-    		$product = $this->storage_model->getProduct($uri, false);
+    		$product = $this->storage_model->getProduct($uri, -1);
     		if($product)
     		{
     			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Накладна #'.$uri => '');
 				$_SESSION['alias']->name .= '. Накладна #'.$uri;
 
     			$product->info = $this->getProduct('id', $product->product);
-    			$product->history = $this->storage_model->getProducts($product->product);
+    			$product->history = $this->storage_model->getProducts($product->product, true);
     			$this->load->admin_view('storage/detal_view', array('product' => $product));
     		}
     		$this->load->page_404();
     	}
     	else
     	{
+    		$invoices = false;
     		$_SESSION['option']->paginator_per_page = 50;
-	    	$products = $this->storage_model->getProducts();
-	    	if($products)
-	    	{
-	    		foreach ($products as $product) {
-	    			$product->info = $this->getProduct('id', $product->product);
-	    		}
-	    	}
-	    	$this->load->admin_view('storage/list_view', array('products' => $products));
+    		if(isset($_GET['article']))
+    		{
+    			$products = $this->getProduct('article', $this->data->get('article'));
+    			if($products) 
+    			{
+    				foreach ($products as $product) {
+				    	$invoicesProduct = $this->storage_model->getProducts($product->id, -1);
+				    	if($invoicesProduct)
+				    	{
+				    		foreach ($invoicesProduct as $invoice) {
+				    			$invoice->info = $product;
+				    			$invoices[] = clone $invoice;
+				    		}
+				    	}
+				    }
+    			}
+    		}
+    		elseif(isset($_GET['id']))
+    		{
+    			$product = $this->getProduct('id', $this->data->get('id'));
+    			if($product) 
+    			{
+			    	$invoices = $this->storage_model->getProducts($product->id, -1);
+			    	if($invoices)
+			    	{
+			    		foreach ($invoices as $invoice) {
+			    			$invoice->info = $product;
+			    		}
+			    	}
+    			}
+    		}
+    		else
+    		{
+    			$invoices = $this->storage_model->getProducts(0, -1);
+		    	if($invoices)
+		    	{
+		    		foreach ($invoices as $product) {
+		    			$product->info = $this->getProduct('id', $product->product);
+		    		}
+		    	}
+    		}
+	    	$this->load->admin_view('storage/list_view', array('invoices' => $invoices));
     	}
-    	
     }
 	
 	public function add()
@@ -72,7 +106,7 @@ class shopstorage extends Controller {
 			$_SESSION['alias']->name = 'Редагувати накладну'.$id;
 
     		$this->load->smodel('storage_model');
-    		$product = $this->storage_model->getProduct($id);
+    		$product = $this->storage_model->getProduct($id, -1);
     		if($product)
     		{
     			$product->info = $this->getProduct('id', $product->product);
@@ -230,6 +264,68 @@ class shopstorage extends Controller {
 		$this->redirect();
 	}
 
+	public function update()
+	{
+		$_SESSION['notify'] = new stdClass();
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
+
+		try
+		{
+			$ext = explode('.', $_FILES['price']['name']);
+			$ext = end($ext);
+			$path = 'upload/'.$_SESSION['alias']->alias.'.'.$ext;
+			if(move_uploaded_file($_FILES['price']['tmp_name'], $path))
+			{
+				$Spreadsheet = new SpreadsheetReader($path);
+				$BaseMem = memory_get_usage();
+				$Time = microtime(true);
+
+				$this->load->smodel('import_model');
+				$function = $_SESSION['alias']->alias;
+				if(method_exists($this->import_model, $function))
+				{
+					if($this->import_model->$function($Spreadsheet))
+					{
+						$CurrentMem = memory_get_usage();
+						$_SESSION['notify']->success = 'Інформацію успішно імпортовано!';
+						$memoty = round(($CurrentMem - $BaseMem)/1024, 2);
+						if($memoty > 1024) $memoty = round($memoty / 1024, 2) . ' Мб';
+						else $memoty .= ' Кб';
+						$_SESSION['import'] = 'Використано пам\'яті: '.$memoty.' <br>';
+						$_SESSION['import'] .= 'Час: '.ceil(microtime(true) - $Time).' сек <br>';
+						$_SESSION['import'] .= 'Оновлено товарів на складі: '.$this->import_model->updated.' <br>';
+						$_SESSION['import'] .= 'Додано товарів на склад: '.$this->import_model->insertedStorage.' <br>';
+						$_SESSION['import'] .= 'Додано нових товарів: '.$this->import_model->inserted.' <br>';
+						$_SESSION['import'] .= 'Видалено: '.$this->import_model->deleted;
+						if(!empty($this->import_model->errors))
+						{
+							$_SESSION['import'] .= '<hr>УВАГА! Проблемні номера: <br>';
+							$_SESSION['import'] .= implode(' <br>', $this->import_model->errors);
+						}
+					}
+					else
+					{
+						$_SESSION['notify']->errors = 'Перевірте коректність файлу! Ймовірно він з іншого складу або має помилку формату.';
+					}
+				}
+				else
+				{
+					$_SESSION['notify']->errors = 'Імпорт файлів для даного складу не налаштовано! Зверніться до розробників.';
+				}
+			}
+			else
+			{
+				$_SESSION['notify']->errors = 'Помилка копіювання прайсу! Зверніться до розробників.';
+			}
+		}
+		catch (Exception $E)
+		{
+			$_SESSION['notify']->errors = $E -> getMessage();
+		}
+		$this->redirect();
+	}
+
 	public function getProductByArticle()
 	{
 		$product = $this->getProduct('article', $this->data->post('product'));
@@ -250,8 +346,9 @@ class shopstorage extends Controller {
 			foreach ($cooperation as $shop) {
 				if($shop->type == 'storage')
 				{
-					$product = $this->load->function_in_alias($shop->alias1, '__get_Product', array($key => $id, 'key' => $key));
-					if($product) return $product;
+					
+					if($key == 'article') return $this->load->function_in_alias($shop->alias1, '__get_Products', array($key => $id));
+					else return $this->load->function_in_alias($shop->alias1, '__get_Product', array($key => $id, 'key' => $key));
 				}
 			}
 		}

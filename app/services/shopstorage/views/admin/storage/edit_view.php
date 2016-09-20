@@ -40,11 +40,15 @@ require APP_PATH.'views/admin/notify_view.php';
 								<?php } ?>
 								<tr>
 									<th>Ціна прихідна</th>
-									<td><input type="number" name="price_in" id="price_in" value="<?=$product->price_in?>" min="0" onchange="setPrice(this.value)" class="form-control" required></td>
+									<td><input type="number" name="price_in" id="price_in" value="<?=$product->price_in?>" min="0" onchange="setPrice(this.value)" step="0.01" class="form-control" required></td>
 								</tr>
 								<tr>
-									<th>Кількість</th>
-									<td><input type="number" name="amount" value="<?=$product->amount?>" min="1" class="form-control" required></td>
+									<th>Загальна наявність</th>
+									<td><input type="number" name="amount" value="<?=$product->amount?>" min="0" class="form-control" required></td>
+								</tr>
+								<tr>
+									<th>Резервовано</th>
+									<td><input type="number" name="amount_reserved" value="<?=$product->amount_reserved?>" min="0" class="form-control" required></td>
 								</tr>
 								<?php if($_SESSION['option']->markUpByUserTypes) { ?>
 									<tr>
@@ -55,15 +59,21 @@ require APP_PATH.'views/admin/notify_view.php';
 									$price_out = 0;
 									if(is_numeric($product->price_out)) $price_out = $product->price_out;
 									else $product->price_out = unserialize($product->price_out);
-									foreach($groups as $group){ ?>
+									foreach($groups as $group) if($group->id > 1) { ?>
 										<tr>
 											<td><?=$group->title?> (Націнка <?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?>%)</td>
 											<td>
 												<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="<?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?>" min="0" step="0.01" class="form-control price_out">
 											</td>
 										</tr>
-									<?php }
-								} else { ?>
+									<?php } ?>
+									<tr>
+										<td>Неавторизований користувач / гість (Націнка <?=(isset($storage->markup[0]))?$storage->markup[0] : 0 ?>%)</td>
+										<td>
+											<input type="number" name="price_out-0" id="price_out-0" value="<?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?>" min="0" step="0.01" class="form-control price_out">
+										</td>
+									</tr>
+								<?php } else { ?>
 									<tr>
 										<th>Ціна вихідна</th>
 										<td>
@@ -71,11 +81,12 @@ require APP_PATH.'views/admin/notify_view.php';
 											<input type="hidden" id="markup" value="<?=(isset($storage->markup))?$storage->markup : 0?>">
 										</td>
 									</tr>
-								<?php } ?>
+								<?php } /* ?>
 								<tr>
 									<th>Дата приходу</th>
 									<td><input type="text" name="date_in" value="<?=date('d.m.Y', $product->date_in)?>" class="form-control" required></td>
 								</tr>
+								*/ ?>
 								<tr>
 									<th>Дата останньої операції</th>
 									<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
@@ -241,7 +252,9 @@ require APP_PATH.'views/admin/notify_view.php';
 function setPrice(price) {
 	<?php if($_SESSION['option']->markUpByUserTypes) { foreach($groups as $group){ ?>
 		$('#price_out-<?=$group->id?>').val(<?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?> * price / 100 + Math.floor(price));
-	<?php } } else { ?>
+	<?php } ?>
+		$('#price_out-0').val((<?=(isset($storage->markup[0]))?$storage->markup[0] : 0?> * price / 100 + Math.floor(price)).toFixed(2));
+	<?php } else { ?>
 		$('#price_out').val(<?=(isset($storage->markup))?$storage->markup : 0?> * price / 100 + Math.floor(price));
 	<?php } ?>
 }

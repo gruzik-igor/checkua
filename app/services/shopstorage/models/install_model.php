@@ -21,7 +21,7 @@ class install
 					'word:product_to' => 'товару',
 					'word:product' => 'товар'
 				);
-	public $sub_menu = array("add" => "Додати товар", "options" => "Властивості");
+	public $sub_menu = array("add" => "Додати карточку товару", "options" => "Властивості");
 
 	public $cooperation_index = 2;
 	public $cooperation_types = array('storage' => 'Склад');
@@ -109,12 +109,29 @@ class install
 					  `currency_in` tinyint(2) NOT NULL,
 					  `currency_out` tinyint(2) NOT NULL,
 					  `amount` int(11) NOT NULL,
+					  `amount_reserved` int(11) NOT NULL,
 					  `date_in` int(11) NOT NULL,
 					  `date_out` int(11) NOT NULL,
 					  `manager_add` int(11) NOT NULL,
 					  `date_add` int(11) NOT NULL,
 					  `manager_edit` int(11) NOT NULL,
 					  `date_edit` int(11) NOT NULL,
+					  PRIMARY KEY (`id`),
+					  UNIQUE KEY `id` (`id`)
+					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
+		$this->db->executeQuery($query);
+
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_updates` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `storage` int(11) NOT NULL,
+					  `file` int(11) NOT NULL,
+					  `price_for_1` float UNSIGNED NOT NULL,
+					  `currency` varchar(3) NOT NULL,
+					  `inserted` int(11) NOT NULL,
+					  `updated` int(11) NOT NULL,
+					  `deleted` int(11) NOT NULL,
+					  `manager` int(11) NOT NULL,
+					  `date` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";

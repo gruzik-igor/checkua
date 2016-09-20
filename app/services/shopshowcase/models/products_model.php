@@ -49,7 +49,8 @@ class products_model {
 
 		$this->db->select($this->table().' as p', '*', $where);
 		
-		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
+		$this->db->join('wl_users as aa', 'name as author_add_name', '#p.author_add');
+		$this->db->join('wl_users as e', 'name as author_edit_name', '#p.author_edit');
 
 		if($_SESSION['option']->useAvailability > 0)
 		{
@@ -130,7 +131,8 @@ class products_model {
 	{
 		$this->db->select($this->table().' as p', '*', array('wl_alias' => $_SESSION['alias']->id, 'id' => $id));
 
-		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
+		$this->db->join('wl_users as aa', 'name as author_add_name', '#p.author_add');
+		$this->db->join('wl_users as e', 'name as author_edit_name', '#p.author_edit');
 
 		if($_SESSION['option']->useAvailability)
 		{

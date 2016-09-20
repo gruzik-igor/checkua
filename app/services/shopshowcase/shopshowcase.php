@@ -142,7 +142,7 @@ class shopshowcase extends Controller {
 			$key = 'id';
 			if(isset($_GET['article']))
 			{
-				$id = $this->data->get('article');
+				$id = $this->makeArticle($this->data->get('article'));
 				$key = 'article';
 			}
 			else
@@ -150,9 +150,20 @@ class shopshowcase extends Controller {
 				$id = $this->data->get('id');
 			}
 			$product = $this->shop_model->getProduct($id, $key, false);
-			if($product)
+			$products = $this->shop_model->getProducts('%'.$id);
+
+			if($this->userIs() && !$this->userCan())
 			{
-				$this->redirect($product->link);
+				if($product)
+					$this->shop_model->searchHistory($product->id);
+				else
+					$this->shop_model->searchHistory(0, $id);
+			}
+
+			if($product || count($products) > 0)
+			{
+				$link = $product ? $product->link : $products[0]->link;
+				$this->load->page_view('detal_view', array('product' => $product, 'products' => $products));
 			}
 			else
 			{
@@ -175,7 +186,7 @@ class shopshowcase extends Controller {
 		{
 			if(isset($id['key'])) $key = $id['key'];
 			if(isset($id['id'])) $id = $id['id'];
-			if(isset($id['article'])) $id = $id['article'];
+			elseif(isset($id['article'])) $id = $id['article'];
 		}
 		$this->load->smodel('shop_model');
 		return $this->shop_model->getProduct($id, $key);
@@ -184,7 +195,8 @@ class shopshowcase extends Controller {
 	public function __get_Products($data = array())
 	{
 		$group = 0;
-		if(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
+		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
+		elseif(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];
 
 		$this->load->smodel('shop_model');
@@ -203,6 +215,15 @@ class shopshowcase extends Controller {
 		$group = 0;
 		if(isset($data['group'])) $group = $data['group'];
 		return $this->db->getQuery("SELECT o.*, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id WHERE o.group = -{$group}", 'array');
+	}
+
+	private function makeArticle($article)
+	{
+		$article = (string) $article;
+		$article = trim($article);
+		$article = strtoupper($article);
+		$article = str_replace('-', '', $article);
+		return str_replace(' ', '', $article);
 	}
 	
 }

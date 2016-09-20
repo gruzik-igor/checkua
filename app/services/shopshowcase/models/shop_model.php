@@ -52,7 +52,11 @@ class shop_model {
 			$where['active'] = 1;
 		}
 
-		if($_SESSION['option']->useGroups > 0)
+		if($_SESSION['option']->ProductUseArticle > 0 && is_string($Group) && $Group[0] == '%')
+		{
+			$where['article'] = $Group;
+		}
+		elseif($_SESSION['option']->useGroups > 0)
 		{
 			if(is_array($Group) && !empty($Group))
 			{
@@ -525,17 +529,16 @@ class shop_model {
 		$this->db->select($this->table('_groups') .' as c', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
 		$group = $this->db->get('single');
-		if($group && $group->photo > 0)
-		{
-			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-			if($sizes) {
-				foreach ($sizes as $resize) if($resize->active == 1){
-					$resize_name = $resize->prefix.'_photo';
-					$group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$group->photo;
-				}
-			}
-			$group->photo = $_SESSION['option']->folder.'/groups/'.$group->photo;
-		}
+		if($group)
+			if($photo = $this->getProductPhoto(-$group->id))
+        	{
+				if($sizes = $this->db->getAliasImageSizes())
+					foreach ($sizes as $resize) {
+						$resize_name = $resize->prefix.'_path';
+						$photo->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+					}
+				$group->photo = $_SESSION['option']->folder.'/-'.$group->id.'/'.$photo->file_name;
+        	}
 		return $group;
 	}
 
@@ -673,6 +676,30 @@ class shop_model {
 		$link = $all[$parent]->alias .'/'.$link;
 		if($all[$parent]->parent > 0) $link = $this->makeLink ($all, $all[$parent]->parent, $link);
 		return $link;
+	}
+
+	public function searchHistory($product_id, $product_article = NULL)
+	{
+		$data['user'] = $_SESSION['user']->id;
+		$data['date'] = strtotime('today');
+
+		if($product_id > 0)
+			$data['product_id'] = $product_id;
+		else
+			$data['product_article'] = $product_article;
+
+		$search = $this->db->getAllDataById($this->table('_search_history'), $data);
+		if($search)
+		{
+			$this->db->updateRow($this->table('_search_history'), array('count_per_day' => $search->count_per_day + 1, 'last_view' => time()), $search->id);
+			return true;
+		}
+
+		$data['product_id'] = $product_id;
+		$data['product_article'] = $product_article;
+		$data['last_view'] = time();
+		$data['count_per_day'] = 1;
+		$this->db->insertRow($this->table('_search_history'), $data);
 	}
 	
 }

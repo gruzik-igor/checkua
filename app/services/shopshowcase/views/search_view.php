@@ -27,21 +27,8 @@
 
 					<a href="<?=SITE_URL.'admin/wl_ntkd/'.$_SESSION['alias']->alias?><?=(isset($group))?'/-'.$group->id:''?>" class="btn btn-info btn-xs">SEO</a>
                 </div>
-                <h4 class="panel-title"><?=(isset($group))?$_SESSION['alias']->name .'. Список '.$_SESSION['admin_options']['word:products_to_all']:'Список всіх '.$_SESSION['admin_options']['word:products_to_all']?></h4>
+                <h4 class="panel-title"><?=$_SESSION['alias']->name .'. Пошук '.$_SESSION['admin_options']['word:products_to_all']?></h4>
             </div>
-            <?php if(isset($group)) { ?>
-                <div class="panel-heading">
-	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
-						<?php if(!empty($group->parents)) {
-							$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
-							foreach ($group->parents as $parent) { 
-								$link .= '/'.$parent->link;
-								echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
-							}
-						} ?>
-						<span class="btn btn-warning btn-xs"><?=$_SESSION['alias']->name?></span> 
-	            </div>
-	        <?php } ?>
             <div class="panel-body">
                 <div class="table-responsive">
                     <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">

@@ -1,45 +1,35 @@
 <?php
-	$h1 = '';
   $ntkd = array();
   $where_ntkd['alias'] = $_SESSION['alias']->id;
   $where_ntkd['content'] = $product->id;
   $wl = $this->db->getAllDataByFieldInArray('wl_ntkd', $where_ntkd);
-  if($wl){
-  	if($_SESSION['language']){
+  if($wl)
+  {
+  	if($_SESSION['language'])
   		foreach ($wl as $nt) {
-	      	$ntkd[$nt->language] = $nt;
-	      	if($_SESSION['language'] == $nt->language) $h1 = $nt->name;
+	      $ntkd[$nt->language] = $nt;
 	    }
-  	} else {
-  		$ntkd = NULL;
+    else
   		$ntkd = $wl[0];
-  		$h1 = $ntkd->name;
-  	}
-
   }
-
-  $options_parents = array();
-  if($_SESSION['option']->useGroups && isset($list)){
-    $parent = $product->group;
-    while ($parent != 0) {
-      array_unshift($options_parents, $parent);
-      $parent = $list[$parent]->parent;
-    }
-  }
-  array_unshift($options_parents, 0);
   
   $product_options = array();
   $options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
-  if($options){
+  if($options)
+  {
     foreach ($options as $option) {
-      if($option->language != '' && in_array($option->language, $_SESSION['all_languages'])){
+      if($option->language != '' && in_array($option->language, $_SESSION['all_languages']))
         $product_options[$option->option][$option->language] = $option->value;
-      } else {
+      else
         $product_options[$option->option] = $option->value;
-      }
     }
   }
 
+  $storages = array();
+  if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+    foreach ($cooperation as $c) {
+      if($c->type == 'storage') $storages[] = $c->alias2;
+    }
 ?>
 <div class="row">
   <div class="col-md-12">
@@ -73,13 +63,17 @@
         </form>
       </div>
 
-      <?php if(isset($_SESSION['notify'])) { 
+      <?php if(isset($_SESSION['notify'])) {
         require APP_PATH.'views/admin/notify_view.php';
       } ?>
 
       <div class="panel-body">
         <ul class="nav nav-tabs">
-          <li class="active"><a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
+          <?php if(!empty($storages)) { ?>
+            <li class="active"><a href="#tab-storages" data-toggle="tab" aria-expanded="true">Склад</a></li>
+            <li>
+          <?php } else echo '<li class="active">'; ?>
+            <a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
           <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
           	<li><a href="#tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
           <?php } } else { ?>
@@ -90,8 +84,14 @@
           <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
         </ul>
         <div class="tab-content">
-          <div class="tab-pane fade active in" id="tab-main">
-            <?php require_once 'edit_tabs/tab-main.php'; ?>
+          <?php if(!empty($storages)) { ?>
+            <div class="tab-pane fade active in" id="tab-storages">
+              <?php require 'edit_tabs/tab-storages.php'; ?>
+            </div>
+            <div class="tab-pane fade" id="tab-main">
+          <?php } else { ?>
+            <div class="tab-pane fade active in" id="tab-main">
+            <?php } require_once 'edit_tabs/tab-main.php'; ?>
           </div>
           <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
             <div class="tab-pane fade" id="tab-<?=$lang?>">
@@ -123,19 +123,19 @@
 </div>
 
 <script type="text/javascript">
-    var ALIAS_ID = <?=$_SESSION['alias']->id?>;
-    var CONTENT_ID = <?=$_SESSION['alias']->content?>;
-    var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
-    var PHOTO_FILE_NAME = '<?=$product->alias?>';
-    var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
-    var ADDITIONAL_TABLE = '<?=$ADDITIONAL_TABLE?>';
-    var ADDITIONAL_TABLE_ID = <?=$ADDITIONAL_TABLE_ID?>;
-    var ADDITIONAL_FIELDS = '<?=$ADDITIONAL_FIELDS?>';
-    <?php
-    $_SESSION['alias']->js_load[] = 'assets/ckeditor/ckeditor.js';
-    $_SESSION['alias']->js_load[] = 'assets/ckfinder/ckfinder.js';
-    $_SESSION['alias']->js_load[] = 'assets/white-lion/__edit_page.js';
-    ?>
+  var ALIAS_ID = <?=$_SESSION['alias']->id?>;
+  var CONTENT_ID = <?=$_SESSION['alias']->content?>;
+  var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
+  var PHOTO_FILE_NAME = '<?=$product->alias?>';
+  var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
+  var ADDITIONAL_TABLE = '<?=$ADDITIONAL_TABLE?>';
+  var ADDITIONAL_TABLE_ID = <?=$ADDITIONAL_TABLE_ID?>;
+  var ADDITIONAL_FIELDS = '<?=$ADDITIONAL_FIELDS?>';
+  <?php
+  $_SESSION['alias']->js_load[] = 'assets/ckeditor/ckeditor.js';
+  $_SESSION['alias']->js_load[] = 'assets/ckfinder/ckfinder.js';
+  $_SESSION['alias']->js_load[] = 'assets/white-lion/__edit_page.js';
+  ?>
 
   function saveOption (e, label) {
     $('#saveing').css("display", "block");

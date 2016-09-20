@@ -1,0 +1,22 @@
+Service "Currency 1.0"
+for WhiteLion 1.0
+
+Author: Ostap Matskiv
+Date 1.0   : 01.04.2016
+
+Description: Курс валют з автоматичним оновленням через API Privat24
+Options:
+	autoUpdate		(bool)		Автоматично оновлювати через privat24
+	saveToHistory	(bool)		Зберігати історію
+
+Public links:
+	/index			page 404
+	/__get_Search	повертає об'єкт пошуку - завжди false
+	/__get_Currency повертає коефіціент для валюти
+
+Private links (admin access):
+	/index		перелік всіх квитанцій (нові згори)
+	/index/id 	перегляд квитанції детально
+
+Versions:
+	1.0 	Основа сервісу

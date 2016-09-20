@@ -11,20 +11,14 @@ class wl_language_model
 	public function get($word, $alias = -1)
 	{
 		if(empty($this->words))
-		{
 			$this->getWords();
-		}
 		if(array_key_exists($word, $this->words))
 		{
 			if($this->words[$word] != '')
-			{
 				return $this->words[$word];
-			}
 		}
 		else
-		{
 			$this->add($word, $alias);
-		}
 		return $word;
 	}
 
@@ -33,15 +27,18 @@ class wl_language_model
 		$data['word'] = $word;
 		$data['alias'] = $_SESSION['alias']->id;
 		$data['type'] = 1;
-		if($alias >= 0) $data['alias'] = $alias;
+		if($alias >= 0)
+			$data['alias'] = $alias;
 		$data['position'] = $this->db->getCount('wl_language_words', $data['alias'], 'alias') + 1;
 		if($this->db->insertRow('wl_language_words', $data))
 		{
 			$id = $this->db->getLastInsertedId();
-			foreach ($_SESSION['all_languages'] as $language)
-			{
-				$this->db->insertRow('wl_language_values', array('word' => $id, 'language' => $language));
-			}
+			if($_SESSION['language'])
+				foreach ($_SESSION['all_languages'] as $language) {
+					$this->db->insertRow('wl_language_values', array('word' => $id, 'language' => $language));
+				}
+			else
+				$this->db->insertRow('wl_language_values', array('word' => $id));
 		}
 		return true;
 	}
@@ -49,9 +46,12 @@ class wl_language_model
 	public function getAllWords()
 	{
 		$this->db->select('wl_language_words as w');
-		foreach ($_SESSION['all_languages'] as $language) {
-			$this->db->join("wl_language_values as language_{$language}", "value as {$language}", array('language' => $language, 'word' => '#w.id'));
-		}
+		if($_SESSION['language'])
+			foreach ($_SESSION['all_languages'] as $language) {
+				$this->db->join("wl_language_values as language_{$language}", "value as {$language}", array('language' => $language, 'word' => '#w.id'));
+			}
+		else
+			$this->db->join("wl_language_values", "value", array('word' => '#w.id'));
 		$this->db->order('position');
 		return $this->db->get('array');
 	}
@@ -60,22 +60,22 @@ class wl_language_model
 	{
 		$where['alias'] = array(0, $_SESSION['alias']->id);
 		$this->db->select('wl_language_words as w', 'word', $where);
-		$this->db->join('wl_language_values', 'value', array('language' => $_SESSION['language'], 'word' => '#w.id'));
-		$words = $this->db->get('array');
-		if($words)
-		{
-			foreach ($words as $word)
-			{
+		if($_SESSION['language'])
+			$this->db->join('wl_language_values', 'value', array('language' => $_SESSION['language'], 'word' => '#w.id'));
+		else
+			$this->db->join('wl_language_values', 'value', array('word' => '#w.id'));
+		if($words = $this->db->get('array'))
+			foreach ($words as $word) {
 				$this->words[$word->word] = $word->value;
 			}
-		}
 		return true;
 	}
 
-	public function save($word, $language, $value = '', $rewrite = true)
+	public function save($word, $language = false, $value = '', $rewrite = true)
 	{
 		$where['word'] = $word;
-		$where['language'] = $language;
+		if($language)
+			$where['language'] = $language;
 		$translate = $this->db->getAllDataById('wl_language_values', $where);
 		if($translate)
 		{
@@ -89,23 +89,17 @@ class wl_language_model
 		{
 			$where['value'] = $value;
 			if($this->db->insertRow('wl_language_values', $where))
-			{
 				return true;
-			}
 		}
 		return false;
 	}
 
-	public function copy($alias, $language)
+	public function copy($alias, $language = false)
 	{
-		$words = $this->db->getAllDataByFieldInArray('wl_language_words', $alias, 'alias');
-		if($words)
-		{
-			foreach ($words as $word)
-			{
+		if($words = $this->db->getAllDataByFieldInArray('wl_language_words', $alias, 'alias'))
+			foreach ($words as $word) {
 				$this->save($word->id, $language, $word->word, false);
 			}
-		}
 		return true;
 	}
 

@@ -2,8 +2,11 @@
     <div class="col-md-12">
         <?php
 		if(!empty($words)) {
-			$_SESSION['alias']->js_load[] = 'js/admin/wl_language_words.js'; 
-			$count_colums = count($_SESSION['all_languages']) + 2;
+			$_SESSION['alias']->js_load[] = 'assets/white-lion/wl_language_words.js';
+			if($_SESSION['language'])
+				$count_colums = count($_SESSION['all_languages']) + 2;
+			else
+				$count_colums = 3;
 			foreach ($aliases as $alias) {
 		?>
 			<div class="panel panel-inverse">
@@ -26,9 +29,9 @@
 		                    <thead>
 		                        <tr>
 		                            <th>Ключове слово у шаблоні</th>
-		                            <?php foreach ($_SESSION['all_languages'] as $language) {
+		                            <?php if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $language) {
 		                            	echo("<th>{$language}</th>");
-		                            } ?>
+		                            } else echo("<th>До виводу</th>")?>
 		                            <th>Тип</th>
 		                        </tr>
 		                    </thead>
@@ -39,11 +42,25 @@
 										if($word->alias == $alias->id){
 											echo("<tr>");
 												echo("<td id=\"word-{$word->id}\" class=\"alias-{$alias->id}\"><b>{$word->word}</b></td>");
-												foreach ($_SESSION['all_languages'] as $language) {
-													if($word->type == 1) {
-														echo("<td id=\"td-word-{$word->id}-{$language}\"><input type=\"text\" value=\"{$word->$language}\" id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\"></td>");
-													} elseif($word->type == 3) {
-														echo("<td id=\"td-word-{$word->id}-{$language}\"><textarea id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\">{$word->$language}</textarea></td>");
+												if($_SESSION['language'])
+												{												
+													foreach ($_SESSION['all_languages'] as $language) {
+														if($word->type == 1) {
+															echo("<td id=\"td-word-{$word->id}-{$language}\"><input type=\"text\" value=\"{$word->$language}\" id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\"></td>");
+														} elseif($word->type == 3) {
+															echo("<td id=\"td-word-{$word->id}-{$language}\"><textarea id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\">{$word->$language}</textarea></td>");
+														}
+													}
+												}
+												else
+												{
+													if($word->type == 1)
+													{
+														echo("<td id=\"td-word-{$word->id}\"><input type=\"text\" value=\"{$word->value}\" id=\"word-{$word->id}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\"></td>");
+													}
+													elseif($word->type == 3)
+													{
+														echo("<td id=\"td-word-{$word->id}\"><textarea id=\"word-{$word->id}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\">{$word->value}</textarea></td>");
 													}
 												}
 												echo("<td>");
@@ -140,17 +157,25 @@
                     $.gritter.add({title:"Помилка!",text:res['error']});
                 } else {
                 	if(e.value == 1) {
-                		<?php foreach($_SESSION['all_languages'] as $lang) { ?>
+                		<?php if($_SESSION['language']) foreach($_SESSION['all_languages'] as $lang) { ?>
 	                		var value_<?=$lang?> = $('#word-' + id + '-<?=$lang?>').val();
 	                		var input_<?=$lang?> = '<input type="text" value="' + value_<?=$lang?> + '" id="word-' + id + '-<?=$lang?>" class="form-control" onChange="save(' + id + ', \'<?=$lang?>\', this)">';
 	                		$('td#td-word-' + id + '-<?=$lang?>').html(input_<?=$lang?>);
+                		<?php } else { ?>
+                			var value = $('#word-' + id).val();
+	                		var input = '<input type="text" value="' + value + '" id="word-' + id + '" class="form-control" onChange="save(' + id + ', \'\', this)">';
+	                		$('td#td-word-' + id).html(input);
                 		<?php } ?>
                 	}
                 	if(e.value == 3) {
-                		<?php foreach($_SESSION['all_languages'] as $lang) { ?>
+                		<?php if($_SESSION['language']) foreach($_SESSION['all_languages'] as $lang) { ?>
 	                		var value_<?=$lang?> = $('#word-' + id + '-<?=$lang?>').val();
 	                		var textarea_<?=$lang?> = '<textarea id="word-' + id + '-<?=$lang?>" class="form-control" onChange="save(' + id + ', \'<?=$lang?>\', this)">' + value_<?=$lang?> + '</textarea>';
 	                		$('td#td-word-' + id + '-<?=$lang?>').html(textarea_<?=$lang?>);
+                		<?php } else { ?>
+                			var value = $('#word-' + id).val();
+	                		var textarea = '<textarea id="word-' + id + '" class="form-control" onChange="save(' + id + ', \'\', this)">' + value + '</textarea>';
+	                		$('td#td-word-' + id).html(textarea);
                 		<?php } ?>
                 	}
                 	$.gritter.add({title:$('#word-'+id).html(), text:"Тип успішно змінено!"});

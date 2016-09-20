@@ -39,6 +39,7 @@
 				}
 			}
 		}
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>
@@ -89,6 +90,7 @@
 				}
 			}
 		}
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>

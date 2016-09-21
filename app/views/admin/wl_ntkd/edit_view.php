@@ -1,45 +1,38 @@
 <div class="row">
     <div class="col-md-12">
 <?php
-
-	$name = '';
-	if(!isset($ntkd)){
-		$this->load->model('wl_ntkd_model');
-		if($_SESSION['language']){
-		    $current_languade = $_SESSION['language'];
-		    foreach ($_SESSION['all_languages'] as $lang) {
-		        $_SESSION['language'] = $lang;
-		        $ntkd[$lang] = $this->wl_ntkd_model->get($alias->alias, $content, false);
-		    }
-		    $_SESSION['language'] = $current_languade;
-		    $name = $ntkd[$current_languade]->name;
-	    } else {
-	        $ntkd = $this->wl_ntkd_model->get($alias->alias, $content, false);
-	        $name = $ntkd->name;
-	    }
-	} else {
-		if($_SESSION['language']){
-			$data = array();
-			if(is_array($ntkd)){
-				foreach ($ntkd as $n) {
-					$data[$n->language] = $n;
-					if($n->language == $_SESSION['language']) $name = $n->name;
+	if($_SESSION['language'])
+	{
+		$data = array();
+		if(is_array($ntkd))
+			foreach ($ntkd as $n) {
+				$data[$n->language] = clone $n;
+			}
+		
+		if(count($data) != count($_SESSION['all_languages']))
+			foreach ($_SESSION['all_languages'] as $lang) {
+				if(empty($data[$lang]))
+				{
+					$data[$lang] = new stdClass();
+					$data[$lang]->name = '';
+					$data[$lang]->title = '';
+					$data[$lang]->keywords = '';
+					$data[$lang]->description = '';
+					$data[$lang]->text = '';
+					$data[$lang]->list = '';
 				}
 			}
-			
-			if(count($data) != count($_SESSION['all_languages'])){
-				foreach ($_SESSION['all_languages'] as $lang) {
-					if(empty($data[$lang])){
-						@$data[$lang]->name = '';
-						$data[$lang]->title = '';
-						$data[$lang]->keywords = '';
-						$data[$lang]->description = '';
-						$data[$lang]->text = '';
-					}
-				}
-			}
-			$ntkd = $data;
-		}
+		$ntkd = $data;
+	}
+	if(empty($ntkd))
+	{
+		$ntkd = new stdClass();
+		$ntkd->name = '';
+		$ntkd->title = '';
+		$ntkd->keywords = '';
+		$ntkd->description = '';
+		$ntkd->text = '';
+		$ntkd->list = '';
 	}
 
 

@@ -6,25 +6,30 @@ class wl_ntkd extends Controller {
     {
         $_SESSION['alias']->name = 'Налаштування SEO (name, title, descriptions)';
         $_SESSION['alias']->breadcrumb = array('SEO' => '');
-        if (method_exists($this, $method) && $method != 'library' && $method != 'db') {
+        if (method_exists($this, $method) && $method != 'library' && $method != 'db')
             $this->$method();
-        } else {
+        else
             $this->index($method);
-        }
     }
 
-    function index(){
+    public function index()
+    {
         $alias = $this->data->uri(2);
-        if($alias != ''){
-            if($this->userCan($_SESSION['alias']->alias) || $this->userCan($alias)){
-                $alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
-                if($alias){
+        if($alias != '')
+        {
+            if($this->userCan() || $this->userCan($alias))
+            {
+                if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
+                {
                     $id = $this->data->uri(3);
-                    if($id == 'edit') {
+                    if($id == 'edit')
+                    {
                         $_SESSION['alias']->name = 'SEO Головна сторінка "'.$alias->alias.'"';
                         $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => 'admin/wl_ntkd/'.$alias->alias, 'Головна сторінка' => '');
                         $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0, 'ntkd' => $this->get($alias)));
-                    } elseif(is_numeric($id)) {
+                    }
+                    elseif(is_numeric($id))
+                    {
                         $ntkd = $this->get($alias, $id);
                         $name = $id;
                         if(is_array($ntkd)) $name = $ntkd[0]->name;
@@ -32,31 +37,40 @@ class wl_ntkd extends Controller {
                         $_SESSION['alias']->name = 'SEO сторінка '.$id.' "'.$name.'"';
                         $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => 'admin/wl_ntkd/'.$alias->alias, $name => '');
                         $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => $id, 'ntkd' => $ntkd));
-                    } else {
+                    }
+                    else
+                    {
                         $where['alias'] = $alias->id;
-                        if($_SESSION['language']) {
+                        if($_SESSION['language'])
                             $where['language'] = $_SESSION['language'];
-                        }
                         $ntkd = $this->db->getAllDataByFieldInArray('wl_ntkd', $where);
-                        if(count($ntkd) > 1) {
+                        if(count($ntkd) > 1)
+                        {
                             $_SESSION['alias']->name = 'SEO '.$alias->alias;
                             $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => '');
                             $this->load->admin_view('wl_ntkd/list_view', array('alias' => $alias, 'articles' => $ntkd));
-                        } else {
+                        }
+                        else
+                        {
                             $name = $alias->alias;
                             if(is_array($ntkd)) $name = '"'.$ntkd[0]->name.'" (../'.$alias->alias.')';
                             $_SESSION['alias']->name = 'SEO Головна сторінка '.$name;
                             $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => '');
-                            $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0));
+                            $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0, 'ntkd' => $this->get($alias)));
                         }
                     }
-                } else $this->load->page_404();
-            } else $this->load->notify_view(array('errors' => 'Доступ заборонено!'));
-        } elseif($this->userCan($_SESSION['alias']->alias)){
-        	$this->load->admin_view('wl_ntkd/index_view');
-        } else {
-            $this->load->notify_view(array('errors' => 'Доступ заборонено!'));
+                }
+                else
+                    $this->load->page_404();
+            }
+            else
+                $this->load->notify_view(array('errors' => 'Доступ заборонено!'));
         }
+        elseif($this->userCan())
+        	$this->load->admin_view('wl_ntkd/index_view');
+        else
+            $this->load->notify_view(array('errors' => 'Доступ заборонено!'));
+        
         $_SESSION['alias']->id = 0;
         $_SESSION['alias']->alias = 'admin';
         $_SESSION['alias']->table = '';

@@ -36,7 +36,7 @@
                             </thead>
                             <tbody>
                             	<?php $max = count($products); 
-                            		foreach($products as $a){ ?>
+                            		foreach($products as $a) { ?>
     									<tr>
     										<td><?=$a->id?></td>
     										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->name?></a></td>
@@ -59,7 +59,7 @@
                                                 echo("</td>");
                                             }
                                             ?>
-    										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
+    										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
     										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
     										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
     									</tr>

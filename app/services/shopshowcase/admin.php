@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.2"
+ 	Service "Shop Showcase 2.3"
 	for WhiteLion 1.0
 
 */
@@ -11,13 +11,12 @@ class shopshowcase extends Controller {
 				
     function _remap($method, $data = array())
     {
-    	$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
-        if (method_exists($this, $method)) {
-        	if(empty($data)) $data = null;
+    	if(isset($_SESSION['alias']->name))
+    		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
+        if (method_exists($this, $method))
             return $this->$method($data);
-        } else {
+        else
         	$this->index($method);
-        }
     }
 
     public function index($uri)
@@ -104,12 +103,19 @@ class shopshowcase extends Controller {
 			$product = $this->shop_model->getProduct($this->data->get('id'), 'id', false);
 			if($product)
 				$this->redirect('admin/'.$product->link);
-			$this->load->admin_view('products/search_view', array('products' => false));
+			$this->load->admin_view('products/list_view', array('products' => false));
 		}
 		elseif($this->data->get('article'))
 		{
-			$products = $this->shop_model->getProducts('%'.$this->makeArticle($this->data->get('article')), 0, false);
-			$this->load->admin_view('products/search_view', array('products' => $products));
+			if($products = $this->shop_model->getProducts('%'.$this->makeArticle($this->data->get('article')), 0, false))
+			{
+				if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => $_SESSION['alias']->id, 'type' => 'storage')))
+					$this->load->admin_view('products/search_view', array('products' => $products, 'cooperation' => $cooperation));
+				else
+					$this->load->admin_view('products/list_view', array('products' => $products, 'search' => true));
+			}
+			else
+				$this->load->admin_view('products/list_view', array('products' => false));
 		}
 	}
 
@@ -237,16 +243,15 @@ class shopshowcase extends Controller {
 		}
 	}
 
-	function changeAvailability(){
+	public function changeAvailability()
+	{
 		$res = array('result' => false);
-		if(isset($_POST['availability']) && is_numeric($_POST['availability']) && isset($_POST['id']) && is_numeric($_POST['id'])){
-			if($this->db->updateRow($_SESSION['service']->table.'_products', array('availability' => $_POST['availability']), $_POST['id'])){
+		if(isset($_POST['availability']) && is_numeric($_POST['availability']) && isset($_POST['id']) && is_numeric($_POST['id']))
+		{
+			if($this->db->updateRow($_SESSION['service']->table.'_products', array('availability' => $_POST['availability']), $_POST['id']))
 				$res['result'] = true;
-			}
 		}
-		header('Content-type: application/json');
-		echo json_encode($res);
-		exit;
+		$this->load->json($res);
 	}
 
 	public function groups()
@@ -255,9 +260,7 @@ class shopshowcase extends Controller {
 		$id = $this->data->uri(3);
 		$id = explode('-', $id);
 		if(is_numeric($id[0]))
-		{
 			$this->edit_group($id[0]);
-		}
 		else
 		{
 			$groups = $this->groups_model->getGroups(-1, false);
@@ -278,15 +281,15 @@ class shopshowcase extends Controller {
 
 	private function edit_group($id)
 	{
-		$group = $this->groups_model->getById($id, false);
-		if($group)
+		if($group = $this->groups_model->getById($id, false))
 		{
 			$this->wl_alias_model->setContent(($group->id * -1));
 			$groups = $this->groups_model->getGroups(-1);
 			$_SESSION['alias']->breadcrumb = array('Групи' => 'admin/'.$_SESSION['alias']->alias.'/groups', 'Редагувати групу' => '');
 			$this->load->admin_view('groups/edit_view', array('group' => $group, 'groups' => $groups));
 		}
-		$this->load->page_404();
+		else
+			$this->load->page_404();
 	}
 
 	public function save_group()
@@ -318,8 +321,10 @@ class shopshowcase extends Controller {
 		}
 	}
 
-	public function delete_group(){
-		if(isset($_POST['id']) && is_numeric($_POST['id'])){
+	public function delete_group()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']))
+		{
 			$this->load->smodel('groups_model');
 			$this->groups_model->delete($_POST['id']);
 			$this->redirect("admin/{$_SESSION['alias']->alias}/groups");
@@ -576,12 +581,10 @@ class shopshowcase extends Controller {
         if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
 			$start = 0;
-			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0) {
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
 				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
-			}
-			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) {
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
 				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
-			}
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
@@ -593,8 +596,8 @@ class shopshowcase extends Controller {
 
 	public function __get_Search($content)
     {
-    	$this->load->smodel('library_search_model');
-    	return $this->library_search_model->getByContent($content, true);
+    	$this->load->smodel('shop_search_model');
+    	return $this->shop_search_model->getByContent($content, true);
     }
 	
 }

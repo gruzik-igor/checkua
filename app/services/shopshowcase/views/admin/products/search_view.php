@@ -53,59 +53,55 @@
                         	<?php
                         	$currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'USD');
 
-                        	if(!empty($products)) { 
+                        	if($products && $cooperation)
+                        	{ 
+				                foreach ($products as $product) {
+				                    $count = 0;
+				                    echo("<tr>");
+				                    echo('<td><a href="'.SITE_URL.'admin/'.$product->link.'">'.$product->article.'</a></td>');
+                                    echo "<td>". ((isset($product->options['1-vyrobnyk']) && $product->options['1-vyrobnyk']->value != '') ? nl2br($product->options['1-vyrobnyk']->value) : '')."</td>";
+                                    echo '<td><a href="'.SITE_URL.'admin/'.$product->link.'">'.html_entity_decode($product->name).'</a></td>';
 
-								$cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1');
-					            if($cooperation)
-					            {
-					                foreach ($products as $product) {
-					                    $count = 0;
-					                    echo("<tr>");
-					                    echo('<td><a href="'.SITE_URL.'admin/'.$product->link.'">'.$product->article.'</a></td>');
-                                        echo "<td>". ((isset($product->options['1-vyrobnyk']) && $product->options['1-vyrobnyk']->value != '') ? nl2br($product->options['1-vyrobnyk']->value) : '')."</td>";
-                                        echo '<td><a href="'.SITE_URL.'admin/'.$product->link.'">'.html_entity_decode($product->name).'</a></td>';
+				                    foreach ($cooperation as $storage) {
+				                        if($storage->type == 'storage')
+				                        {
+				                            $invoice_where = array('id' => $product->id, 'user_type' => -1);
+				                            $invoices = $this->load->function_in_alias($storage->alias2, '__get_Invoices_to_Product', $invoice_where);
+				                            if($invoices)
+				                            {
+				                                foreach ($invoices as $invoice) {
+			                                        if($count > 0)
+			                                            echo("</tr><tr><td></td><td></td><td></td>");
 
-					                    foreach ($cooperation as $storage) {
-					                        if($storage->type == 'storage')
-					                        {
-					                            $invoice_where = array('id' => $product->id, 'user_type' => -1);
-					                            $invoices = $this->load->function_in_alias($storage->alias2, '__get_Invoices_to_Product', $invoice_where);
-					                            if($invoices)
-					                            {
-					                                foreach ($invoices as $invoice) {
-				                                        if($count > 0)
-				                                            echo("</tr><tr><td></td><td></td><td></td>");
+			                                        echo("<td>{$invoice->storage_name}</td>");
+			                                        echo("<td>{$invoice->storage_time}</td>");
+			                                        
+			                                        $price_out = unserialize($invoice->price_out);
+										            foreach($groups as $group) 
+										                if($group->id > 2)
+										                {
+										                    $price_out_uah = round($price_out[$group->id] * $currency_USD, 2);
+										                    echo("<td>\${$price_out[$group->id]}<br>");
+										                    echo("<strong>{$price_out_uah} грн</strong></td>");
+										                }
+										            echo("<td>{$invoice->amount}</td>");
+										            echo("<td><strong>{$invoice->amount_free}</strong></td>");
 
-				                                        echo("<td>{$invoice->storage_name}</td>");
-				                                        echo("<td>{$invoice->storage_time}</td>");
-				                                        
-				                                        $price_out = unserialize($invoice->price_out);
-											            foreach($groups as $group) 
-											                if($group->id > 2)
-											                {
-											                    $price_out_uah = round($price_out[$group->id] * $currency_USD, 2);
-											                    echo("<td>\${$price_out[$group->id]}<br>");
-											                    echo("<strong>{$price_out_uah} грн</strong></td>");
-											                }
-											            echo("<td>{$invoice->amount}</td>");
-											            echo("<td><strong>{$invoice->amount_free}</strong></td>");
+										            $count++;
+				                                }
+				                            }
+				                        }
+				                    }
 
-											            $count++;
-					                                }
-					                            }
-					                        }
-					                    }
-
-					                    if($count == 0)
-				                    	{
-				                    		$count = 4;
-											foreach($groups as $group) 
-							                    if($group->id > 2) $count++;
-				                    		echo "<td colspan={$count}><strong>Товар на складі відсутній</strong></td>";
-				                    	}
-					                    echo("</tr>");
-					                }
-					            }
+				                    if($count == 0)
+			                    	{
+			                    		$count = 4;
+										foreach($groups as $group) 
+						                    if($group->id > 2) $count++;
+			                    		echo "<td colspan={$count}><strong>Товар на складі відсутній</strong></td>";
+			                    	}
+				                    echo("</tr>");
+				                }
 							} 
 							else
 							{

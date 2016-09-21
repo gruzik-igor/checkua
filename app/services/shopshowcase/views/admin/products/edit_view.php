@@ -48,8 +48,8 @@
         </div>
 
           <h5 class="panel-title">
-            Додано: <?=date('d.m.Y H:i', $product->date_add)?>
-            Редаговано: <?=date('d.m.Y H:i', $product->date_edit)?>
+            Додав: <?=$product->author_add_name .' '.date('d.m.Y H:i', $product->date_add)?>.
+            Редаговано: <?=$product->author_edit_name .' '.date('d.m.Y H:i', $product->date_edit)?>
           </h5>
       </div>
 

@@ -3,9 +3,8 @@
 class shop_search_model
 {
 
-	public function table($sufix = '', $useAliasTable = false)
+	public function table($sufix = '')
 	{
-		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
 		return $_SESSION['service']->table.$sufix;
 	}
 	
@@ -23,16 +22,13 @@ class shop_search_model
 				$search = new stdClass();
 				$search->id = $product->id;
 				$search->link = $_SESSION['alias']->alias.'/'.$product->alias;
-				$search->image = false;
 				$search->date = $product->date_edit;
 				$search->author = $product->author_edit;
 				$search->author_name = $product->author_name;
 				$search->additional = false;
-
-				if($product->photo != '')
-				{
-					$search->image = $_SESSION['option']->folder.'/'.$product->id.'/s_'.$product->photo;
-				}
+				$search->folder = false;
+				if(isset($_SESSION['option']->folder))
+					$search->folder = $_SESSION['option']->folder;
 
 				if($_SESSION['option']->useGroups)
 				{
@@ -76,6 +72,10 @@ class shop_search_model
 						}
 					}
 				}
+				if($admin)
+				{
+					$search->edit_link = 'admin/'.$search->link;
+				}
 			}
 		}
 		else
@@ -89,15 +89,16 @@ class shop_search_model
 				$search = new stdClass();
 				$search->id = $group->id;
 				$search->link = $_SESSION['alias']->alias.'/'.$group->alias;
-				$search->image = false;
 				$search->date = $group->date_edit;
 				$search->author = $group->author_edit;
 				$search->author_name = $group->author_name;
 				$search->additional = false;
-
-				if($group->photo > 0)
+				$search->folder = false;
+				if(isset($_SESSION['option']->folder))
+					$search->folder = $_SESSION['option']->folder;
+				if($admin)
 				{
-					$search->image = $_SESSION['option']->folder.'/groups/s_'.$group->photo.'.jpg';
+					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/groups/'.$group->id;
 				}
 
 				if($group->parent > 0)
@@ -120,7 +121,7 @@ class shop_search_model
 				}
 			}
 		}
-		
+
 		return $search;
 	}
 

@@ -54,7 +54,11 @@ class install
 						  `author_edit` int(11) NOT NULL,
 						  `date_edit` int(11) NOT NULL,
 						  PRIMARY KEY (`id`),
-						  UNIQUE KEY `id` (`id`)
+						  UNIQUE KEY `id` (`id`),
+						  KEY `wl_alias` (`wl_alias`),
+						  KEY `parent` (`parent`),
+						  KEY `position` (`position`),
+						  KEY `active` (`active`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 
@@ -62,7 +66,8 @@ class install
 			{
 				$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_group` (
 						  `product` int(11) NOT NULL,
-						  `group` int(11) NOT NULL
+						  `group` int(11) NOT NULL,
+						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 				$this->db->executeQuery($query);
 			}
@@ -174,7 +179,11 @@ class install
 						  `author_edit` int(11) NOT NULL,
 						  `date_edit` int(11) NOT NULL,
 						  PRIMARY KEY (`id`),
-						  UNIQUE KEY `id` (`id`)
+						  UNIQUE KEY `id` (`id`),
+						  KEY `wl_alias` (`wl_alias`),
+						  KEY `parent` (`parent`),
+						  KEY `position` (`position`),
+						  KEY `active` (`active`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 		}
@@ -182,7 +191,8 @@ class install
 		{
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_group` (
 						  `product` int(11) NOT NULL,
-						  `group` int(11) NOT NULL
+						  `group` int(11) NOT NULL,
+						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 
@@ -219,7 +229,8 @@ class install
 						  `availability` int(11) NULL,
 						  `language` varchar(2) NULL,
 						  `name` text NULL,
-						  PRIMARY KEY (`id`)
+						  PRIMARY KEY (`id`),
+						  KEY `availability` (`availability`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;";
 			$this->db->executeQuery($query);
 
@@ -274,7 +285,11 @@ class install
 					  `author_edit` int(11) NOT NULL,
 					  `date_edit` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
+					  UNIQUE KEY `id` (`id`),
+					  KEY `wl_alias` (`wl_alias`),
+					  KEY `group` (`group`),
+					  KEY `active` (`active`),
+					  KEY `position` (`position`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
@@ -288,7 +303,11 @@ class install
 					  `filter` tinyint(1) NULL,
 					  `active` tinyint(1) NULL,
 					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
+					  UNIQUE KEY `id` (`id`),
+					  KEY `wl_alias` (`wl_alias`),
+					  KEY `group` (`group`),
+					  KEY `active` (`active`),
+					  KEY `position` (`position`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
@@ -299,7 +318,8 @@ class install
 					  `name` text NULL,
 					  `sufix` text NULL,
 					  PRIMARY KEY (`id`),
-					  UNIQUE KEY `id` (`id`)
+					  UNIQUE KEY `id` (`id`),
+					  KEY `option` (`option`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
@@ -310,7 +330,8 @@ class install
 			  `language` varchar(2) NULL,
 			  `value` text NULL,
 			  PRIMARY KEY (`id`),
-			  UNIQUE KEY `id` (`id`)
+			  UNIQUE KEY `id` (`id`),
+			  KEY `option` (`product`, `option`)
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
@@ -325,11 +346,12 @@ class install
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_options");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_options_name");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_product_options");
-			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}s_shopshowcase_product_group");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_product_group");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_services");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_groups");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability_name");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_search_history");
 		}
 	}
 	

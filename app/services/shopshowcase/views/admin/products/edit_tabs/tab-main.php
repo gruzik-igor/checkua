@@ -179,7 +179,9 @@
 					$options = $this->options_model->getOptions($option_id);
 					if($options)
 					{
-						foreach ($options as $option) if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea')) {
+						foreach ($options as $option) 
+						if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea'))
+						{
 							$value = '';
 							if(isset($product_options[$option->id])) $value = $product_options[$option->id];
 							echo('<tr>');
@@ -239,9 +241,20 @@
 								}
 								echo("</select> ");
 							}
+							elseif($option->type_name == 'textarea')
+							{
+								echo('<textarea onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'">'.$value.'</textarea>');
+							}
 							else
 							{
-								echo('<input type="'.$option->type_name.'" name="option-'.$option->id.'" value="'.$value.'"  class="form-control"> ');
+								if($option->sufix != '')
+									echo('<div class="input-group">');
+								echo('<input type="'.$option->type_name.'" name="option-'.$option->id.'" value="'.$value.'"  class="form-control" onChange="saveOption(this, \''.$option->name.'\')"> ');
+								if($option->sufix != '')
+								{
+									echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
+									echo('</div>');
+								}
 							}
 							echo('</td></tr>');
 						}

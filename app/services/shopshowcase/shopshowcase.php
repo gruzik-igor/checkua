@@ -12,16 +12,11 @@ class shopshowcase extends Controller {
     function _remap($method, $data = array())
     {
     	if(isset($_SESSION['alias']->name) && $_SESSION['alias']->service == 'shopshowcase')
-    	{
-    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
-    	}
-    	
-        if (method_exists($this, $method)) {
-        	if(empty($data)) $data = null;
+    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;	
+        if (method_exists($this, $method))
             return $this->$method($data);
-        } else {
+        else
         	$this->index($method);
-        }
     }
 
     public function index($uri)
@@ -34,7 +29,7 @@ class shopshowcase extends Controller {
 			$type = null;
 			$product = $this->shop_model->routeURL($this->data->url(), $type);
 
-			if($type == 'product' && $product && ($product->active == 1 || $this->userCan($_SESSION['alias']->alias)))
+			if($type == 'product' && $product && ($product->active == 1 || $this->userCan()))
 			{
 				$this->wl_alias_model->setContent($product->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
@@ -42,17 +37,19 @@ class shopshowcase extends Controller {
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
+				if($_SESSION['alias']->title == $_SESSION['alias']->name && $_SESSION['option']->ProductUseArticle)
+					$_SESSION['alias']->title = $product->article . ' ' . $_SESSION['alias']->name;
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
-
-			if($_SESSION['option']->useGroups && $type == 'group' && $product && ($product->active == 1 || $this->userCan($_SESSION['alias'])))
+			elseif($_SESSION['option']->useGroups && $type == 'group' && $product && ($product->active == 1 || $this->userCan()))
 			{
 				$group = clone $product;
 				unset($product);
 
 				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
 				$group->parents = array();
-				if($group->parent > 0){
+				if($group->parent > 0)
+				{
 					$list = array();
 		            $groups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
 		            foreach ($groups as $Group) {
@@ -79,12 +76,18 @@ class shopshowcase extends Controller {
 				$products = $this->shop_model->getProducts($group->id);
 				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'products' => $products));
 			}
-
-			$this->load->page_404();
+			else
+				$this->load->page_404();
 		}
 		else
 		{
 			$this->wl_alias_model->setContent();
+			if($videos = $this->wl_alias_model->getVideosFromText())
+			{
+				$this->load->library('video');
+				$this->video->setVideosToText($videos);
+			}
+				
 			$products = $this->shop_model->getProducts();
 			if($_SESSION['option']->useGroups)
 			{
@@ -92,42 +95,42 @@ class shopshowcase extends Controller {
 				$this->load->page_view('index_view', array('groups' => $groups, 'products' => $products));
 			}
 			else
-			{
 				$this->load->page_view('index_view', array('products' => $products));
-			}
 		}
     }
 
 	public function search()
 	{
-		if(isset($_GET['name']) || isset($_GET['group'])){
-			if(isset($_GET['name']) && is_numeric($_GET['name'])){
+		if(isset($_GET['name']) || isset($_GET['group']))
+		{
+			if(isset($_GET['name']) && is_numeric($_GET['name']))
 				$this->redirect($_SESSION['alias']->alias.'/'.$_GET['name']);
-			}
 
 			$this->load->smodel('shop_model');
-			$_SESSION['alias']->name = 'Пошук по назві';
-			$_SESSION['alias']->title = 'Пошук по назві';
+			$_SESSION['alias']->name = $_SESSION['alias']->title = 'Пошук по назві';
 
-			if(isset($_GET['name'])){
+			if(isset($_GET['name']))
+			{
 				$_SESSION['alias']->name = "Пошук по назві '{$this->data->get('name')}'";
 				$_SESSION['alias']->title = "Пошук по назві '{$this->data->get('name')}'";
 			}
 
-			$group = 0;
-			if(isset($_GET['group'])){
-				$language = '';
-				if($_SESSION['language']) $language = "AND n.language = '{$_SESSION['language']}'";
-				$group = $this->db->getQuery("SELECT g.*, n.name, n.title FROM `{$this->shop_model->table('_groups')}` as g LEFT JOIN `wl_ntkd` as n ON n.alias = {$_SESSION['alias']->id} AND n.content = -g.id {$language} WHERE g.link = '{$this->data->get('group')}'");
-				if($group) {
-					$_SESSION['alias']->name = 'Пошук '.$group->name .' район';
-					$_SESSION['alias']->title = 'Пошук '.$group->title .' район';
-					$group = $group->id;
+			$group_id = 0;
+			if(isset($_GET['group']))
+			{
+				$this->db->select($this->shop_model->table('_groups').' as g', 'id', $this->data->get('group'), 'link');
+				$where = array('content' => '#-g.id');
+				if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+				$this->db->join('wl_ntkd', 'name, title', $where);
+				if($group = $this->db->get())
+				{
+					$_SESSION['alias']->name = 'Пошук '.$group->name;
+					$_SESSION['alias']->title = 'Пошук '.$group->title;
+					$group_id = $group->id;
 				}
 			}
 
-			$products = $this->shop_model->getProducts($group);
-			$this->load->page_view('group_view', array('products' => $products));
+			$this->load->page_view('group_view', array('products' => $this->shop_model->getProducts($group_id)));
 		}
 		if(isset($_GET['id']) || isset($_GET['article']))
 		{
@@ -140,9 +143,7 @@ class shopshowcase extends Controller {
 				$key = 'article';
 			}
 			else
-			{
 				$id = $this->data->get('id');
-			}
 			$product = $this->shop_model->getProduct($id, $key, false);
 			$products = $this->shop_model->getProducts('%'.$id);
 
@@ -160,9 +161,7 @@ class shopshowcase extends Controller {
 				$this->load->page_view('detal_view', array('product' => $product, 'products' => $products));
 			}
 			else
-			{
 				$this->load->page_view('group_view', array('products' => null));
-			}
 		}
 	}
 
@@ -203,12 +202,14 @@ class shopshowcase extends Controller {
 		return $this->shop_model->getGroups($parent);
 	}
 
-	public function __get_Options_By_Group($data = array())
+	public function __get_Values_To_Option($id = 0)
 	{
 		$this->load->smodel('shop_model');
-		$group = 0;
-		if(isset($data['group'])) $group = $data['group'];
-		return $this->db->getQuery("SELECT o.*, n.name FROM `{$this->shop_model->table('_group_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id WHERE o.group = -{$group}", 'array');
+		$this->db->select($this->shop_model->table('_options').' as o', '*', -$id, 'group');
+		$where = array('option' => '#o.id');
+		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+		$this->db->join($this->shop_model->table('_options_name'), 'name', '');
+		return $this->db->get('array');
 	}
 
 	private function makeArticle($article)

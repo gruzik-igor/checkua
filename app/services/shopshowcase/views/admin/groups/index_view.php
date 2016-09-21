@@ -96,7 +96,7 @@
             	<div class="note note-info">
 					<h4>Увага! В налаштуваннях адреси не створено жодної групи!</h4>
 					<p>
-					    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
+					    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning"><i class="fa fa-plus"></i> Додати групу</a>
 	                </p>
 				</div>
 			<?php } ?>

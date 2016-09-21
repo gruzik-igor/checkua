@@ -95,6 +95,32 @@ class shopshowcase extends Controller {
 		$products = $this->products_model->getProducts(-1, false);
 		$this->load->admin_view('products/all_view', array('products' => $products));
 	}
+
+	public function search()
+	{
+		$this->load->smodel('shop_model');
+		if($this->data->get('id'))
+		{
+			$product = $this->shop_model->getProduct($this->data->get('id'), 'id', false);
+			if($product)
+				$this->redirect('admin/'.$product->link);
+			$this->load->admin_view('products/search_view', array('products' => false));
+		}
+		elseif($this->data->get('article'))
+		{
+			$products = $this->shop_model->getProducts('%'.$this->makeArticle($this->data->get('article')), 0, false);
+			$this->load->admin_view('products/search_view', array('products' => $products));
+		}
+	}
+
+	private function makeArticle($article)
+	{
+		$article = (string) $article;
+		$article = trim($article);
+		$article = strtoupper($article);
+		$article = str_replace('-', '', $article);
+		return str_replace(' ', '-', $article);
+	}
 	
 	public function add()
 	{
@@ -111,7 +137,7 @@ class shopshowcase extends Controller {
 		$groups = null;
 		if($_SESSION['option']->useGroups)
 		{
-			$groups = $this->shop_model->getGroups();
+			$groups = $this->shop_model->getGroups(-1);
 			if($_SESSION['option']->ProductMultiGroup)
 			{
 				$activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product->id, 'product');
@@ -535,6 +561,34 @@ class shopshowcase extends Controller {
 			}			
 		}
 		return false;
+	}
+
+	public function search_history()
+	{
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Історія пошуку' => '');
+		$_SESSION['alias']->name .= '. Історія пошуку';
+
+		$this->db->select('s_shopshowcase_search_history as psh');
+        $this->db->join('s_shopshowcase_products', 'article', '#psh.product_id');
+        $this->db->join('wl_users', 'name as user_name, email as user_email', '#psh.user');
+        $this->db->order('last_view DESC');
+
+        if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+		{
+			$start = 0;
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0) {
+				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
+			}
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) {
+				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
+			}
+			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
+		}
+
+        $search_history = $this->db->get('array', false);
+        $_SESSION['option']->paginator_total = $this->db->get('count');
+
+        $this->load->admin_view('search_history_view', array('search_history' => $search_history));
 	}
 
 	public function __get_Search($content)

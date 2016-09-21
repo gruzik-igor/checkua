@@ -1,4 +1,4 @@
-<?php if($_SESSION['language'] && $lang){ ?>
+<?php if($_SESSION['language'] && $lang) { ?>
 	<label>Назва:</label> <input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>" class="form-control"><br>
 	<br>
 	<small style="text-align: center; cursor: pointer; display: block" onClick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description</small>
@@ -39,6 +39,7 @@
 				}
 			}
 		}
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>
@@ -69,7 +70,7 @@
 					foreach ($options as $option) if($option->type_name == 'text' || $option->type_name == 'textarea') {
 						
 						$value = '';
-						if(isset($product_options[$option->id][$lang])) $value = $product_options[$option->id][$lang];
+						if(isset($product_options[$option->id])) $value = $product_options[$option->id];
 						echo('<label>'.$option->name.':</label>');
 						if($option->type_name == 'textarea'){
 							echo('<textarea onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'">'.$value.'</textarea>');
@@ -78,7 +79,7 @@
 							}
 						} else {
 							echo('<div class="input-group">');
-							echo('<input type="text" onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'-'.$lang.'" value="'.$value.'" class="form-control">');
+							echo('<input type="text" onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'-" value="'.$value.'" class="form-control">');
 							if($option->sufix != '') {
 								echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
 							}
@@ -89,6 +90,7 @@
 				}
 			}
 		}
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>

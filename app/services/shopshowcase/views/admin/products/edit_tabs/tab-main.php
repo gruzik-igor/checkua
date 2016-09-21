@@ -7,105 +7,117 @@
 				<td><input type="text" name="article" value="<?=$product->article?>" class="form-control" required></td>
 			</tr>
 		<?php }
-		if($_SESSION['option']->useGroups){
-			$this->load->smodel('shop_model');
-			$groups = $this->shop_model->getGroups(-1);
-			if($groups){
-
-				$list = array();
-				$emptyChildsList = array();
-				foreach ($groups as $g) {
-					$list[$g->id] = $g;
-					$list[$g->id]->child = array();
-					if(isset($emptyChildsList[$g->id])){
-						foreach ($emptyChildsList[$g->id] as $c) {
-							$list[$g->id]->child[] = $c;
-						}
+		if($_SESSION['option']->useGroups && $groups)
+		{
+			$list = array();
+			$emptyChildsList = array();
+			foreach ($groups as $g) {
+				$list[$g->id] = $g;
+				$list[$g->id]->child = array();
+				if(isset($emptyChildsList[$g->id]))
+					foreach ($emptyChildsList[$g->id] as $c) {
+						$list[$g->id]->child[] = $c;
 					}
-					if($g->parent > 0) {
-						if(isset($list[$g->parent]->child)) $list[$g->parent]->child[] = $g->id;
-						else {
-							if(isset($emptyChildsList[$g->parent])) $emptyChildsList[$g->parent][] = $g->id;
-							else $emptyChildsList[$g->parent] = array($g->id);
-						}
+				if($g->parent > 0)
+				{
+					if(isset($list[$g->parent]->child))
+						$list[$g->parent]->child[] = $g->id;
+					else
+					{
+						if(isset($emptyChildsList[$g->parent])) $emptyChildsList[$g->parent][] = $g->id;
+						else $emptyChildsList[$g->parent] = array($g->id);
 					}
 				}
+			}
 
-				echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
-				if($_SESSION['option']->ProductMultiGroup && !empty($list)){
-					function showList($product_group, $all, $list, $parent = 0, $level = 0, $parents = array())
-					{
-
-						$ml = 15 * $level;
-						foreach ($list as $g) if($g->parent == $parent) {
-							$class = '';
-							if($g->parent > 0 && !empty($parents)){
-								$class = 'class="';
-								foreach ($parents as $p) {
-									$class .= ' parent-'.$p;
-								}
-								$class .= '"';
+			echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
+			if($_SESSION['option']->ProductMultiGroup && !empty($list))
+			{
+				function showList($product_group, $all, $list, $parent = 0, $level = 0, $parents = array())
+				{
+					$ml = 15 * $level;
+					foreach ($list as $g) if($g->parent == $parent) {
+						$class = '';
+						if($g->parent > 0 && !empty($parents)){
+							$class = 'class="';
+							foreach ($parents as $p) {
+								$class .= ' parent-'.$p;
 							}
-							if(empty($g->child)){
-								$checked = '';
-								if(in_array($g->id, $product_group)) $checked = 'checked';
-								echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
-								echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
-								echo ('<br>');
+							$class .= '"';
+						}
+						if(empty($g->child)){
+							$checked = '';
+							if(in_array($g->id, $product_group)) $checked = 'checked';
+							echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
+							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
+							echo ('<br>');
+						} else {
+							echo ('<input type="checkbox" id="group-'.$g->id.'" '.$class.' onChange="setChilds('.$g->id.')">');
+							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
+							$l = $level + 1;
+							$childs = array();
+							foreach ($g->child as $c) {
+								$childs[] = $all[$c];
+							}
+							$ml = 15 * $l;
+							echo ('<div style="margin-left: '.$ml.'px">');
+							$parents2 = $parents;
+							$parents2[] = $g->id;
+							showList ($product_group, $all, $childs, $g->id, $l, $parents2);
+							echo('</div>');
+						}
+					}
+
+					return true;
+				}
+				showList($product->group, $list, $list);
+			}
+			else
+			{
+				echo('<select name="group" class="form-control">');
+				echo ('<option value="0">Немає</option>');
+				if(!empty($list))
+				{
+					function showList($product_group, $all, $list, $parent = 0, $level = 0)
+					{
+						$prefix = '';
+						for ($i=0; $i < $level; $i++) { 
+							$prefix .= '- ';
+						}
+						foreach ($list as $g) if($g->parent == $parent) {
+							if(empty($g->child)) {
+								$selected = '';
+								if($product_group == $g->id) $selected = 'selected';
+								echo('<option value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
 							} else {
-								echo ('<input type="checkbox" id="group-'.$g->id.'" '.$class.' onChange="setChilds('.$g->id.')">');
-								echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
+								echo('<optgroup label="'.$prefix.$g->name.'">');
 								$l = $level + 1;
 								$childs = array();
 								foreach ($g->child as $c) {
 									$childs[] = $all[$c];
 								}
-								$ml = 15 * $l;
-								echo ('<div style="margin-left: '.$ml.'px">');
-								$parents2 = $parents;
-								$parents2[] = $g->id;
-								showList ($product_group, $all, $childs, $g->id, $l, $parents2);
-								echo('</div>');
+								showList ($product_group, $all, $childs, $g->id, $l);
+								echo('</optgroup>');
 							}
 						}
-
 						return true;
 					}
 					showList($product->group, $list, $list);
-				} else {
-					echo('<select name="group" class="form-control">');
-					echo ('<option value="0">Немає</option>');
-					if(!empty($list)){
-						function showList($product_group, $all, $list, $parent = 0, $level = 0)
-						{
-							$prefix = '';
-							for ($i=0; $i < $level; $i++) { 
-								$prefix .= '- ';
-							}
-							foreach ($list as $g) if($g->parent == $parent) {
-								if(empty($g->child)){
-									$selected = '';
-									if($product_group == $g->id) $selected = 'selected';
-									echo('<option value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
-								} else {
-									echo('<optgroup label="'.$prefix.$g->name.'">');
-									$l = $level + 1;
-									$childs = array();
-									foreach ($g->child as $c) {
-										$childs[] = $all[$c];
-									}
-									showList ($product_group, $all, $childs, $g->id, $l);
-									echo('</optgroup>');
-								}
-							}
-							return true;
-						}
-						showList($product->group, $list, $list);
-					}
-					echo('</select>');
 				}
-				echo "</td></tr>";
+				echo('</select>');
 			}
+			echo "</td></tr>";
+
+			$options_parents = array();
+			if($_SESSION['option']->useGroups && isset($list))
+			{
+				$parent = $product->group;
+				while ($parent != 0) {
+					array_unshift($options_parents, $parent);
+					$parent = $list[$parent]->parent;
+				}
+			}
+			array_unshift($options_parents, 0);
 		} ?>
 		<tr>
 			<th style="width:25%">Власна адреса посилання</th>
@@ -158,7 +170,6 @@
                 </div>
 			</td>
 		</tr>
-
 		<?php if(!empty($options_parents)) { ?>
 			<tr>
 				<td colspan="2"><h3>Властивості <?=$_SESSION['admin_options']['word:products']?></h3></td>
@@ -166,7 +177,8 @@
 			<?php $this->load->smodel('options_model');
 				foreach ($options_parents as $option_id) {
 					$options = $this->options_model->getOptions($option_id);
-					if($options){
+					if($options)
+					{
 						foreach ($options as $option) if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea')) {
 							$value = '';
 							if(isset($product_options[$option->id])) $value = $product_options[$option->id];
@@ -174,15 +186,17 @@
 							echo('<th>'.$option->name);
 							if($option->sufix != '') echo " ({$option->sufix})";
 							echo('</th><td>');
-							if($option->type_name == 'checkbox'){
+							if($option->type_name == 'checkbox')
+							{
 								$where = '';
 								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 								$option_values = array();
 								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-								if($this->db->numRows() > 0){
+								if($this->db->numRows() > 0)
 				                    $option_values = $this->db->getRows('array');
-				                }
-								if(!empty($option_values)){
+				                
+								if(!empty($option_values))
+								{
 									$value = explode(',', $value);
 									foreach ($option_values as $ov) {
 										$checked = '';
@@ -190,23 +204,23 @@
 										echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
 									}
 								}
-							} elseif($option->type_name == 'radio'){
-								$where = '';
-								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-								if($this->db->numRows() > 0){
-				                    $option_values = $this->db->getRows('array');
-				                }
-								if(!empty($option_values)){
+							}
+							elseif($option->type_name == 'radio')
+							{
+								$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
+								$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
+								if(!empty($option_values))
+								{
+									$checked = ($value == '' || $value == 0) ? ' checked' : '';
 									echo('<input type="radio" name="option-'.$option->id.'" value="0" id="option-'.$option->id.'-0" '.$checked.'> <label for="option-'.$option->id.'-0">Не вказано</label> ');
 									foreach ($option_values as $ov) {
-										$checked = '';
-										if($value == $ov->id) $checked = ' checked';
+										$checked = ($value == $ov->id) ? ' checked' : '';
 										echo('<input type="radio" name="option-'.$option->id.'" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
 									}
 								}
-							} elseif($option->type_name == 'select'){
+							}
+							elseif($option->type_name == 'select')
+							{
 								$where = '';
 								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 								$option_values = array();
@@ -224,7 +238,9 @@
 									}
 								}
 								echo("</select> ");
-							} else {
+							}
+							else
+							{
 								echo('<input type="'.$option->type_name.'" name="option-'.$option->id.'" value="'.$value.'"  class="form-control"> ');
 							}
 							echo('</td></tr>');

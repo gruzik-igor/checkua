@@ -125,7 +125,9 @@ class Router extends Loader {
 		}
 		else
 		{
-			parent::page_404();
+			require $path.'main.php';
+			$controller = new Main();
+			$controller->load->page_404();
 		}
 
 		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
@@ -149,7 +151,7 @@ class Router extends Loader {
 		} else if(is_callable(array($controller, $method)) && $method != 'library' && $method != 'db') {
 			$controller->$method();
 		} else {
-			parent::page_404();
+			$controller->load->page_404();
 		}
 	}
 	

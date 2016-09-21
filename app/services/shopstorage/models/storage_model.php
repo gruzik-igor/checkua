@@ -32,7 +32,7 @@ class storage_model
 		return $storage;
 	}
 
-	public function getProducts($id = 0)
+	public function getProducts($id, $user_type = 0)
 	{
 		$where['storage'] = $_SESSION['alias']->id;
 		if($id > 0) $where['product'] = $id;
@@ -48,28 +48,50 @@ class storage_model
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 		$this->db->join('wl_ntkd', 'name as storage_name, list as storage_time', array('alias' => $_SESSION['alias']->id, 'content' => 0));
-		$invoises = $this->db->get('array');
-		if($invoises && $_SESSION['option']->markUpByUserTypes)
+		$invoises = $this->db->get('array', false);
+		$_SESSION['option']->paginator_total = $this->db->get('count');
+		if($invoises && $user_type >= 0 && $_SESSION['option']->markUpByUserTypes)
 		{
 			foreach ($invoises as $invoise) {
 				$price_out = unserialize($invoise->price_out);
-				$invoise->price_out = $price_out[$_SESSION['user']->type];
+				if($user_type == 1 && isset($price_out[2]))
+					$invoise->price_out = $price_out[2];
+				elseif(isset($price_out[$user_type]))
+					$invoise->price_out = $price_out[$user_type];
+				else
+					$invoise->price_out = end($price_out);
+				$invoise->amount_free = $invoise->amount - $invoise->amount_reserved;
+			}
+		}
+		elseif($invoises)
+		{
+			foreach ($invoises as $invoise) {
+				$invoise->amount_free = $invoise->amount - $invoise->amount_reserved;
 			}
 		}
 		return $invoises;
 	}
 
-	public function getProduct($id, $all_info = false)
+	public function getProduct($id, $user_type = 0)
 	{
 		$this->db->select($this->table('_products').' as p', '*', $id);
 		$this->db->join('wl_ntkd', 'name as storage_name, list as storage_time', array('alias' => $_SESSION['alias']->id, 'content' => 0));
 		$this->db->join('wl_users as u1', 'name as manager_add_name', '#p.manager_add');
 		$this->db->join('wl_users as u2', 'name as manager_edit_name', '#p.manager_edit');
 		$invoise = $this->db->get('single');
-		if(!$all_info && $invoise && $_SESSION['option']->markUpByUserTypes)
+		if($user_type >= 0 && $invoise && $_SESSION['option']->markUpByUserTypes)
 		{
 			$price_out = unserialize($invoise->price_out);
-			$invoise->price_out = $price_out[$_SESSION['user']->type];
+			if($user_type == 1 && isset($price_out[2]))
+				$invoise->price_out = $price_out[2];
+			elseif(isset($price_out[$user_type]))
+				$invoise->price_out = $price_out[$user_type];
+			else
+				$invoise->price_out = end($price_out);
+		}
+		if($invoise)
+		{
+			$invoise->amount_free = $invoise->amount - $invoise->amount_reserved;
 		}
 		return $invoise;
 	}
@@ -83,7 +105,7 @@ class storage_model
 			$price_out = array();
 			foreach ($_POST as $key => $value) {
 				$key = explode('-', $key);
-				if($key[0] == 'price_out' && isset($key[1]) && is_numeric($key[1]) && $key[1] > 0)
+				if($key[0] == 'price_out' && isset($key[1]) && is_numeric($key[1]))
 				{
 					$key = $key[1];
 					$price_out[$key] = $value;
@@ -97,6 +119,8 @@ class storage_model
 		}
 		
 		$data['amount'] = $this->data->post('amount');
+		$data['amount_reserved'] = 0;
+		if($this->data->post('amount_reserved')) $data['amount_reserved'] = $this->data->post('amount_reserved');
 		$data['date_in'] = 0;
 		$date = explode('.', $this->data->post('date_in'));
 		$date = mktime(0,0,0, $date[1], $date[0], $date[2]);
@@ -125,6 +149,37 @@ class storage_model
 	public function delete($id)
 	{
 		if($this->db->deleteRow($this->table('_products'), $id)) return true;
+		return false;
+	}
+
+	public function setReserve($data)
+	{
+		if(isset($data['invoise']) && isset($data['amount']))
+		{
+			$invoise = $this->db->getAllDataById($this->table('_products'), $data['invoise']);
+			if($invoise)
+			{
+				$amount['amount_reserved'] = $invoise->amount_reserved + $data['amount'];
+				$this->db->updateRow($this->table('_products'), $amount, $invoise->id);
+				return true;
+			}
+		}
+		return false;
+	}
+
+	public function setBook($data)
+	{
+		if(isset($data['invoise']) && isset($data['amount']))
+		{
+			$invoise = $this->db->getAllDataById($this->table('_products'), $data['invoise']);
+			if($invoise)
+			{
+				$amount['amount'] = $invoise->amount - $data['amount'];
+				if(isset($data['reserve']) && $data['reserve']) $amount['amount_reserved'] = $invoise->amount_reserved - $data['amount'];
+				$this->db->updateRow($this->table('_products'), $amount, $invoise->id);
+				return true;
+			}
+		}
 		return false;
 	}
 

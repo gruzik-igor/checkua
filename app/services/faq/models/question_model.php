@@ -95,7 +95,7 @@ class question_model {
 			} else {
 				$ntkd['name'] = $this->data->post('name');
 				$ntkd['title'] = $this->data->post('name');
-				$data['alias'] = $this->db->latterUAtoEN($ntkd['name']);
+				$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
 

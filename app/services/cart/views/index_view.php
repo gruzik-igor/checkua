@@ -1,28 +1,33 @@
-<link href="<?=SITE_URL?>style/css/custom-wizard-steps.css" rel="stylesheet" type="text/css"/>	
+<link href="<?=SITE_URL?>style/css/custom-wizard-steps.css" rel="stylesheet" type="text/css"/>
 
 <div class="container">
 	<div class="shopping-cart" action="#">
 		<div class="header-tags">
-			<div class="overflow-h">
+			<div>
 				<h2>Корзина</h2>
 				<p>Перегляд і редагування</p>
 				<i class="rounded-x fa fa-check"></i>
 			</div>
 		</div>
 		<section>
+			<div class="alert alert-danger alert-dismissible fade" role="alert">
+				<strong>Помилка!</strong> Максимальна кількість доступних товарів <span id="maxQuantity"></span>
+			</div>
 			<div class="table-responsive">
 				<table class="table table-striped">
 					<thead>
 						<tr>
-							<th>Продукт</th>
-							<th>Ціна</th>
-							<th>Кількість</th>
-							<th>Разом</th>
+							<th width="14%">Артикул</th>
+							<th width="50%">Продукт</th>
+							<th width="8%">Ціна</th>
+							<th width="20%">Кількість</th>
+							<th width="8%">Разом</th>
 						</tr>
 					</thead>
 					<tbody>
 					<?php if(isset($_SESSION['cart']) && !empty($_SESSION['cart']->products)){ foreach($_SESSION['cart']->products as $product) {?>
-						<tr id="mainCartProduct-<?= $product['productId']?>">
+						<tr id="mainCartProduct-<?= $product['productId'].'-'.$product['invoiceId'].'-'.$product['storageId']?>">
+							<td><?= $product['article'] ?></td>
 							<td class="product-in-table">
 								<?php if(!empty($product['s_photo'])){ ?>
 								<img class="img-responsive" src="<?= $product['s_photo']?>" alt="">
@@ -31,15 +36,15 @@
 									<h3><?= $product['name']?></h3>
 								</div>
 							</td>
-							<td id="productPrice-<?= $product['productId']?>"><?= $product['price']?> грн.</td>
+							<td id="productPrice-<?= $product['productId'].'-'.$product['invoiceId'].'-'.$product['storageId']?>">$<?= $product['price']?></td>
 							<td>
-								<button type="button" class="quantity-button" onclick="cart.update(<?= $product['productId']?>)" value="-">-</button>
-								<input type="text" min="1" class="quantity-field" id="productQuantity-<?= $product['productId']?>" onkeyup="cart.update(<?= $product['productId']?>)" value="<?= $product['quantity']?>">
-								<button type="button" class="quantity-button" onclick="cart.update(<?= $product['productId']?>)" value="+">+</button>
+								<button type="button" class="quantity-button" onclick="cart.update(<?= $product['productId'].','.$product['invoiceId'].','.$product['storageId']?>, event)" value="-">-</button>
+								<input type="text" min="1" class="quantity-field" id="productQuantity-<?= $product['productId'].'-'.$product['invoiceId'].'-'.$product['storageId']?>" onkeyup="cart.update(<?= $product['productId'].','.$product['invoiceId'].','.$product['storageId']?>, event)" value="<?= $product['quantity']?>">
+								<button type="button" class="quantity-button" onclick="cart.update(<?= $product['productId'].','.$product['invoiceId'].','.$product['storageId']?>, event)" value="+">+</button>
 							</td>
-							<td class="shop-red" id="productTotalPrice-<?= $product['productId']?>"><?= $product['price'] * $product['quantity']?> грн.</td>
+							<td class="shop-red" id="productTotalPrice-<?= $product['productId'].'-'.$product['invoiceId'].'-'.$product['storageId']?>">$<?= $product['price'] * $product['quantity']?></td>
 							<td>
-								<button type="button" class="close" onclick="cart.remove(<?= $product['productId'] ?>)" ><span>×</span><span class="sr-only">Close</span></button>
+								<button type="button" class="close" onclick="cart.remove(<?= $product['productId'].','.$product['invoiceId'].','.$product['storageId'] ?>)" ><span>×</span><span class="sr-only">Close</span></button>
 							</td>
 						</tr>
 					<?php } } ?>
@@ -50,10 +55,10 @@
 				</table>
 			</div>
 		</section>
-		
+
 		<?php if(!$this->userIs()) {?>
 		<div class="header-tags">
-			<div class="overflow-h">
+			<div>
 				<h2>Покупець</h2>
 				<p>Вхід / Реєстрація</p>
 				<i class="rounded-x fa fa-home"></i>
@@ -68,7 +73,7 @@
 						<div class="row"  id="checkUser">
 							<div class="form-horizontal">
 								<div class="col-md-12 text-center" id="clientError">
-									
+
 								</div>
 								<div class="form-group required" style="margin-bottom: 0">
 				                    <label class="col-md-2 control-label" for="email">E-mail</label>
@@ -83,10 +88,10 @@
 				                        <input class="form-control" name="phone" id="clientPhone" type="text" value="" required="">
 				                    </div>
 				                </div>
-				                <div class="form-group required" id="clientPassword" hidden>
+				                <div class="form-group required" id="clientPassword" >
 				                    <label class="col-md-2 control-label" for="password">Пароль</label>
 				                    <div class="col-md-10">
-				                        <input class="form-control" name="password" type="password" disabled>
+				                        <input class="form-control" name="password" type="password">
 				                    </div>
 				                </div>
 				                <div class="form-group required">
@@ -166,171 +171,35 @@
 		</section>
 		<?php } ?>
 
+		<?php if($_SESSION['option']->useShipping) { ?>
+			<div class="header-tags">
+				<div>
+					<h2>Доставка</h2>
+					<p>Адреса доставки</p>
+					<i class="rounded-x fa fa-car"></i>
+				</div>
+			</div>
+			<section data-mode="async" data-url="<?= SITE_URL?>cart/loadShipping"> </section>
+		<?php } ?>
+
 		<div class="header-tags">
-			<div class="overflow-h">
+			<div>
 				<h2>Накладна</h2>
-				<p>Перегляд</p>
+				<p>Підтвердження замовлення</p>
 				<i class="rounded-x fa fa-file"></i>
 			</div>
 		</div>
-		<section data-mode="async" data-url="<?= SITE_URL?>cart/loadInvoice">
-			
-		</section>
-	
-		<?php if($_SESSION['option']->usePayments) { ?>
-		<div class="header-tags">
-			<div class="overflow-h">
-				<h2>Payment</h2>
-				<p>Select Payment method</p>
-				<i class="rounded-x fa fa-credit-card"></i>
-			</div>
-		</div>
-		<section>
-			<div class="row">
-				<div class="col-md-6 md-margin-bottom-50">
-					<h2 class="title-type">Choose a payment method</h2>
-					<!-- Accordion -->
-					<div class="accordion-v2">
-						<div class="panel-group" id="accordion">
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" data-parent="#accordion" href="#collapseOne">
-											<i class="fa fa-credit-card"></i>
-											Credit or Debit Card
-										</a>
-									</h4>
-								</div>
-								<div id="collapseOne" class="panel-collapse collapse in">
-									<div class="panel-body cus-form-horizontal">
-										<div class="form-group">
-											<label class="col-sm-4 no-col-space control-label">Cardholder Name</label>
-											<div class="col-sm-8">
-												<input type="text" class="form-control required" name="cardholder" placeholder="">
-											</div>
-										</div>
-										<div class="form-group">
-											<label class="col-sm-4 no-col-space control-label">Card Number</label>
-											<div class="col-sm-8">
-												<input type="text" class="form-control required" name="cardnumber" placeholder="">
-											</div>
-										</div>
-										<div class="form-group">
-											<label class="col-sm-4 no-col-space control-label">Payment Types</label>
-											<div class="col-sm-8">
-												<ul class="list-inline payment-type">
-													<li><i class="fa fa-cc-paypal"></i></li>
-													<li><i class="fa fa-cc-visa"></i></li>
-													<li><i class="fa fa-cc-mastercard"></i></li>
-													<li><i class="fa fa-cc-discover"></i></li>
-												</ul>
-											</div>
-										</div>
-										<div class="form-group">
-											<label class="col-sm-4">Expiration Date</label>
-											<div class="col-sm-8 input-small-field">
-												<input type="text" name="mm" placeholder="MM" class="form-control required sm-margin-bottom-20">
-												<span class="slash">/</span>
-												<input type="text" name="yy" placeholder="YY" class="form-control required">
-											</div>
-										</div>
-										<div class="form-group">
-											<label class="col-sm-4 no-col-space control-label">CSC</label>
-											<div class="col-sm-8 input-small-field">
-												<input type="text" name="number" placeholder="" class="form-control required">
-												<a href="#">What's this?</a>
-											</div>
-										</div>
-									</div>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
-											<i class="fa fa-paypal"></i>
-											Pay with PayPal
-										</a>
-									</h4>
-								</div>
-								<div id="collapseTwo" class="panel-collapse collapse">
-									<div class="content margin-left-10">
-										<a href="#"><img src="https://www.paypalobjects.com/webstatic/en_US/i/buttons/PP_logo_h_150x38.png" alt="PayPal"></a>
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<!-- End Accordion -->
-				</div>
+		<section data-mode="async" data-url="<?= SITE_URL?>cart/loadInvoice"> </section>
 
-				<div class="col-md-6">
-					<h2 class="title-type">Frequently asked questions</h2>
-					<!-- Accordion -->
-					<div class="accordion-v2 plus-toggle">
-						<div class="panel-group" id="accordion-v2">
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" data-parent="#accordion-v2" href="#collapseOne-v2">
-											What payments methods can I use?
-										</a>
-									</h4>
-								</div>
-								<div id="collapseOne-v2" class="panel-collapse collapse in">
-									<div class="panel-body">
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam hendrerit, felis vel tincidunt sodales, urna metus rutrum leo, sit amet finibus velit ante nec lacus. Cras erat nunc, pulvinar nec leo at, rhoncus elementum orci. Nullam ut sapien ultricies, gravida ante ut, ultrices nunc.
-									</div>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" class="collapsed" data-parent="#accordion-v2" href="#collapseTwo-v2">
-											Can I use gift card to pay for my purchase?
-										</a>
-									</h4>
-								</div>
-								<div id="collapseTwo-v2" class="panel-collapse collapse">
-									<div class="panel-body">
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam hendrerit, felis vel tincidunt sodales, urna metus rutrum leo, sit amet finibus velit ante nec lacus. Cras erat nunc, pulvinar nec leo at, rhoncus elementum orci. Nullam ut sapien ultricies, gravida ante ut, ultrices nunc.
-									</div>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" class="collapsed" data-parent="#accordion-v2" href="#collapseThree-v2">
-											Will I be charged when I place my order?
-										</a>
-									</h4>
-								</div>
-								<div id="collapseThree-v2" class="panel-collapse collapse">
-									<div class="panel-body">
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam hendrerit, felis vel tincidunt sodales, urna metus rutrum leo, sit amet finibus velit ante nec lacus. Cras erat nunc, pulvinar nec leo at, rhoncus elementum orci. Nullam ut sapien ultricies, gravida ante ut, ultrices nunc.
-									</div>
-								</div>
-							</div>
-							<div class="panel panel-default">
-								<div class="panel-heading">
-									<h4 class="panel-title">
-										<a data-toggle="collapse" class="collapsed" data-parent="#accordion-v2" href="#collapseFour-v2">
-											How long will it take to get my order?
-										</a>
-									</h4>
-								</div>
-								<div id="collapseFour-v2" class="panel-collapse collapse">
-									<div class="panel-body">
-										Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nam hendrerit, felis vel tincidunt sodales, urna metus rutrum leo, sit amet finibus velit ante nec lacus. Cras erat nunc, pulvinar nec leo at, rhoncus elementum orci. Nullam ut sapien ultricies, gravida ante ut, ultrices nunc.
-									</div>
-								</div>
-							</div>
-						</div>
-					</div>
-					<!-- End Accordion -->
+		<?php if($_SESSION['option']->usePayments) { ?>
+			<div class="header-tags">
+				<div>
+					<h2>Оплата</h2>
+					<p>Оберіть платіжний механізм</p>
+					<i class="rounded-x fa fa-credit-card"></i>
 				</div>
 			</div>
-		</section>
+			<section data-mode="async" data-url="<?= SITE_URL?>cart/loadPayments"> </section>
 		<?php } ?>
 
 		<div class="coupon-code">
@@ -341,7 +210,8 @@
 						<li class="total-price">
 							<h4>Разом:</h4>
 							<div class="total-result-in">
-								<span id="productsSubTotalPrice"><?= isset($_SESSION['cart']->subTotal) ? $_SESSION['cart']->subTotal : '0'?> грн.</span>
+								<span id="productsSubTotalPrice">$<?= isset($_SESSION['cart']->subTotal) ? $_SESSION['cart']->subTotal : '0'?></span> <br>
+								<span id="productsSubTotalPriceUAH"><?= isset($_SESSION['cart']->subTotal) ? round($_SESSION['cart']->subTotal * $currency_USD, 2) .' грн': '0'?></span>
 							</div>
 						</li>
 					</ul>
@@ -351,7 +221,18 @@
 	</div>
 </div>
 
-<?php 
+<?php
 	$_SESSION['alias']->js_load[] = 'assets/jquery-steps/jquery.steps.js';
 	$_SESSION['alias']->js_load[] = 'js/shopping-cart.js';
+	if(!$this->userIs() && ($_SESSION['option']->useShipping || $_SESSION['option']->usePayments)) {
 ?>
+<style>
+	.wizard > .steps > ul > li {
+	    width: 24% !important;
+	    margin-left: 10px !important;
+	}
+	.wizard > .steps > ul > li:first-child {
+	    margin-left: 0 !important;
+	}
+</style>
+<?php } ?>

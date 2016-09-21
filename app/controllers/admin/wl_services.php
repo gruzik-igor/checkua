@@ -76,6 +76,7 @@ class wl_services extends Controller {
                     $install->service = $id;
                     $install->install_go();
 
+                    unset($_SESSION['_POST']);
                     $this->load->redirect("admin/wl_aliases/add?service=".$id);
                 }
             }

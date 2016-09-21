@@ -6,15 +6,16 @@ class wl_language_words extends Controller {
     {
         $_SESSION['alias']->name = 'Список всіх слів та фраз сайту';
         $_SESSION['alias']->breadcrumb = array('Мультимовність' => '');
-        if (method_exists($this, $method) && $method != 'library' && $method != 'db') {
+        if (method_exists($this, $method) && $method != 'library' && $method != 'db')
             $this->$method();
-        } else {
+        else
             $this->index($method);
-        }
     }
 
-    public function index(){
-        if($_SESSION['user']->admin == 1){
+    public function index()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
         	$this->load->model('wl_language_model');
         	$words = $this->wl_language_model->getAllWords();
         	$aliases = $this->db->getAllData('wl_aliases');
@@ -28,7 +29,8 @@ class wl_language_words extends Controller {
 
     public function save()
     {
-    	if($_SESSION['user']->admin == 1 && $this->data->post('word') > 0){
+    	if($_SESSION['user']->admin == 1 && $this->data->post('word') > 0)
+        {
     		$this->load->model('wl_language_model');
     		$this->wl_language_model->save($this->data->post('word'), $this->data->post('language'), $this->data->post('value'));
     	}
@@ -36,14 +38,14 @@ class wl_language_words extends Controller {
 
     public function changeType()
     {
-    	if($_SESSION['user']->admin == 1 && $this->data->post('word') > 0 && $this->data->post('type') > 0){
+    	if($_SESSION['user']->admin == 1 && $this->data->post('word') > 0 && $this->data->post('type') > 0)
     		$this->db->updateRow('wl_language_words', array('type' => $this->data->post('type')), $this->data->post('word'));
-    	}
     }
 
     public function copy()
     {
-    	if($_SESSION['user']->admin == 1 && $this->data->post('language') != ''){
+    	if($_SESSION['user']->admin == 1 && $this->data->post('language') != '')
+        {
     		$this->load->model('wl_language_model');
     		$this->wl_language_model->copy($this->data->post('alias'), $this->data->post('language'));
     	}

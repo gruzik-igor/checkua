@@ -380,7 +380,7 @@ class Loader {
 
 	function text($word = '', $alias = -1)
 	{
-		if($_SESSION['language'] && $word != '')
+		if($word != '')
 		{
 			$this->model('wl_language_model');
 			return $this->wl_language_model->get($word, $alias);

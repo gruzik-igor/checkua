@@ -15,9 +15,9 @@ class install
 	public $admin_ico = 'fa-qrcode';
 	public $version = "2.3";
 
-	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
-	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');
-	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
+	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
+	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');
+	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'searchHistory' => 'Зберігати історію пошуку користувачів', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',
@@ -98,6 +98,22 @@ class install
 							(1, 1, '', 'В наявності'),
 							(2, 2, '', 'Очікується'),
 							(3, 3, '', 'Немає');";
+			$this->db->executeQuery($query);
+		}
+
+		if($this->options['searchHistory'] > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_search_history` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `product_id` int(11) NOT NULL,
+						  `product_article` text NULL,
+						  `user` int(11) NOT NULL,
+						  `date` int(11) NOT NULL,
+						  `last_view` int(11) NOT NULL,
+						  `count_per_day` int(11) NULL,
+						  PRIMARY KEY (`id`),
+						  KEY `product` (`product_id`,`user`,`date`)
+						) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
 			$this->db->executeQuery($query);
 		}
 
@@ -222,6 +238,21 @@ class install
 								(3, 3, '', 'Немає');";
 				$this->db->executeQuery($query);
 			}
+		}
+		if($option == 'searchHistory' AND $value > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_search_history` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `product_id` int(11) NOT NULL,
+						  `product_article` text NULL,
+						  `user` int(11) NOT NULL,
+						  `date` int(11) NOT NULL,
+						  `last_view` int(11) NOT NULL,
+						  `count_per_day` int(11) NULL,
+						  PRIMARY KEY (`id`),
+						  KEY `product` (`product_id`,`user`,`date`)
+						) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+			$this->db->executeQuery($query);
 		}
 	}
 

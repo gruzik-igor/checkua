@@ -39,27 +39,27 @@ class Profile extends Controller {
             $_SESSION['alias']->name = 'Кабінет користувача';
 
             $this->load->model('wl_user_model');
+            $registerDo = $this->db->getQuery("SELECT r.*, d.name, d.title_public as title_public FROM wl_user_register as r LEFT JOIN wl_user_register_do as d ON d.id = r.do WHERE r.user = {$_SESSION['user']->id}", 'array');
 
-            $this->load->page_view('profile/edit_view', array('user' => $this->wl_user_model->getInfo()));
+            $this->load->page_view('profile/edit_view', array('user' => $this->wl_user_model->getInfo(), 'registerDo' => $registerDo));
         }
         else
             $this->redirect('login');
     }
 
-    public function changeUserName()
+    public function saveUserInfo()
     {
         if($this->userIs()){
-            $name = $this->data->post('userName');
-
-            if(strlen($name) > 3){
-                $this->db->executeQuery("UPDATE `wl_users` SET `name` = '{$name}' WHERE `id` = {$_SESSION['user']->id} ");
-                $_SESSION['user']->name = $name;
-
-                header('Content-type: application/json');
-                echo json_encode($name);
-                exit;
+            $name = $this->data->post('name');
+            if($name){
+                if(mb_strlen($name, 'UTF-8') > 3){
+                    $this->db->executeQuery("UPDATE `wl_users` SET `name` = '{$name}' WHERE `id` = {$_SESSION['user']->id} ");
+                    $_SESSION['user']->name = $name;
+                }
             }
         }
+        header("Location: ".SITE_URL.'profile/edit#profile');
+        exit();
     }
 
     public function upload_avatar()
@@ -145,22 +145,18 @@ class Profile extends Controller {
                     if($this->db->updateRow('wl_users', array('password' => $password), $_SESSION['user']->id)){
                         if($this->db->register('reset', $user->password)){
                             $this->load->library('mail');
-                            if($this->mail->sendTemplate('user_reset_myself', $_SESSION['user']->email, array('name' => $_SESSION['user']->name))){
-                                $_SESSION['notify']->type = 'success';
-                                $_SESSION['notify']->text = 'Пароль змінено';
+                            if($this->mail->sendTemplate('reset/notify_success', $_SESSION['user']->email, array('name' => $_SESSION['user']->name))){
+                                $_SESSION['notify']->success = 'Пароль змінено';
                             }
                         }
                     }
                 } else {
-                    $_SESSION['notify']->type = 'error';
-                    $_SESSION['notify']->text = 'Невірний поточний пароль';
+                    $_SESSION['notify']->errors = 'Невірний поточний пароль';
                 }
             } else {
-                $_SESSION['notify']->type = 'error';
-                $_SESSION['notify']->text = '<ul>'.$this->validator->getErrors('<li>', '</li>').'</ul>';
+                $_SESSION['notify']->errors = '<ul>'.$this->validator->getErrors('<li>', '</li>').'</ul>';
             }
-            @$_SESSION['notify']->show = true;
-            header("Location: ".SITE_URL.'profile/index#tabs-security');
+            header("Location: ".SITE_URL.'profile/edit#security');
             exit();
         } else {
             header("Location: ".SITE_URL.'login');

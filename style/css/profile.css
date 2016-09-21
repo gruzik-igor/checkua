@@ -510,6 +510,24 @@
 	margin-bottom: 10px;
 }
 
+.fileUpload {
+    position: relative;
+    overflow: hidden;
+    margin: 10px 0px 0px 25px;
+    background: url(http://www.dreamtemplate.com/dreamcodes/web_icons/gray-camera-icon.png) no-repeat 25%;
+}
+
+.fileUpload input.upload {
+    position: absolute;
+    top: 0;
+    right: 0;
+    margin: 0;
+    padding: 0;
+    font-size: 20px;
+    cursor: pointer;
+    opacity: 0;
+}
+
 /*Circle in Responsive*/
 @media (max-width: 450px) {
 	.p-chart.col-xs-6 {

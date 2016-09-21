@@ -1,4 +1,8 @@
-<link href="<?=SITE_URL?>style/kabinet.css" rel="stylesheet" />
+<link href="<?=SITE_URL?>style/css/profile.css" rel="stylesheet" />
+<link href="<?=SITE_URL?>style/css/app.css"" rel="stylesheet" />
+<link href="<?=SITE_URL?>style/css/sky-form.css" rel="stylesheet" />
+<link href="<?=SITE_URL?>style/css/custom-sky-form.css" rel="stylesheet" />
+<link href="<?=SITE_URL?>style/css/blocks.css" rel="stylesheet" />
 
 <div class="wrapper">
     <div class="container">
@@ -22,7 +26,18 @@
 
                 <!--Left Sidebar-->
                 <div class="col-md-3 md-margin-bottom-40">
-                    <img class="img-responsive profile-img margin-bottom-20" src="<?=IMG_PATH?>Fake.png" alt="">
+                    <div id="fileupload" class="fileupload-buttonbar">
+                        <div style="text-align: center;">
+                            <div>
+                                <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?= ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : IMG_PATH.'empty-avatar.jpg'  ?>" alt="Фото" title="Фото" >
+                            </div>
+                            <div class="fileUpload ">
+                                <span style="font-weight:bold"> Додати фото</span>
+                                <input onchange="show_image(this)" type="file" name="photos" class="upload">
+                            </div>
+                            <img id="loading" style="" src="<?=IMG_PATH?>ajax-loader.gif" hidden>
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="col-md-9">
@@ -30,60 +45,79 @@
                         <div class="tab-v1">
                             <ul class="nav nav-justified nav-tabs">
                                 <li class="active"><a data-toggle="tab" href="#profile">Загальні дані</a></li>
-                                <li><a data-toggle="tab" href="#passwordTab">Зміна паролю</a></li>
-                                <li><a data-toggle="tab" href="#payment">Способи оплати</a></li>
-                                <li><a data-toggle="tab" href="#settings">Notification Settings</a></li>
+                                <li><a data-toggle="tab" href="#security">Зміна паролю</a></li>
+                                <li><a data-toggle="tab" href="#register">Реєстр дій</a></li>
                             </ul>
                             <div class="tab-content">
                                 <div id="profile" class="profile-edit tab-pane fade in active">
                                     <h2 class="heading-md">Загальні дані мого аккаунту</h2>
-                                    <!-- <p>Below are the name and email addresses on file for your account.</p> -->
                                     <br>
-                                    <dl class="dl-horizontal">
-                                        <dt><strong>Моє ім'я</strong></dt>
-                                        <dd>
-                                            <?=$_SESSION['user']->name?>
-                                        <hr>
-                                        <dt><strong>Мій email </strong></dt>
-                                        <dd>
-                                            <?=$_SESSION['user']->email?>
-                                            <span>
-                                                <a class="pull-right " data-toggle="tab" href="#passwordTab">
-                                                    <i class="fa fa-pencil"></i>
-                                                </a>
-                                            </span>
-                                        </dd>
-                                        <hr>
-                                        <dt><strong>Тип</strong></dt>
-                                        <dd>
-                                            <?php if ($_SESSION['user']->admin == 1){ ?>
-                                                Адміністратор
-                                            <?php }else{ ?>
-                                                Користувач
-                                            <?php } ?>
-                                        </dd>
-                                        <hr>
-                                        <dt><strong>Статус </strong></dt>
-                                        <dd>
-                                        </dd>
-                                        <hr>
+                                    <form action="<?= SITE_URL?>profile/saveUserInfo" method="POST" class="sky-form">
+                                        <dl class="dl-horizontal">
+                                            <dt>
+                                                <strong>Моє ім'я</strong>
+                                            </dt>
+                                            <dd>
+                                                <span id="name"><?=$_SESSION['user']->name?></span>
+                                                <span>
+                                                    <a class="pull-right" href="#" onclick="changeInfo('name')">
+                                                        <i class="fa fa-pencil"></i>
+                                                    </a>
+                                                </span>
+                                            </dd>
+                                            <hr>
 
-                                    </dl>
+                                            <dt>
+                                                <strong>Мій email </strong>
+                                            </dt>
+                                            <dd>
+                                                <?=$_SESSION['user']->email?>
+                                            </dd>
+                                            <hr>
 
+                                            <dt>
+                                                <strong>Тип</strong>
+                                            </dt>
+                                            <dd>
+                                                <?php if ($_SESSION['user']->admin == 1){ ?>
+                                                    Адміністратор
+                                                <?php }else{ ?>
+                                                    Користувач
+                                                <?php } ?>
+                                            </dd>
+                                            <hr>
+
+                                            <dt>
+                                                <strong>Останній вхід </strong>
+                                            </dt>
+                                            <dd>
+                                                <?= date("d.m.Y H:i", $user->last_login); ?>
+                                            </dd>
+                                            <hr>
+
+                                            <dt>
+                                                <strong>Дата реєстрації</strong>
+                                            </dt>
+                                            <dd>
+                                                <?= date("d.m.Y H:i", $user->registered); ?>
+                                            </dd>
+                                            <hr>
+                                            <button class="btn-u hidden" type="submit" id="saveInfo" >Зберегти зміни</button>
+                                        </dl>
+                                    </form>
                                 </div>
 
-                                <div id="passwordTab" class="profile-edit tab-pane fade">
+                                <div id="security" class="profile-edit tab-pane fade">
                                     <h2 class="heading-md">Управління налаштуваннями безпеки</h2>
-                                    <p>Змінити пароль</p>
                                     <br>
-                                    <form class="sky-form" id="sky-form4" action="<?=SITE_URL?>kabinet/password" novalidate="novalidate">
+                                    <form class="sky-form" method="POST" action="<?=SITE_URL?>profile/save_security" novalidate="novalidate">
                                         <dl class="dl-horizontal">
                                             <dt>Введіть старий пароль</dt>
                                             <dd>
                                                 <section>
                                                     <label class="input">
                                                         <i class="icon-append fa fa-lock"></i>
-                                                        <input type="password" id="password" name="password" placeholder="Пароль">
+                                                        <input type="password" id="old_password" name="old_password" placeholder="Пароль">
                                                         <b class="tooltip tooltip-bottom-right">Введіть свій старий пароль</b>
                                                     </label>
                                                 </section>
@@ -93,7 +127,7 @@
                                                 <section>
                                                     <label class="input">
                                                         <i class="icon-append fa fa-lock"></i>
-                                                        <input type="password" id="newpassword" name="newpassword" placeholder="Новий пароль">
+                                                        <input type="password" id="new_password" name="new_password" placeholder="Новий пароль">
                                                         <b class="tooltip tooltip-bottom-right">Запам'ятайте свій пароль</b>
                                                     </label>
                                                 </section>
@@ -103,110 +137,27 @@
                                                 <section>
                                                     <label class="input">
                                                         <i class="icon-append fa fa-lock"></i>
-                                                        <input type="password" id="newpassword1" name="newpassword1" placeholder="Введіть новий пароль ще раз">
+                                                        <input type="password" id="new_password_re" name="new_password_re" placeholder="Введіть новий пароль ще раз">
                                                         <b class="tooltip tooltip-bottom-right">Запам'ятайте свій пароль</b>
                                                     </label>
                                                 </section>
                                             </dd>
                                         </dl>
                                         <hr>
-
-
-
-
-                                        <label class="toggle toggle-change"><input type="checkbox" checked="" name="checkbox-toggle-1" style="margin-right: 100px"><i class="no-rounded"></i><span>Запам'ятати пароль</span></label>
-                                        <hr>
-                                        <br>
-                                        <button type="button" class="btn-u btn-u-default">Відмінити</button>
                                         <button class="btn-u" type="submit">Зберегти зміни</button>
                                     </form>
                                 </div>
 
-                                <div id="payment" class="profile-edit tab-pane fade">
-                                    <h2 class="heading-md">Оберіть спосіб оплати</h2>
-                                    <!-- <p>Below are the payment options for your account.</p> -->
+                                <div id="register" class="profile-edit tab-pane fade">
+                                    <h2 class="heading-md">Реєстр дій користувачем</h2>
                                     <br>
-                                    <form class="sky-form" id="sky-form" action="#" novalidate="novalidate">
-                                        <!--Checkout-Form-->
-                                        <section>
-                                            <div class="inline-group">
-                                                <label class="radio" style="margin-top: 0px"><input type="radio" checked="" name="radio-inline"><i class="rounded-x"></i>Visa</label>
-                                                <label class="radio"><input type="radio" name="radio-inline"><i class="rounded-x"></i>MasterCard</label>
-                                                <label class="radio"><input type="radio" name="radio-inline"><i class="rounded-x"></i>PayPal</label>
-                                            </div>
-                                        </section>
-
-                                        <section>
-                                            <label class="input">
-                                                <input type="text" name="name" placeholder="Назва карти">
-                                            </label>
-                                        </section>
-
-                                        <div class="row">
-                                            <section class="col col-10">
-                                                <label class="input">
-                                                    <input type="text" name="card" id="card" placeholder="Номер карти">
-                                                </label>
-                                            </section>
-                                            <section class="col col-2">
-                                                <label class="input">
-                                                    <input type="text" name="cvv" id="cvv" placeholder="CVV2">
-                                                </label>
-                                            </section>
-                                        </div>
-
-                                        <div class="row">
-                                            <label class="label col col-4">Термін придатності</label>
-                                            <section class="col col-5">
-                                                <label class="select">
-                                                    <select name="month">
-                                                        <option disabled="" selected="" value="0">Місяць</option>
-                                                        <option value="1">Січень</option>
-                                                        <option value="2">Лютий</option>
-                                                        <option value="3">Березень</option>
-                                                        <option value="4">Квітень</option>
-                                                        <option value="5">Травень</option>
-                                                        <option value="6">Червень</option>
-                                                        <option value="7">Липень</option>
-                                                        <option value="8">Серпень</option>
-                                                        <option value="9">Вересень</option>
-                                                        <option value="10">Жовтень</option>
-                                                        <option value="11">Листопад</option>
-                                                        <option value="12">Грудень</option>
-                                                    </select>
-                                                    <i></i>
-                                                </label>
-                                            </section>
-                                            <section class="col col-3">
-                                                <label class="input">
-                                                    <input type="text" placeholder="Рік" id="year" name="year">
-                                                </label>
-                                            </section>
-                                        </div>
-                                        <button type="button" class="btn-u btn-u-default">Cancel</button>
-                                        <button class="btn-u" type="submit">Save Changes</button>
-                                        <!--End Checkout-Form-->
-                                    </form>
-                                </div>
-
-                                <div id="settings" class="profile-edit tab-pane fade">
-                                    <h2 class="heading-md">Manage your Notifications.</h2>
-                                    <p>Below are the notifications you may manage.</p>
-                                    <br>
-                                    <form class="sky-form" id="sky-form3" action="#">
-                                        <label class="toggle"><input type="checkbox" checked="" name="checkbox-toggle-1"><i class="no-rounded"></i>Email notification</label>
+                                    <dl class="dl-horizontal">
+                                    <?php if($registerDo) foreach ($registerDo as $register) { ?>
+                                        <dt><strong><?= date("d.m.Y H:i", $register->date)?></strong></dt>
+                                        <dd><?= $register->title_public?></dd>
                                         <hr>
-                                        <label class="toggle"><input type="checkbox" checked="" name="checkbox-toggle-1"><i class="no-rounded"></i>Send me email notification when a user comments on my blog</label>
-                                        <hr>
-                                        <label class="toggle"><input type="checkbox" checked="" name="checkbox-toggle-1"><i class="no-rounded"></i>Send me email notification for the latest update</label>
-                                        <hr>
-                                        <label class="toggle"><input type="checkbox" checked="" name="checkbox-toggle-1"><i class="no-rounded"></i>Send me email notification when a user sends me message</label>
-                                        <hr>
-                                        <label class="toggle"><input type="checkbox" checked="" name="checkbox-toggle-1"><i class="no-rounded"></i>Receive our monthly newsletter</label>
-                                        <hr>
-                                        <button type="button" class="btn-u btn-u-default">Reset</button>
-                                        <button class="btn-u" type="submit">Save Changes</button>
-                                    </form>
+                                    <?php } ?>
+                                    </dl>
                                 </div>
                             </div>
                         </div>
@@ -216,3 +167,10 @@
         </div>
     </div>
 </div>
+
+<?php
+    $_SESSION['alias']->js_load[] = "assets/blueimp/js/vendor/jquery.ui.widget.js";
+    $_SESSION['alias']->js_load[] = "assets/blueimp/js/load-image.all.min.js";
+    $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.fileupload.js";
+    $_SESSION['alias']->js_load[] = "js/user.js";
+ ?>

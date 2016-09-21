@@ -47,9 +47,17 @@
 	<!-- ================== END BASE JS ================== -->
 	
 	<script>
+		var SITE_URL = '<?=SITE_URL?>';
 	    $(document).ready(function() {
 	        App.init();
 	    });
 	</script>
+	<?php
+		if(!empty($_SESSION['alias']->js_load)) {
+			foreach ($_SESSION['alias']->js_load as $js) {
+				echo '<script type="text/javascript" src="'.SITE_URL.$js.'"></script> ';
+			}
+		}
+	?>
 </body>
 </html>

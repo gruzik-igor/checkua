@@ -24,10 +24,9 @@ class wl_user_model {
         if($user && $additionall)
         {
         	$info = false;
+            $user->info = array();
         	if($additionall == '*')
-        	{
         		$info = $this->db->getAllDataByFieldInArray('wl_user_info', $user->id, 'user');
-        	}
         	else
         	{
         		$where['user'] = $user->id;
@@ -35,27 +34,9 @@ class wl_user_model {
         		$info = $this->db->getAllDataByFieldInArray('wl_user_info', $where);
         	}
         	if($info)
-        	{
         		foreach ($info as $i) {
-        			$key = $i->field;
-        			if(isset($user->$key))
-        			{
-        				if(is_array($user->$key)) array_push($user->$key, $i->value);
-        				else
-        				{
-        					$value = clone $user->$key;
-        					$user->$key = array();
-        					array_push($user->$key, $value);
-        					array_push($user->$key, $i->value);
-        					unset($value);
-        				}
-        			}
-        			else
-        			{
-        				$user->$key = $i->value;
-        			}
+        			$user->info[$i->field] = $i->value;
         		}
-        	}
         }
         return $user;
     }
@@ -132,6 +113,7 @@ class wl_user_model {
         if($user)
         {
             $user->load = $status->load;
+            $user->info = array();
         	if(!empty($additionall))
 			{
 				foreach ($additionall as $key => $value) {
@@ -141,23 +123,7 @@ class wl_user_model {
 					$info['value'] = $value;
 					$info['date'] = time();
 					$this->db->insertRow('wl_user_info', $info);
-
-					if(isset($user->$key))
-        			{
-        				if(is_array($user->$key)) array_push($user->$key, $value);
-        				else
-        				{
-        					$exist_value = clone $user->$key;
-        					$user->$key = array();
-        					array_push($user->$key, $exist_value);
-        					array_push($user->$key, $value);
-        					unset($exist_value);
-        				}
-        			}
-        			else
-        			{
-        				$user->$key = $value;
-        			}
+                    $user->info[$key] = $value;
 				}
 			}
 			return $user;
@@ -293,26 +259,7 @@ class wl_user_model {
     	$where['user'] = $user;
     	$where['field'] = $key;
     	$this->db->select('wl_user_info', 'id, value', $where);
-    	$additionall = $this->db->get();
-    	if(is_array($additionall))
-    	{
-    		$add = true;
-    		foreach ($additionall as $info) {
-    			if($info->value == $value)
-    			{
-    				$add = false;
-    				break;
-    			}
-    		}
-    		if($add)
-    		{
-    			$where['value'] = $value;
-    			$where['date'] = time();
-    			$this->db->insertRow('wl_user_info', $where);
-    			return true;
-    		}
-    	}
-    	elseif(is_object($additionall))
+        if($additionall = $this->db->get())
     	{
     		if($additionall->value != $value)
     			$this->db->updateRow('wl_user_info', array('value' => $value, 'date' => time()), $additionall->id);

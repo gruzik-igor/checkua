@@ -11,7 +11,7 @@ class wl_Auth_model {
             $_SESSION['user']->name = $user->name;
             $_SESSION['user']->email = $user->email;
             $_SESSION['user']->type = $user->type;
-			$_SESSION['user']->verify = $user->status;
+			$_SESSION['user']->status = $user->status;
             $_SESSION['user']->permissions = array('wl_users', 'wl_ntkd', 'wl_images', 'wl_video');
 
             if($user->type == 1)

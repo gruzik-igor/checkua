@@ -30,10 +30,6 @@ class library_search_model
 				$search->folder = false;
 				if(isset($_SESSION['option']->folder))
 					$search->folder = $_SESSION['option']->folder;
-				if($admin)
-				{
-					$search->edit_link = 'admin/'.$_SESSION['alias']->alias.'/'.$article->alias;
-				}
 
 				if($_SESSION['option']->useGroups)
 				{
@@ -76,6 +72,10 @@ class library_search_model
 				            }							
 						}
 					}
+				}
+				if($admin)
+				{
+					$search->edit_link = 'admin/'.$search->link;
 				}
 			}
 		}

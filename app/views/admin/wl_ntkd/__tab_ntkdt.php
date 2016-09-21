@@ -32,7 +32,7 @@ else
 ?>
 <div class="input-group">
     <span class="input-group-addon">Назва</span>
-    <input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="save('name', this <?=$language_attr?>)">
+    <input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Назва" onChange="save('name', this <?=$language_attr?>)">
 </div>
 
 <small onClick="showEditTKD(<?=$language_block_name?>)" class="badge badge-info">Редагувати title, keywords, description</small>

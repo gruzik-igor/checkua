@@ -12,20 +12,27 @@ class Profile extends Controller {
         }
     }
 
-    public function index($uri)
+    public function index($uri = false)
     {
         $_SESSION['alias']->content = 0;
         $_SESSION['alias']->code = 201;
 
-        if($this->userIs())
+        if($uri)
         {
-            $_SESSION['alias']->title = $_SESSION['user']->name.'. Кабінет користувача';
-            $_SESSION['alias']->name = 'Кабінет користувача';
-
             $this->load->model('wl_user_model');
+            $user = $this->wl_user_model->getInfo($uri, false, 'alias');
+            if($user)
+            {
+                $_SESSION['alias']->title = $user->name.'. Кабінет користувача';
+                $_SESSION['alias']->name = $user->name;
 
-            $this->load->page_view('profile/index_view', array('user' => $this->wl_user_model->getInfo()));
-        }
+                $this->load->page_view('profile/index_view', array('user' => $user));
+            } 
+            else 
+                $this->load->page_404();
+        } 
+        elseif($this->userIs())
+            $this->redirect('profile/'.$_SESSION['user']->alias);
         else
             $this->redirect('login');
     }
@@ -49,11 +56,13 @@ class Profile extends Controller {
 
     public function saveUserInfo()
     {
-        if($this->userIs()){
+        if($this->userIs())
+        {
             $name = $this->data->post('name');
             $user = $_SESSION['user']->id;
 
-            if($name){
+            if($name)
+            {
                 if(mb_strlen($name, 'UTF-8') > 3){
                     $this->db->select('wl_users', 'name', $user);
                     $oldName = $this->db->get();
@@ -68,7 +77,8 @@ class Profile extends Controller {
 
             unset($_POST['name']);
             $this->load->model('wl_user_model');
-            foreach ($_POST as $key => $value) {
+            foreach ($_POST as $key => $value)
+            {
                 $this->wl_user_model->setAdditional($user, $key, $this->data->post($key));
             }
         }

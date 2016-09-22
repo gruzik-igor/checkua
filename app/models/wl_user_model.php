@@ -263,7 +263,9 @@ class wl_user_model {
     	{
     		if($additionall->value != $value){
     			$this->db->updateRow('wl_user_info', array('value' => $value, 'date' => time()), $additionall->id);
-                $this->db->register('profile_data', 'Попереднє значення ' . $key.': '.$additionall->value, $user);
+                $text = 'Попереднє значення ' . $key.': '.$additionall->value;
+                if($user != $_SESSION['user']->id) $text .= ' (менеджер: '. $_SESSION['user']->id. ', '.$_SESSION['user']->name.')'; 
+                $this->db->register('profile_data', $text, $user);
             }
     		return true;
     	}
@@ -299,7 +301,8 @@ class wl_user_model {
 
 	public function setSession($user, $updateLastLogin = true)
 	{
-		$_SESSION['user']->id = $user->id;
+        $_SESSION['user']->id = $user->id;
+		$_SESSION['user']->alias = $user->alias;
         $_SESSION['user']->name = $user->name;
         $_SESSION['user']->email = $user->email;
         $_SESSION['user']->status = $user->status;

@@ -1,6 +1,6 @@
 <div class="profile-left">
 	<div>
-		 <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?= ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : IMG_PATH.'empty-avatar.jpg'  ?>" alt="Фото" title="Фото" >
+		 <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?= ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : SERVER_URL.'style/admin/images/user-'.$user->type.'.jpg'  ?>" alt="Фото" title="Фото" >
 	</div>
 </div>
 

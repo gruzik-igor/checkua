@@ -4,10 +4,11 @@ class wl_Auth_model {
 
     function authByCookies()
     {
-        $this->db->select('wl_users', "id, name, email, type, status, last_login", $_COOKIE['auth_id'], 'auth_id');
+        $this->db->select('wl_users', "id, alias, name, email, type, status, last_login", $_COOKIE['auth_id'], 'auth_id');
         if($user = $this->db->get('single'))
         {
             $_SESSION['user']->id = $user->id;
+            $_SESSION['user']->alias = $user->alias;
             $_SESSION['user']->name = $user->name;
             $_SESSION['user']->email = $user->email;
             $_SESSION['user']->type = $user->type;

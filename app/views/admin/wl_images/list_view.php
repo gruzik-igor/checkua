@@ -24,7 +24,8 @@
 						<tbody>
 						    <?php 
 						    $wl_images_sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $alias->id, 'alias');
-						    if($wl_images_sizes) foreach ($wl_images_sizes as $pic) { ?>
+						    if($wl_images_sizes) 
+						    	foreach ($wl_images_sizes as $pic) { ?>
 								<tr>
 									<td><?=$pic->name?></td>
 									<td><?=$pic->prefix?></td>

@@ -29,8 +29,14 @@ function show_image (file) {
 }
 
 function changeInfo(el){
-    var text = $("#"+el).text();
-    $("#"+el).next().remove();
-    $("#"+el).html("<label class='input'><input type='text' name='"+el+"' value='"+text+"' ></label>");
+    event.preventDefault();
+    
+    var $element = $("#"+el);
+    var text = $element.text();
+
+    $element.next().remove();
+    $element.html("<label class='input'><input type='text' name='"+el+"' value='"+text+"' ></label>");
+    $element.children().hide().slideDown('slow');
+
     $("#saveInfo").removeClass('hidden');
 }

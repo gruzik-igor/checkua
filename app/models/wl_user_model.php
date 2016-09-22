@@ -15,10 +15,10 @@ class wl_user_model {
     /*
      * Отримуємо дані користувача з бази даних
      */
-    function getInfo($id = 0, $additionall = '*')
+    function getInfo($id = 0, $additionall = '*', $field = 'id')
     {
-    	if($id == 0 && isset($_SESSION['user']->id)) $id = $_SESSION['user']->id;
-        $this->db->select('wl_users as u', '*', $id);
+    	if($id == 0 && isset($_SESSION['user']->id) && !is_string($id)) $id = $_SESSION['user']->id;
+        $this->db->select('wl_users as u', '*', $id, $field);
         $this->db->join('wl_user_types', 'name as type_name', '#u.type');
     	$user = $this->db->get('single');
         if($user && $additionall)
@@ -261,8 +261,10 @@ class wl_user_model {
     	$this->db->select('wl_user_info', 'id, value', $where);
         if($additionall = $this->db->get())
     	{
-    		if($additionall->value != $value)
+    		if($additionall->value != $value){
     			$this->db->updateRow('wl_user_info', array('value' => $value, 'date' => time()), $additionall->id);
+                $this->db->register('profile_data', 'Попереднє значення ' . $key.': '.$additionall->value, $user);
+            }
     		return true;
     	}
     	else

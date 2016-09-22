@@ -39,7 +39,7 @@ class Profile extends Controller {
             $_SESSION['alias']->name = 'Кабінет користувача';
 
             $this->load->model('wl_user_model');
-            $registerDo = $this->db->getQuery("SELECT r.*, d.name, d.title_public as title_public FROM wl_user_register as r LEFT JOIN wl_user_register_do as d ON d.id = r.do WHERE r.user = {$_SESSION['user']->id}", 'array');
+            $registerDo = $this->db->getQuery("SELECT r.*, d.name, d.title_public as title_public FROM wl_user_register as r LEFT JOIN wl_user_register_do as d ON d.id = r.do WHERE r.user = {$_SESSION['user']->id} AND d.public = 1", 'array');
 
             $this->load->page_view('profile/edit_view', array('user' => $this->wl_user_model->getInfo(), 'registerDo' => $registerDo));
         }
@@ -51,13 +51,28 @@ class Profile extends Controller {
     {
         if($this->userIs()){
             $name = $this->data->post('name');
+            $user = $_SESSION['user']->id;
+
             if($name){
                 if(mb_strlen($name, 'UTF-8') > 3){
-                    $this->db->executeQuery("UPDATE `wl_users` SET `name` = '{$name}' WHERE `id` = {$_SESSION['user']->id} ");
-                    $_SESSION['user']->name = $name;
+                    $this->db->select('wl_users', 'name', $user);
+                    $oldName = $this->db->get();
+
+                    if($oldName->name != $name){
+                        $this->db->updateRow('wl_users', array('name' => $name), $user);
+                        $this->db->register('profile_data', 'Попереднє значення name: '.$oldName->name, $user);
+                        $_SESSION['user']->name = $name;
+                    }
                 }
             }
+
+            unset($_POST['name']);
+            $this->load->model('wl_user_model');
+            foreach ($_POST as $key => $value) {
+                $this->wl_user_model->setAdditional($user, $key, $this->data->post($key));
+            }
         }
+        
         header("Location: ".SITE_URL.'profile/edit#profile');
         exit();
     }

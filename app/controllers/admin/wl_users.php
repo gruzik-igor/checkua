@@ -18,12 +18,22 @@ class wl_users extends Controller {
             if($this->data->uri(2) != ''){
                 $user = $this->data->uri(2);
                 $user = $this->db->sanitizeString($user);
-                if(is_numeric($user)) $user = $this->db->getAllDataById('wl_users', $user);
-                else $user = $this->db->getAllDataById('wl_users', $user, 'email');
+
+                $this->load->model('wl_user_model');
+                if(is_numeric($user)) {
+                    $user = $this->wl_user_model->getInfo($user);
+                }
+                else {
+                    $user = $this->wl_user_model->getInfo($user, '*', 'email');
+                }
+
                 if(is_object($user) && $user->id > 0){
+                    $status = $this->db->getAllData('wl_user_status');
+                    $types = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
+
                     $_SESSION['alias']->name = 'Користувач '.$user->name;
                     $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', $user->name => '');
-                    $this->load->admin_view('wl_users/edit_view', array('user' => $user));
+                    $this->load->admin_view('wl_users/edit_view', array('user' => $user, 'status' => $status, 'types' => $types));
                 }
             } else {
                 $this->load->admin_view('wl_users/list_view');
@@ -208,6 +218,13 @@ class wl_users extends Controller {
                                     $register['user'] = $_POST['id'];
                                     $register['additionally'] .= 'user: '.$_SESSION['user']->id.'. '.$_SESSION['user']->name.', old type: '.$check[0]->type.', new type: '.$user['type'];
                                     $this->db->insertRow('wl_user_register', $register);
+                                }
+
+                                if(isset($_POST['info'])){
+                                    $this->load->model('wl_user_model');
+                                    foreach ($_POST['info'] as $key => $value) {
+                                        $this->wl_user_model->setAdditional($_POST['id'], $key, $value);
+                                    }
                                 }
 
                                 $_SESSION['notify']->success = 'Дані оновлено успішно.';

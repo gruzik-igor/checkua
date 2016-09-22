@@ -24,6 +24,10 @@
 	            	<tr class="divider">
                         <td colspan="2"></td>
                     </tr>
+                    <tr>
+	                    <td class="field">Alias користувача</td>
+	                    <td><?=$user->alias?></td>
+	                </tr>
 	                <tr>
 						<td class="field">Тип користувача</td>
 						<td>
@@ -39,6 +43,10 @@
 								if($s->id == $user->status) echo $s->title;
 							} ?>
 						</td>
+					</tr>
+		    		<tr>
+						<td class="field">Дата останнього входу</td>
+						<td><?=date("d.m.Y H:i", $user->last_login)?></td>
 					</tr>
 		    		<tr>
 						<td class="field">Дата реєстрації</td>

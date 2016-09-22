@@ -13,6 +13,11 @@
 			        </div>
 			    </div>
 			    <div class="form-group">
+			        <label class="col-md-3 control-label">Alias користувача</label>
+			        <div class="col-md-9">
+			            <input type="text" name="alias" class="form-control" value="<?=$user->alias?>" required placeholder="alias користувача" />
+			        </div>
+			    </div><div class="form-group">
 			        <label class="col-md-3 control-label">Ім'я користувача</label>
 			        <div class="col-md-9">
 			            <input type="text" name="name" class="form-control" value="<?=$user->name?>" required placeholder="Ім'я користувача" />

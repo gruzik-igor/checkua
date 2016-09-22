@@ -192,6 +192,7 @@ class wl_users extends Controller {
                                 $register['additionally'] = $check[0]->password. ' by administrator '.$_SESSION['user']->id.' '.$_SESSION['user']->name;
                                 $this->db->insertRow('wl_user_register', $register);
                             }
+                            $user['alias'] = $this->data->post('alias');
                             $user['type'] = $this->data->post('type');
                             $user['status'] = $this->data->post('status');
                             if($this->db->updateRow('wl_users', $user, $_POST['id'])){

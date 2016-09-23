@@ -89,7 +89,7 @@
     }
     if($_SESSION['user']->admin == 1){ ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
-        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words')))?'active':''?>">
+        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template')))?'active':''?>">
             <a href="javascript:;">
                 <b class="caret pull-right"></b>
                 <i class="fa fa-cogs"></i>

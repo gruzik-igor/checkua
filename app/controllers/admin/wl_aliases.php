@@ -88,8 +88,8 @@ class wl_aliases extends Controller {
                     if($_SESSION['language'])
                         $where['language'] = $_SESSION['language'];
                     $this->db->select('wl_ntkd', 'name', $where);
-                    $wl_ntkd = $this->db->get('single');
-                    $alias->name = $wl_ntkd->name;
+                    if($wl_ntkd = $this->db->get('single'))
+                        $alias->name = $wl_ntkd->name;
 
                     $text = '';
                     if($alias->service > 0) $text = " (на основі сервісу ".$alias->title.")";

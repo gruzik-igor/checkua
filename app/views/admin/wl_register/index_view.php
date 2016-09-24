@@ -37,7 +37,7 @@
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colReorder.js'; 
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colVis.js'; 
   $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.responsive.js'; 
-  $_SESSION['alias']->js_load[] = 'js/admin/table-register.js'; 
+  $_SESSION['alias']->js_load[] = 'assets/white-lion/table-register.js'; 
   $_SESSION['alias']->js_init[] = 'TableManageCombine.init();'; 
 ?>
 <link href="<?=SITE_URL?>assets/DataTables/css/data-table.css" rel="stylesheet" />

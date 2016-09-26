@@ -187,7 +187,7 @@ class shopshowcase extends Controller {
 
 	public function __get_Products($data = array())
 	{
-		$group = 0;
+		$group = -1;
 		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
 		elseif(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];

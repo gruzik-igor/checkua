@@ -47,7 +47,7 @@ class shop_model {
 		return false;
 	}
 	
-	public function getProducts($Group = 0, $noInclude = 0, $active = true)
+	public function getProducts($Group = -1, $noInclude = 0, $active = true)
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active)

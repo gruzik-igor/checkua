@@ -4,6 +4,7 @@
  */
 $config['autoload'] = array('db', 'data');
 $config['recaptcha'] = array('public' => 'RECAPTCHA_PUBLIC_KEY', 'secret' => 'RECAPTCHA_SECRET_KEY');
+$config['facebook'] = array('appId' => 'FACEBOOK_APP_ID', 'secret' => 'FACEBOOK_SECRET_KEY');
 
 /**
  * Параметри для з'єднання до БД

@@ -9,14 +9,23 @@ class Signup extends Controller {
 
     public function index()
     {
+    	$where = array('service' => 0, 'alias' => 4, 'name' => 'userSignUp');
+    	$userSignUp = $this->db->getAllDataById('wl_options', $where);
     	if(!$this->userIs())
     	{
-    		$this->load->library('facebook');
-        	$this->load->view('profile/signup/index_view');
+    		if($userSignUp && $userSignUp->value == 1)
+    		{
+    			$this->load->library('facebook');
+	    		if($_SESSION['option']->facebook_initialise)
+	        		$this->load->view('profile/signup/index_view');
+	        	else
+	        		$this->load->view('profile/signup/email_view');
+    		}
+    		else
+    			$this->load->page_404();
     	}
         else
         	$this->redirect('profile');
-        // $this->load->page_404();
     }
 
     public function email()

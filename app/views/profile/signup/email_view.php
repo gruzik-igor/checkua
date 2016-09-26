@@ -26,40 +26,42 @@
 	<script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
 	<!-- ================== END BASE JS ================== -->
 
-    <script>
-        // This is called with the results from from FB.getLoginStatus().
-        function statusChangeCallback(response) {
-            // The response object is returned with a status field that lets the
-            // app know the current login status of the person.
-            // Full docs on the response object can be found in the documentation
-            // for FB.getLoginStatus().
-            if (response.status === 'connected') {
-              // Logged into your app and Facebook.
-              window.location.replace('<?=SITE_URL?>signup/facebook');
+    <?php if($_SESSION['option']->facebook_initialise) { ?>
+        <script>
+            // This is called with the results from from FB.getLoginStatus().
+            function statusChangeCallback(response) {
+                // The response object is returned with a status field that lets the
+                // app know the current login status of the person.
+                // Full docs on the response object can be found in the documentation
+                // for FB.getLoginStatus().
+                if (response.status === 'connected') {
+                  // Logged into your app and Facebook.
+                  window.location.replace('<?=SITE_URL?>signup/facebook');
+                }
             }
-        }
 
-        window.fbAsyncInit = function() {
-            FB.init({
-              appId      : '<?=$this->facebook->getAppId()?>',
-              cookie     : true,
-              xfbml      : true,
-              version    : 'v2.6'
-            });
+            window.fbAsyncInit = function() {
+                FB.init({
+                  appId      : '<?=$this->facebook->getAppId()?>',
+                  cookie     : true,
+                  xfbml      : true,
+                  version    : 'v2.6'
+                });
 
-            FB.Event.subscribe('auth.login', function(response) {
-                statusChangeCallback(response);
-            });
-        };
+                FB.Event.subscribe('auth.login', function(response) {
+                    statusChangeCallback(response);
+                });
+            };
 
-      (function(d, s, id){
-         var js, fjs = d.getElementsByTagName(s)[0];
-         if (d.getElementById(id)) {return;}
-         js = d.createElement(s); js.id = id;
-         js.src = "//connect.facebook.net/en_US/sdk.js";
-         fjs.parentNode.insertBefore(js, fjs);
-       }(document, 'script', 'facebook-jssdk'));
-    </script>
+          (function(d, s, id){
+             var js, fjs = d.getElementsByTagName(s)[0];
+             if (d.getElementById(id)) {return;}
+             js = d.createElement(s); js.id = id;
+             js.src = "//connect.facebook.net/en_US/sdk.js";
+             fjs.parentNode.insertBefore(js, fjs);
+           }(document, 'script', 'facebook-jssdk'));
+        </script>
+    <?php } ?>
 </head>
 <body class="pace-top bg-white">
 	<!-- begin #page-loader -->
@@ -76,10 +78,8 @@
                     <img src="<?=SITE_URL?>style/admin/login-bg/bg-9.jpg" alt="" />
                 </div>
                 <div class="news-caption">
-                    <h4 class="caption-title"><i class="fa fa-edit text-success"></i> Practical shooting - Практична стрільба</h4>
-                    <p>
-                        Ви не маєте ні найменшого уявлення що таке практична стрільба ? - в такому випадку, ви потрапили куди треба.
-                    </p>
+                    <h4 class="caption-title"><i class="fa fa-edit text-success"></i> Реєстрація <?=SITE_NAME?></h4>
+                    <p>Створіть Ваш особистий кабінет.</p>
                 </div>
             </div>
             <!-- end news-feed -->
@@ -154,21 +154,23 @@
                         <div class="register-buttons">
                             <button type="submit" class="btn btn-primary btn-block btn-lg">Зареєструватися</button>
                         </div>
-                        <div class="m-t-20 text-center">
-                            <big>АБО</big>
-                            <div class="login-buttons m-t-10">
-                                <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> Швидка реєстрація facebook</button>
+                        <?php if($_SESSION['option']->facebook_initialise) { ?>
+                            <div class="m-t-20 text-center">
+                                <big>АБО</big>
+                                <div class="login-buttons m-t-10">
+                                    <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> Швидка реєстрація facebook</button>
+                                </div>
                             </div>
-                        </div>
+                        <?php } ?>
                         <div class="m-t-20 m-b-40 p-b-40">
                             Вже зареєстровані? <a href="<?=SITE_URL?>login">Увійти</a>. Перейти на <a href="<?=SITE_URL?>">головну сторінку</a>.
                         </div>
                         <hr />
                         <p class="text-center text-inverse">
-                            &copy; White Lion CMS All Right Reserved 2015
+                            &copy; White Lion CMS All Right Reserved <?=date('Y')?>
                         </p>
                         <p class="text-center text-inverse">
-                            &copy; Color Admin All Right Reserved 2015
+                            &copy; Color Admin All Right Reserved <?=date('Y')?>
                         </p>
                     </form>
                 </div>

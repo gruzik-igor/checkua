@@ -114,7 +114,7 @@
 	            	<?php
 	            	$options = $this->db->getAllDataByFieldInArray('wl_options', array('alias' => -$alias->id));
 	            	if($options){
-	            		$_SESSION['alias']->js_load[] = 'js/admin/wl_aliases-delete-option.js'; 
+	            		$_SESSION['alias']->js_load[] = 'assets/white-lion/wl_aliases-delete-option.js'; 
 	            	?>
 						<table class="table table-striped table-bordered">
 							<tbody>

@@ -21,6 +21,7 @@ class faq extends Controller {
 
     public function index($uri)
     {
+    	$this->wl_alias_model->setContent();
     	$this->load->smodel('faq_model');
 		$faqs = $this->faq_model->getQuestions();
 		$groups = NULL;

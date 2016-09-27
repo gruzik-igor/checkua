@@ -20,7 +20,7 @@
 	                	<label class="col-md-3 control-label">Статистика по </label>
                         <div class="col-md-9">
 		                	<select name="alias" class="form-control">
-		                		<option value="">Всіх адресах</option>
+		                		<option value="*">всіх адресах</option>
 		                		<?php $aliases = $this->db->getAllData('wl_aliases');
 		                		foreach ($aliases as $alias) {
 		                			echo("<option value='{$alias->id}'>{$alias->alias}</option>");

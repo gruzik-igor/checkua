@@ -177,9 +177,22 @@ class library_model {
 	            }
 	        }
 
+	        $sizes = $this->db->getAliasImageSizes();
+
             foreach ($articles as $article)
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
+            	$article->photo = null;
+
+            	if($article = $this->getArticlePhoto($article->id))
+            	{
+					if($sizes)
+						foreach ($sizes as $resize) {
+							$resize_name = $resize->prefix.'_path';
+							$photo->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
+						}
+					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$photo->file_name;
+            	}
 
 				$article->parents = array();
 				if($_SESSION['option']->useGroups > 0)
@@ -324,12 +337,11 @@ class library_model {
 			@$_SESSION['option']->count_all_articles = $this->db->get('count');
 
             $list = array();
+            $sizes = $this->db->getAliasImageSizes();
             $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
             foreach ($groups as $Group) {
             	$list[$Group->id] = clone $Group;
             }
-
-			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
 
             foreach ($categories as $Group) {
             	$Group->link = $_SESSION['alias']->alias.'/'.$Group->alias;
@@ -337,15 +349,14 @@ class library_model {
             		$Group->link = $_SESSION['alias']->alias.'/'.$this->makeLink($list, $Group->parent, $Group->alias);
             	}
 
-            	if($Group->photo != '')
+            	if($photo = $this->getArticlePhoto(-$Group->id))
             	{
-					if($sizes){
-						foreach ($sizes as $resize) if($resize->active == 1){
-							$resize_name = $resize->prefix.'_photo';
-							$Group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$Group->photo;
+					if($sizes)
+						foreach ($sizes as $resize) {
+							$resize_name = $resize->prefix.'_path';
+							$photo->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
-					}
-					$Group->photo = $_SESSION['option']->folder.'/groups/'.$Group->photo;
+					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
             }
 
@@ -381,17 +392,16 @@ class library_model {
 		$this->db->select($this->table('_groups') .' as c', '*', $where);
 		if($all_info) $this->db->join('wl_users', 'name as user_name', '#c.author_edit');
 		$group = $this->db->get('single');
-		if($group && $group->photo > 0 && $all_info)
-		{
-			$sizes = $this->db->getAllDataByFieldInArray('wl_images_sizes', $_SESSION['alias']->id, 'alias');
-			if($sizes) {
-				foreach ($sizes as $resize) if($resize->active == 1){
-					$resize_name = $resize->prefix.'_photo';
-					$group->$resize_name = $_SESSION['option']->folder.'/groups/'.$resize->prefix.'_'.$group->photo;
-				}
-			}
-			$group->photo = $_SESSION['option']->folder.'/groups/'.$group->photo;
-		}
+		if($group)
+			if($photo = $this->getArticlePhoto(-$group->id))
+        	{
+				if($sizes = $this->db->getAliasImageSizes())
+					foreach ($sizes as $resize) {
+						$resize_name = $resize->prefix.'_path';
+						$photo->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+					}
+				$group->photo = $_SESSION['option']->folder.'/-'.$group->id.'/'.$photo->file_name;
+        	}
 		return $group;
 	}
 
@@ -400,6 +410,17 @@ class library_model {
 		$link = $all[$parent]->alias .'/'.$link;
 		if($all[$parent]->parent > 0) $link = $this->makeLink ($all, $all[$parent]->parent, $link);
 		return $link;
+	}
+
+	public function getArticlePhoto($article)
+	{
+		$where['alias'] = $_SESSION['alias']->id;
+		$where['content'] = $article;
+		$this->db->select('wl_images', '*', $where);
+		$this->db->join('wl_users', 'name as user_name', '#author');
+		$this->db->order('main DESC');
+		$this->db->limit(1);
+		return $this->db->get();
 	}
 	
 }

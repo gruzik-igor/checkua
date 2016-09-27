@@ -102,11 +102,12 @@ class articles_model {
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$article->group = $this->db->get('array');
 
-			            foreach ($article->group as $g) {
-			            	if($g->parent > 0) {
-			            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
-			            	}
-			            }
+						if($article->group)
+				            foreach ($article->group as $g) {
+				            	if($g->parent > 0) {
+				            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
+				            	}
+				            }
 					}
 				}
             }

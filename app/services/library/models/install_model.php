@@ -64,8 +64,7 @@ class install
 				$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group` (
 						  `article` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
-						  KEY `article` (`wl_alias`),
-						  KEY `group` (`parent`)
+						  KEY `article` (`article`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 				$this->db->executeQuery($query);
 			}
@@ -130,8 +129,7 @@ class install
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_article_group` (
 						  `article` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
-						  KEY `article` (`wl_alias`),
-						  KEY `group` (`parent`)
+						  KEY `article` (`article`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);
 

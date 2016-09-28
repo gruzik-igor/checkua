@@ -185,8 +185,8 @@ class library_model {
             	{
 					if($sizes)
 						foreach ($sizes as $resize) {
-							$resize_name = $resize->prefix.'_path';
-							$photo->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							$resize_name = $resize->prefix.'_photo';
+							$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
 					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$photo->file_name;
             	}
@@ -351,8 +351,8 @@ class library_model {
             	{
 					if($sizes)
 						foreach ($sizes as $resize) {
-							$resize_name = $resize->prefix.'_path';
-							$photo->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							$resize_name = $resize->prefix.'_photo';
+							$Group->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
 					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
@@ -395,8 +395,8 @@ class library_model {
         	{
 				if($sizes = $this->db->getAliasImageSizes())
 					foreach ($sizes as $resize) {
-						$resize_name = $resize->prefix.'_path';
-						$photo->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+						$resize_name = $resize->prefix.'_photo';
+						$group->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 					}
 				$group->photo = $_SESSION['option']->folder.'/-'.$group->id.'/'.$photo->file_name;
         	}
@@ -410,14 +410,15 @@ class library_model {
 		return $link;
 	}
 
-	public function getArticlePhoto($article)
+	public function getArticlePhoto($article, $all = false)
 	{
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $article;
 		$this->db->select('wl_images', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('main DESC');
-		$this->db->limit(1);
+		if(!$all)
+			$this->db->limit(1);
 		return $this->db->get();
 	}
 	

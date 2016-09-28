@@ -58,12 +58,11 @@ class library_model {
 		return false;
 	}
 	
-	public function getArticles($Group = 0, $noInclude = 0, $active = true)
+	public function getArticles($Group = -1, $noInclude = 0, $active = true)
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
-		if($active) {
+		if($active)
 			$where['active'] = 1;
-		}
 
 		if($_SESSION['option']->useGroups > 0)
 		{
@@ -81,29 +80,27 @@ class library_model {
 			}
 			elseif($Group >= 0)
 			{
-				if($_SESSION['option']->articleMultiGroup == 0 || $Group == 0) {
+				if($_SESSION['option']->articleMultiGroup == 0 || $Group == 0)
 					$where['group'] = $Group;
-				} else {
+				else
+				{
 					$articles = $this->db->getAllDataByFieldInArray($this->table('_article_group'), $Group, 'group');
-					if($articles) {
+					if($articles)
+					{
 						$where['id'] = array();
 						foreach ($articles as $article) if($article->article != $noInclude) {
 							array_push($where['id'], $article->article);
 						}
-					} else {
-						return null;
 					}
+					else
+						return null;
 				}
 			}
 			elseif($noInclude > 0)
-			{
 				$where['id'] = '!'.$noInclude;
-			}
 		}
 		elseif($noInclude > 0)
-		{
 			$where['id'] = '!'.$noInclude;
-		}
 		
 		if(isset($_GET['name']) && $_GET['name'] != '')
 		{
@@ -122,14 +119,13 @@ class library_model {
 					$ids = clone $where['id'];
 					$where['id'] = array();
 					foreach ($articles as $p) {
-						if(in_array($p->content, $ids)) {
+						if(in_array($p->content, $ids))
 							array_push($where['id'], $p->content);
-						}
 					}
 				}
-			} else {
-				return false;
 			}
+			else
+				return false;
 		}
 		
 		$this->db->select($this->table('_articles').' as a', '*', $where);
@@ -141,25 +137,25 @@ class library_model {
 		{
 			$where_gn['alias'] = $_SESSION['alias']->id;
 			$where_gn['content'] = "#-a.group";
-			if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
+			if($_SESSION['language'])
+				$where_gn['language'] = $_SESSION['language'];
 			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
 		}
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;
 		$where_ntkd['content'] = "#a.id";
-		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+		if($_SESSION['language'])
+			$where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
 		$this->db->order($_SESSION['option']->articleOrder);
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
 			$start = 0;
-			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0) {
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
 				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
-			}
-			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) {
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
 				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
-			}
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
@@ -172,9 +168,10 @@ class library_model {
         	if($_SESSION['option']->useGroups > 0)
         	{
 	            $all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-	            if($all_groups) foreach ($all_groups as $g) {
-	            	$list[$g->id] = clone $g;
-	            }
+	            if($all_groups)
+	            	foreach ($all_groups as $g) {
+		            	$list[$g->id] = clone $g;
+		            }
 	        }
 
 	        $sizes = $this->db->getAliasImageSizes();

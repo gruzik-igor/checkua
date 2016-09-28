@@ -28,7 +28,7 @@ class library extends Controller {
 
 			if($type == 'article' && $article && ($article->active == 1 || $this->userCan()))
 			{
-				$this->wl_alias_model->setContent();
+				$this->wl_alias_model->setContent($article->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');

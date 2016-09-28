@@ -136,7 +136,7 @@ class library extends Controller {
 
 	public function __get_Articles($data = array())
 	{
-		$group = 0;
+		$group = -1;
 		if(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];
 

@@ -1,3 +1,9 @@
+<link href="<?=SERVER_URL?>assets/bootstrap-datepicker/css/datepicker.css" rel="stylesheet">
+<link href="<?=SERVER_URL?>assets/bootstrap-datepicker/css/datepicker3.css" rel="stylesheet">
+<?php
+$_SESSION['alias']->js_load[] = 'assets/bootstrap-datepicker/js/bootstrap-datepicker.js';
+$_SESSION['alias']->js_init[] = '$(".input-daterange").datepicker({todayHighlight:!0, autoclose:!0, endDate:\'0d\', format:\'dd.mm.yyyy\'});';
+?>
 <div class="row">
 	<div class="col-md-4 ui-sortable">
         <div class="panel panel-inverse" data-sortable-id="form-plugins-1">
@@ -10,9 +16,10 @@
 	                    <label class="col-md-3 control-label">Оберіть період</label>
 	                    <div class="col-md-9">
 	                        <div class="input-group input-daterange">
-	                            <input type="text" class="form-control" name="start" placeholder="Date Start">
+	                        	<?php $day = strtotime('-1 month'); ?>
+	                            <input type="text" class="form-control" name="start" placeholder="від" value="<?=$this->data->re_get('start', date('d.m.Y', $day))?>">
 	                            <span class="input-group-addon">-</span>
-	                            <input type="text" class="form-control" name="end" placeholder="Date End">
+	                            <input type="text" class="form-control" name="end" placeholder="до" value="<?=$this->data->re_get('end', date('d.m.Y'))?>">
 	                        </div>
 	                    </div>
 	                </div>
@@ -23,7 +30,8 @@
 		                		<option value="*">всіх адресах</option>
 		                		<?php $aliases = $this->db->getAllData('wl_aliases');
 		                		foreach ($aliases as $alias) {
-		                			echo("<option value='{$alias->id}'>{$alias->alias}</option>");
+		                			$selected = ($this->data->re_get('alias') == $alias->id) ? 'selected' : '';
+		                			echo("<option value='{$alias->id}' {$selected}>{$alias->alias}</option>");
 		                		}
 		                		?>
 		                	</select>

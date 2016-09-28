@@ -37,6 +37,22 @@ $_SESSION['alias']->js_init[] = '$(".input-daterange").datepicker({todayHighligh
 		                	</select>
 						</div>
 	                </div>
+	                <?php if($_SESSION['language']) { ?>
+		                <div class="form-group">
+		                	<label class="col-md-3 control-label">Мова</label>
+	                        <div class="col-md-9">
+			                	<select name="language" class="form-control">
+			                		<option value="*">всі мови</option>
+			                		<?php
+			                		foreach ($_SESSION['all_languages'] as $language) {
+			                			$selected = ($this->data->re_get('language') == $language) ? 'selected' : '';
+			                			echo("<option value='{$language}' {$selected}>{$language}</option>");
+			                		}
+			                		?>
+			                	</select>
+							</div>
+		                </div>
+			        <?php } ?>
 	                <div class="form-group">
                         <label class="col-md-3 control-label"></label>
                         <div class="col-md-9">

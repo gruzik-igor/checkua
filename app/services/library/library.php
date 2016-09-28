@@ -11,9 +11,6 @@ class library extends Controller {
 				
     function _remap($method, $data = array())
     {
-    	if(isset($_SESSION['alias']->name) && $_SESSION['alias']->service == 'library')
-    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
-    	
         if (method_exists($this, $method))
             return $this->$method($data);
         else
@@ -22,7 +19,6 @@ class library extends Controller {
 
     public function index($uri)
     {
-    	$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
     	$this->load->smodel('library_model');
 		
 		if(count($this->data->url()) > 1)
@@ -40,13 +36,11 @@ class library extends Controller {
 				}
 				$this->load->page_view('detal_view', array('article' => $article));
 			}
-
-			if($_SESSION['option']->useGroups && $type == 'group' && $article && ($article->active == 1 || $this->userCan()))
+			elseif($_SESSION['option']->useGroups && $type == 'group' && $article && ($article->active == 1 || $this->userCan()))
 			{
 				$group = clone $article;
 				unset($article);
 
-				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
 				$group->parents = array();
 				if($group->parent > 0)
 				{
@@ -76,8 +70,8 @@ class library extends Controller {
 				$articles = $this->library_model->getArticles($group->id);
 				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'articles' => $articles));
 			}
-
-			$this->load->page_404();
+			else
+				$this->load->page_404();
 		}
 		else
 		{

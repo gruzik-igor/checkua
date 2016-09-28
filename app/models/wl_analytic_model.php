@@ -4,8 +4,20 @@ class wl_analytic_model {
 
 	public function getViewers()
 	{
+		$where = '';
 		$day = strtotime('today') - 30*3600*24;
-		$views = $this->db->getQuery("SELECT SUM(`unique`) as totalUsers, SUM(`cookie`) as newUsers, SUM(`views`) as viewsCount FROM `wl_statistic_views` WHERE `day` >= {$day}");
+
+		$get = array('start' => 'date', 'end' => 'date');
+		$get = $this->data->make($get, '_GET');
+		if(isset($get['start']))
+			$where = '`day` >= '.$get['start'];
+		else
+			$where = '`day` >= '.$day;
+		if(isset($get['end']))
+			$where .= ' AND `day` <= '.$get['end'];
+
+		
+		$views = $this->db->getQuery("SELECT SUM(`unique`) as totalUsers, SUM(`cookie`) as newUsers, SUM(`views`) as viewsCount FROM `wl_statistic_views` WHERE {$where}");
 		if($views)
 		{
 			if($views->totalUsers == 0) $views->totalUsers = 1;
@@ -14,7 +26,7 @@ class wl_analytic_model {
 			$views->returnedPercentage = round($views->returnedUser * 100 / $views->totalUsers, 1) ;
 			$views->newPercentage = round($views->newUsers * 100 / $views->totalUsers, 1)  ;
 
-			$views->tableData = $this->db->getQuery("SELECT * FROM `wl_statistic_views` WHERE `day` >= {$day}", 'array');
+			$views->tableData = $this->db->getQuery("SELECT * FROM `wl_statistic_views` WHERE {$where}", 'array');
 		}
 		return $views; 
 	}
@@ -22,20 +34,22 @@ class wl_analytic_model {
 	public function getStatistic()
 	{
 		$where = array();
-		if($alias = $this->data->get('alias'))
+		$alias = $this->data->get('alias');
+		if(is_numeric($alias))
 		{
 			$where['alias'] = $alias;
-			if($content = $this->data->get('content')) $where['content'] = $content;
+			if($content = $this->data->get('content'))
+				$where['content'] = $content;
 		}
-		if($language = $this->data->post('language')) $where['language'] = $language;
-		if($min = $this->data->get('min'))
-		{
-			$where['day'] = '>='.$min;
-		}
-		if($max = $this->data->get('max'))
-		{
-			$where['day'] = '<='.$max;
-		}
+		if($language = $this->data->post('language'))
+			$where['language'] = $language;
+		$get = array('start' => 'date', 'end' => 'date');
+		$get = $this->data->make($get, '_GET');
+		if(isset($get['start']))
+			$where['day'] = '>='.$get['start'];
+		if(isset($get['end']))
+			$where['+day'] = '<='.$get['end'];
+
 		if(empty($where))
 			$this->db->select('wl_statistic_pages as s');
 		else

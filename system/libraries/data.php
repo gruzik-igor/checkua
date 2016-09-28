@@ -12,6 +12,7 @@
  * Версія 1.0.5 (09.03.2016) Виправлено констуктор Data() згідно режиму мультимовності 'main domain', додано заміну "багато дефів" на один у latterUAtoEN(), додано перевірку існування папки у removeDirectory()
  * Версія 1.1 (07.04.2016) Додано re_get(), re_post()
  * Версія 1.1.1 (22.07.2016) До re_get(), re_post() додано значення за замовчуванням; приведено дос тандарту php7
+ * Версія 1.2 (27.09.2016) Виправлено make()
  */
 
 class Data {
@@ -144,39 +145,40 @@ class Data {
         return $text;
     }
 
-	function make($fields, $var = '_POST')
+	public function make($fields, $var = '_POST')
 	{
-		if(!empty($fields) && is_array($fields)) {
+		if(!empty($fields) && is_array($fields))
+		{
 			$data = array();
 			foreach ($fields as $f => $type) {
                 $value = null;
-                if($var == '_POST') {
+                if($var == '_POST')
                     $value = $this->post($f, true);
-                } else {
+                else
                     $value = $this->get($f, true);
-                }
-                if($value !== null) {
-    				if($type == 'number') {
-    					if(is_numeric($value)) {
-                            $data[$f] = $value;
-                        }
-    				}
-    				elseif($type == 'date') {
-    					$date = explode('.', $value);
-    					$date = mktime(0,0,0, $date[1], $date[0], $date[2]);
-    					if(is_numeric($date)) {
-                            $data[$f] = $date;
-                        }
-    				}
-    				else {
+                if($value !== null)
+                {
+    				if($type == 'number' && is_numeric($value))
                         $data[$f] = $value;
-                    }
-    			} else {
-                    if($var == '_POST') {
+    				elseif($type == 'date')
+    				{
+    					$date = explode('.', $value);
+    					if(count($date) == 3)
+    					{
+	    					$date = mktime(0,0,0, $date[1], $date[0], $date[2]);
+	    					if(is_numeric($date))
+	                            $data[$f] = $date;
+	                    }
+    				}
+    				else
+                        $data[$f] = $value;
+    			}
+    			else
+    			{
+                    if($var == '_POST')
                         $data[$type] = $this->post($type, true);
-                    } else {
+                    else
                         $data[$type] = $this->get($type, true);
-                    }
                 }
             }
 			return $data;

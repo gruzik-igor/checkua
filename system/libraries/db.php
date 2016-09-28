@@ -13,6 +13,7 @@
  * Версія 2.0.3 (26.07.2016) - адаптовано до php7
  * Версія 2.0.4 (12.09.2016) - додано getAliasImageSizes()
  * Версія 2.1 (22.09.2016) - updateRow(), deleteRow() адаптовано через makeWhere(); у makeWhere() виправлено роботу з нульовими значеннями; до getRows() додати перевірку на тип single
+ * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
  */
 
 class Db {
@@ -253,6 +254,8 @@ class Db {
             foreach ($data as $key => $value) {
                 if(!is_numeric($key) && $key != '')
                 {
+                    if($key[0] == '+')
+                        $key = substr($key, 1);
                     if($prefix)
                         $where .= "{$prefix}.{$key}";
                     else

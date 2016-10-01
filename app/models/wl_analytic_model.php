@@ -5,7 +5,7 @@ class wl_analytic_model {
 	public function getViewers()
 	{
 		$where = '';
-		$day = strtotime('today') - 30*3600*24;
+		$day = strtotime('-1 month');
 
 		$get = array('start' => 'date', 'end' => 'date');
 		$get = $this->data->make($get, '_GET');
@@ -41,7 +41,8 @@ class wl_analytic_model {
 			if($content = $this->data->get('content'))
 				$where['content'] = $content;
 		}
-		if($language = $this->data->post('language'))
+		$language = $this->data->get('language');
+		if($language != '*')
 			$where['language'] = $language;
 		$get = array('start' => 'date', 'end' => 'date');
 		$get = $this->data->make($get, '_GET');

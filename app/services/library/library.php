@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.5"
+ 	Service "Library 2.6"
 	for WhiteLion 1.0
 
 */

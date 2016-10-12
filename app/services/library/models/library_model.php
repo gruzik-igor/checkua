@@ -71,11 +71,10 @@ class library_model {
 				$where['id'] = array();
 				foreach ($Group as $g) {
 					$articles = $this->db->getAllDataByFieldInArray($this->table('_article_group'), $g->id, 'group');
-					if($articles) {
+					if($articles)
 						foreach ($articles as $article) if($article->article != $noInclude) {
 							array_push($where['id'], $article->article);
 						}
-					}
 				}
 			}
 			elseif($Group >= 0)
@@ -191,6 +190,9 @@ class library_model {
 					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$photo->file_name;
             	}
 
+            	if($_SESSION['option']->articleUseOptions > 0)
+            		$article->options = $this->getOptions($article);
+
 				$article->parents = array();
 				if($_SESSION['option']->useGroups > 0)
 				{
@@ -256,10 +258,12 @@ class library_model {
         if($article)
         {
         	if(isset($_SESSION['alias']->breadcrumbs))
-        	{
         		$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
-        	}
+
         	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
+
+        	if($_SESSION['option']->articleUseOptions > 0)
+            		$article->options = $this->getOptions($article);
 
 			$article->parents = array();
 			if($_SESSION['option']->useGroups > 0)
@@ -420,6 +424,58 @@ class library_model {
 		if(!$all)
 			$this->db->limit(1);
 		return $this->db->get();
+	}
+
+	private function getOptions($article)
+	{
+		$article_options = array();
+		$where_language = '';
+        if($_SESSION['language']) $where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, po.value, it.name as type_name, it.options FROM `{$this->table('_article_options')}` as po LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.article = '{$article->id}' {$where_language} ORDER BY go.position");
+		if($this->db->numRows() > 0)
+		{
+			$options = $this->db->getRows('array');
+			foreach ($options as $option) if($option->value != '') {
+				@$article_options[$option->id]->id = $option->id;
+				$article_options[$option->id]->alias = $option->alias;
+				$article_options[$option->id]->filter = $option->filter;
+				$where = array();
+				$where['option'] = $option->id;
+				if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+				$name = $this->db->getAllDataById($this->table('_options_name'), $where);
+
+				if($name){
+					$article_options[$option->id]->name = $name->name;
+					$article_options[$option->id]->sufix = $name->sufix;
+				}
+				if($option->options == 1){
+					if($option->type_name == 'checkbox'){
+						$option->value = explode(',', $option->value);
+						$article_options[$option->id]->value = array();
+						foreach ($option->value as $value) {
+							$where = array();
+							$where['option'] = $value;
+							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+							$value = $this->db->getAllDataById($this->table('_options_name'), $where);
+							if($value){
+								$article_options[$option->id]->value[] = $value->name;
+							}
+						}
+					} else {
+						$where = array();
+						$where['option'] = $option->value;
+						if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+						$value = $this->db->getAllDataById($this->table('_options_name'), $where);
+						if($value){
+							$article_options[$option->id]->value = $value->name;
+						}
+					}
+				} else {
+					$article_options[$option->id]->value = $option->value;
+				}
+			}
+		}
+		return $article_options;
 	}
 	
 }

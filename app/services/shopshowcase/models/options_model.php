@@ -42,8 +42,7 @@ class options_model {
 
 	public function add_option($property = false)
 	{
-		$data = array();
-		$data['wl_alias'] = $_SESSION['alias']->id;
+		$data = array('wl_alias' => $_SESSION['alias']->id, 'group' => 0);
 		if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
 		if($property && isset($_POST['id'])) $data['group'] = -1 * $_POST['id'];
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];

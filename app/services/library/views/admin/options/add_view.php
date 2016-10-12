@@ -81,7 +81,7 @@
 	                    <div class="form-group">
 	                        <label class="col-md-3 control-label">Суфікс (розмірність) <?=$lang?></label>
 	                        <div class="col-md-9">
-	                            <input type="text" class="form-control" name="sufix_<?=$lang?>" placeholder="Суфікс (розмірність) <?=$lang?>" required>
+	                            <input type="text" class="form-control" name="sufix_<?=$lang?>" placeholder="Суфікс (розмірність) <?=$lang?>">
 	                        </div>
 	                    </div>
 					<?php } else { ?>

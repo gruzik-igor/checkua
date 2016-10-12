@@ -3,9 +3,10 @@
         <?php
         if(isset($PRE_TAB_NAME) && isset($PRE_TAB_PATH))
         {
+            $PRE_TAB_NAME_keys = array_keys($PRE_TAB_NAME);
             foreach ($PRE_TAB_NAME as $key => $name) {
                 echo("<li ");
-                if(array_keys($PRE_TAB_NAME)[0] == $key)
+                if($PRE_TAB_NAME_keys[0] == $key)
                     echo ('class="active"');
                 echo("><a href=\"#tab-{$key}\" data-toggle=\"tab\" aria-expanded=\"true\">{$name}</a></li>");
             }
@@ -44,11 +45,11 @@
 
     <div class="tab-content">
         <?php 
-        if(isset($PRE_TAB_NAME) && isset($PRE_TAB_PATH))
+        if(isset($PRE_TAB_NAME_keys) && isset($PRE_TAB_PATH))
         {
             foreach ($PRE_TAB_PATH as $key => $path) {
                 echo('<div class="tab-pane fade ');
-                if(array_keys($PRE_TAB_NAME)[0] == $key)
+                if($PRE_TAB_NAME_keys[0] == $key)
                     echo ('active in');
                 echo('" id="tab-'.$key.'">');
                 require $path;

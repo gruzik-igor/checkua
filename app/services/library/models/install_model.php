@@ -105,7 +105,7 @@ class install
 				  `id` int(11) NOT NULL AUTO_INCREMENT,
 				  `article` int(11) NOT NULL,
 				  `option` int(11) NOT NULL,
-				  `language` varchar(2) NULL,
+				  `language` varchar(2) NOT NULL DEFAULT '',
 				  `value` text NULL,
 				  PRIMARY KEY (`id`),
 				  UNIQUE KEY `id` (`id`),

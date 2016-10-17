@@ -13,6 +13,7 @@
  * Версія 1.1 (07.04.2016) Додано re_get(), re_post()
  * Версія 1.1.1 (22.07.2016) До re_get(), re_post() додано значення за замовчуванням; приведено дос тандарту php7
  * Версія 1.2 (27.09.2016) Виправлено make()
+ * Версія 1.2.1 (17.10.2016) Виправлено latterUAtoEN(): додано символ +
  */
 
 class Data {
@@ -30,9 +31,7 @@ class Data {
 		if($_SESSION['language'] && ($GLOBALS['multilanguage_type'] == 'main domain' || $_SERVER["SERVER_NAME"] == 'localhost'))
 		{
 			if(isset($_SESSION['language']) && $_SESSION['language'] != $_SESSION['all_languages'][0] && in_array($_SESSION['language'], $_SESSION['all_languages']))
-			{
 				array_shift ($this->uri_data);
-			}
 		}
 
 		if(!empty($_POST))
@@ -67,14 +66,13 @@ class Data {
 	 */
 	public function uri($idx = null, $xss = false)
 	{
-		if($idx && array_key_exists($idx, $this->uri_data)){
-			if($xss){
+		if($idx && array_key_exists($idx, $this->uri_data))
+		{
+			if($xss)
 				return $this->xss_clean($this->uri_data[$idx]);
-			} else {
+			else
 				return $this->uri_data[$idx];
-			}
 		}
-
 		return null;
 	}
 
@@ -91,39 +89,39 @@ class Data {
 	 */
 	public function post($key, $xss = true)
 	{
-		if($key && array_key_exists($key, $_POST)){
-			if($xss){
+		if($key && array_key_exists($key, $_POST))
+		{
+			if($xss)
 				return $this->xss_clean($_POST[$key]);
-			} else {
+			else
 				return $_POST[$key];
-			}
 		}
-
 		return null;
 	}
 
 	public function get($key, $xss = true)
 	{
-		if($key && array_key_exists($key, $_GET)){
-			if($xss){
+		if($key && array_key_exists($key, $_GET))
+		{
+			if($xss)
 				return $this->xss_clean($_GET[$key]);
-			} else {
+			else
 				return $_GET[$key];
-			}
 		}
-
 		return null;
 	}
 
 	public function re_post($key = '', $default = false)
 	{
-		if(isset($_SESSION['_POST'][$key])) return $_SESSION['_POST'][$key];
+		if(isset($_SESSION['_POST'][$key]))
+			return $_SESSION['_POST'][$key];
 		return $default;
 	}
 
 	public function re_get($key = '', $default = false)
 	{
-		if(isset($_SESSION['_GET'][$key])) return $_SESSION['_GET'][$key];
+		if(isset($_SESSION['_GET'][$key]))
+			return $_SESSION['_GET'][$key];
 		return $default;
 	}
 
@@ -133,13 +131,13 @@ class Data {
         if(mb_strlen($text, 'UTF-8') > $len)
         {
             $pos = mb_strpos($text, ' ', $len, 'UTF-8');
-			if($pos){
+			if($pos)
 				return mb_substr($text, 0, $pos, 'UTF-8');
-			} else {
+			else
+			{
 				$pos = mb_strpos($text, ' ', $len - 10, 'UTF-8');
-				if($pos){
+				if($pos)
 					return mb_substr($text, 0, $pos, 'UTF-8');
-				}
 			}
         }
         return $text;
@@ -196,11 +194,10 @@ class Data {
 
 	public function latterUAtoEN($text)
 	{
-        $text = mb_strtolower($text, "utf-8");      
-        $ua = array('а', 'б', 'в', 'г', 'ґ', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'', 'ы', 'ё');
-        $en = array('a', 'b', 'v', 'h', 'g', 'd', 'e', 'e', 'zh', 'z', 'y', 'i', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'kh', 'c', 'ch', 'sh', 'sch', '', 'u', 'ja' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '-', '-', '*', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '*', 'y', 'e');
-        for($i = 0; $i < count($ua); $i++)
-        {
+        $text = mb_strtolower($text, "utf-8");
+        $ua = array('а', 'б', 'в', 'г', 'ґ', 'д', 'е', 'є', 'ж', 'з', 'и', 'і', 'ї', 'й', 'к', 'л', 'м', 'н', 'о', 'п', 'р', 'с', 'т', 'у', 'ф', 'х', 'ц', 'ч', 'ш', 'щ', 'ь', 'ю', 'я' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'', 'ы', 'ё', '[+]');
+        $en = array('a', 'b', 'v', 'h', 'g', 'd', 'e', 'e', 'zh', 'z', 'y', 'i', 'i', 'y', 'k', 'l', 'm', 'n', 'o', 'p', 'r', 's', 't', 'u', 'f', 'kh', 'c', 'ch', 'sh', 'sch', '', 'u', 'ja' , '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '-', '-', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', 'y', 'e', '');
+        for ($i = 0; $i < count($ua); $i++) {
             $text = mb_eregi_replace($ua[$i], $en[$i], $text);
         }
         $text = mb_eregi_replace("[-]{2,}", '-', $text);
@@ -213,9 +210,9 @@ class Data {
     	{
     		if ($objs = glob($dir."/*"))
     		{
-	           foreach($objs as $obj) {
+	           	foreach($objs as $obj) {
 	             	is_dir($obj) ? $this->removeDirectory($obj) : unlink($obj);
-	           }
+	           	}
 	        }
 	        rmdir($dir);
     	}

@@ -290,22 +290,13 @@ class Loader {
 					$service = $alias->alias;
 					$model_path = APP_PATH.'controllers'.DIRSEP.$service.'.php';
 					if($admin)
-					{
-						if($alias->id == 1)
-						{
-							$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.'admin.php';
-							$service = 'admin';
-						}
-						else
-							$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
-					}
+						$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
 				}
 
-				if($admin == false)
-				{
+				if(isset($_SESSION['option']))
 					$_SESSION['alias-cache'][$alias->id]->options = clone $_SESSION['option'];
+				if(isset($_SESSION['service']))
 					$_SESSION['alias-cache'][$alias->id]->service = clone $_SESSION['service'];
-				}
 
 				if(file_exists($model_path))
 				{
@@ -324,9 +315,12 @@ class Loader {
 				}
 			}
 			
-			$_SESSION['alias'] = clone $_SESSION['alias-cache'][$old_alias]->alias;
-			$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;
-			$_SESSION['service'] = clone $_SESSION['alias-cache'][$old_alias]->service;
+			if($old_alias != $alias->id)
+			{
+				$_SESSION['alias'] = clone $_SESSION['alias-cache'][$old_alias]->alias;
+				$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;
+				$_SESSION['service'] = clone $_SESSION['alias-cache'][$old_alias]->service;
+			}
 		}
 		return $rezult;
 	}

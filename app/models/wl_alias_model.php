@@ -31,8 +31,6 @@ class wl_alias_model
 
 		if($alias = $this->db->getAllDataById('wl_aliases', $link, 'alias'))
 		{
-			unset($_SESSION['alias-cache'][$alias->id]);
-
 			$_SESSION['alias']->id = $alias->id;
 			$_SESSION['alias']->table = $alias->table;
 			if($alias->service > 0)

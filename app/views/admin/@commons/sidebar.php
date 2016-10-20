@@ -22,11 +22,11 @@
     <li <?=($_SESSION['alias']->alias == 'admin')?'class="active"':''?>>
         <a href="<?=SITE_URL?>admin">
             <i class="fa fa-laptop"></i>
-            <span>Головна сторінка</span>
+            <span>Домашня сторінка</span>
         </a>
     </li>
     <?php
-    $this->db->select('wl_aliases', 'id, alias, admin_ico', array('service' => '>0'));
+    $this->db->select('wl_aliases', 'id, alias, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');
     $this->db->order('admin_order DESC');
     if($wl_aliases = $this->db->get('array'))
@@ -41,13 +41,19 @@
         foreach ($wl_aliases as $wl_alias)
             if($this->userCan($wl_alias->alias))
             {
-                $where = array();
-                $where['alias'] = $wl_alias->id;
-                $where['content'] = '0';
-                if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-                $name = $this->db->getAllDataById('wl_ntkd', $where);
-                if($name) $wl_alias->name = $name->name;
-                else $wl_alias->name = $wl_alias->alias;
+                if($wl_alias->id > 1)
+                {
+                    $where = array('alias' => $wl_alias->id, 'content' => '0');
+                    if($_SESSION['language'])
+                        $where['language'] = $_SESSION['language'];
+                    $name = $this->db->getAllDataById('wl_ntkd', $where);
+                    if($name)
+                        $wl_alias->name = $name->name;
+                    else
+                        $wl_alias->name = $wl_alias->alias;
+                }
+                else
+                    $wl_alias->name = 'Головна сторінка';
 
                 $ico = 'fa-file';
                 if($wl_alias->admin_ico != '') $ico = $wl_alias->admin_ico;

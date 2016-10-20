@@ -42,7 +42,7 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
 --
 
 INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `admin_ico`, `admin_order`) VALUES
-(1, 'main', 0, NULL, NULL, NULL),
+(1, 'main', 0, NULL, 'fa-home', 20),
 (2, 'search', 0, NULL, NULL, NULL),
 (3, 'profile', 0, NULL, NULL, NULL),
 (4, 'login', 0, NULL, NULL, NULL),
@@ -359,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -367,6 +367,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
 
 INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (1, 0, 0, 'paginator_per_page', '20');
+(2, 0, 1, 'folder', 'main');
 
 -- --------------------------------------------------------
 

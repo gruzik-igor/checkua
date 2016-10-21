@@ -23,6 +23,7 @@ class delivery extends Controller {
     {
         if($this->userIs())
         {
+            $this->wl_alias_model->setContent();
             $methods = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_methods', 1, 'active');
             $delivery = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
             if(!$delivery)

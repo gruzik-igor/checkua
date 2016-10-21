@@ -26,7 +26,7 @@
                     </tr>
                     <tr>
 	                    <td class="field">Alias користувача</td>
-	                    <td><?=$user->alias?></td>
+	                    <td><a href="<?=SITE_URL?>profile/<?=$user->alias?>" target="_blank"><?=$user->alias?></a></td>
 	                </tr>
 	                <tr>
 						<td class="field">Тип користувача</td>

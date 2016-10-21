@@ -1,6 +1,7 @@
 <?php 
 $this->load->model('wl_analytic_model');
-if($views = $this->wl_analytic_model->getViewers()) { ?>
+if(!isset($views)) $views = $this->wl_analytic_model->getViewers();
+if($views) { ?>
 
 <div class="widget-chart with-sidebar bg-black">
     <div class="widget-chart-content">

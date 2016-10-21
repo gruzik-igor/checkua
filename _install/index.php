@@ -45,6 +45,11 @@ switch ($request) {
 		if(!empty($_POST)) require_once("step3".DIRSEP."step3.php");
 		break;
 
+	case 'step3.5':
+		$view_file = "step3.5".DIRSEP."index_view";
+		if(!empty($_POST)) require_once("step3.5".DIRSEP."step35.php");
+		break;
+
 	case 'step4':
 		require_once("step3".DIRSEP."checkstep.php");
 		$view_file = "step4".DIRSEP."index_view";

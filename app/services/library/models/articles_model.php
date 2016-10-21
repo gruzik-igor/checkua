@@ -102,11 +102,12 @@ class articles_model {
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$article->group = $this->db->get('array');
 
-			            foreach ($article->group as $g) {
-			            	if($g->parent > 0) {
-			            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
-			            	}
-			            }
+						if($article->group)
+				            foreach ($article->group as $g) {
+				            	if($g->parent > 0) {
+				            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
+				            	}
+				            }
 					}
 				}
             }
@@ -304,21 +305,93 @@ class articles_model {
 					}
 				}
 			} else {
-				if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
-				if($data['group'] > 0)
+				if(isset($_POST['group']) && is_numeric($_POST['group']))
 				{
-					$groups = array();
-					$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-		            if($all_groups) foreach ($all_groups as $g) {
-		            	$groups[$g->id] = clone $g;
-		            }
-					$check_article->link = $this->makeLink($groups, $_POST['group'], $check_article->link);
+					$data['group'] = $_POST['group'];
+					if($data['group'] > 0)
+					{
+						$groups = array();
+						$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+			            if($all_groups) foreach ($all_groups as $g) {
+			            	$groups[$g->id] = clone $g;
+			            }
+						$check_article->link = $this->makeLink($groups, $_POST['group'], $check_article->link);
+					}
 				}
 			}
 		}
 		
 		$this->db->updateRow($this->table(), $data, $id);
 		return $check_article->link;
+	}
+
+	public function saveArticleOptios($id)
+	{
+		$options = array();
+		foreach ($_POST as $key => $value) {
+			$key = explode('-', $key);
+			if($key[0] == 'option' && isset($key[1]) && is_numeric($key[1]))
+			{
+				if(is_array($value))
+					$options[$key[1]] = implode(',', $value);
+				else
+				{
+					if($_SESSION['language'] && isset($key[2]) && in_array($key[2], $_SESSION['all_languages']))
+						$options[$key[1]][$key[2]] = $value;
+					else
+						$options[$key[1]] = $value;
+				}
+			}
+		}
+		if(!empty($options))
+		{
+			$list_temp = $this->db->getAllDataByFieldInArray($this->table('_article_options'), $id, 'article');
+			$list = array();
+			if($list_temp)
+				foreach ($list_temp as $option) {
+					if($_SESSION['language'] && $option->language != ''){
+						$list[$option->option][$option->language] = $option;
+					} else {
+						$list[$option->option] = $option;
+					}
+				}
+			foreach ($options as $key => $value) {
+				if(is_array($value))
+				{
+					foreach ($value as $lang => $value2) {
+						if(isset($list[$key][$lang]))
+						{
+							if($list[$key][$lang]->value != $value2)
+								$this->db->updateRow($this->table('_article_options'), array('value' => $value2), $list[$key][$lang]->id);
+						}
+						else
+						{
+							$data['article'] = $id;
+							$data['option'] = $key;
+							$data['language'] = $lang;
+							$data['value'] = $value2;
+							$this->db->insertRow($this->table('_article_options'), $data);
+						}
+					}
+				}
+				else
+				{
+					if(isset($list[$key]))
+					{
+						if($list[$key]->value != $value)
+							$this->db->updateRow($this->table('_article_options'), array('value' => $value), $list[$key]->id);
+					}
+					else
+					{
+						$data['article'] = $id;
+						$data['option'] = $key;
+						$data['value'] = $value;
+						$this->db->insertRow($this->table('_article_options'), $data);
+					}
+				}
+			}
+		}
+		return true;
 	}
 
 	public function delete($id)

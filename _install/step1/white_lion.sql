@@ -3,7 +3,7 @@
 -- http://www.phpmyadmin.net
 --
 -- Хост: 127.0.0.1
--- Час створення: Сер 23 2016 р., 14:52
+-- Час створення: Вер 26 2016 р., 12:00
 -- Версія сервера: 5.7.9
 -- Версія PHP: 7.0.0
 
@@ -29,12 +29,11 @@ SET time_zone = "+00:00";
 DROP TABLE IF EXISTS `wl_aliases`;
 CREATE TABLE IF NOT EXISTS `wl_aliases` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `alias` text COMMENT 'ссилка',
+  `alias` text NOT NULL COMMENT 'основне посилання',
   `service` int(11) DEFAULT '0',
   `table` text,
-  `options` tinyint(1) DEFAULT '0' COMMENT 'наявність опцій',
   `admin_ico` text,
-  `active` tinyint(1) DEFAULT '1',
+  `admin_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8;
 
@@ -42,14 +41,14 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
 -- Дамп даних таблиці `wl_aliases`
 --
 
-INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `options`, `admin_ico`, `active`) VALUES
-(1, 'main', 0, NULL, 0, NULL, 1),
-(2, 'search', 0, NULL, 0, NULL, 1),
-(3, 'profile', 0, NULL, 0, NULL, 1),
-(4, 'login', 0, NULL, 0, NULL, 1),
-(5, 'signup', 0, NULL, 0, NULL, 1),
-(6, 'reset', 0, NULL, 0, NULL, 1),
-(7, 'subscribe', 0, NULL, 0, NULL, 1);
+INSERT INTO `wl_aliases` (`id`, `alias`, `service`, `table`, `admin_ico`, `admin_order`) VALUES
+(1, 'main', 0, NULL, 'fa-home', 20),
+(2, 'search', 0, NULL, NULL, NULL),
+(3, 'profile', 0, NULL, NULL, NULL),
+(4, 'login', 0, NULL, NULL, NULL),
+(5, 'signup', 0, NULL, NULL, NULL),
+(6, 'reset', 0, NULL, NULL, NULL),
+(7, 'subscribe', 0, NULL, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -75,18 +74,20 @@ CREATE TABLE IF NOT EXISTS `wl_aliases_cooperation` (
 -- Структура таблиці `wl_audio`
 --
 
+DROP TABLE IF EXISTS `wl_audio`;
 CREATE TABLE IF NOT EXISTS `wl_audio` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `author` int(11) NOT NULL,
-  `text` text NOT NULL,
-  `name` text NOT NULL,
-  `extension` text NOT NULL,
   `alias` int(11) NOT NULL,
   `content` int(11) NOT NULL,
+  `name` text NOT NULL,
+  `text` text NOT NULL,
+  `extension` text NOT NULL,
+  `author` int(11) NOT NULL,
   `date_add` int(11) NOT NULL,
   `position` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB  DEFAULT CHARSET=utf8;
+  PRIMARY KEY (`id`),
+  KEY `alias` (`alias`,`content`) USING BTREE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------
 
@@ -157,6 +158,7 @@ CREATE TABLE IF NOT EXISTS `wl_images` (
   `title` text,
   `author` int(11) NOT NULL,
   `date_add` int(11) NOT NULL,
+  `main` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`),
   KEY `content` (`content`)
@@ -174,13 +176,22 @@ CREATE TABLE IF NOT EXISTS `wl_images_sizes` (
   `alias` int(11) NOT NULL,
   `active` tinyint(1) DEFAULT NULL,
   `name` text,
-  `prefix` varchar(2) DEFAULT NULL,
+  `prefix` tinytext,
   `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
-  `height` int(11) NOT NULL,
   `width` int(11) NOT NULL,
+  `height` int(11) NOT NULL,
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
+
+--
+-- Дамп даних таблиці `wl_images_sizes`
+--
+
+INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `width`, `height`) VALUES
+(1, 0, 1, 'Значення по замовчуванню. Оригінал', NULL, 1, 1500, 1500),
+(2, 0, 1, 'Значення по замовчуванню. Панель керування', 'admin', 2, 150, 150),
+(3, 0, 1, 'Значення по замовчуванню. Header для соц. мереж', 'header', 2, 600, 315);
 
 -- --------------------------------------------------------
 
@@ -348,7 +359,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -356,6 +367,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
 
 INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (1, 0, 0, 'paginator_per_page', '20');
+(2, 0, 1, 'folder', 'main');
 
 -- --------------------------------------------------------
 
@@ -372,10 +384,7 @@ CREATE TABLE IF NOT EXISTS `wl_services` (
   `table` text NOT NULL COMMENT 'службова таблиця',
   `group` tinytext NOT NULL,
   `multi_alias` tinyint(1) NOT NULL,
-  `order_alias` tinyint(4) NOT NULL,
   `version` text NOT NULL,
-  `active` tinyint(1) NOT NULL DEFAULT '1',
-  `admin_ico` text NOT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
@@ -404,12 +413,12 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
 --
 
 INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, `data`, `time`) VALUES
-(1, 'main', 1, 0, NULL, 200, NULL, 0),
+(1, 'main', 1, 0, NULL, 200, NULL, 1471428532),
 (2, 'search', 2, 0, NULL, 201, NULL, 0),
-(3, 'profile', 3, 0, NULL, 200, NULL, 0),
+(3, 'profile', 3, 0, NULL, 201, NULL, 0),
 (4, 'login', 4, 0, NULL, 201, NULL, 0),
 (5, 'signup', 5, 0, NULL, 200, NULL, 0),
-(6, 'reset', 6, 0, NULL, 200, NULL, 0),
+(6, 'reset', 6, 0, NULL, 201, NULL, 0),
 (7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
 (8, 'logout', 0, 0, NULL, 201, NULL, 0);
 
@@ -467,7 +476,7 @@ CREATE TABLE IF NOT EXISTS `wl_users` (
   `type` smallint(2) NOT NULL DEFAULT '4',
   `status` tinyint(1) NOT NULL DEFAULT '2',
   `registered` int(11) DEFAULT '0',
-  `last_login` int(11) DEFAULT '0',
+  `last_login` int(11) NOT NULL,
   `auth_id` text,
   `password` text,
   `reset_key` text,
@@ -620,10 +629,10 @@ INSERT INTO `wl_user_types` (`id`, `name`, `title`, `active`) VALUES
 DROP TABLE IF EXISTS `wl_video`;
 CREATE TABLE IF NOT EXISTS `wl_video` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
-  `author` int(11) NOT NULL,
-  `date_add` int(11) NOT NULL,
   `alias` int(11) NOT NULL,
   `content` int(11) NOT NULL,
+  `author` int(11) NOT NULL,
+  `date_add` int(11) NOT NULL,
   `site` text COMMENT 'youtube, vimeo',
   `link` text,
   `active` int(1) DEFAULT '1' COMMENT '0 - видалене',

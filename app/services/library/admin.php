@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.5"
+ 	Service "Library 2.6"
 	for WhiteLion 1.0
 
 */
@@ -145,6 +145,7 @@ class library extends Controller {
 				$_SESSION['notify'] = new stdClass();
 
 				$link = $this->articles_model->save($_POST['id']);
+				$this->articles_model->saveArticleOptios($_POST['id']);
 				if(empty($_SESSION['notify']->errors))
 				{
 					if(isset($_POST['to']) && $_POST['to'] == 'new')
@@ -165,7 +166,7 @@ class library extends Controller {
 
 					$_SESSION['notify']->success = 'Дані успішно оновлено!';
 				}
-				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link);
+				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link.'#tab-main');
 			}
 		}
 	}
@@ -302,6 +303,174 @@ class library extends Controller {
 				$this->redirect();
 		}
 		$this->load->page_404();
+	}
+
+	public function options()
+	{
+		$this->load->smodel('groups_model');
+		$this->load->smodel('options_model');
+
+		$url = $this->data->url();
+		$id = end($url);
+		$id = explode('-', $id);
+		$id = $id[0];
+
+		if(is_numeric($id))
+		{
+			$option = $this->db->getAllDataById($this->options_model->table(), $id);
+			if($option)
+			{
+				$_SESSION['alias']->name = 'Редагувати налаштування';
+				$_SESSION['alias']->breadcrumb = array('Властивості' => 'admin/'.$_SESSION['alias']->alias.'/options', 'Редагувати налаштування' => '');
+				$this->load->admin_view('options/edit_view', array('option' => $option));
+			}
+			else
+				$this->load->page404();
+		}
+		elseif($id != '' && $id != $_SESSION['alias']->alias)
+		{
+			if($_SESSION['option']->useGroups)
+			{
+				$group = false;
+				$parent = 0;
+				array_shift($url);
+				array_shift($url);
+				array_shift($url);
+				if($url)
+					foreach ($url as $uri) {
+						$group = $this->groups_model->getByAlias($uri, $parent);
+						if($group)
+							$parent = $group->id;
+						else
+							$group = false;
+					}
+
+				if($group)
+				{
+					$group->alias_name = $_SESSION['alias']->name;
+					$group->parents = array();
+					if($group->parent > 0)
+					{
+						$list = array();
+			            $groups = $this->db->getAllData($this->groups_model->table());
+			            foreach ($groups as $Group) {
+			            	$list[$Group->id] = clone $Group;
+			            }
+						$group->parents = $this->groups_model->makeParents($list, $group->parent, $group->parents);
+					}
+					$this->wl_alias_model->setContent(($group->id * -1));
+					$group->group_name = $_SESSION['alias']->name;
+
+					$groups = $this->groups_model->getGroups($group->id, false);
+					$options = $this->options_model->getOptions($group->id, false);
+
+					$_SESSION['alias']->name = $_SESSION['alias']->name .'. Керування налаштуваннями';
+					$_SESSION['alias']->breadcrumb = array('Налаштування' => '');
+
+					$this->load->admin_view('options/index_view', array('group' => $group, 'groups' => $groups, 'options' => $options));
+				}
+				else
+				{
+					$groups = $this->groups_model->getGroups(0, false);
+					$options = $this->options_model->getOptions(0, false);
+
+					$_SESSION['alias']->name = 'Керування налаштуваннями';
+					$_SESSION['alias']->breadcrumb = array('Налаштування' => '');
+
+					$this->load->admin_view('options/index_view', array('options' => $options, 'groups' => $groups));
+				}
+			}
+			else
+			{
+				$options = $this->options_model->getOptions(0, false);
+
+				$_SESSION['alias']->name = 'Керування налаштуваннями';
+				$_SESSION['alias']->breadcrumb = array('Налаштування' => '');
+
+				$this->load->admin_view('options/index_view', array('options' => $options));	
+			}
+		}
+		$this->load->page_404();
+	}
+
+	public function add_option()
+	{
+		$_SESSION['alias']->name = 'Додати налаштування';
+		$_SESSION['alias']->breadcrumb = array('Властивості' => 'admin/'.$_SESSION['alias']->alias.'/options', 'Додати налаштування' => '');
+		$this->load->admin_view('options/add_view');
+	}
+
+	public function save_option()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']))
+		{
+			$_SESSION['notify'] = new stdClass();
+			$this->load->smodel('options_model');
+			if($_POST['id'] == 0){
+				$id = $this->options_model->add_option();
+				if($id){
+					$_SESSION['notify']->success = 'Властивість успішно додано!';
+					$this->redirect('admin/'.$_SESSION['alias']->alias.'/options/'.$id);
+				}
+			} else {
+				if($this->options_model->saveOption($_POST['id'])){
+					$_SESSION['notify']->success = 'Властивість успішно оновлено!';
+					$this->redirect();
+				}
+			}
+		}
+	}
+
+	public function delete_option()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] > 0)
+		{
+			$this->load->smodel('options_model');
+			if($this->options_model->deleteOption($_POST['id'])){
+				$_SESSION['notify'] = new stdClass();
+				$_SESSION['notify']->success = 'Властивість успішно видалено!';
+				$this->redirect('admin/'.$_SESSION['alias']->alias.'/options');
+			}
+		}
+	}
+
+	public function change_option_position()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']) && is_numeric($_POST['position']))
+		{
+			$this->load->smodel('options_model');
+			$this->load->model('wl_position_model');
+			
+			$option = $this->db->getAllDataById($this->options_model->table('_options'), $_POST['id']);
+			if($option) {
+				$parent = $option->group;
+			}
+			
+			$this->wl_position_model->table = $this->options_model->table();
+			if($parent >= 0) {
+				$this->wl_position_model->where = "`group` = '{$parent}'";
+			}
+			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
+				$this->redirect();
+			}
+		}
+		$this->load->page_404();
+	}
+
+	public function deleteOptionProperty()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']))
+		{
+			$this->load->smodel('options_model');
+			if($this->db->deleteRow($this->options_model->table(), $_POST['id']) && $this->db->deleteRow($this->options_model->table('_options_name'), $_POST['id'], 'option'))
+			{
+				if(isset($_POST['json']) && $_POST['json']){
+					$this->load->json(array('result' => true));
+				} else {
+					$this->redirect();
+				}
+			}
+		}
 	}
 
 	private function savephoto($name_field, $content, $name, $title = '')

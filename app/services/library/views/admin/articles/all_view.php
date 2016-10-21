@@ -38,14 +38,14 @@
 									<tr>
 										<td><?=$a->id?></td>
 										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->name?></a></td>
-										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->alias?></a></td>
+										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>">/<?=$a->alias?></a></td>
 										<?php
                                         if($_SESSION['option']->useGroups == 1) {
                                             echo("<td>");
                                             if($_SESSION['option']->articleMultiGroup) {
                                                 if(!empty($a->group) && is_array($a->group)) {
                                                     foreach ($a->group as $group) {
-                                                        echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
+                                                        echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->alias.'">'.$group->name.'</a> ');
                                                     }
                                                 } else {
                                                     echo("Не визначено");

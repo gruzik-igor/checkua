@@ -47,7 +47,7 @@ class shop_model {
 		return false;
 	}
 	
-	public function getProducts($Group = 0, $noInclude = 0, $active = true)
+	public function getProducts($Group = -1, $noInclude = 0, $active = true)
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active)
@@ -240,8 +240,8 @@ class shop_model {
             	{
 					if($sizes)
 						foreach ($sizes as $resize) {
-							$resize_name = $resize->prefix.'_path';
-							$photo->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							$resize_name = $resize->prefix.'_photo';
+							$product->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
 					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$photo->file_name;
             	}
@@ -331,8 +331,8 @@ class shop_model {
             	{
 					if($sizes = $this->db->getAliasImageSizes())
 						foreach ($sizes as $resize) {
-							$resize_name = $resize->prefix.'_path';
-							$photo->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							$resize_name = $resize->prefix.'_photo';
+							$product->$resize_name = $_SESSION['option']->folder.'/'.$product->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
 					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$photo->file_name;
             	}
@@ -388,14 +388,15 @@ class shop_model {
 		return null;
 	}
 
-	public function getProductPhoto($product)
+	public function getProductPhoto($product, $all = false)
 	{
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $product;
 		$this->db->select('wl_images', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('main DESC');
-		$this->db->limit(1);
+		if(!$all)
+			$this->db->limit(1);
 		return $this->db->get();
 	}
 
@@ -502,8 +503,8 @@ class shop_model {
             	{
 					if($sizes)
 						foreach ($sizes as $resize) {
-							$resize_name = $resize->prefix.'_path';
-							$photo->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							$resize_name = $resize->prefix.'_photo';
+							$Group->$resize_name = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 						}
 					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
@@ -543,8 +544,8 @@ class shop_model {
         	{
 				if($sizes = $this->db->getAliasImageSizes())
 					foreach ($sizes as $resize) {
-						$resize_name = $resize->prefix.'_path';
-						$photo->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+						$resize_name = $resize->prefix.'_photo';
+						$group->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
 					}
 				$group->photo = $_SESSION['option']->folder.'/-'.$group->id.'/'.$photo->file_name;
         	}

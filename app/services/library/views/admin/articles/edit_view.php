@@ -3,7 +3,12 @@
     <div class="panel panel-inverse">
       <div class="panel-heading">
         <div class="panel-heading-btn">
-          <a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$article->id?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:article_to']?></a>
+          <?php
+            $url = $this->data->url();
+            array_shift($url);
+            $url = implode('/', $url);
+          ?>
+          <a href="<?=SITE_URL.$url?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:article_to']?></a>
           <?php
             $url = $this->data->url();
             array_shift($url);

@@ -9,10 +9,20 @@ if(!$_SESSION['language'] || $_SESSION['language'] == $language)
 	$ntkd->text = $_SESSION['alias']->text;
 	$ntkd->list = $_SESSION['alias']->list;
 
-	$language_attr = "";
-	$language_block = "-block";
-	$language_block_name = "'block'";
-	$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-block' );";
+	if($_SESSION['language'])
+	{
+		$language_attr = ", '{$language}'";
+		$language_block = "-{$language}";
+		$language_block_name = "'{$language}'";
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
+	}
+	else
+	{
+		$language_attr = "";
+		$language_block = "-block";
+		$language_block_name = "'block'";
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-block' );";		
+	}
 }
 else
 {

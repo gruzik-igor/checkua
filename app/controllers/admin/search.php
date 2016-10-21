@@ -38,7 +38,7 @@ class Search extends Controller {
 						{
 							if($current >= $start && $current < ($start + $_SESSION['option']->paginator_per_page))
 							{
-								if($result->folder)
+								if(isset($result->folder) && $result->folder)
 									$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder);
 								array_push($data, $result);
 							}

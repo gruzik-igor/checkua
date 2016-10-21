@@ -88,8 +88,8 @@ class wl_aliases extends Controller {
                     if($_SESSION['language'])
                         $where['language'] = $_SESSION['language'];
                     $this->db->select('wl_ntkd', 'name', $where);
-                    $wl_ntkd = $this->db->get('single');
-                    $alias->name = $wl_ntkd->name;
+                    if($wl_ntkd = $this->db->get('single'))
+                        $alias->name = $wl_ntkd->name;
 
                     $text = '';
                     if($alias->service > 0) $text = " (на основі сервісу ".$alias->title.")";
@@ -102,6 +102,17 @@ class wl_aliases extends Controller {
             }
             else
                 $this->load->admin_view('wl_aliases/list_view');
+        }
+        else
+            $this->load->page_404();
+    }
+
+    public function all()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
+            $options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0));
+            $this->load->admin_view('wl_aliases/edit_0all_view', array('options' => $options));
         }
         else
             $this->load->page_404();
@@ -476,6 +487,38 @@ class wl_aliases extends Controller {
             }
         }
         $this->load->redirect();
+    }
+
+    public function save_all()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
+            foreach ($_POST as $key => $value) {
+                $key = explode('-', $key);
+                if(count($key) == 2 && $key[0] == 'option' && is_numeric($key[1]))
+                    $this->db->updateRow('wl_options', array('value' => $value), $key[1]);
+            }
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Загальні налаштування успішно оновлено!';
+        }
+        $this->redirect();
+    }
+
+    public function add_all()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
+            $option = array('service' => 0, 'alias' => 0);
+            $option['name'] = $this->data->post('name');
+            $option['value'] = $this->data->post('value');
+            if($this->db->insertRow('wl_options', $option))
+            {
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->success = 'Налаштування '.$option['name'].' успішно додано!';
+            }
+            
+        }
+        $this->redirect();
     }
 
     public function saveSubMenu()

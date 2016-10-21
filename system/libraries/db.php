@@ -12,6 +12,8 @@
  * Версія 2.0.2 (01.04.2016) - до makeWhere() додано параметр сортування НЕ '!'
  * Версія 2.0.3 (26.07.2016) - адаптовано до php7
  * Версія 2.0.4 (12.09.2016) - додано getAliasImageSizes()
+ * Версія 2.1 (22.09.2016) - updateRow(), deleteRow() адаптовано через makeWhere(); у makeWhere() виправлено роботу з нульовими значеннями; до getRows() додати перевірку на тип single
+ * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
  */
 
 class Db {
@@ -23,7 +25,8 @@ class Db {
     /*
      * Отримуємо дані для з'єднання з конфігураційного файлу
      */
-    function __construct($cfg){
+    function __construct($cfg)
+    {
         $this->newConnect($cfg['host'], $cfg['user'], $cfg['password'], $cfg['database']);
     }
 
@@ -35,7 +38,8 @@ class Db {
      * @param <string> $password пароль
      * @param <string> $database назва бази даних
      */
-    function newConnect($host, $user, $password, $database){
+    function newConnect($host, $user, $password, $database)
+    {
         $this->connects[] = new mysqli($host, $user, $password, $database);
         $this->current = count($this->connects) - 1;
         $this->executeQuery('SET NAMES utf8');
@@ -46,34 +50,39 @@ class Db {
      *
      * @param <string> $query запит
      */
-    function executeQuery($query){
+    function executeQuery($query)
+    {
         $result = $this->connects[$this->current]->query($query);
-        if(!$result) {
+        if(!$result)
             echo $this->connects[$this->current]->error;
-        } else {
+        else
             $this->result = $result;
-        }
-
     }
 
-    function updateRow($table, $changes, $id, $row_key = 'id'){
-        $update = "UPDATE ".$table." SET ";
-        foreach ($changes as $key => $value){
-            $value = $this->sanitizeString($value);
-            $update .= "`{$key}` = '{$value}',";
+    function updateRow($table, $changes, $key, $row_key = 'id')
+    {
+        $where = $this->makeWhere($key, $row_key);
+        if($where != '')
+        {
+            $update = "UPDATE ".$table." SET ";
+            foreach ($changes as $key => $value) {
+                $value = $this->sanitizeString($value);
+                $update .= "`{$key}` = '{$value}',";
+            }
+            $update = substr($update, 0, -1);
+            $update .= "WHERE ".$where;
+            $this->executeQuery($update);
+            if($this->affectedRows() > 0)
+                return true;
         }
-        $update = substr($update, 0, -1);
-        $update .= "WHERE `{$row_key}` = '{$id}'";
-        $this->executeQuery($update);
-        if($this->affectedRows() > 0){
-            return true;
-        } else return false;
+        return false;
     }
 
-    function insertRow($table, $changes){
+    function insertRow($table, $changes)
+    {
         $update = "INSERT INTO ".$table." ( ";
         $values = '';
-        foreach ($changes as $key => $value){
+        foreach ($changes as $key => $value) {
             $value = $this->sanitizeString($value);
             $update .= '`' . $key . '`, ';
             $values .= "'{$value}', ";
@@ -82,22 +91,26 @@ class Db {
         $values = substr($values, 0, -2);
         $update .= ' ) VALUES ( ' . $values . ' ) ';
         $this->executeQuery($update);
-        if($this->affectedRows() > 0){
+        if($this->affectedRows() > 0)
             return true;
-        } else return false;
+        return false;
     }
 
-    function getLastInsertedId(){
+    function getLastInsertedId()
+    {
         return $this->connects[$this->current]->insert_id;
     }
 
-    function deleteRow($table = '', $id, $id_name = 'id'){
-        if($table != '' && $id != ''){
-            $this->executeQuery("DELETE FROM {$table} WHERE `{$id_name}` = '{$id}'");
-            if($this->affectedRows() > 0){
+    function deleteRow($table = '', $id, $row_key = 'id')
+    {
+        $where = $this->makeWhere($id, $row_key);
+        if($where != '')
+        {
+            $this->executeQuery("DELETE FROM {$table} WHERE {$where}");
+            if($this->affectedRows() > 0)
                 return true;
-            } else return false;
-        } else return false;
+        }
+        return false;
     }
 
     /**
@@ -105,15 +118,18 @@ class Db {
      *
      * @return <array>
      */
-    function getRows($type = ''){
-        if($this->result->num_rows > 1 || $type == 'array'){
+    function getRows($type = '')
+    {
+        if($this->result->num_rows > 1 || $type == 'array')
+        {
             $objects = array();
             while($obj = $this->result->fetch_object()){
                 array_push($objects, $obj);
             }
             return $objects;
         }
-
+        elseif($type == 'single' && $this->result->num_rows != 1)
+            return false;
         return $this->result->fetch_object();
     }
 
@@ -122,7 +138,8 @@ class Db {
      *
      * @return <int>
      */
-    function numRows(){
+    function numRows()
+    {
         return $this->result->num_rows;
     }
 
@@ -131,7 +148,8 @@ class Db {
      *
      * @return <int>
      */
-    function affectedRows(){
+    function affectedRows()
+    {
         return $this->result;
     }
 
@@ -142,27 +160,25 @@ class Db {
      *
      * @return <string>
      */
-    function sanitizeString($data){
-        if(get_magic_quotes_gpc()){
+    function sanitizeString($data)
+    {
+        if(get_magic_quotes_gpc())
             $data = stripslashes($data);
-        }
-
-        $data = $this->connects[$this->current]->escape_string($data);
-
-        return $data;
+        return $this->connects[$this->current]->escape_string($data);
     }
 
-    function mysql_real_escape_string($q){
+    function mysql_real_escape_string($q)
+    {
         return $this->connects[$this->current]->real_escape_string($q);
     }
 
     public function getQuery($query = false, $getRows = '')
     {
-        if($query){
+        if($query)
+        {
             $this->executeQuery($query);
-            if($this->numRows() > 0){
+            if($this->numRows() > 0)
                 return $this->getRows($getRows);
-            }
         }
         return false;
     }
@@ -170,52 +186,59 @@ class Db {
     /**
      * Допоміжні функції
      */
-    function getAllData($table = false, $order = ''){
-        if($table){
+    function getAllData($table = false, $order = '')
+    {
+        if($table)
+        {
             if($order != '') $order = ' ORDER BY '.$order;
             $this->executeQuery("SELECT * FROM {$table} {$order}");
-            if($this->numRows() > 0){
+            if($this->numRows() > 0)
                 return $this->getRows('array');
-            } else return false;
-        } else return false;
+        }
+        return false;
     }
 
-    function getAllDataById($table = '', $key, $row_key = 'id'){
-        if($table != ''){
+    function getAllDataById($table = '', $key, $row_key = 'id')
+    {
+        if($table != '')
+        {
             $where = $this->makeWhere($key, $row_key);
-            if($where != ''){
+            if($where != '')
+            {
                 $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
-                if($this->numRows() == 1){
+                if($this->numRows() == 1)
                     return $this->getRows();
-                }
             }
         }
         return false;
     }
 
-    function getAllDataByFieldInArray($table = '', $key, $row_key = 'id', $order = ''){
-        if($table != ''){
+    function getAllDataByFieldInArray($table = '', $key, $row_key = 'id', $order = '')
+    {
+        if($table != '')
+        {
             $where = $this->makeWhere($key, $row_key);
-            if($where != ''){
+            if($where != '')
+            {
                 if(is_array($key) && $row_key != '') $where .= ' ORDER BY '.$row_key;
                 elseif($order != '') $where .= ' ORDER BY '.$order;
                 $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
-                if($this->numRows() > 0){
+                if($this->numRows() > 0)
                     return $this->getRows('array');
-                }
             }
         }
         return false;
     }
 
-    function getCount($table = '', $key = '', $row_key = 'id'){
+    function getCount($table = '', $key = '', $row_key = 'id')
+    {
         if($table != ''){
             $where = $this->makeWhere($key, $row_key);
-            if($where != ''){
+            if($where != '')
                 $where = "WHERE {$where}";
-            }
             $this->executeQuery("SELECT count(*) as count FROM {$table} {$where}");
-            if($this->numRows() == 1){
+            if($this->numRows() == 1)
+            {
                 $count = $this->getRows();
                 return $count->count;
             }
@@ -226,70 +249,97 @@ class Db {
     private function makeWhere($data, $row_key = 'id', $prefix = false)
     {
         $where = '';
-        if(is_array($data)){
+        if(is_array($data))
+        {
             foreach ($data as $key => $value) {
-                if(!is_numeric($key) && $key != ''){
-                    if($prefix){
+                if(!is_numeric($key) && $key != '')
+                {
+                    if($key[0] == '+')
+                        $key = substr($key, 1);
+                    if($prefix)
                         $where .= "{$prefix}.{$key}";
-                    } else {
+                    else
                         $where .= "`{$key}`";
-                    }
-                    if(is_array($value)){
+                    if(is_array($value))
+                    {
                         $where .= " IN ( ";
                         foreach ($value as $v) {
                             $where .= "'{$v}', ";
                         }
                         $where = substr($where, 0, -2);
                         $where .= ') AND ';
-                    } elseif($value != '') {
+                    }
+                    elseif($value != '')
+                    {
                         $value = $this->sanitizeString($value);
-                        if($value[0] == '%'){
+                        if($value[0] == '%')
                             $where .= " LIKE '{$value}%' AND ";
-                        } elseif($value[0] == '>'){
-                            if($value[1] == '='){
+                        elseif($value[0] == '>')
+                        {
+                            if($value[1] == '=')
+                            {
                                 $value = substr($value, 2);
                                 $where .= " >= '{$value}' AND ";
-                            } else {
+                            }
+                            else
+                            {
                                 $value = substr($value, 1);
                                 $where .= " > '{$value}' AND ";
                             }
-                        } elseif($value[0] == '<'){
-                            if($value[1] == '='){
+                        }
+                        elseif($value[0] == '<')
+                        {
+                            if($value[1] == '=')
+                            {
                                 $value = substr($value, 2);
                                 $where .= " <= '{$value}' AND ";
-                            } else {
+                            }
+                            else
+                            {
                                 $value = substr($value, 1);
                                 $where .= " < '{$value}' AND ";
                             }
-                        } else {
-                            if($value[0] == '#'){
+                        }
+                        else
+                        {
+                            if($value[0] == '#')
+                            {
                                 $value = substr($value, 1);
                                 $where .= " = {$value} AND ";
-                            } elseif($value[0] == '!'){
+                            }
+                            elseif($value[0] == '!')
+                            {
                                 $value = substr($value, 1);
                                 $where .= " != '{$value}' AND ";
-                            } else {
-                                $where .= " = '{$value}' AND ";
                             }
+                            else
+                                $where .= " = '{$value}' AND ";
                         }
-                    } else $where .= " = '' AND ";
+                    }
+                    else
+                        $where .= " = '' AND ";
                 }
             }
-            if($where != ''){
+            if($where != '')
                 $where = substr($where, 0, -4);
-            }
-        } elseif($data != ''){
-            if($prefix) {
-                $row_key = "{$prefix}.{$row_key}";
-            } else {
-                $row_key = "`{$row_key}`";
-            }
-            $data = $this->sanitizeString($data);
-            if($data[0] == '#'){
-                $data = substr($data, 1);
-                $where = "{$row_key} = {$data}";
-            } else {
-                $where = "{$row_key} = '{$data}'";
+        }
+        else
+        {
+            $data = (string) $data;
+            if($data != '')
+            {
+                if($prefix)
+                    $row_key = "{$prefix}.{$row_key}";
+                else
+                    $row_key = "`{$row_key}`";
+                $data = $this->sanitizeString($data);
+                if($data[0] == '#')
+                {
+                    $data = substr($data, 1);
+                    $where = "{$row_key} = {$data}";
+                }
+                else
+                    $where = "{$row_key} = '{$data}'";
             }
         }
         return $where;
@@ -306,23 +356,22 @@ class Db {
 
     public function prefix($prefix)
     {
-        if($this->query_prefix == false){
+        if($this->query_prefix == false)
             $this->query_prefix = $prefix;
-        } else {
+        else
             exit('Work with DB. Prefix of table name has to be set before function select!');
-        }
     }
 
     public function select($table, $fields = '*', $key = '', $row_key = 'id')
     {
         $table = preg_replace("|[\s]+|", " ", $table);
         $table = explode(' ', $table);
-        if(count($table) == 3 && ($table[1] == 'as' || $table[1] == 'AS' || $table[1] == 'As')){
+        if(count($table) == 3 && ($table[1] == 'as' || $table[1] == 'AS' || $table[1] == 'As'))
             $this->query_prefix = $table[2];
-        }
         $this->query_table = $table[0];
         $this->query_fields = $fields;
-        if($this->query_prefix == false) $this->query_prefix = $table[0];
+        if($this->query_prefix == false)
+            $this->query_prefix = $table[0];
         $this->query_where = $this->makeWhere($key, $row_key, $this->query_prefix);
     }
 
@@ -331,9 +380,8 @@ class Db {
         $table = preg_replace("|[\s]+|", " ", $table);
         $table = explode(' ', $table);
         $prefix = $table[0];
-        if(count($table) == 3 && ($table[1] == 'as' || $table[1] == 'AS' || $table[1] == 'As')){
+        if(count($table) == 3 && ($table[1] == 'as' || $table[1] == 'AS' || $table[1] == 'As'))
             $prefix = $table[2];
-        }
         $join = new stdClass();
         $join->table = $table[0];
         $join->prefix = $prefix;
@@ -352,7 +400,8 @@ class Db {
     public function limit($limit, $offset = 0)
     {
         $this->query_limit = 'LIMIT '.$limit;
-        if($offset > 0) $this->query_limit .= ', '.$offset;
+        if($offset > 0)
+            $this->query_limit .= ', '.$offset;
     }
 
     /**
@@ -369,103 +418,99 @@ class Db {
      */
     public function get($type = 'auto', $clear = true, $debug = false, $get = true)
     {
-        if($this->query_table){
+        if($this->query_table)
+        {
             $data = NULL;
-            if($type == 'count'){
+            if($type == 'count')
+            {
                 $data = 0;
                 $where = '';
-                if($this->query_prefix){
+                if($this->query_prefix)
                     $where = "AS {$this->query_prefix} ";
-                }
-                if($this->query_where != '') {
+                if($this->query_where != '')
                     $where .= 'WHERE '.$this->query_where;
-                }
                 $row = $this->getQuery("SELECT count(*) as count FROM {$this->query_table} {$where}");
-                if(is_object($row)){
+                if(is_object($row))
                     $data = $row->count;
-                }
-            } else {
+            }
+            else
+            {
                 $query = "SELECT ";
                 // fields
-                if(!empty($this->query_join)){
-                    if(!is_array($this->query_fields)) $this->query_fields = explode(',', $this->query_fields);
+                if(!empty($this->query_join))
+                {
+                    if(!is_array($this->query_fields))
+                        $this->query_fields = explode(',', $this->query_fields);
                     $prefix = $this->query_table;
-                    if($this->query_prefix) $prefix = $this->query_prefix;
+                    if($this->query_prefix)
+                        $prefix = $this->query_prefix;
                     foreach ($this->query_fields as $field) {
-                        if($field != ''){
+                        if($field != '')
+                        {
                             $field = trim($field);
                             $query .= $prefix.'.'.$field.', ';
                         }
                     }
                     foreach ($this->query_join as $join) {
-                        if(!is_array($join->fields)) $join->fields = explode(',', $join->fields);
+                        if(!is_array($join->fields))
+                            $join->fields = explode(',', $join->fields);
                         foreach ($join->fields as $field) {
-                            if($field != ''){
+                            if($field != '')
+                            {
                                 $field = trim($field);
                                 $query .= $join->prefix.'.'.$field.', ';
                             }
                         }
                     }
                     $query = substr($query, 0, -2);
-                } else {
-                    $query .= $this->query_fields;
                 }
+                else
+                    $query .= $this->query_fields;
 
                 //from
                 $query .= " FROM `{$this->query_table}` ";
-                if($this->query_prefix){
+                if($this->query_prefix)
                     $query .= "AS {$this->query_prefix} ";
-                }
 
                 //join
-                if(!empty($this->query_join)){
+                if(!empty($this->query_join))
                     foreach ($this->query_join as $join) {
                         $query .= "{$join->type} JOIN `{$join->table}` ";
-                        if($join->prefix != $join->table) {
+                        if($join->prefix != $join->table)
                             $query .= "AS {$join->prefix} ";
-                        }
                         $query .= "ON {$join->where} ";
                     }
-                }
 
                 //where
-                if($this->query_where){
+                if($this->query_where)
                     $query .= "WHERE {$this->query_where} ";
-                }
 
                 //order
-                if($this->query_order){
-                    if($this->query_prefix || $this->query_order_prefix){
-                        if($this->query_order_prefix == false) $this->query_order_prefix = $this->query_prefix;
+                if($this->query_order)
+                {
+                    if($this->query_prefix || $this->query_order_prefix)
+                    {
+                        if($this->query_order_prefix == false)
+                            $this->query_order_prefix = $this->query_prefix;
                         $query .= "ORDER BY {$this->query_order_prefix}.{$this->query_order} ";
-                    } else {
-                        $query .= "ORDER BY {$this->query_order} ";
                     }
+                    else
+                        $query .= "ORDER BY {$this->query_order} ";
                 }
 
                 //limit
-                if($this->query_limit){
+                if($this->query_limit)
                     $query .= $this->query_limit;
-                }
 
-                if($debug) echo($query);
+                if($debug)
+                    echo($query);
 
                 if($get)
-                {
-                    //get data
-                    if($type == 'single'){
-                        $this->executeQuery($query);
-                        if($this->numRows() == 1){
-                            $data = $this->getRows();
-                        }
-                    } else {
-                        $data = $this->getQuery($query, $type);
-                    }
-                }
+                    $data = $this->getQuery($query, $type);
             }
-            if($clear){
+            if($clear)
                 $this->clear();
-            }
+
             return $data;
         }
         return false;

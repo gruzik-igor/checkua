@@ -13,6 +13,11 @@
         <input type="password" name="admin_password_repeat" id="admin_password_repeat" value="" class="form-control input-lg" placeholder="Повторити пароль" required />
         <span id="password_error" style="color:red"></span>
     </div>
+    <div class="form-group">
+    	<p>Вільна реєстрація користувачів: </p>
+        <label><input name="userSignUp" type="radio" value="1" checked="checked" required> Дозволена </label> 
+		<label><input name="userSignUp" type="radio" value="0"> Заборонена</label>
+    </div>
 
 	<button type="submit" onclick="checkPassword()" id="submitButtonStep3" class="btn btn-success btn-block btn-lg">Далі</button>
 </form>

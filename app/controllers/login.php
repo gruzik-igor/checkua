@@ -108,55 +108,60 @@ class Login extends Controller {
 	{
 		$_SESSION['alias']->code = 201;
 		$this->load->library('facebook');
-		// Get User ID
-		$user = $this->facebook->getUser();
-		
-		// We may or may not have this data based on whether the user is logged in.
-		//
-		// If we have a $user id here, it means we know the user is logged into
-		// Facebook, but we don't know if the access token is valid. An access
-		// token is invalid if the user logged out of Facebook.
-		
-		if ($user)
+		if($_SESSION['option']->facebook_initialise)
 		{
-			try {
-				// Proceed knowing you have a logged in user who's authenticated.
-				$user_profile = $this->facebook->api('/me?fields=email,id,name,link');
-			} catch (FacebookApiException $e) {
-				error_log($e);
-				$user = null;
+			// Get User ID
+			$user = $this->facebook->getUser();
+			
+			// We may or may not have this data based on whether the user is logged in.
+			//
+			// If we have a $user id here, it means we know the user is logged into
+			// Facebook, but we don't know if the access token is valid. An access
+			// token is invalid if the user logged out of Facebook.
+			
+			if ($user)
+			{
+				try {
+					// Proceed knowing you have a logged in user who's authenticated.
+					$user_profile = $this->facebook->api('/me?fields=email,id,name,link');
+				} catch (FacebookApiException $e) {
+					error_log($e);
+					$user = null;
+				}
 			}
-		}
 
-		// Login or logout url will be needed depending on current user state.
-		if ($user)
-		{
-			// $logoutUrl = $facebook->getLogoutUrl();
-			$this->load->model('wl_user_model');
-			if($status = $this->wl_user_model->login('facebook', $user_profile['id']))
+			// Login or logout url will be needed depending on current user state.
+			if ($user)
 			{
-				header('Location: '.SITE_URL.$status->load);
-				exit;
-			}
-			elseif($this->wl_user_model->userExists($user_profile['email']))
-			{
-				$_SESSION['facebook'] = $_SESSION['facebook_id'] = $user_profile['id'];
-				$_SESSION['facebook_link'] = $user_profile['link'];
-				$_SESSION['_POST']['email'] = $user_profile['email'];
+				// $logoutUrl = $facebook->getLogoutUrl();
+				$this->load->model('wl_user_model');
+				if($status = $this->wl_user_model->login('facebook', $user_profile['id']))
+				{
+					header('Location: '.SITE_URL.$status->load);
+					exit;
+				}
+				elseif($this->wl_user_model->userExists($user_profile['email']))
+				{
+					$_SESSION['facebook'] = $_SESSION['facebook_id'] = $user_profile['id'];
+					$_SESSION['facebook_link'] = $user_profile['link'];
+					$_SESSION['_POST']['email'] = $user_profile['email'];
+				}
+				else
+				{
+					$_SESSION['facebook'] = false;
+				}
+				$this->redirect();
 			}
 			else
 			{
-				$_SESSION['facebook'] = false;
+				// $statusUrl = $facebook->getLoginStatusUrl();
+				$loginUrl = $this->facebook->getLoginUrl();
+				header('Location: '.$loginUrl);
+				exit;
 			}
-			$this->redirect();
 		}
 		else
-		{
-			// $statusUrl = $facebook->getLoginStatusUrl();
-			$loginUrl = $this->facebook->getLoginUrl();
-			header('Location: '.$loginUrl);
-			exit;
-		}
+			$this->redirect();
 	}
 
 }

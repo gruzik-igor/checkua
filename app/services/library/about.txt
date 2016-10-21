@@ -1,7 +1,8 @@
-﻿Service "Library 2.5"
+﻿Service "Library 2.6"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.6   : 12.10.2016
 Date 2.5   : 15.09.2016
 Date 2.4   : 18.03.2015
 Date 2.3   : 05.12.2015
@@ -12,9 +13,12 @@ Date 1.0   : 15.05.2014
 
 Description: Бібліотека статей із підтримкою категорій. Мультимовна. Автовиправлення адрес (лінків) товарів.
 Options:
-	useGroups	(0, 1)		наявність категорій в яких можуть знаходитися товари
-	articleMultiGroup	(0, 1) один товар більше ніж в одній категорії
-	folder		(текст)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми
+	useGroups		(0, 1)		наявність категорій в яких можуть знаходитися товари
+	articleMultiGroup	(0, 1) 	один товар більше ніж в одній категорії
+	articleUseOptions	(0, 1) 	наявність властивостей статті
+	folder			(текст)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми
+	articleOrder	(текст)		сортування статей
+	groupOrder		(текст)		сортування груп
 
 Path photos after uploading:
 	IMG_PATH / folder / id_article / (*) photo_name . *
@@ -50,6 +54,29 @@ Tables:
 	s_library_article_group 	для МУЛЬТИТОВАРГРУПА. Один товар - декілька груп
 		`article` int(11)	ід товару
 		`group` int(11)		ід групи
+
+	if options['articleUseOptions'] > 0
+		s_library_options перелік опцій, що доступні для товарів. Присвоюються групам із успадкуванням
+			`id` int(11) AUTO_INCREMENT
+			`wl_alias` int(11)	ід головного аліасу
+			`group` int(11)		ід батьківської групи
+			`alias` int(11)		адреса опції (для СЕО фільтра)
+			`position` text		позиція у списку
+			`type` int(11)		тип опції згідно wl_input_types
+			`filter` tinyint(1)	чи є даний елемент опції і елементом фільтру (тільки для строго визначений елементів: radio, select..)
+			`active` tinyint(1)	поточний стан (0 - відключено, 1 - активний)
+		s_library_article_options 	поточні дані опція товару - товар
+			`id` int(11) AUTO_INCREMENT
+			`product` int(11)	ід товару
+			`option` int(11)	ід опціїї
+			`language` varchar(2),	мова, якщо є мультимовний
+			`value` text		значення
+		s_library_options_name		дані пареметрів товару
+			`id` int(11) AUTO_INCREMENT
+			`option` int(11)	ід опції або -ід властивості опції
+			`language` varchar(2)	мова, якщо є мультимовний
+			`name` text			назва опції/параметру
+			`sufix` text		суфікс (автоматично додається після тексту опції - розмірність величини)
 
 Public links:
 	/index() - main page, list of active groups or articles sorted by `position`
@@ -110,3 +137,5 @@ Versions:
 			Керування відео передано на системну верстку
 
 	2.5		Сервіс адаптовано до WL1.0. Оновлено інсталяційну модель, керування контентом переведоно до системних бібліотек.
+
+	2.6		Додано можливість додаткового налаштування статті (за основу взято options із сервісу Shop Showcase 2.3)

@@ -31,46 +31,48 @@
     <div id="page-loader" class="fade in"><span class="spinner"></span></div>
     <!-- end #page-loader -->
 
-    <script>
-        // This is called with the results from from FB.getLoginStatus().
-        function statusChangeCallback(response) {
-            // The response object is returned with a status field that lets the
-            // app know the current login status of the person.
-            // Full docs on the response object can be found in the documentation
-            // for FB.getLoginStatus().
-            if (response.status === 'connected') {
-              // Logged into your app and Facebook.
-              window.location.replace('<?=SITE_URL?>login/facebook');
+    <?php if($_SESSION['option']->facebook_initialise) { ?>
+        <script>
+            // This is called with the results from from FB.getLoginStatus().
+            function statusChangeCallback(response) {
+                // The response object is returned with a status field that lets the
+                // app know the current login status of the person.
+                // Full docs on the response object can be found in the documentation
+                // for FB.getLoginStatus().
+                if (response.status === 'connected') {
+                  // Logged into your app and Facebook.
+                  window.location.replace('<?=SITE_URL?>login/facebook');
+                }
             }
-        }
 
-        window.fbAsyncInit = function() {
-            FB.init({
-              appId      : '<?=$this->facebook->getAppId()?>',
-              cookie     : true,
-              xfbml      : true,
-              version    : 'v2.6'
-            });
+            window.fbAsyncInit = function() {
+                FB.init({
+                  appId      : '<?=$this->facebook->getAppId()?>',
+                  cookie     : true,
+                  xfbml      : true,
+                  version    : 'v2.6'
+                });
 
-            FB.Event.subscribe('auth.login', function(response) {
-                statusChangeCallback(response);
-            });
+                FB.Event.subscribe('auth.login', function(response) {
+                    statusChangeCallback(response);
+                });
 
-            <?php if(!isset($_SESSION['facebook'])) { ?>
-            FB.getLoginStatus(function(response) {
-                statusChangeCallback(response);
-            });
-            <?php } ?>
-        };
+                <?php if(!isset($_SESSION['facebook'])) { ?>
+                FB.getLoginStatus(function(response) {
+                    statusChangeCallback(response);
+                });
+                <?php } ?>
+            };
 
-        (function(d, s, id){
-            var js, fjs = d.getElementsByTagName(s)[0];
-            if (d.getElementById(id)) {return;}
-            js = d.createElement(s); js.id = id;
-            js.src = "//connect.facebook.net/en_US/sdk.js";
-            fjs.parentNode.insertBefore(js, fjs);
-        }(document, 'script', 'facebook-jssdk'));
-    </script>
+            (function(d, s, id){
+                var js, fjs = d.getElementsByTagName(s)[0];
+                if (d.getElementById(id)) {return;}
+                js = d.createElement(s); js.id = id;
+                js.src = "//connect.facebook.net/en_US/sdk.js";
+                fjs.parentNode.insertBefore(js, fjs);
+            }(document, 'script', 'facebook-jssdk'));
+        </script>
+    <?php } ?>
     
     <div class="login-cover">
         <div class="login-cover-image"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" data-id="login-cover-image" alt="" /></div>
@@ -84,7 +86,7 @@
             <div class="login-header">
                 <div class="brand">
                     <span class="logo"></span> <?=SITE_NAME?>
-                    <small>Практична стрільба для кожного</small>
+                    <small><?=SITE_URL?></small>
                 </div>
                 <div class="icon">
                     <i class="fa fa-sign-in"></i>
@@ -117,21 +119,25 @@
                     <div class="login-buttons">
                         <button type="submit" class="btn btn-success btn-block btn-lg">Увійти</button>
                     </div>
-                    <div class="m-t-20 text-center">
-                        <big>АБО</big>
-                        <div class="login-buttons m-t-10">
-                            <?php if(!isset($_SESSION['facebook'])) { ?>
-                                <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> Увійти через facebook</button>
-                            <?php } elseif($_SESSION['facebook'] != false) { ?>
-                                <p>Користувач за email <b><?=$this->data->re_post('email')?></b> вже зареєстрований на сайті</p>
-                                <button type="submit" name="facebook" value="<?=$_SESSION['facebook']?>" class="btn btn-warning btn-block btn-lg"><i class="fa fa-facebook"></i> Синхронізувати профілі</button>
-                            <?php } else { ?>
-                                <a href="<?=SITE_URL?>signup/facebook" class='btn btn-warning btn-block btn-lg'><i class="fa fa-facebook"></i> Швидка реєстрація facebook</a>
-                            <?php } unset($_SESSION['facebook']); ?>
+                    <?php if($_SESSION['option']->facebook_initialise) { ?>
+                        <div class="m-t-20 text-center">
+                            <big>АБО</big>
+                            <div class="login-buttons m-t-10">
+                                <?php if(!isset($_SESSION['facebook'])) { ?>
+                                    <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> Увійти через facebook</button>
+                                <?php } elseif($_SESSION['facebook'] != false) { ?>
+                                    <p>Користувач за email <b><?=$this->data->re_post('email')?></b> вже зареєстрований на сайті</p>
+                                    <button type="submit" name="facebook" value="<?=$_SESSION['facebook']?>" class="btn btn-warning btn-block btn-lg"><i class="fa fa-facebook"></i> Синхронізувати профілі</button>
+                                <?php } else { ?>
+                                    <a href="<?=SITE_URL?>signup/facebook" class='btn btn-warning btn-block btn-lg'><i class="fa fa-facebook"></i> Швидка реєстрація facebook</a>
+                                <?php } unset($_SESSION['facebook']); ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                     <div class="m-t-20">
-                        Ще не зареєстровані? <a href="<?=SITE_URL?>signup">Зареєструватися</a>. <br>
+                        <?php if($_SESSION['option']->userSignUp) { ?>
+                            Ще не зареєстровані? <a href="<?=SITE_URL?>signup">Зареєструватися</a>. <br>
+                        <?php } ?>
                         Не можете ввійти? <a href="<?=SITE_URL?>reset">Забув пароль</a>. <br>
                         Повернутися на <a href="<?=SITE_URL?>">головну сторінку</a>.
                     </div>

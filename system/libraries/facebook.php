@@ -37,9 +37,12 @@ class Facebook extends BaseFacebook
      */
   function __construct($config)
   {
-      if (!session_id()) {
-        session_start();
+      if ($config['appId'] == 'FACEBOOK_APP_ID') {
+        $_SESSION['option']->facebook_initialise = false;
+        return false;
       }
+      $_SESSION['option']->facebook_initialise = true;
+
       parent::__construct($config);
       if (!empty($config['sharedSession'])) {
         $this->initSharedSession();

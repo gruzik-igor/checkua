@@ -15,6 +15,7 @@ var handleDataTableCombinationSetting = function() {
 	            { "data": "user" },
 	            { "data": "date" }
 	        ],
+            "order":[[0, 'desc']],
 	        responsive: true,
             lengthMenu: [25, 50, 100]
         });

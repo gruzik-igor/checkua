@@ -4,6 +4,9 @@
     <div class="col-md-12">
         <div class="panel panel-inverse">
             <div class="panel-heading">
+            	<div class="panel-heading-btn">
+                	<a href="<?=SITE_URL?>admin/wl_aliases/all" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> Загальні налаштування</a>
+                </div>
                 <h4 class="panel-title">Наявні адреси:</h4>
             </div>
             <div class="panel-body">
@@ -19,6 +22,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                        	<tr>
+								<td colspan="5"><center><a href="<?=SITE_URL?>admin/wl_aliases/all" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> Загальні налаштування</a></center></td>
+							</tr>
                         <?php
                         $this->db->select('wl_aliases');
                 		$this->db->join('wl_services', 'name as service_name, title as service_title', '#service');

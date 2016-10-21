@@ -21,6 +21,7 @@ class cart extends Controller {
 
     function index()
     {
+        $this->wl_alias_model->setContent();
         $orderId = $this->data->uri(1);
 
          if(isset($orderId) && is_numeric($orderId) > 0 ){

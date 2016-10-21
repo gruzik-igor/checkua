@@ -13,21 +13,21 @@ class wl_users extends Controller {
         }
     }
 
-    public function index(){
-        if($_SESSION['user']->admin == 1){
-            if($this->data->uri(2) != ''){
-                $user = $this->data->uri(2);
-                $user = $this->db->sanitizeString($user);
-
+    public function index()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
+            $user = $this->data->uri(2);
+            if($user != '')
+            {
                 $this->load->model('wl_user_model');
-                if(is_numeric($user)) {
+                if(is_numeric($user))
                     $user = $this->wl_user_model->getInfo($user);
-                }
-                else {
+                else
                     $user = $this->wl_user_model->getInfo($user, '*', 'email');
-                }
 
-                if(is_object($user) && $user->id > 0){
+                if(is_object($user) && $user->id > 0)
+                {
                     $status = $this->db->getAllData('wl_user_status');
                     $types = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
 
@@ -35,15 +35,16 @@ class wl_users extends Controller {
                     $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', $user->name => '');
                     $this->load->admin_view('wl_users/edit_view', array('user' => $user, 'status' => $status, 'types' => $types));
                 }
-            } else {
-                $this->load->admin_view('wl_users/list_view');
             }
+            else
+                $this->load->admin_view('wl_users/list_view');
         }
     }
 
     public function add()
     {
-        if($_SESSION['user']->admin == 1){
+        if($_SESSION['user']->admin == 1)
+        {
             $_SESSION['alias']->name = 'Додати нового користувача';
             $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', 'Новий' => '');
             $this->load->admin_view('wl_users/add_view');
@@ -87,9 +88,10 @@ class wl_users extends Controller {
 
     public function getlist()
     {
-        if($_SESSION['user']->admin == 1){
+        if($_SESSION['user']->admin == 1)
+        {
             $wl_users = $this->db->getQuery('SELECT u.*, t.name as type_name, s.name as status_name FROM wl_users as u LEFT JOIN wl_user_types as t ON t.id = u.type LEFT JOIN wl_user_status as s ON s.id = u.status', 'array');
-            if($wl_users){
+            if($wl_users)
                 foreach ($wl_users as $user) {
                     $user->email = '<a href="'.SITE_URL.'admin/wl_users/'.$user->email.'">'.$user->email.'</a>';
                     if($user->last_login > 0)
@@ -97,10 +99,7 @@ class wl_users extends Controller {
                     else
                         $user->last_login = 'Дані відсутні';
                 }
-            }
-            header('Content-type: application/json');
-            echo json_encode(array('data' => $wl_users));
-            exit;
+            $this->load->json(array('data' => $wl_users));
         }
     }
 

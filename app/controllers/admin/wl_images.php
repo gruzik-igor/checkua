@@ -6,29 +6,39 @@ class wl_images extends Controller {
     {
         $_SESSION['alias']->name = 'Редагування розміру зображень';
         $_SESSION['alias']->breadcrumb = array('Розміри зображень' => '');
-        if (method_exists($this, $method) && $method != 'library' && $method != 'db') {
+        if (method_exists($this, $method) && $method != 'library' && $method != 'db')
             $this->$method();
-        } else {
+        else
             $this->index($method);
-        }
     }
 
-    public function index(){
-        if($_SESSION['user']->admin == 1){
+    public function index()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
             @$_SESSION['alias']->id = 0;
             $_SESSION['alias']->table = '';
             $_SESSION['alias']->service = false;
-            if($this->data->uri(2) != ''){
-                $alias = $this->data->uri(2);
-                $alias = $this->db->sanitizeString($alias);
-                $alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
-                if($alias){
+            $alias = $this->data->uri(2);
+            if($alias != '')
+            {
+                if($alias == 'all')
+                {
+                    $alias = new stdClass();
+                    $alias->id = $alias->service = 0;
+                    $alias->alias = 'all';
+                }
+                else
+                    $alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
+                if(is_object($alias))
+                {
                     $alias->name = '';
                     $alias->title = '';
 
-                    if($alias->service > 0){
-                        $service = $this->db->getAllDataById('wl_services', $alias->service);
-                        if($alias->service) {
+                    if($alias->service > 0)
+                    {
+                        if($service = $this->db->getAllDataById('wl_services', $alias->service))
+                        {
                             $alias->title = $service->title;
                             $alias->service_name = $service->name;
                         }
@@ -39,31 +49,36 @@ class wl_images extends Controller {
                     $_SESSION['alias']->name = 'Розміри зображень '.$alias->alias.$text;
                     $_SESSION['alias']->breadcrumb = array('Розміри зображень' => 'admin/wl_images', $alias->alias => '');
                     
-                    if($this->data->uri(3) == 'add'){
+                    if($this->data->uri(3) == 'add')
                         $this->load->admin_view('wl_images/add_view', array('alias' => $alias));
-                    } elseif(is_numeric($this->data->uri(3))){
+                    elseif(is_numeric($this->data->uri(3)))
+                    {
                         $wl_image = $this->db->getAllDataById('wl_images_sizes', $this->data->uri(3));
-                        if($wl_image && $wl_image->alias == $alias->id){
+                        if($wl_image && $wl_image->alias == $alias->id)
+                        {
                             $_SESSION['alias']->breadcrumb = array('Розміри зображень' => 'admin/wl_images', $alias->alias => 'admin/wl_images/'.$alias->alias, $wl_image->name => '');
                             $this->load->admin_view('wl_images/edit_view', array('alias' => $alias, 'wl_image' => $wl_image));
-                        } else $this->load->page_404();
-                    } else {
-                        $this->load->admin_view('wl_images/list_view', array('alias' => $alias));
+                        }
+                        else
+                            $this->load->page_404();
                     }
-                } else {
-                    $this->load->page_404();
+                    else
+                        $this->load->admin_view('wl_images/list_view', array('alias' => $alias));
                 }
-            } else {
-                $this->load->admin_view('wl_images/index_view');
+                else
+                    $this->load->page_404();
             }
-        } else {
-            $this->load->page_404();
+            else
+                $this->load->admin_view('wl_images/index_view');
         }
+        else
+            $this->load->page_404();
     }
 
     public function add()
     {
-        if(isset($_POST['alias']) && is_numeric($_POST['alias'])){
+        if(isset($_POST['alias']) && is_numeric($_POST['alias']))
+        {
             $photo = array();
             $photo['alias'] = $this->data->post('alias');
             $photo['active'] = 1;
@@ -74,9 +89,7 @@ class wl_images extends Controller {
             $photo['height'] = $this->data->post('height');
 
             $this->db->insertRow('wl_images_sizes', $photo);
-
-            header('Location:'.SITE_URL.'admin/wl_images/'.$this->data->post('alias_name'));
-            exit();
+            $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
         }
     }
 
@@ -92,9 +105,7 @@ class wl_images extends Controller {
             $data['height'] = $this->data->post('height');
 
             $this->db->updateRow('wl_images_sizes', $data, $_POST['id']);
-
-            header('Location:'.SITE_URL.'admin/wl_images/'.$this->data->post('alias_name'));
-            exit();
+            $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
         }
     }
 
@@ -102,14 +113,15 @@ class wl_images extends Controller {
     {
         if(isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] > 0)
         {
-            if($this->data->post('close_number') == $this->data->post('user_namber')){
+            if($this->data->post('close_number') == $this->data->post('user_namber'))
+            {
                 $this->db->deleteRow('wl_images_sizes', $this->data->post('id'));
-                header('Location:'.SITE_URL.'admin/wl_images/'.$this->data->post('alias_name'));
-                exit();
-            } else {
+                $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
+            }
+            else
+            {
                 $_SESSION['notify_error_delete'] = 'Невірний номер! Введіть коректний номер зліва у вільне поле:';
-                header("Location: ".$_SERVER['HTTP_REFERER']);
-                exit();
+                $this->load->redirect();
             }
         }
     }
@@ -118,9 +130,11 @@ class wl_images extends Controller {
     {
         if(isset($_POST['id']) && is_numeric($_POST['id']) && $_POST['id'] > 0)
         {
-            if($this->data->post('close_number') == $this->data->post('user_namber')){
+            if($this->data->post('close_number') == $this->data->post('user_namber'))
+            {
                 $wl_image = $this->db->getAllDataById('wl_images_sizes', $this->data->post('id'));
-                if($wl_image){
+                if($wl_image)
+                {
                     $photo = array();
                     $photo['alias'] = $this->data->post('alias');
                     $photo['active'] = 1;
@@ -133,15 +147,13 @@ class wl_images extends Controller {
                     $this->db->insertRow('wl_images_sizes', $photo);
                     $id = $this->db->getLastInsertedId();
                     $alias = $this->db->getAllDataById('wl_aliases', $this->data->post('alias'));
-                    header('Location:'.SITE_URL.'admin/wl_images/'.$alias->alias.'/'.$id);
-                    exit();
+                    $this->load->redirect('admin/wl_images/'.$alias->alias.'/'.$id);
                 }
-            } else {
-                $_SESSION['notify_error_copy'] = 'Невірний номер! Введіть коректний номер зліва у вільне поле:';
             }
+            else
+                $_SESSION['notify_error_copy'] = 'Невірний номер! Введіть коректний номер зліва у вільне поле';
         }
-        header("Location: ".$_SERVER['HTTP_REFERER']);
-        exit();
+        $this->load->redirect();
     }
 
 }

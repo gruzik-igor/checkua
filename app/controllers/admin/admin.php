@@ -51,27 +51,6 @@ class admin extends Controller {
         else
             $this->load->admin_view('index_view');
     }
-
-    public function __get_Search($value='')
-    {
-        $search = new stdClass();
-        $search->id = 0;
-        $search->link = '';
-        $search->image = false;
-        $search->date = time();
-        $search->author = 0;
-        $search->author_name = 'admin';
-        $search->additional = false;
-
-        if($user = $this->db->getAllDataById('wl_users', 1))
-        {
-            $search->date = $user->registered;
-            $search->author = 1;
-            $search->author_name = $user->name;
-        }
-
-        return $search;
-    }
     
 }
 

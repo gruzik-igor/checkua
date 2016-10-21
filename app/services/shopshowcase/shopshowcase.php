@@ -11,8 +11,6 @@ class shopshowcase extends Controller {
 				
     function _remap($method, $data = array())
     {
-    	if(isset($_SESSION['alias']->name) && $_SESSION['alias']->service == 'shopshowcase')
-    		$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;	
         if (method_exists($this, $method))
             return $this->$method($data);
         else
@@ -21,7 +19,6 @@ class shopshowcase extends Controller {
 
     public function index($uri)
     {
-    	$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
     	$this->load->smodel('shop_model');
 		
 		if(count($this->data->url()) > 1)
@@ -46,7 +43,6 @@ class shopshowcase extends Controller {
 				$group = clone $product;
 				unset($product);
 
-				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
 				$group->parents = array();
 				if($group->parent > 0)
 				{
@@ -187,7 +183,7 @@ class shopshowcase extends Controller {
 
 	public function __get_Products($data = array())
 	{
-		$group = 0;
+		$group = -1;
 		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
 		elseif(isset($data['group']) && is_numeric($data['group'])) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];

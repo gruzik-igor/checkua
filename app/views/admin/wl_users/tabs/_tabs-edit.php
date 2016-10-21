@@ -92,7 +92,7 @@
 			    <div class="form-group">
 			    	<label class="col-md-3 control-label">Дата реєстрації</label>
 			        <div class="col-md-9">
-			            <?=date("d.m.Y H:i", $user->registered)?>
+			        	<p class="form-control-static"><?=date("d.m.Y H:i", $user->registered)?></p>
 			        </div>
 			    </div>
 			    <div class="form-group">

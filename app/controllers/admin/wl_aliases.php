@@ -317,13 +317,13 @@ class wl_aliases extends Controller {
                     $options_id = array();
                     if($data['service'] > 0)
                     {
-                        if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
+                        if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $data['service'], 'alias' => 0)))
                             foreach ($options_all as $option) {
                                 $options[$option->name] = $option->value;
                                 $options_id[$option->name] = 0;
                             }
                     }
-                    if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => $_POST['id'])))
+                    if($options_all = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $data['service'], 'alias' => $_POST['id'])))
                         foreach ($options_all as $option) {
                             $options[$option->name] = $option->value;
                             $options_id[$option->name] = $option->id;

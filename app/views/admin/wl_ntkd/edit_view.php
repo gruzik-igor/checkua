@@ -8,6 +8,8 @@
 			foreach ($ntkd as $n) {
 				$data[$n->language] = clone $n;
 			}
+		else
+			$data[$_SESSION['language']] = clone $ntkd;
 		
 		if(count($data) != count($_SESSION['all_languages']))
 			foreach ($_SESSION['all_languages'] as $lang) {
@@ -20,6 +22,7 @@
 					$data[$lang]->description = '';
 					$data[$lang]->text = '';
 					$data[$lang]->list = '';
+					$data[$lang]->meta = '';
 				}
 			}
 		$ntkd = $data;
@@ -33,6 +36,7 @@
 		$ntkd->description = '';
 		$ntkd->text = '';
 		$ntkd->list = '';
+		$ntkd->meta = '';
 	}
 
 
@@ -49,7 +53,7 @@
 					<div class="col-md-4">
                         <input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>" class="form-control">
                     </div>
-					<button type="button" class="btn btn-info" onclick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description</button>
+					<button type="button" class="btn btn-info" onclick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description, meta</button>
 					<div class="row m-t-5" id="tkd-<?=$lang?>" style="display:none">
     					<div class="col-md-12">
 							<label class="col-md-2 control-label">title:</label>
@@ -64,6 +68,12 @@
 							<div class="col-md-10 m-t-5">
 		                        <input class="form-control" onChange="save('description', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->description?>" maxlength="155">
 		                    </div>
+		                    <dic class="col-md-12">
+		    					<label class="col-md-2 control-label m-t-5">meta:</label>
+								<div class="col-md-10 m-t-5">
+			                        <textarea class="form-control" onChange="save('meta', this, '<?=$lang?>')"><?=$ntkd[$lang]->meta?></textarea>
+			                    </div>
+		    				</dic>
     					</div>
     				</div>
     				<div class="row m-t-5">
@@ -104,6 +114,12 @@
 				<div class="col-md-10 m-t-5">
                     <input class="form-control" onChange="save('description', this)" value="<?=$ntkd->description?>" maxlength="155">
                 </div>
+                <dic class="col-md-12">
+					<label class="col-md-2 control-label m-t-5">meta:</label>
+					<div class="col-md-10 m-t-5">
+                        <textarea class="form-control" onChange="save('meta', this)"><?=$ntkd->meta?></textarea>
+                    </div>
+				</dic>
 			</div>
 		</div>
 		<div class="row m-t-5">

@@ -339,6 +339,7 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
   `keywords` text,
   `text` text,
   `list` text,
+  `meta` text,
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`),
   KEY `content` (`content`),

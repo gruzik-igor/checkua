@@ -109,7 +109,7 @@ class wl_ntkd extends Controller {
     public function save()
     {
         $res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-        $fields = array('name', 'title', 'keywords', 'description', 'text', 'list');
+        $fields = array('name', 'title', 'keywords', 'description', 'text', 'list', 'meta');
         if($this->userCan($_SESSION['alias']->alias) || $this->access()){
             if(isset($_POST['field']) && in_array($_POST['field'], $fields) && isset($_POST['data'])){
                 $field = htmlentities($_POST['data'], ENT_QUOTES, 'utf-8');

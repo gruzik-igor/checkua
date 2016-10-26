@@ -131,7 +131,7 @@ class wl_photos extends Controller {
                     $path = IMG_PATH.$this->data->post('ALIAS_FOLDER').'/'.$photo->content.'/';
                     $path = substr($path, strlen(SITE_URL));
                     $prefix = array('');
-                    if($sizes = $this->db->getAliasImageSizes())
+                    if($sizes = $this->db->getAliasImageSizes($photo->alias))
                         foreach ($sizes as $resize) {
                             $prefix[] = $resize->prefix.'_';
                         }

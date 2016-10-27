@@ -367,7 +367,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
 --
 
 INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
-(1, 0, 0, 'paginator_per_page', '20');
+(1, 0, 0, 'paginator_per_page', '20'),
 (2, 0, 1, 'folder', 'main');
 
 -- --------------------------------------------------------

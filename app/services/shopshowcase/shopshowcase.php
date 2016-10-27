@@ -194,6 +194,7 @@ class shopshowcase extends Controller {
 
 	public function __get_Groups($parent = 0)
 	{
+		if(empty($parent)) $parent = 0;
 		$this->load->smodel('shop_model');
 		return $this->shop_model->getGroups($parent);
 	}

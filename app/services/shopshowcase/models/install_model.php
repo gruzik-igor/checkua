@@ -93,7 +93,7 @@ class install
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_availability_name` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
 						  `availability` int(11) NOT NULL,
-						  `language` varchar(2) NOT NULL,
+						  `language` varchar(2) DEFAULT '',
 						  `name` text NOT NULL,
 						  PRIMARY KEY (`id`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;";
@@ -227,7 +227,7 @@ class install
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_availability_name` (
 						  `id` int(11) NOT NULL AUTO_INCREMENT,
 						  `availability` int(11) NULL,
-						  `language` varchar(2) NULL,
+						  `language` varchar(2) DEFAULT '',
 						  `name` text NULL,
 						  PRIMARY KEY (`id`),
 						  KEY `availability` (`availability`)
@@ -314,7 +314,7 @@ class install
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_options_name` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `option` int(11) NOT NULL,
-					  `language` varchar(2) NULL,
+					  `language` varchar(2) DEFAULT '',
 					  `name` text NULL,
 					  `sufix` text NULL,
 					  PRIMARY KEY (`id`),
@@ -327,7 +327,7 @@ class install
 			  `id` int(11) NOT NULL AUTO_INCREMENT,
 			  `product` int(11) NOT NULL,
 			  `option` int(11) NOT NULL,
-			  `language` varchar(2) NULL,
+			  `language` varchar(2) DEFAULT '',
 			  `value` text NULL,
 			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `id` (`id`),

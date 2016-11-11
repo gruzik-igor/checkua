@@ -105,7 +105,7 @@ class wl_alias_model
 			$_SESSION['alias']->title = $data->title;
 			$_SESSION['alias']->description = $data->description;
 			$_SESSION['alias']->keywords = $data->keywords;
-			$_SESSION['alias']->text = $data->text;
+			$_SESSION['alias']->text = htmlspecialchars_decode($data->text);
 			$_SESSION['alias']->list = $data->list;
 			$_SESSION['alias']->meta = $data->meta;
 

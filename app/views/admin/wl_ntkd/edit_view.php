@@ -1,6 +1,7 @@
 <div class="row">
     <div class="col-md-12">
 <?php
+	$_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
 	if($_SESSION['language'])
 	{
 		$data = array();
@@ -53,8 +54,8 @@
 					<div class="col-md-4">
                         <input type="text" onChange="save('name', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->name?>" class="form-control">
                     </div>
-					<button type="button" class="btn btn-info" onclick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description, meta</button>
-					<div class="row m-t-5" id="tkd-<?=$lang?>" style="display:none">
+					<button type="button" class="btn btn-info" onclick="showEditTKD('<?=$lang?>')">Редагувати title, keywords, description, meta, SiteMap</button>
+					<div class="row m-t-5" id="tkd-<?=$lang?>" style="display:none; border: 1px solid white;">
     					<div class="col-md-12">
 							<label class="col-md-2 control-label">title:</label>
 							<div class="col-md-4">
@@ -68,13 +69,47 @@
 							<div class="col-md-10 m-t-5">
 		                        <input class="form-control" onChange="save('description', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->description?>" maxlength="155">
 		                    </div>
-		                    <dic class="col-md-12">
-		    					<label class="col-md-2 control-label m-t-5">meta:</label>
-								<div class="col-md-10 m-t-5">
-			                        <textarea class="form-control" onChange="save('meta', this, '<?=$lang?>')"><?=$ntkd[$lang]->meta?></textarea>
-			                    </div>
-		    				</dic>
-    					</div>
+		                </div>
+		                <?php $where = array('alias' => $alias->id, 'content' => $content, 'language' => $lang);
+			    		$this->db->select('wl_sitemap', 'time, changefreq, priority', $where);
+						$siteMap = $this->db->get(); 
+						if(empty($siteMap))
+						{
+							$siteMap = new stdClass();
+							$siteMap->time = 0;
+							$siteMap->changefreq = 'daily';
+							$siteMap->priority = 5;
+						}
+						?>
+						<div class="col-md-12 m-t-5">
+							<label class="col-md-2 control-label">Сторінка включена до індексації:</label>
+							<div class="col-md-1">
+								<input type="checkbox" data-render="switchery" <?=($siteMap->priority >= 0) ? 'checked' : ''?> value="1"  onChange="save('SiteMapIndex', this, '<?=$lang?>')" />
+							</div>
+							<label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Частота оновлення:</label>
+							<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+								<select onChange="save('changefreq', this, '<?=$lang?>')" class="form-control">
+									<?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'); 
+									foreach ($changefreq as $freq) {
+										echo('<option value="'.$freq.'"');
+										if($siteMap->changefreq == $freq) echo(' selected');
+										echo(">$freq</option>");
+									}
+									?>
+								</select>
+			                </div>
+			                <label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Пріорітетність:</label>
+							<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+			                    <input type="number" onChange="save('priority', this, '<?=$lang?>')" value="<?=$siteMap->priority/10?>" placeholder="0.5" min="0" max="1" step="0.1" class="form-control priority">
+			                </div>
+			                <label class="col-md-2 control-label">Остання зміна: <strong><?=($siteMap->time) ? date('d.m.Y H:i', $siteMap->time) : 'Не індексовано'?></strong></label>
+						</div>
+	                    <dic class="col-md-12 m-t-5">
+	    					<label class="col-md-2 control-label">meta:</label>
+							<div class="col-md-10">
+		                        <textarea class="form-control" onChange="save('meta', this, '<?=$lang?>')"><?=$ntkd[$lang]->meta?></textarea>
+		                    </div>
+	    				</dic>
     				</div>
     				<div class="row m-t-5">
 	    				<dic class="col-md-12">
@@ -99,9 +134,9 @@
 		<div class="col-md-4">
             <input type="text" onChange="save('name', this)" value="<?=$ntkd->name?>" class="form-control">
         </div>
-		<button type="button" class="btn btn-info" onclick="showEditTKD('lang')">Редагувати title, keywords, description</button>
-		<div class="row m-t-5" id="tkd-lang" style="display:none">
-			<div class="col-md-12">
+		<button type="button" class="btn btn-info" onclick="showEditTKD('lang')">Редагувати title, keywords, description, meta, SiteMap</button>
+		<div class="row m-t-5" id="tkd-lang" style="display:none; border: 1px solid white;">
+			<div class="col-md-12 m-t-5">
 				<label class="col-md-2 control-label">title:</label>
 				<div class="col-md-4">
                     <input type="text" onChange="save('title', this)" value="<?=$ntkd->title?>" placeholder="<?=$ntkd->name?>" class="form-control">
@@ -114,13 +149,47 @@
 				<div class="col-md-10 m-t-5">
                     <input class="form-control" onChange="save('description', this)" value="<?=$ntkd->description?>" maxlength="155">
                 </div>
-                <dic class="col-md-12">
-					<label class="col-md-2 control-label m-t-5">meta:</label>
-					<div class="col-md-10 m-t-5">
-                        <textarea class="form-control" onChange="save('meta', this)"><?=$ntkd->meta?></textarea>
-                    </div>
-				</dic>
+            </div>
+            <?php $where = array('alias' => $alias->id, 'content' => $content);
+    		$this->db->select('wl_sitemap', 'time, changefreq, priority', $where);
+			$siteMap = $this->db->get(); 
+			if(empty($siteMap))
+			{
+				$siteMap = new stdClass();
+				$siteMap->time = 0;
+				$siteMap->changefreq = 'daily';
+				$siteMap->priority = 5;
+			}
+			?>
+			<div class="col-md-12 m-t-5">
+				<label class="col-md-2 control-label">Сторінка включена до індексації:</label>
+				<div class="col-md-1">
+					<input type="checkbox" data-render="switchery" <?=($siteMap->priority >= 0) ? 'checked' : ''?> value="1"  onChange="save('SiteMapIndex', this)" />
+				</div>
+				<label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Частота оновлення:</label>
+				<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+					<select onChange="save('changefreq', this)" class="form-control">
+						<?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'); 
+						foreach ($changefreq as $freq) {
+							echo('<option value="'.$freq.'"');
+							if($siteMap->changefreq == $freq) echo(' selected');
+							echo(">$freq</option>");
+						}
+						?>
+					</select>
+                </div>
+                <label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Пріорітетність:</label>
+				<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+                    <input type="number" onChange="save('priority', this)" value="<?=$siteMap->priority/10?>" placeholder="0.5" min="0" max="1" step="0.1" class="form-control priority">
+                </div>
+                <label class="col-md-2 control-label">Остання зміна: <strong><?=($siteMap->time) ? date('d.m.Y H:i', $siteMap->time) : 'Не індексовано'?></strong></label>
 			</div>
+            <dic class="col-md-12 m-t-5 m-b-10">
+				<label class="col-md-2 control-label">meta:</label>
+				<div class="col-md-10">
+                    <textarea class="form-control t-big" onChange="save('meta', this)"><?=$ntkd->meta?></textarea>
+                </div>
+			</dic>
 		</div>
 		<div class="row m-t-5">
 			<dic class="col-md-12">
@@ -181,6 +250,17 @@
                 	language = '';
                 	if(lang) language = lang;
                 	$.gritter.add({title:field+' '+language,text:"Дані успішно збережено!"});
+
+                	if(field == 'SiteMapIndex')
+                	{
+                		if($('.SiteMap').is(":hidden")){
+							$('.SiteMap').slideDown("slow");
+							var priority = $('.priority').val();
+							if(priority < 0) $('.priority').val(priority * -1);
+					    } else {
+							$('.SiteMap').slideUp("fast");
+					    }
+                	}
                 }
             },
             error: function(){
@@ -213,3 +293,4 @@
 		height: 450px;
 	}
 </style>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />

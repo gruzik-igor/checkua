@@ -113,9 +113,9 @@ class SitemapGenerator {
      * @param string $baseURL You site URL, with / at the end.
      * @param string|null $basePath Relative path where sitemap and robots should be stored.
      */
-    public function __construct($baseURL, $basePath = "") {
-        $this->baseURL = $baseURL;
-        $this->basePath = $basePath;
+    public function __construct() {
+        $this->baseURL = SITE_URL;
+        $this->basePath = '';
     }
     /**
      * Use this to add many URL at one time.

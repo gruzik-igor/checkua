@@ -29,7 +29,8 @@ class wl_aliases extends Controller {
                     $alias->name = '';
                     $alias->title = '';
 
-                    $options = null;                  
+                    $options = null;
+                    $optionBoolType = array('userSignUp');              
 
                     if($alias->service > 0)
                     {
@@ -38,7 +39,7 @@ class wl_aliases extends Controller {
                                 $options[$option->name] = new stdClass();
                                 $options[$option->name]->name = $option->name;
                                 $options[$option->name]->value = $option->value;
-                                $options[$option->name]->type = 'text';
+                                $options[$option->name]->type = (in_array($option->name, $optionBoolType)) ? 'bool' : 'text';
                                 $options[$option->name]->title = $option->name;
                             }
 
@@ -47,7 +48,7 @@ class wl_aliases extends Controller {
                                 $options[$option->name] = new stdClass();
                                 $options[$option->name]->name = $option->name;
                                 $options[$option->name]->value = $option->value;
-                                $options[$option->name]->type = 'text';
+                                $options[$option->name]->type = (in_array($option->name, $optionBoolType)) ? 'bool' : 'text';
                                 $options[$option->name]->title = $option->name;
                             }
 
@@ -79,7 +80,7 @@ class wl_aliases extends Controller {
                                 $options[$option->name] = new stdClass();
                                 $options[$option->name]->name = $option->name;
                                 $options[$option->name]->value = $option->value;
-                                $options[$option->name]->type = 'text';
+                                $options[$option->name]->type = (in_array($option->name, $optionBoolType)) ? 'bool' : 'text';
                                 $options[$option->name]->title = $option->name;
                             }
                     }

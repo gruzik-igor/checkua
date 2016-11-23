@@ -28,44 +28,39 @@ class wl_cache_model extends Loader
 			$this->updateSiteMap = true;
 		}
 
+		$_SESSION['alias']->siteMap = $this->page->id;
 		$this->page->uniq_link = $link;
 		if($_SESSION['language']) $this->page->uniq_link .= '/'.$_SESSION['language'];
 	}
 
 	public function get()
 	{
-		if($_SESSION['cache'])
-		{
-			switch ($this->page->code) {
-				case 200:
-					if($this->page->data != '' && $this->page->data != NULL)
-					{
-						if(extension_loaded('zlib'))
-							echo ( gzdecode ($this->page->data) );
-						else
-							echo ( $this->page->data );
+		switch ($this->page->code) {
+			case 200:
+				if($this->page->data != '' && $this->page->data != NULL)
+				{
+					if(extension_loaded('zlib'))
+						echo ( gzdecode ($this->page->data) );
+					else
+						echo ( $this->page->data );
 
-						$this->showTime('load from cache');
-						exit();
-					}
-					break;
-				
-				case 301:
-					if($this->page->data != '')
-					{
-						header ('HTTP/1.1 301 Moved Permanently');
-						header("Location: ".SITE_URL.$this->page->data);
-						exit();
-					}
-					break;
+					$this->showTime('load from cache');
+					exit();
+				}
+				break;
+			
+			case 301:
+				header ('HTTP/1.1 301 Moved Permanently');
+				header("Location: ".SITE_URL.$this->page->data);
+				exit();
+				break;
 
-				case 404:
-					$this->page_404();
-					break;
-			}
-
-			ob_start();
+			case 404:
+				new Page404(false);
+				break;
 		}
+		if($_SESSION['cache'])
+			ob_start();
 	}
 
 	public function set()
@@ -89,13 +84,14 @@ class wl_cache_model extends Loader
 			else
 				$cache['data'] = (string) $content;
 			$cache['time'] = time();
+
 			ob_end_flush();
 		}
 
 		if(!empty($cache))
 			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
 
-		$this->showTime();
+		// $this->showTime();
 		exit;
 	}
 

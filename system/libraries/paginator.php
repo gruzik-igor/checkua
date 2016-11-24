@@ -11,6 +11,7 @@
  *     $_GET['page'] - поточна сторінка
  * Версія 1.1 (12.10.2015) - додано можливість задання стилів по замовчуванню з конфігураційного файлу
  * Версія 1.1.1 (26.07.2016) - адаптовано до php7
+ * Версія 1.1.2 (24.11.2016) - виправлено помилку зайвої сторінки
  */
 
 class Paginator {
@@ -122,7 +123,6 @@ class Paginator {
         $list = '';
         if($this->total > $this->per_page){
             $pages = ceil($this->total / $this->per_page);
-            if($this->total % $this->per_page > 0) $pages++;
 
             $start = 1;
             $finish = $pages;

@@ -61,7 +61,7 @@ Morris.Line({
     data: [
     <?php if($views->tableData) foreach($views->tableData as $data) {?>
     	{
-	        x: "<?= date('Y-m-d' ,$data->day)?>",
+	        x: "<?= date('Y-m-d', $data->day)?>",
 	        w: <?= $data->views?>,
 	        y: <?= $data->cookie?>,
 	        z: <?= $data->unique - $data->cookie?>
@@ -86,7 +86,11 @@ Morris.Line({
     gridTextSize: "11px",
     gridLineColor: "rgba(0,0,0,0.5)",
     hideHover: "auto"
-});
+}).on('click', function (i, row) {
+    var day = row.x.split('-');
+    var tomorrow = new Date(day[0],day[1],day[2]);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    location.href='<?=SITE_URL?>admin/wl_statistic?start='+day[2]+'.'+day[1]+'.'+day[0]+'&end='+tomorrow.getDate()+'.'+tomorrow.getMonth()+'.'+tomorrow.getFullYear(); });
 
 var handleVisitorsDonutChart = function() {
     var e = "#00acac";

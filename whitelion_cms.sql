@@ -140,6 +140,8 @@ CREATE TABLE IF NOT EXISTS `wl_forms` (
   `send_mail` tinyint(1) DEFAULT NULL,
   `success` tinyint(1) DEFAULT NULL,
   `success_data` text,
+  `send_sms` tinyint(1) NOT NULL DEFAULT '0',
+  `sms_text` text DEFAULT NULL,
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 

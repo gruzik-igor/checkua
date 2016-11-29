@@ -43,7 +43,10 @@ class wl_ntkd extends Controller {
                         $where['alias'] = $alias->id;
                         if($_SESSION['language'])
                             $where['language'] = $_SESSION['language'];
-                        $ntkd = $this->db->getAllDataByFieldInArray('wl_ntkd', $where);
+                        $this->db->select('wl_ntkd as n', 'name, content', $where);
+                        $where['content'] = '#n.content';
+                        $this->db->join('wl_sitemap', 'link, time, changefreq, priority', $where);
+                        $ntkd = $this->db->get('array');
                         if(count($ntkd) > 1)
                         {
                             $_SESSION['alias']->name = 'SEO '.$alias->alias;
@@ -109,62 +112,89 @@ class wl_ntkd extends Controller {
     public function save()
     {
         $res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
-        $fields = array('name', 'title', 'keywords', 'description', 'text', 'list');
-        if($this->userCan($_SESSION['alias']->alias) || $this->access()){
-            if(isset($_POST['field']) && in_array($_POST['field'], $fields) && isset($_POST['data'])){
-                $field = htmlentities($_POST['data'], ENT_QUOTES, 'utf-8');
-                $language = '';
-                if($_SESSION['language'] && isset($_POST['language'])){
-                    $language = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
-                    $language = "AND `language` = '{$language}'";
-                }
+        if($this->userCan($_SESSION['alias']->alias) || $this->access())
+        {
+            $table = false;
+            $fields_ntkd = array('name', 'title', 'keywords', 'description', 'text', 'list', 'meta');
+            $fields_sitemap = array('changefreq', 'priority', 'SiteMapIndex');
+            if(isset($_POST['field']) && isset($_POST['data']))
+            {
+                if(in_array($_POST['field'], $fields_ntkd)) $table = 'wl_ntkd';
+                if(in_array($_POST['field'], $fields_sitemap)) $table = 'wl_sitemap';
 
-                $alias = 0;
-                $content = 0;
-                if(isset($_POST['alias']) && is_numeric($_POST['alias']) && $_POST['alias'] > 0) $alias = $_POST['alias'];
-                if(isset($_POST['content']) && is_numeric($_POST['content'])) $content = $_POST['content'];
-
-                if($alias > 0){
-                    $this->db->executeQuery("UPDATE `wl_ntkd` SET `{$_POST['field']}` = '{$field}' WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
-                    $this->db->executeQuery("SELECT `id` FROM `wl_ntkd` WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
-                    if($this->db->numRows() == 0){
-                        $data['alias'] = $alias;
-                        $data['content'] = $content;
-                        if($_SESSION['language'] && isset($_POST['language'])) $data['language'] = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
-                        $data[$_POST['field']] = $field;
-                        $this->db->insertRow('wl_ntkd', $data);
+                if($table)
+                {
+                    $field = htmlentities($_POST['data'], ENT_QUOTES, 'utf-8');
+                    $language = '';
+                    if($_SESSION['language'] && isset($_POST['language']))
+                    {
+                        $language = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
+                        $language = "AND `language` = '{$language}'";
                     }
 
-                    $res['result'] = true;
-                    $res['error'] = '';
-                } else $res['error'] = 'Невірне адреса!';
+                    $alias = $content = 0;
+                    if(isset($_POST['alias']) && is_numeric($_POST['alias']) && $_POST['alias'] > 0) $alias = $_POST['alias'];
+                    if(isset($_POST['content']) && is_numeric($_POST['content'])) $content = $_POST['content'];
 
-                if($this->data->post('additional_table') && $this->data->post('additional_table_id') && $this->data->post('additional_fields')){
-                    $data = array();
-                    $fields = explode(',', $this->data->post('additional_fields', false));
-                    foreach ($fields as $field) {
-                        $field = explode('=>', $field);
-                        if(isset($field[1])){
-                            switch ($field[1]) {
-                                case 'user':
-                                    $data[$field[0]] = $_SESSION['user']->id;
-                                    break;
-                                case 'time':
-                                    $data[$field[0]] = time();
-                                    break;
-                                default:
-                                    $data[$field[0]] = $field[1];
-                                    break;
+                    if($alias > 0)
+                    {
+                        if($_POST['field'] == 'priority')
+                            $field *= 10;
+                        if($_POST['field'] == 'SiteMapIndex')
+                            $this->db->executeQuery("UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
+                        else
+                            $this->db->executeQuery("UPDATE `{$table}` SET `{$_POST['field']}` = '{$field}' WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
+                        $this->db->executeQuery("SELECT `id` FROM `{$table}` WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
+                        if($this->db->numRows() == 0)
+                        {
+                            $data['alias'] = $alias;
+                            $data['content'] = $content;
+                            if($_SESSION['language'] && isset($_POST['language']))
+                                $data['language'] = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
+                            if($_POST['field'] == 'SiteMapIndex')
+                                $data['priority'] = ($field == 1) ? 5 : -5;
+                            else
+                                $data[$_POST['field']] = $field;
+                            $this->db->insertRow($table, $data);
+                        }
+
+                        $res['result'] = true;
+                        $res['error'] = '';
+                    }
+                    else
+                        $res['error'] = 'Невірне адреса!';
+
+                    if($this->data->post('additional_table') && $this->data->post('additional_table_id') && $this->data->post('additional_fields'))
+                    {
+                        $data = array();
+                        $fields = explode(',', $this->data->post('additional_fields', false));
+                        foreach ($fields as $field) {
+                            $field = explode('=>', $field);
+                            if(isset($field[1])){
+                                switch ($field[1]) {
+                                    case 'user':
+                                        $data[$field[0]] = $_SESSION['user']->id;
+                                        break;
+                                    case 'time':
+                                        $data[$field[0]] = time();
+                                        break;
+                                    default:
+                                        $data[$field[0]] = $field[1];
+                                        break;
+                                }
                             }
                         }
-                    }
-                    if(!empty($data)){
-                        $additional_table_key = $this->data->post('additional_table_key');
-                        if(!$additional_table_key) $additional_table_key = 'id';
-                        $this->db->updateRow($this->data->post('additional_table'), $data, $this->data->post('additional_table_id'), $additional_table_key);
+                        if(!empty($data))
+                        {
+                            $additional_table_key = $this->data->post('additional_table_key');
+                            if(!$additional_table_key) $additional_table_key = 'id';
+                            $this->db->updateRow($this->data->post('additional_table'), $data, $this->data->post('additional_table_id'), $additional_table_key);
+                        }
                     }
                 }
-            } else $res['error'] = 'Невірне поле для зберігання даних!';
+            }
+            else
+                $res['error'] = 'Невірне поле для зберігання даних!';
         }
         header('Content-type: application/json');
         echo json_encode($res);
@@ -173,9 +203,11 @@ class wl_ntkd extends Controller {
 
     private function access()
     {
-        if(isset($_POST['alias']) && is_numeric($_POST['alias'])){
+        if(isset($_POST['alias']) && is_numeric($_POST['alias']))
+        {
             $alias = $this->db->getAllDataById('wl_aliases', $_POST['alias']);
-            if($alias && $this->userCan($alias->alias)) return true;
+            if($alias && $this->userCan($alias->alias))
+                return true;
             return false;
         }
         

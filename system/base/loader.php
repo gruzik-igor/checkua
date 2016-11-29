@@ -121,8 +121,13 @@ class Loader {
 		}
 	}
 
-	function page_404()
+	function page_404($update_SiteMap = true)
 	{
+		if($update_SiteMap && isset($_SESSION['alias']->siteMap) && $_SESSION['alias']->siteMap > 0)
+		{
+			$this->library('db');
+			$this->db->updateRow('wl_sitemap', array('code' => 404, 'time' => time()), $_SESSION['alias']->siteMap);
+		}
 		header('HTTP/1.0 404 Not Found');
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		$view_file = '404_view';

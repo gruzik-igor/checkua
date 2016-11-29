@@ -105,28 +105,34 @@ class wl_users extends Controller {
 
     public function save()
     {
-        if($_SESSION['user']->admin == 1 && isset($_POST['admin-password'])){
+        $_SESSION['notify'] = new stdClass();
+        if($_SESSION['user']->admin == 1 && isset($_POST['admin-password']))
+        {
             $admin = $this->db->getAllDataById('wl_users', $_SESSION['user']->id);
             $password = md5($_POST['admin-password']);
             $password = sha1($_SESSION['user']->email . $password . SYS_PASSWORD . $_SESSION['user']->id);
-            if($password == $admin->password){
-
+            if($password == $admin->password)
+            {
                 $this->load->library('validator');
                 $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
                 $this->validator->setRules('name', $this->data->post('name'), 'required');
 
-                if($_POST['id'] == 0) {
-                    if($_POST['typePassword'] == 'own') {
+                if($_POST['id'] == 0)
+                {
+                    if($_POST['typePassword'] == 'own')
                         $this->validator->setRules('Поле пароль', $this->data->post('user-password'), 'required|5..40');
-                    }
-                    if($this->validator->run()){
+                    
+                    if($this->validator->run())
+                    {
                         $user['email'] = $this->data->post('email');
-                        if($this->db->getAllDataById('wl_users', $user['email'], 'email') == false){
+                        if($this->db->getAllDataById('wl_users', $user['email'], 'email') == false)
+                        {
                             $user['name'] = $this->data->post('name');
                             $user['type'] = $this->data->post('type');
                             $user['status'] = 1;
                             $user['registered'] = time();
-                            if($this->db->insertRow('wl_users', $user)){
+                            if($this->db->insertRow('wl_users', $user))
+                            {
                                 $id = $this->db->getLastInsertedId();
                                 $do = $this->db->getAllDataById('wl_user_register_do', 'signup', 'name');
                                 $register['date'] = time();
@@ -135,7 +141,8 @@ class wl_users extends Controller {
                                 $register['additionally'] = 'By administrator '.$_SESSION['user']->id.' '.$_SESSION['user']->name;
                                 $this->db->insertRow('wl_user_register', $register);
 
-                                if($user['type'] == 2 && isset($_POST['permissions']) && is_array($_POST['permissions'])){
+                                if($user['type'] == 2 && isset($_POST['permissions']) && is_array($_POST['permissions']))
+                                {
                                     $register['additionally'] = 'active statuses: ';
                                     $aliases = $this->db->getAllData('wl_aliases');
                                     $alias_list = array();
@@ -150,11 +157,14 @@ class wl_users extends Controller {
                                     }
                                 }
 
-                                if($_POST['typePassword'] == 'own') {
+                                if($_POST['typePassword'] == 'own')
+                                {
                                     $password = sha1($user['email'] . md5($_POST['user-password']) . SYS_PASSWORD . $id);
                                     $this->db->updateRow('wl_users', array('password' => $password), $id);
                                     $_SESSION['notify']->success = 'Користувач "'.$user['name'].'" створено успішно.';
-                                } else {
+                                }
+                                else
+                                {
                                     $password = bin2hex(openssl_random_pseudo_bytes(4));
                                     $close_password = sha1($user['email'] . md5($password) . SYS_PASSWORD . $id);
                                     $this->db->updateRow('wl_users', array('password' => $close_password), $id);
@@ -163,26 +173,33 @@ class wl_users extends Controller {
                                     $info['name'] = $user['name'];
                                     $info['password'] = $password;
                                     $info['registered'] = $user['registered'];
-                                    if($this->mail->sendTemplate('signup/by_admin_sent_password', $user['email'], $info)){
+                                    if($this->mail->sendTemplate('signup/by_admin_sent_password', $user['email'], $info))
                                         $_SESSION['notify']->success = 'Користувач "'.$user['name'].'" створено успішно. Пароль вислано на поштову скриньку.';
-                                    }
                                 }
 
-                                header("Location: ".SITE_URL.'admin/wl_users/'.$user['email']);
-                                exit();
+                                $this->redirect('admin/wl_users/'.$user['email']);
                             }
-                        } else $this->load->page_view('wl_users/add_view', array('errors' => 'Даний email вже є у базі!'));
-                    } else $this->load->page_view('wl_users/add_view', array('errors' => $this->validator->getErrors()));
-                } elseif (is_numeric($_POST['id']) && $_POST['id'] > 0){
-                    if(isset($_POST['active_password']) && $_POST['active_password'] == 1){
-                        $this->validator->setRules('Поле пароль', $this->data->post('password'), 'required|5..40');
+                        }
+                        else
+                            $this->load->page_view('wl_users/add_view', array('errors' => 'Даний email вже є у базі!'));
                     }
-                    if($this->validator->run()){
+                    else
+                        $this->load->page_view('wl_users/add_view', array('errors' => $this->validator->getErrors()));
+                }
+                elseif (is_numeric($_POST['id']) && $_POST['id'] > 0)
+                {
+                    if(isset($_POST['active_password']) && $_POST['active_password'] == 1)
+                        $this->validator->setRules('Поле пароль', $this->data->post('password'), 'required|5..40');
+                    
+                    if($this->validator->run())
+                    {
                         $user['email'] = $this->data->post('email');
                         $check = $this->db->getAllDataByFieldInArray('wl_users', $user['email'], 'email');
-                        if(count($check) == 0 || $check == false || (count($check) == 1 && $check[0]->id == $_POST['id'])){
+                        if(count($check) == 0 || $check == false || (count($check) == 1 && $check[0]->id == $_POST['id']))
+                        {
                             $user['name'] = $this->data->post('name');
-                            if(isset($_POST['active_password']) && $_POST['active_password'] == 1){
+                            if(count($check) == 1 && isset($_POST['active_password']) && $_POST['active_password'] == 1)
+                            {
                                 $user['password'] = sha1($user['email'] . md5($_POST['password']) . SYS_PASSWORD . $_POST['id']);
                                 $do = $this->db->getAllDataById('wl_user_register_do', 'reset_admin', 'name');
                                 $register['date'] = time();
@@ -194,10 +211,12 @@ class wl_users extends Controller {
                             $user['alias'] = $this->data->post('alias');
                             $user['type'] = $this->data->post('type');
                             $user['status'] = $this->data->post('status');
-                            if($this->db->updateRow('wl_users', $user, $_POST['id'])){
+                            if($this->db->updateRow('wl_users', $user, $_POST['id']))
+                            {
                                 $register = array();
                                 $this->db->deleteRow('wl_user_permissions', $_POST['id'], 'user');
-                                if($user['type'] == 2 && isset($_POST['permissions']) && is_array($_POST['permissions'])){
+                                if($user['type'] == 2 && isset($_POST['permissions']) && is_array($_POST['permissions']))
+                                {
                                     $register['additionally'] = 'active statuses: ';
                                     $aliases = $this->db->getAllData('wl_aliases');
                                     $alias_list = array();
@@ -205,13 +224,15 @@ class wl_users extends Controller {
                                         $alias_list[$a->id] = $a->alias;
                                     }
                                     foreach ($_POST['permissions'] as $p) {
-                                        if(is_numeric($p)){
+                                        if(is_numeric($p))
+                                        {
                                             $this->db->insertRow('wl_user_permissions', array('user' => $_POST['id'], 'permission' => $p));
                                             $register['additionally'] .= $alias_list[$p] .', ';
                                         }
                                     }
                                 }
-                                if($user['type'] != $check[0]->type){
+                                if(count($check) == 1 && $user['type'] != $check[0]->type)
+                                {
                                     $do = $this->db->getAllDataById('wl_user_register_do', 'profile_type', 'name');
                                     $register['date'] = time();
                                     $register['do'] = $do->id;
@@ -220,7 +241,8 @@ class wl_users extends Controller {
                                     $this->db->insertRow('wl_user_register', $register);
                                 }
 
-                                if(isset($_POST['info'])){
+                                if(isset($_POST['info']))
+                                {
                                     $this->load->model('wl_user_model');
                                     foreach ($_POST['info'] as $key => $value) {
                                         $this->wl_user_model->setAdditional($_POST['id'], $key, $value);
@@ -228,19 +250,21 @@ class wl_users extends Controller {
                                 }
 
                                 $_SESSION['notify']->success = 'Дані оновлено успішно.';
-                                header("Location: ".SITE_URL.'admin/wl_users/'.$user['email']);
-                                exit();
+                                $this->redirect('admin/wl_users/'.$user['email']);
                             }
-                        } else $_SESSION['notify']->error = 'Даний email вже є у базі!';
-                    } else $_SESSION['notify']->error = $this->validator->getErrors();
+                        }
+                        else
+                            $_SESSION['notify']->error = 'Даний email вже є у базі!';
+                    }
+                    else
+                        $_SESSION['notify']->error = $this->validator->getErrors();
                 }
-            } else {
-                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
             }
+            else
+                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
         }
 
-        header("Location: ".$_SERVER['HTTP_REFERER']);
-        exit();
+        $this->redirect();
     }
 
     public function delete()

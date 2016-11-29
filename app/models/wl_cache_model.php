@@ -4,6 +4,7 @@ class wl_cache_model extends Loader
 {
 
 	public $page = false;
+	public $updateSiteMap = false;
 	
 	public function init($link)
 	{
@@ -24,46 +25,42 @@ class wl_cache_model extends Loader
 			$page['time'] = $this->page->time = time();
 			$this->db->insertRow('wl_sitemap', $page);
 			$this->page->id = $this->db->getLastInsertedId();
+			$this->updateSiteMap = true;
 		}
 
+		$_SESSION['alias']->siteMap = $this->page->id;
 		$this->page->uniq_link = $link;
 		if($_SESSION['language']) $this->page->uniq_link .= '/'.$_SESSION['language'];
 	}
 
 	public function get()
 	{
-		if($_SESSION['cache'])
-		{
-			switch ($this->page->code) {
-				case 200:
-					if($this->page->data != '' && $this->page->data != NULL)
-					{
-						if(extension_loaded('zlib'))
-							echo ( gzdecode ($this->page->data) );
-						else
-							echo ( $this->page->data );
+		switch ($this->page->code) {
+			case 200:
+				if($this->page->data != '' && $this->page->data != NULL)
+				{
+					if(extension_loaded('zlib'))
+						echo ( gzdecode ($this->page->data) );
+					else
+						echo ( $this->page->data );
 
-						$this->showTime('load from cache');
-						exit();
-					}
-					break;
-				
-				case 301:
-					if($this->page->data != '')
-					{
-						header ('HTTP/1.1 301 Moved Permanently');
-						header("Location: ".SITE_URL.$this->page->data);
-						exit();
-					}
-					break;
+					$this->showTime('load from cache');
+					exit();
+				}
+				break;
+			
+			case 301:
+				header ('HTTP/1.1 301 Moved Permanently');
+				header("Location: ".SITE_URL.$this->page->data);
+				exit();
+				break;
 
-				case 404:
-					$this->page_404();
-					break;
-			}
-
-			ob_start();
+			case 404:
+				new Page404(false);
+				break;
 		}
+		if($_SESSION['cache'])
+			ob_start();
 	}
 
 	public function set()
@@ -86,6 +83,7 @@ class wl_cache_model extends Loader
 				$cache['data'] = (string) $data;
 			else
 				$cache['data'] = (string) $content;
+			$cache['time'] = time();
 
 			ob_end_flush();
 		}
@@ -93,7 +91,7 @@ class wl_cache_model extends Loader
 		if(!empty($cache))
 			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
 
-		$this->showTime();
+		// $this->showTime();
 		exit;
 	}
 
@@ -114,6 +112,30 @@ class wl_cache_model extends Loader
 
 		$after = ($_SESSION['cache']) ? 'Cache активний' : 'Cache відключено';
 		echo '<hr><center>Час виконання: '.round($time, 5).' сек. Використанок памяті: '.$mem.'. '.$after.'</center>';
+	}
+
+	public function SiteMap($force = false)
+	{
+		$update = true;
+		if(!$force && $this->updateSiteMap)
+		{
+			$where = array('service' => 0, 'alias' => 0, 'name' => 'siteMapLastUpdate');
+			if($siteMapLastUpdate = $this->db->getAllDataById('wl_options', $where))
+			{
+				if($siteMapLastUpdate->value + 3600 < time())
+					$update = false;
+			}
+		}
+		if($update || $force)
+		{
+			$where = array();
+			$where['code'] = '!301';
+			$where['+code'] = '!404';
+			$where['priority'] = '>=0';
+			$this->db->select('wl_sitemap', 'link, time, changefreq, priority', $where);
+			return $this->db->get();
+		}
+		return false;
 	}
 
 }

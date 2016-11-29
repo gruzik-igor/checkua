@@ -131,7 +131,7 @@
     	if(!empty($history)) { 
     		foreach($history as $currency) { ?>
 	    	{
-		        x: "<?= date('d.m.Y', $currency->day)?>",
+		        x: "<?= date('Y-m-d', $currency->day)?>",
 		        y: <?= $currency->value?>
 		    },
 	    <?php } } ?>

@@ -1,13 +1,11 @@
 <?php
+    $this->db->select('wl_aliases as a', 'alias, admin_ico');
+    $where = array('alias' => '#a.id', 'content' => 0);
+    if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+    $this->db->join('wl_ntkd', 'name', $where);
+    $this->db->join('wl_sitemap', 'time, changefreq, priority', $where);
+	$wl_aliases = $this->db->get('array');
 
-	$wl_aliases = $this->db->getAllData('wl_aliases');
-	$wl_services = $this->db->getAllData('wl_services');
-	$services_title = array(0 => '');
-	if($wl_services)
-		foreach ($wl_services as $s) {
-			$services_title[$s->id] = $s->title;
-		}
-	
 ?>
 
 <div class="row">
@@ -21,17 +19,23 @@
                     <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
                         <thead>
                             <tr>
-								<th>id</th>
-								<th>Головна адреса</th>
-								<th>Сервіс</th>
+								<th>Адреса</th>
+                                <th>Назва</th>
+                                <th>Остання зміна<?=($_SESSION['language']) ? ' ('.$_SESSION['language'].')' : ''?></th>
+                                <th>Частота оновлення<?=($_SESSION['language']) ? ' ('.$_SESSION['language'].')' : ''?></th>
+								<th>Пріорітетність<?=($_SESSION['language']) ? ' ('.$_SESSION['language'].')' : ''?> [0..1]</th>
                             </tr>
                         </thead>
                         <tbody>
                         <?php if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
 							<tr>
-								<td><?=$alias->id?></td>
-								<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=$alias->alias?></a></td>
-								<td><?=$services_title[$alias->service]?></td>
+								<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></a></td>
+                                <td><?=$alias->name?></td>
+                                <td><?=($alias->time)?date('d.m.Y H:i', $alias->time):'Не індексовано'?></td>
+                                <?php if($alias->priority < 0) echo('<td colspan="2">Сторінка не індексується</td>'); else { ?>
+                                    <td><?=$alias->changefreq?></td>
+    								<td><?=$alias->priority/10?></td>
+                                <?php } ?>
 							</tr>
 						<?php } ?>
                         </tbody>

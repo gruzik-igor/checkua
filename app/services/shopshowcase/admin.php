@@ -227,16 +227,18 @@ class shopshowcase extends Controller {
 		{
 			$this->load->smodel('products_model');
 			$this->load->model('wl_position_model');
+
+			$this->wl_position_model->table = $this->products_model->table();
+			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
 			
 			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
 			{
 				$product = $this->db->getAllDataById($this->products_model->table(), $_POST['id']);
 				if($product) {
-					$this->wl_position_model->where = "`group` = '{$product->group}'";
+					$this->wl_position_model->where .= " `group` = '{$product->group}'";
 				}
 			}
 			
-			$this->wl_position_model->table = $this->products_model->table();
 			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
 				$this->redirect();
 			}
@@ -344,8 +346,9 @@ class shopshowcase extends Controller {
 			}
 			
 			$this->wl_position_model->table = $this->groups_model->table();
+			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
 			if($parent >= 0) {
-				$this->wl_position_model->where = "`parent` = '{$parent}'";
+				$this->wl_position_model->where .= " `parent` = '{$parent}'";
 			}
 			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
 				$this->redirect();
@@ -498,8 +501,9 @@ class shopshowcase extends Controller {
 			}
 			
 			$this->wl_position_model->table = $this->options_model->table();
+			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
 			if($parent >= 0) {
-				$this->wl_position_model->where = "`group` = '{$parent}'";
+				$this->wl_position_model->where .= " `group` = '{$parent}'";
 			}
 			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
 				$this->redirect();

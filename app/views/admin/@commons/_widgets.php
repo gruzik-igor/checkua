@@ -1,10 +1,17 @@
 <div class="row">
     <?php 
         $this->load->model('wl_analytic_model');
-        if($views = $this->wl_analytic_model->getViewers()) { 
+        if($views = $this->wl_analytic_model->getViewers())
+        {
             $unique_progress = $views_progress = 100;
-            $unique_today = $views->tableData[count($views->tableData)-1]->unique;
-            $views_today = $views->tableData[count($views->tableData)-1]->views;
+            if(isset($views->tableData[count($views->tableData)-1]->unique))
+                $unique_today = $views->tableData[count($views->tableData)-1]->unique;
+            else
+                $unique_today = 0;
+            if(isset($views->tableData[count($views->tableData)-1]->views))
+                $views_today = $views->tableData[count($views->tableData)-1]->views;
+            else
+                $views_today = 0;
             $i = count($views->tableData)-2;
             if(isset($views->tableData[$i]))
             {
@@ -57,7 +64,7 @@
     <div class="col-md-3 col-sm-6">
         <div class="widget widget-stats bg-purple">
             <div class="stats-icon stats-icon-lg"><i class="fa fa-book fa-fw"></i></div>
-            <div class="stats-title">Підписників</div>
+            <div class="stats-title">ПІДПИСНИКІВ</div>
             <div class="stats-number"><?=$subscribes?></div>
             <div class="stats-progress progress">
                 <div class="progress-bar" style="width: <?=$subscribes_percent?>%;"></div>

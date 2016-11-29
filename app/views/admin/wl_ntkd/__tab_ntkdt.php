@@ -8,6 +8,7 @@ if(!$_SESSION['language'] || $_SESSION['language'] == $language)
 	$ntkd->description = ($_SESSION['alias']->list == $_SESSION['alias']->description) ? '' : $_SESSION['alias']->description;
 	$ntkd->text = $_SESSION['alias']->text;
 	$ntkd->list = $_SESSION['alias']->list;
+	$ntkd->meta = $_SESSION['alias']->meta;
 
 	if($_SESSION['language'])
 	{
@@ -45,7 +46,7 @@ else
     <input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Назва" onChange="save('name', this <?=$language_attr?>)">
 </div>
 
-<small onClick="showEditTKD(<?=$language_block_name?>)" class="badge badge-info">Редагувати title, keywords, description</small>
+<small onClick="showEditTKD(<?=$language_block_name?>)" class="badge badge-info">Редагувати title, keywords, description, meta</small>
 
 <div id="tkd<?=$language_block?>" class="tkd">
 	<div class="input-group">
@@ -60,6 +61,10 @@ else
 	    <span class="input-group-addon">description</span>
 	    <input type="text" value="<?=$ntkd->description?>" class="form-control" placeholder="<?=$ntkd->list?>" onChange="save('description', this <?=$language_attr?>)" maxlength="155">
 	    <span class="input-group-addon">max: 155</span>
+	</div>
+	<div class="input-group">
+	    <span class="input-group-addon">meta (додатково)</span>
+	    <textarea class="form-control" onChange="save('meta', this <?=$language_attr?>)"><?=$ntkd->meta?></textarea>
 	</div>
 </div>
 <br>

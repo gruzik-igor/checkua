@@ -12,16 +12,14 @@ class wl_alias_model
 		$_SESSION['service'] = new stdClass();
 
 		$_SESSION['alias']->alias = $link;
-		$_SESSION['alias']->id = 0;
+		$_SESSION['alias']->id = $_SESSION['alias']->siteMap = 0;
 		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;
-		$_SESSION['alias']->name = $_SESSION['alias']->breadcrumb_name = (isset($_GET['request'])) ? $_GET['request'] : SITE_NAME;
-		$_SESSION['alias']->title = $_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = '';
+		$_SESSION['alias']->name = $_SESSION['alias']->title = $_SESSION['alias']->breadcrumb_name = $link;
+		$_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = $_SESSION['alias']->meta = '';
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
-		$_SESSION['alias']->name = $_SESSION['alias']->title = $link;
-		$_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = '';
 
 		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
 			foreach($options as $opt) {
@@ -106,8 +104,9 @@ class wl_alias_model
 			$_SESSION['alias']->title = $data->title;
 			$_SESSION['alias']->description = $data->description;
 			$_SESSION['alias']->keywords = $data->keywords;
-			$_SESSION['alias']->text = $data->text;
+			$_SESSION['alias']->text = htmlspecialchars_decode($data->text);
 			$_SESSION['alias']->list = $data->list;
+			$_SESSION['alias']->meta = $data->meta;
 
 			if($_SESSION['alias']->title == '')
 				$_SESSION['alias']->title = $_SESSION['alias']->name;

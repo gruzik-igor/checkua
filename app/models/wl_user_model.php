@@ -203,7 +203,8 @@ class wl_user_model {
 		}
 		else
 		{
-			$this->db->select('wl_user_info as ui', 'value as password', $key, 'field');
+            $where = array('field' => $key, 'value' => $password);
+			$this->db->select('wl_user_info as ui', 'value as password', $where);
 			$this->db->join('wl_users', 'id, email, name, type, status', '#ui.user');
 			$user = $this->db->get('single');
 		}

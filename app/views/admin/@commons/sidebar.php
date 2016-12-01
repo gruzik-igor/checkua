@@ -96,7 +96,7 @@
     if($_SESSION['user']->admin == 1){ ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
         <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
-        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template')))?'active':''?>">
+        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template')))?'active':''?>">
             <a href="javascript:;">
                 <b class="caret pull-right"></b>
                 <i class="fa fa-cogs"></i>
@@ -104,6 +104,7 @@
             </a>
             <ul class="sub-menu">
                 <li <?=($_SESSION['alias']->alias == 'wl_ntkd')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_ntkd">SEO</a></li>
+                <li <?=($_SESSION['alias']->alias == 'wl_sitemap')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_sitemap">SiteMap</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_images')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_images">Розміри зображень</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_forms')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_forms">Форми</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_mail_template')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_mail_template">Розсилка</a></li>

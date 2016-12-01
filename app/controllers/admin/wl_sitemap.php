@@ -139,6 +139,49 @@ class wl_sitemap extends Controller {
         $this->redirect();
     }
 
+    public function cache()
+    {
+        $id = $this->data->uri(3);
+        if(is_numeric($id))
+        {
+            if($sitemap = $this->db->getAllDataById('wl_sitemap', $id))
+            {
+                if($sitemap->data)
+                {
+                    if(extension_loaded('zlib'))
+                        echo ( gzdecode ($sitemap->data) );
+                    else
+                        echo ( $sitemap->data );
+                }
+                else
+                    $this->load->notify_view(array('errors' => 'За адресою <strong>'.SITE_URL.$sitemap->link.'</strong> дані Cache-сторінки відсутні.'));
+            }
+            else
+                $this->load->page_404();
+        }
+        else
+            $this->load->page_404();
+    }
+
+    public function cleanCache()
+    {
+        if(isset($_POST['id']) && $_POST['id'] > 0)
+        {
+            if($_POST['code_hidden'] == $_POST['code_open'])
+            {
+                $this->db->updateRow('wl_sitemap', array('data' => NULL), $_POST['id']);
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->success = 'Cache сторінки успішно видалено!';
+            }
+            else
+            {
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->errors = 'Невірний код безпеки!';
+            }
+        }
+        $this->redirect();
+    }
+
     public function generate()
     {
         $this->load->model('wl_cache_model');

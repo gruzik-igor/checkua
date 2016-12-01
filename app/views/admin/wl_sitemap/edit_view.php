@@ -94,14 +94,14 @@
 	            </form>
 	        </div>
 	    </div>
-	    <?php if($sitemap->code == 200 && !empty($sitemap->cache)) { ?>
+	    <?php if($sitemap->code == 200 && !empty($sitemap->data)) { ?>
 		    <div class="panel panel-inverse" data-sortable-id="form-plugins-1">
 		        <div class="panel-heading">
 		            <h4 class="panel-title">Керування Cache</h4>
 		        </div>
 		        <div class="panel-body panel-form">
 		        	<?php $Cache = rand(0, 999); ?>
-		            <form class="form-horizontal form-bordered" action="<?=SITE_URL?>admin/wl_sitemap/deleteCache" method="POST">
+		            <form class="form-horizontal form-bordered" action="<?=SITE_URL?>admin/wl_sitemap/cleanCache" method="POST">
 		            	<input type="hidden" name="id" value="<?=$sitemap->id?>">
 		            	<input type="hidden" name="code_hidden" value="<?=$Cache?>">
 						<div class="form-group">
@@ -113,13 +113,13 @@
 		                <div class="form-group">
 		                	<label class="col-md-3 control-label">Код перевірки <strong><?=$Cache?></strong></label>
 	                        <div class="col-md-9">
-			                	<input type="number" name="code_open" placeholder="<?=$Cache?>" min="0" class="form-control">
+			                	<input type="number" name="code_open" placeholder="<?=$Cache?>" min="0" class="form-control" required>
 							</div>
 		                </div>
 		                <div class="form-group">
 	                        <label class="col-md-3 control-label"></label>
 	                        <div class="col-md-9">
-	                            <button type="submit" class="btn btn-sm btn-danger">Видалити Cache</button>
+	                            <button type="submit" class="btn btn-sm btn-danger">Очистити Cache</button>
 	                        </div>
 	                    </div>
 		            </form>

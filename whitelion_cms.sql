@@ -131,9 +131,10 @@ CREATE TABLE IF NOT EXISTS `wl_fields_options` (
 DROP TABLE IF EXISTS `wl_forms`;
 CREATE TABLE IF NOT EXISTS `wl_forms` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sidebar` tinyint(1) NOT NULL,
   `name` text NOT NULL,
   `captcha` tinyint(1) DEFAULT '0',
-  `help` text,
+  `title` text,
   `table` text,
   `type` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1-GET, 2-POST',
   `type_data` tinyint(1) NOT NULL DEFAULT '1' COMMENT '1-fields, 2-values',

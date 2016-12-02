@@ -30,10 +30,10 @@
                         <tbody>
                         	<?php if($forms) foreach ($forms as $f) { ?>
 								<tr>
-									<td><?=$f->id?></td>
+									<td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>"><?=$f->id?></a></td>
+                                    <td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>"><?=$f->name?></a></td>
+									<td><?=$f->title?></td>
                                     <td><?=($f->captcha)?'Так':'Ні'?></td>
-									<td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>"><?=$f->name?></a></td>
-									<td><?=$f->help?></td>
 									<td><?=$f->table?></td>
 									<td><?=($f->type == 1)?'GET':'POST'?></td>
 									<td><?=($f->type_data == 1)?'Кожне поле новий рядок':'Структурована таблиця'?></td>

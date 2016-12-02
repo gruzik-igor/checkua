@@ -1,3 +1,6 @@
+<?php $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js'; ?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
+
 <div class="col-lg-12">
     <div class="col-lg-12">
 		<ul class="nav nav-tabs" id="myTab">
@@ -29,8 +32,7 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Зберегти в історію</label>
 							<div class="col-md-9">
-								<input type="radio" name="saveToHistory" value="1" <?= $mailTemplate->savetohistory == 1 ? 'checked' : '' ?> >Так
-								<input type="radio" name="saveToHistory" value="0" <?= $mailTemplate->savetohistory == 0 ? 'checked' : '' ?> >Ні
+								<input type="checkbox" class="form-control" data-render="switchery" name="saveToHistory" value="1" <?= $mailTemplate->savetohistory == 1 ? 'checked' : '' ?>>
 							</div>
 						</div>
 						<div class="form-group">
@@ -122,4 +124,10 @@
 		</div>
     </div>
 </div>
+<style>
+.tab-content .tab-pane small {
+    margin: 0;
+    width: 30px;
+}
+</style>
 

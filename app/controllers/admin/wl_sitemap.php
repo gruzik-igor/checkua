@@ -182,6 +182,11 @@ class wl_sitemap extends Controller {
         $this->redirect();
     }
 
+    public function multi_edit()
+    {
+        # code...
+    }
+
     public function generate()
     {
         $this->load->model('wl_cache_model');

@@ -17,15 +17,18 @@ class save extends Controller {
     {
     	$formName = $this->data->uri(1);
 
-    	if($formName != ''){
+    	if($formName != '')
+        {
             $form = $this->db->getAllDataById('wl_forms', $formName, 'name');
-            if($form && $form->table != '' && $form->send_mail == 1 && $form->type > 0 && $form->type_data > 0){
+            if($form && $form->table != '' && $form->send_mail == 1 && $form->type > 0 && $form->type_data > 0)
+            {
                 $fields = $this->db->getQuery("SELECT f.*, t.name as type_name FROM wl_fields as f LEFT JOIN wl_input_types as t ON t.id = f.input_type WHERE f.form = {$form->id}", 'array');
 
                 if($fields){
                 	$data = $data_id = $this->errors = array();
 
-                	foreach ($fields as $field) {
+                	foreach ($fields as $field) 
+                    {
                 		$input_data = null;
 
                 		if($form->type == 1) $input_data = $this->data->get($field->name);
@@ -40,14 +43,18 @@ class save extends Controller {
                 		}
                 	}
 
-                	if(!empty($data) && empty($this->errors)){
-            			if($form->type_data == 1){
+                	if(!empty($data) && empty($this->errors))
+                    {
+            			if($form->type_data == 1)
+                        {
                             foreach ($data as $field => $value) {
                                 $row['field'] = $data_id[$field];
                                 $row['value'] = $value;
                                 $this->db->insertRow($form->table, $row);
                             }
-                        } elseif($form->type_data == 2){
+                        } 
+                        elseif($form->type_data == 2)
+                        {
                            // $data['date'] = date("d.m.Y H:i", time());
                             $this->db->insertRow($form->table, $data);
                             $data['id'] = $this->db->getLastInsertedId();
@@ -57,7 +64,8 @@ class save extends Controller {
                     $where['active'] = 1;
 
 
-                    if($form->send_sms == 1 && $form->sms_text != '' &&($data['tel'] || $data['phone'])){
+                    if($form->send_sms == 1 && $form->sms_text != '' &&($data['tel'] || $data['phone']))
+                    {
                         $phone = $data['tel'] ?: $data['phone'];
 
                         if(substr($phone, 0, 1) == '0'){
@@ -71,10 +79,12 @@ class save extends Controller {
                     }
 
                 	$mails = $this->db->getAllDataByFieldInArray('wl_mail_active', $where);
-                    if(!empty($mails)){
+                    if(!empty($mails))
+                    {
                         $this->load->library('mail');
-                        foreach ($mails as $mail) {
-
+                        foreach ($mails as $key => $mail) 
+                        {
+                            $currentMail = $mail;
                             $mail = $this->db->getAllDataById('wl_mail_templates', $mail->template);
 
                             $join['template'] = $mail->id;
@@ -86,22 +96,42 @@ class save extends Controller {
                             $mail->text = $message->text;
 
                             if($mail)
-                                if($this->mail->sendMailTemplate($mail, $data)){
-                                    switch ($form->success) {
+                            {
+                                if($mail->savetohistory == 1)
+                                {
+                                    $updateHistory = array();
+                                    $updateHistory['template'] = $mail->id;
+                                    $updateHistory['date'] = time();
+                                    $updateHistory['title'] = $mail->title;
+                                    $updateHistory['text'] = $mail->text;
+                                    $updateHistory['from'] = $mail->from; 
+                                    $updateHistory['to'] = $mail->to;
+
+                                    $this->db->insertRow('wl_mail_history', $updateHistory);
+                                }
+
+                                if($this->mail->sendMailTemplate($mail, $data) && end($mails) == $currentMail)
+                                {
+                                    switch ($form->success) 
+                                    {
                                         case '1':
                                             $this->redirect();
                                             break;
                                         case '2':
-                                            $this->load->notify_view(array('success' => $form->success_data));
+                                            $text = $_SESSION['all_languages'] ? json_decode($form->success_data)->$_SESSION['language'] : $form->success_data;
+                                            $this->load->notify_view(array('success' => $text));
                                             break;
                                         case '3':
                                             header("Location:".SITE_URL.$form->success_data);
                                             break;
                                     }
-                                } else {
-                                    $this->redirect();
-                                }
+                                } 
+                            }    
                         }
+                    }
+                    else 
+                    {
+                        $this->redirect();
                     }
                 }
             }

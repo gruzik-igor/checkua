@@ -1,3 +1,6 @@
+<?php $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js'; ?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
+
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-inverse">
@@ -35,103 +38,141 @@
             </div>
         </div>
     </div>
-
-	<div class="col-md-6">
-		<div class="panel panel-inverse">
-	        <div class="panel-heading">
-	            <h4 class="panel-title">Редагувати форму</h4>
-	        </div>
-			<div  class="panel-body">
-				<form action="<?=SITE_URL?>admin/wl_forms/edit_form" method="POST" class="form-horizontal">
-					<input type="hidden" value="<?= $form->id?>" name="formId">
-					<table>
-						<div class="form-group">
-							<label class="col-md-3 control-label">name*</label>
-							<div class="col-md-9">
-								<input type="text" class="form-control" name="name" placeholder="name" value="<?= $form->name?>" required>
+	<form action="<?=SITE_URL?>admin/wl_forms/edit_form" method="POST" class="form-horizontal">
+		<div class="col-md-6">
+			<div class="panel panel-inverse">
+		        <div class="panel-heading">
+		            <h4 class="panel-title">Редагувати форму</h4>
+		        </div>
+				<div  class="panel-body">
+						<input type="hidden" value="<?= $form->id?>" name="formId">
+						<table>
+							<?php if(!$tableExist) {?>
+							<div class="form-group">
+								<label class="col-md-3 control-label">Створити таблицю?</label>
+								<div class="col-md-9">
+									<input type="checkbox" data-render="switchery" class="form-control" name="create" value="1">
+								</div>
 							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">captcha</label>
-							<div class="col-md-9">
-								<input type="radio" name="captcha" value="yes" <?= $form->captcha == 1 ? 'checked' : '' ?> >Так
-								<input type="radio" name="captcha" value="no" <?= $form->captcha == 0 ? 'checked' : '' ?> >Ні
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">help</label>
-							<div class="col-md-9">
-								<input type="text" class="form-control" name="help" value="<?= $form->help?>" placeholder="help">
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">table*</label>
-							<div class="col-md-9">
-								<input type="text" class="form-control" name="table" value="<?= $form->table?>" placeholder="table" required>
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">type*</label>
-							<div class="col-md-9">
-								<input type="radio" name="type" value="get" required <?= $form->type == 1 ? 'checked' : '' ?> >GET
-								<input type="radio" name="type" value="post" <?= $form->type == 2 ? 'checked' : '' ?> >POST
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">send_email*</label>
-							<div class="col-md-9">
-								<input type="radio" name="send_mail" onclick="show(this, 'templates')" value="yes" required <?= $form->send_mail == 1 ? 'checked' : '' ?> >yes
-								<input type="radio" name="send_mail" onclick="show(this, 'templates')" value="no" <?= $form->send_mail == 0 ? 'checked' : '' ?> >no
-							</div>
-						</div>
-
-						<div class="form-group" id="templates" <?= $form->send_mail == 0 ? 'hidden' : '' ?> >
-							<label class="col-md-3 control-label">Шаблони</label>
-							<div class="col-md-9">
-							<?php if($templates) {?>
-									<?php foreach ($templates as $template){ ?>
-									<label><input type="checkbox" name="templates[]" value="<?= $template->id?>" <?= (isset($template->checked) && $template->checked == 1) ? 'checked' : '' ?> ><?= isset($template->title) ? $template->title : $template->id ?></label><br>
-									<?php } ?>
 							<?php } ?>
+							<div class="form-group">
+								<label class="col-md-3 control-label">Показувати в sidebar?</label>
+								<div class="col-md-9">
+									<input type="checkbox" class="form-control" data-render="switchery" name="sidebar" <?= $form->sidebar == 1 ? 'checked' : '' ?> value="1">
+								</div>
 							</div>
-						</div>
-						<div class="form-group" >
-							<label class="col-md-3 control-label">Дія після</label>
-							<div class="col-md-9">
-								<select name="after" class="form-control" id="after" onchange="doAfter()">
-									<option value="1" <?= $form->success >= 1 ? 'selected' : '' ?> >Повернутись на ту саму сторінку</option>
-									<option value="2" <?= $form->success == 2 ? 'selected' : '' ?> >Загрузити notify_view</option>
-									<option value="3" <?= $form->success == 3 ? 'selected' : '' ?> >Інша сторінка</option>
-								</select>
-								<input type="text" class="form-control" value="<?= $form->success_data?>" name="afterValue" id="doAfterValue" <?= $form->success <= 1 ? 'style="display:none" disabled' : '' ?> >
+							<div class="form-group">
+								<label class="col-md-3 control-label">name*</label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" name="name" placeholder="name" value="<?= $form->name?>" required>
+								</div>
 							</div>
-						</div>
+							<div class="form-group">
+								<label class="col-md-3 control-label">captcha</label>
+								<div class="col-md-9">
+									<input type="checkbox" name="captcha" data-render="switchery" <?= $form->captcha == 1 ? 'checked' : '' ?> value="1" >
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-3 control-label">title</label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" name="title" value="<?= $form->title?>" placeholder="help">
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-3 control-label">table*</label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" name="table" value="<?= $form->table?>" placeholder="table" required>
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-3 control-label">type*</label>
+								<div class="col-md-9">
+									<input type="radio" name="type" value="get" required <?= $form->type == 1 ? 'checked' : '' ?> >GET
+									<input type="radio" name="type" value="post" <?= $form->type == 2 ? 'checked' : '' ?> >POST
+								</div>
+							</div>
+							<div class="form-group">
+								<label class="col-md-3 control-label">send_email*</label>
+								<div class="col-md-9">
+									<input type="checkbox" name="send_mail" data-render="switchery" onchange="show(this, 'templates')" <?= $form->send_mail == 1 ? 'checked' : '' ?> value="1">
+								</div>
+							</div>
 
-						<div class="form-group">
-							<label class="col-md-3 control-label">send_sms*</label>
-							<div class="col-md-9">
-								<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="yes" required <?= $form->send_sms == 1 ? 'checked' : '' ?> >yes
-								<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="no" <?= $form->send_sms == 0 ? 'checked' : '' ?> >no
+							<div class="form-group" id="templates" <?= $form->send_mail == 0 ? 'hidden' : '' ?> >
+								<label class="col-md-3 control-label">Шаблони</label>
+								<div class="col-md-9">
+								<?php if($templates) {?>
+										<?php foreach ($templates as $template){ ?>
+										<label><input type="checkbox" name="templates[]" value="<?= $template->id?>" <?= (isset($template->checked) && $template->checked == 1) ? 'checked' : '' ?> ><?= isset($template->title) ? $template->title : $template->id ?></label><br>
+										<?php } ?>
+								<?php } ?>
+								</div>
 							</div>
-						</div>
-						<div class="form-group" id="sms_text" <?= $form->send_sms == 0 ? 'hidden' : '' ?> >
-							<label class="col-md-3 control-label">Смс текст</label>
-							<div class="col-md-9">
-								<input type="text" class="form-control" value="<?= $form->sms_text?>" name="sms_text" id="sms_text" >
+							<div class="form-group" >
+								<label class="col-md-3 control-label">Дія після</label>
+								<div class="col-md-9">
+									<select name="after" class="form-control" id="after" onchange="doAfter()">
+										<option value="1" <?= $form->success >= 1 ? 'selected' : '' ?> >Повернутись на ту саму сторінку</option>
+										<option value="2" <?= $form->success == 2 ? 'selected' : '' ?> >Загрузити notify_view</option>
+										<option value="3" <?= $form->success == 3 ? 'selected' : '' ?> >Інша сторінка</option>
+									</select>
+									<input type="text" class="form-control" value="<?= $form->success != 2 ? $form->success_data : '' ?>" name="afterValue" id="doAfterValue" <?= $form->success <= 2 ? 'style="display:none" disabled' : '' ?> >
+								</div>
 							</div>
-						</div>
 
-						<div class="form-group">
-	                    	<div class="col-md-3"></div>
-	                        <div class="col-md-9">
-	                        	<input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
+							<div class="form-group">
+								<label class="col-md-3 control-label">send_sms*</label>
+								<div class="col-md-9">
+									<input type="checkbox" name="send_sms" data-render="switchery" onchange="show(this, 'sms_text')" <?= $form->send_sms == 1 ? 'checked' : '' ?> value="1" >
+<!-- 									<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="yes" required <?= $form->send_sms == 1 ? 'checked' : '' ?> >yes
+									<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="no" <?= $form->send_sms == 0 ? 'checked' : '' ?> >no -->
+								</div>
 							</div>
-						</div>
-					</table>
-				</form>
+							<div class="form-group" id="sms_text" <?= $form->send_sms == 0 ? 'hidden' : '' ?> >
+								<label class="col-md-3 control-label">Смс текст</label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" value="<?= $form->sms_text?>" name="sms_text" id="sms_text" >
+								</div>
+							</div>
+
+							<div class="form-group">
+		                    	<div class="col-md-3"></div>
+		                        <div class="col-md-9">
+		                        	<input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
+								</div>
+							</div>
+						</table>
+				</div>
 			</div>
 		</div>
-	</div>
+		<div class="col-md-6" id="notifyText" <?= $form->success != 2 ? 'style="display: none"' : '' ?> >
+			<div class="panel panel-inverse">
+		        <div class="panel-heading">
+		            <h4 class="panel-title">Текст для notify_view</h4>
+		        </div>
+				<div  class="panel-body">
+					<div class="form-horizontal">
+						<?php if($_SESSION['all_languages']) foreach($_SESSION['all_languages'] as $lang) { ?>
+							<div class="form-group">
+								<label class="col-md-3 control-label"><?= $lang?></label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" name="lang[<?= $lang?>]" value="<?= $form->success == 2 ? $form->success_data->$lang : '' ?>" >
+								</div>
+							</div>
+						<?php } else { ?>
+							<div class="form-group">
+								<label class="col-md-3 control-label">Текст</label>
+								<div class="col-md-9">
+									<input type="text" class="form-control" name="lang" value="<?= $form->success == 2 ? $form->success_data : '' ?>" >
+								</div>
+							</div>
+						<?php } ?>
+					</div>
+				</div>
+			</div>
+		</div>
+	</form>
 
 	<!-- ДОДАТИ ПОЛЕ -->
 	<div class="col-md-6" id="hidden_form" style="display: none;" >
@@ -203,7 +244,7 @@
 	}
 
 	function show (el, name) {
-		if($(el).val() == 'yes'){
+		if($(el).is(":checked")){
 			$('#'+name).show();
 			$("input[name="+name+"]").removeAttr("disabled");
 		} else {
@@ -213,10 +254,15 @@
 	}
 
 	function doAfter () {
-		$("#doAfterValue").hide().attr("disabled", "disabled");
+		$("#doAfterValue, #notifyText").hide().attr("disabled", "disabled");
 
-		if($("#after").val() > 1)
+		if($("#after").val() == 2){
+			$("#notifyText").show();
+		}
+
+		if($("#after").val() == 3)
 			$("#doAfterValue").show().removeAttr("disabled");
+
 	}
 
 	function changeInputType (t) {

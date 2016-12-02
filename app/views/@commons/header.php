@@ -19,15 +19,15 @@
         <!-- begin navbar-collapse -->
         <div class="collapse navbar-collapse" id="header-navbar">
             <ul class="nav navbar-nav navbar-right">
-                <li><a href="<?=SITE_URL?>">ГОЛОВНА</a></li>
+                <li><a href="<?=SITE_URL?>"><?= $this->text('ГОЛОВНА', 0); ?></a></li>
                 <?php if($this->userIs()) { ?>
-                    <li><a href="<?=SITE_URL?>profile">КАБІНЕТ</a></li>
+                    <li><a href="<?=SITE_URL?>profile"><?= $this->text('КАБІНЕТ', 0); ?></a></li>
                     <?php if($this->userCan()) { ?>
                         <li><a href="<?=SITE_URL?>admin">ADMIN</a></li>
                     <?php } ?>
-                    <li><a href="<?=SITE_URL?>logout">ВИЙТИ</a></li>
+                    <li><a href="<?=SITE_URL?>logout"><?= $this->text('ВИЙТИ', 0); ?></a></li>
                 <?php } else { ?>
-                    <li><a href="<?=SITE_URL?>login">УВІЙТИ</a></li>
+                    <li><a href="<?=SITE_URL?>login"><?= $this->text('УВІЙТИ', 0); ?></a></li>
                 <?php } ?>
             </ul>
         </div>

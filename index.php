@@ -13,8 +13,8 @@ error_reporting(E_ALL);
 define('SITE_EMAIL', 'info@whitelion.cms'); // Від даної пошти сайт відправляє листи
 define('SYS_PASSWORD', '55bac58abe40'); // Сіль для кешування критичних даних (паролі)
 $useWWW = false; // Автовиправлення ОСНОВНОЇ адреси (не мультомовної якщо використовується піддомен)
-$multilanguage_type = false; // Якщо false то сайт НЕ мультимовний! може бути: false, "*.domain.com.ua" (адреса по головному домену, існування піддоменів мов на роботу не впливає), 'main domain' (мультимовність site.com/en/link..)
-$_SESSION['all_languages'] = array(); // Список всіх  мов в масиві, перша мова - мова по замовчуванню
+$multilanguage_type = 'main domain'; // Якщо false то сайт НЕ мультимовний! може бути: false, "*.domain.com.ua" (адреса по головному домену, існування піддоменів мов на роботу не впливає), 'main domain' (мультимовність site.com/en/link..)
+$_SESSION['all_languages'] = array('ua', 'ru'); // Список всіх  мов в масиві, перша мова - мова по замовчуванню
 $_SESSION['cache'] = false; // використання кешованих даних
 $images_folder = 'images';
 

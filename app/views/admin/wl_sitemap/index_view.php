@@ -38,7 +38,24 @@
                                         <i class="fa fa-<?=($map->alias > 0)?'check':'times'?>"></i> 
                                         <?=$map->link?>
                                     </td>
-                                    <td><?=$map->code?></td>
+                                    <td><?php
+                                    switch ($map->code) {
+                                        case 200:
+                                            echo('200 Cache активний');
+                                            break;
+                                        case 201:
+                                            echo('200 Cache НЕ активний');
+                                            break;
+                                        case 301:
+                                            echo('301 Переадресація: ');
+                                            $this->db->select('wl_sitemap', 'data', $map->id);
+                                            if($d = $this->db->get())
+                                                echo('<strong>'.SITE_URL.$d->data.'</strong>');
+                                            break;
+                                        case 404:
+                                            echo('404 Адреса недоступна');
+                                            break;
+                                    }?></td>
                                     <?php if($_SESSION['language']) { ?>
                                         <td><?=$map->language?></td>
                                     <?php } if($map->alias == 0 || $map->priority < 0) echo('<td colspan="2">Сторінка не індексується</td>'); else { ?>

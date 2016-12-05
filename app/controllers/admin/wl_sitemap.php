@@ -184,7 +184,70 @@ class wl_sitemap extends Controller {
 
     public function multi_edit()
     {
-        # code...
+        if(!empty($_POST['sitemap-ids']))
+        {
+            $post_ids = explode(',', $_POST['sitemap-ids']);
+            $ids = array();
+            foreach ($post_ids as $id) {
+                if(is_numeric($id) && $id > 0)
+                    $ids[] = $id;
+            }
+
+            if(!empty($ids))
+            {
+                $data = array();
+                if(!empty($_POST['active-code']) && $_POST['active-code'] == 1)
+                    $data['code'] = $this->data->post('code');
+                if(empty($data) || $data['code'] != 404)
+                {
+                    if(!empty($_POST['active-changefreq']) && $_POST['active-changefreq'] == 1)
+                        $data['changefreq'] = $this->data->post('changefreq');
+                    if(!empty($_POST['active-priority']) && $_POST['active-priority'] == 1)
+                        $data['priority'] = $this->data->post('priority') * 10;
+
+                    if(!empty($_POST['active-index']) && $_POST['active-index'] == 1)
+                    {
+                        if(!empty($_POST['index']) && $_POST['index'] == 1)
+                        {
+                            if(isset($data['priority']))
+                            {
+                                if($data['priority'] < 0)
+                                    $data['priority'] *= -1;
+                            }
+                            else
+                            {
+                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` < 0');
+                            }
+                        }
+                        else
+                        {
+                            if(isset($data['priority']))
+                            {
+                                if($data['priority'] > 0)
+                                    $data['priority'] *= -1;
+                                else
+                                    $data['priority'] = -2;
+                            }
+                            else
+                            {
+                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` > 0');
+                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = -2 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` = 0');
+                            }
+                            unset($data['changefreq']);
+                        }
+                    }
+                }
+                if(!empty($data))
+                {
+                    $data['time'] = time();
+                    print_r($data);
+                    $this->db->updateRow('wl_sitemap', $data, array('id' => $ids));
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->success = 'Дані успішно оновлено!';
+                }
+            }
+        }
+        $this->redirect();
     }
 
     public function generate()

@@ -1,4 +1,10 @@
 var multieditPoints = [];
+var action = 'save';
+
+$(document).ready(function () {
+        //when a submit button is clicked, put its name into the action hidden field
+        $(":submit").click(function () { action = this.value; });
+    });
 
 function setEditPoint(id)
 {
@@ -16,7 +22,10 @@ function multi_edit()
 		var ids = '';
 		multieditPoints.forEach(function(item, index) {ids=ids+item+',';});
 		$('#sitemap-ids').val(ids);
-		return true;
+		if(action == 'delete' || action == 'clearCache')
+			return confirm("Are you sure you want to delete the selected item?");
+		else
+			return true;
 	}
 	else
 	{

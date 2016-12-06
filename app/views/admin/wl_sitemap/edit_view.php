@@ -2,6 +2,9 @@
 	<div class="col-md-4 ui-sortable">
         <div class="panel panel-inverse" data-sortable-id="form-plugins-1">
 	        <div class="panel-heading">
+	        	<div class="panel-heading-btn">
+	        		<a href="<?=SITE_URL?>admin/wl_sitemap" class="btn btn-success btn-xs"><i class="fa fa-refresh"></i> До всіх записів</a>
+	        	</div>
 	            <h4 class="panel-title">Редагувати</h4>
 	        </div>
 	        <div class="panel-body panel-form">
@@ -77,7 +80,7 @@
 		                	<input type="number" name="priority" value="<?=$sitemap->priority/10?>" placeholder="0.5" min="<?=($sitemap->priority < 0 || $sitemap->code > 300) ? '-1' : '0'?>" max="1" step="0.1" class="form-control priority">
 						</div>
 	                </div>
-	                <?php if($_SESSION['language']) { ?>
+	                <?php if($_SESSION['language'] && $sitemap->alias > 0) { ?>
 		                <div class="form-group">
 		                	<label class="col-md-3 control-label">Застосувати до всіх мов</label>
 	                        <div class="col-md-9">

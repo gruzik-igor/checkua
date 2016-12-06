@@ -54,7 +54,22 @@ class wl_sitemap extends Controller {
         {
             $start = 0;
             $_SESSION['option']->paginator_per_page = 50;
-            $this->db->select('wl_sitemap', 'id, link, alias, language, code, time, changefreq, priority');
+            
+            if(count($_GET) == 1 || (count($_GET) == 2 && isset($_GET['page'])))
+                $where = '';
+            else
+            {
+                $where = array();
+                if($this->data->get('alias') == 'yes')
+                    $where['alias'] = '>0';
+                if($this->data->get('alias') == 'no')
+                    $where['alias'] = '0';
+                if($code = $this->data->get('code'))
+                    $where['code'] = $code;
+            }
+            $this->db->select('wl_sitemap', 'id, link, alias, language, code, time, changefreq, priority', $where);
+            if(isset($_GET['sort']) && $_GET['sort'] == 'down')
+                $this->db->order('id DESC');
             if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
                 $start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
             $this->db->limit($start, $_SESSION['option']->paginator_per_page);
@@ -68,6 +83,38 @@ class wl_sitemap extends Controller {
         $_SESSION['alias']->alias = 'admin';
         $_SESSION['alias']->table = '';
         $_SESSION['alias']->service = '';
+    }
+
+    public function add_redirect()
+    {
+        $this->load->admin_view('wl_sitemap/add_redirect_view');
+    }
+
+    public function save_add_redirect()
+    {
+        $_SESSION['notify'] = new stdClass();
+        if(!empty($_POST['from']) && isset($_POST['to']))
+        {
+            $sitemap = $this->db->getAllDataById('wl_sitemap', $this->data->post('from'), 'link');
+            if($sitemap)
+            {
+                $_SESSION['notify']->errors = 'Лінк за даною адресою <strong>'.SITE_URL.$sitemap->link.'</strong> вже існує <a href="'.SITE_URL.'admin/wl_sitemap/'.$sitemap->id.'" class="btn btn-success btn-xs">Редагувати</a>';
+                $this->redirect();
+            }
+            else
+            {
+                $data = array();
+                $data['link'] = $this->data->post('from');
+                $data['data'] = $this->data->post('to');
+                $data['code'] = 301;
+                $data['time'] = time();
+                $data['changefreq'] = 'never';
+                $data['alias'] = $data['content'] = $data['priority'] = 0;
+                $this->db->insertRow('wl_sitemap', $data);
+                $_SESSION['notify']->success = 'Лінк успішно додано <a href="'.SITE_URL.'admin/wl_sitemap/'.$sitemap->id.'" class="btn btn-success btn-xs">Редагувати</a>';
+                $this->redirect('admin/wl_sitemap?sort=down');
+            }
+        }
     }
 
     public function save()
@@ -184,7 +231,7 @@ class wl_sitemap extends Controller {
 
     public function multi_edit()
     {
-        if(!empty($_POST['sitemap-ids']))
+        if(!empty($_POST['sitemap-ids']) && !empty($_POST['do']))
         {
             $post_ids = explode(',', $_POST['sitemap-ids']);
             $ids = array();
@@ -192,55 +239,82 @@ class wl_sitemap extends Controller {
                 if(is_numeric($id) && $id > 0)
                     $ids[] = $id;
             }
+            if($_SESSION['language'] && !empty($_POST['all_languages']) && $_POST['all_languages'] == 1)
+            {
+                $this->db->select('wl_sitemap', 'id, alias, content', array('id' => $ids));
+                $seleted_ids = $this->db->get('array');
+                foreach ($seleted_ids as $map) {
+                    if(!in_array($map->id, $ids))
+                    {
+                        $this->db->select('wl_sitemap', 'id', array('alias' => $map->alias, 'content' => $map->content));
+                        $ml_ids = $this->db->get('array');
+                        foreach ($ml_ids as $ml) {
+                            if(!in_array($ml->id, $ids))
+                                $ids[] = $ml->id;
+                        }
+                    }
+                }
+            }
 
             if(!empty($ids))
             {
                 $data = array();
-                if(!empty($_POST['active-code']) && $_POST['active-code'] == 1)
-                    $data['code'] = $this->data->post('code');
-                if(empty($data) || $data['code'] != 404)
-                {
-                    if(!empty($_POST['active-changefreq']) && $_POST['active-changefreq'] == 1)
-                        $data['changefreq'] = $this->data->post('changefreq');
-                    if(!empty($_POST['active-priority']) && $_POST['active-priority'] == 1)
-                        $data['priority'] = $this->data->post('priority') * 10;
 
-                    if(!empty($_POST['active-index']) && $_POST['active-index'] == 1)
+                if($_POST['do'] == 'clearCache')
+                    $data['data'] = NULL;
+                elseif($_POST['do'] == 'delete')
+                {
+                    $this->db->deleteRow('wl_sitemap', array('id' => $ids));
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->success = 'Дані успішно видалено!';
+                }
+                elseif($_POST['do'] == 'save')
+                {
+                    if(!empty($_POST['active-code']) && $_POST['active-code'] == 1)
+                        $data['code'] = $this->data->post('code');
+                    if(empty($data) || $data['code'] != 404)
                     {
-                        if(!empty($_POST['index']) && $_POST['index'] == 1)
+                        if(!empty($_POST['active-changefreq']) && $_POST['active-changefreq'] == 1)
+                            $data['changefreq'] = $this->data->post('changefreq');
+                        if(!empty($_POST['active-priority']) && $_POST['active-priority'] == 1)
+                            $data['priority'] = $this->data->post('priority') * 10;
+
+                        if(!empty($_POST['active-index']) && $_POST['active-index'] == 1)
                         {
-                            if(isset($data['priority']))
+                            if(!empty($_POST['index']) && $_POST['index'] == 1)
                             {
-                                if($data['priority'] < 0)
-                                    $data['priority'] *= -1;
-                            }
-                            else
-                            {
-                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` < 0');
-                            }
-                        }
-                        else
-                        {
-                            if(isset($data['priority']))
-                            {
-                                if($data['priority'] > 0)
-                                    $data['priority'] *= -1;
+                                if(isset($data['priority']))
+                                {
+                                    if($data['priority'] < 0)
+                                        $data['priority'] *= -1;
+                                }
                                 else
-                                    $data['priority'] = -2;
+                                {
+                                    $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` < 0');
+                                }
                             }
                             else
                             {
-                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` > 0');
-                                $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = -2 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` = 0');
+                                if(isset($data['priority']))
+                                {
+                                    if($data['priority'] > 0)
+                                        $data['priority'] *= -1;
+                                    else
+                                        $data['priority'] = -2;
+                                }
+                                else
+                                {
+                                    $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` > 0');
+                                    $this->db->executeQuery('UPDATE `wl_sitemap` SET `priority` = -2 WHERE `id` IN ('.implode(', ', $ids).') AND `priority` = 0');
+                                }
+                                unset($data['changefreq']);
                             }
-                            unset($data['changefreq']);
                         }
                     }
                 }
                 if(!empty($data))
                 {
                     $data['time'] = time();
-                    print_r($data);
                     $this->db->updateRow('wl_sitemap', $data, array('id' => $ids));
                     $_SESSION['notify'] = new stdClass();
                     $_SESSION['notify']->success = 'Дані успішно оновлено!';
@@ -251,6 +325,11 @@ class wl_sitemap extends Controller {
     }
 
     public function generate()
+    {
+        $this->load->admin_view('wl_sitemap/generate_view');
+    }
+
+    public function start_generate()
     {
         $this->load->model('wl_cache_model');
         if($sitemap = $this->wl_cache_model->SiteMap(true))

@@ -5,12 +5,47 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
+                    <a href="<?=SITE_URL?>admin/wl_sitemap/add_redirect" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> Додати 301 переадресацію</a>
                 	<a href="<?=SITE_URL?>admin/wl_sitemap/generate" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Генерувати карту сайту</a>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                 </div>
                 <h4 class="panel-title">Список всіх адрес, за якими відбувалися заходи на сайт</h4>
             </div>
             <div class="panel-body">
+                
+                <a href="<?=SITE_URL?>admin/wl_sitemap" class="btn btn-<?=(count($_GET) == 1)?'success':'white'?> btn-white-without-border pull-left">Всі без фільтру</a>
+                <div class="dropdown pull-left">
+                    <a href="javascript:;" class="btn btn-white btn-white-without-border dropdown-toggle" data-toggle="dropdown">
+                        Сортувати за <span class="caret m-l-5"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu-sort">
+                        <li <?=(!$this->data->get('sort')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('sort')?>">Прямий порядок <i class="fa fa-level-down"></i></a></li>
+                        <li <?=($this->data->get('sort') == 'down') ? 'class="active"':''?>><a href="<?=$this->data->get_link('sort', 'down')?>">Зворотній порядок <i class="fa fa-level-up"></i></a></li>
+                    </ul>
+                </div>
+                <div class="dropdown pull-left">
+                    <a href="javascript:;" class="btn btn-white btn-white-without-border dropdown-toggle" data-toggle="dropdown">
+                        Стан <span class="caret m-l-5"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu-alias">
+                        <li <?=(!$this->data->get('alias')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('alias')?>">Всі</a></li>
+                        <li <?=($this->data->get('alias') == 'yes') ? 'class="active"':''?>><a href="<?=$this->data->get_link('alias', 'yes')?>">Розпізнані</a></li>
+                        <li <?=($this->data->get('alias') == 'no') ? 'class="active"':''?>><a href="<?=$this->data->get_link('alias', 'no')?>">НЕ розпізнані</a></li>
+                    </ul>
+                </div>
+                <div class="dropdown pull-left">
+                    <a href="javascript:;" class="btn btn-white btn-white-without-border dropdown-toggle" data-toggle="dropdown">
+                        Код відповіді <span class="caret m-l-5"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu-alias">
+                        <li <?=(!$this->data->get('code')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code')?>">Всі</a></li>
+                        <li <?=($this->data->get('code') == 200) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 200)?>">200 Cache активний</a></li>
+                        <li <?=($this->data->get('code') == 201) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 201)?>">200 Cache НЕ активний</a></li>
+                        <li <?=($this->data->get('code') == 301) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 301)?>">301 Переадресація</a></li>
+                        <li <?=($this->data->get('code') == 404) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 404)?>">404 Адреса недоступна</a></li>
+                    </ul>
+                </div>
+                <div class="clear"></div>
                 <div class="table-responsive">
                     <table id="data-table" class="table table-striped table-bordered" width="100%">
                         <thead>
@@ -25,7 +60,6 @@
                                 <th>Частота</th>
                                 <th>Пріорітет [0..1]</th>
                                 <th>Оновлено</th>
-                                <th>Кеш</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -63,7 +97,6 @@
                                         <td><?=$map->priority/10?></td>
                                     <?php } ?>
                                     <td><?=($map->time)?date('d.m.Y H:i', $map->time):'інформація відсутня'?></td>
-                                    <td><?=$map->id?></td>
                                 </tr>
                         <?php } ?>
                         </tbody>
@@ -142,8 +175,9 @@
                     <div class="form-group col-md-6">
                         <label class="col-md-3 control-label"></label>
                         <div class="col-md-9">
-                            <button type="submit" class="btn btn-sm btn-success">Зберегти</button>
-                            <button type="button" class="btn btn-sm btn-danger">Видалити</button>
+                            <button name="do" value="save" type="submit" class="btn btn-sm btn-success">Зберегти</button>
+                            <button name="do" value="clearCache" type="submit" class="btn btn-sm btn-warning">Очистити Cache</button>
+                            <button name="do" value="delete" type="submit" class="btn btn-sm btn-danger">Видалити</button>
                         </div>
                     </div>
                 </form>
@@ -171,5 +205,5 @@
 </div>
 
 
-<link href="<?=SITE_URL?>assets/DataTables/css/data-table.css" rel="stylesheet" />
+<link rel="stylesheet" href="<?=SITE_URL?>assets/DataTables/css/data-table.css" />
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />

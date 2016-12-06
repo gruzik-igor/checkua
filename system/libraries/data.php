@@ -15,6 +15,7 @@
  * Версія 1.2 (27.09.2016) Виправлено make()
  * Версія 1.2.1 (17.10.2016) Виправлено latterUAtoEN(): додано символ +
  * Версія 1.2.2 (24.10.2016) Виправлено make(): правильно розпізнає поля як з типом так і без; непередані поля
+ * Версія 1.3 (06.12.2016) Додано get_link() - формування лінку за GET зі змінами
  */
 
 class Data {
@@ -124,6 +125,37 @@ class Data {
 		if(isset($_SESSION['_GET'][$key]))
 			return $_SESSION['_GET'][$key];
 		return $default;
+	}
+
+	public function get_link($new_key = '', $new_value = '')
+	{
+		$link = SITE_URL . $_GET['request'];
+		if(($new_key != '' && $new_value != '') || count($_GET) > 1)
+		{
+        	$link .= '?';
+        	$updated = false;
+        	foreach ($_GET as $key => $value) {
+	            if($key != 'request' && $key != $new_key)
+	            {
+	                if(!is_array($value)) {
+	                    $link .= $key .'='.$value . '&';
+	                } else {
+	                    foreach ($value as $key2 => $value2) {
+	                        $link .= $key .'%5B%5D='.$value2 . '&';
+	                    }
+	                }
+	            }
+	            elseif($key == $new_key && $new_value != '')
+	            {
+	            	$link .= $key .'='.$new_value . '&';
+	            	$updated = true;
+	            }
+	        }
+	        if(!$updated && $new_value != '')
+	        	$link .= $new_key .'='.$new_value . '&';
+	        $link = substr($link, 0, -1);
+		}
+        return $link;
 	}
 
     public function getShortText($text, $len = 155)

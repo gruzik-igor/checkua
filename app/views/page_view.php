@@ -9,6 +9,9 @@
     <meta name="keywords" content="<?=$_SESSION['alias']->keywords?>">
     <meta name="author" content="webspirit.com.ua">
 
+    <?=$_SESSION['option']->global_MetaTags?>
+    <?=$_SESSION['alias']->meta?>
+
 	<link rel="shortcut icon" href="<?=SERVER_URL?>style/admin/images/whitelion-black.png">
 
 	<link href="<?=SERVER_URL?>assets/bootstrap/css/bootstrap.min.css" rel="stylesheet">

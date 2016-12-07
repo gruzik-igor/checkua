@@ -360,7 +360,7 @@ CREATE TABLE IF NOT EXISTS `wl_options` (
   `name` text NOT NULL,
   `value` text,
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8;
 
 --
 -- Дамп даних таблиці `wl_options`
@@ -372,9 +372,10 @@ INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (3, 0, 0, 'sitemap_lastgenerate', '0'),
 (4, 0, 0, 'sitemap_lastsent', '0'),
 (5, 0, 0, 'sitemap_lastedit', '0'),
-(6, 0, 0, 'showTimeSiteGenerate', '1'),
-(7, 0, 0, 'paginator_per_page', '20'),
-(8, 0, 1, 'folder', 'main');
+(6, 0, 0, 'global_MetaTags', ''),
+(7, 0, 0, 'showTimeSiteGenerate', '1'),
+(8, 0, 0, 'paginator_per_page', '20'),
+(9, 0, 1, 'folder', 'main');
 
 
 -- --------------------------------------------------------

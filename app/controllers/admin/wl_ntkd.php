@@ -80,6 +80,19 @@ class wl_ntkd extends Controller {
         $_SESSION['alias']->service = '';
     }
 
+    public function global_MetaTags()
+    {
+        $this->load->admin_view('wl_ntkd/global_MetaTags_view');
+    }
+
+    public function save_global_MetaTags()
+    {
+        $this->db->updateRow('wl_options', array('value' => $this->data->post('global_MetaTags')), array('service' => 0, 'alias' => 0, 'name' => 'global_MetaTags'));
+        $_SESSION['notify'] = new stdClass();
+        $_SESSION['notify']->success = 'Мета-теги успішно оновлено.';
+        $this->redirect();
+    }
+
     private function get($alias, $content = 0)
     {
         $this->db->executeQuery("SELECT * FROM `wl_ntkd` WHERE `alias` = '{$alias->id}' AND `content` = '{$content}'");

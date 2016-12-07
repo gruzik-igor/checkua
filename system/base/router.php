@@ -132,6 +132,36 @@ class Router extends Loader {
 			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
 				$this->wl_statistic_model->updatePageIndex();
 			$this->wl_cache_model->set();
+
+			if($sitemap = $this->wl_cache_model->SiteMap())
+            {
+                parent::library('SitemapGenerator');
+                foreach ($sitemap as $url) {
+                    if($url->link == 'main') $url->link = '';
+                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
+                }
+                try {
+                    // create sitemap
+                    $this->sitemapgenerator->createSitemap();
+                    // write sitemap as file
+                    $this->sitemapgenerator->writeSitemap();
+                    // update robots.txt file
+                    $this->sitemapgenerator->updateRobots();
+
+                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
+
+                    if($_SESSION['option']->sitemap_autosent == 1)
+                    {
+                        // submit sitemaps to search engines
+                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
+                        $result = $this->sitemapgenerator->submitSitemap();
+                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
+                    }
+                }
+                catch (Exception $exc) {
+                    $_SESSION['notify']->errors = $exc->getTraceAsString();
+                }
+            }
 		}
 	}
 	

@@ -494,10 +494,20 @@ class wl_aliases extends Controller {
     {
         if($_SESSION['user']->admin == 1)
         {
+            $bools = array('sitemap_active' => 0, 'sitemap_autosent' => 0, 'showTimeSiteGenerate' => 0);
             foreach ($_POST as $key => $value) {
                 $key = explode('-', $key);
                 if(count($key) == 2 && $key[0] == 'option' && is_numeric($key[1]))
                     $this->db->updateRow('wl_options', array('value' => $value), $key[1]);
+                if(count($key) == 3 && $key[0] == 'option' && is_numeric($key[1]))
+                {
+                    $bools[$key[2]] = $value;
+                    $this->db->updateRow('wl_options', array('value' => $value), $key[1]);
+                }
+            }
+            foreach ($bools as $key => $value) {
+                if($value == 0)
+                    $this->db->updateRow('wl_options', array('value' => 0), array('service' => 0, 'alias' => 0, 'name' => $key));
             }
             $_SESSION['notify'] = new stdClass();
             $_SESSION['notify']->success = 'Загальні налаштування успішно оновлено!';

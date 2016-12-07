@@ -1,3 +1,6 @@
+<?php $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js'; ?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
+
 <div class="row">
     <div class="col-md-6">
         <div class="panel panel-inverse" data-sortable-id="form-stuff-1">
@@ -10,11 +13,26 @@
             <div class="panel-body">
 	            <form action="<?=SITE_URL?>admin/wl_aliases/save_all" method="POST" class="form-horizontal">
 					<?php if(isset($options)) { 
+                        $bools = array('sitemap_active', 'sitemap_autosent', 'showTimeSiteGenerate');
+                        $dates = array('sitemap_lastgenerate', 'sitemap_lastsent', 'sitemap_lastedit');
+                        $titles = array( 'sitemap_active' => 'Автоматично оновлювати SiteMap при зміні контенту на сайті',
+                            'sitemap_autosent' => 'Автоматично відправляти SiteMap пошуковим роботам',
+                            'sitemap_lastgenerate' => 'Остання генерація SiteMap на сайті',
+                            'sitemap_lastsent' => 'Остання відправка SiteMap пошуковим роботам',
+                            'sitemap_lastedit' => 'Остання зміна інформації на сайті',
+                            'paginator_per_page' => 'Матеріалів на сторінці (per page)',
+                            'showTimeSiteGenerate' => 'Виводити час генерації сторінки');
 						foreach ($options as $option) { ?>
 							<div class="form-group">
-		                        <label class="col-md-3 control-label"><?=$option->name?></label>
+		                        <label class="col-md-3 control-label"><?=(isset($titles[$option->name])) ? $titles[$option->name] : $option->name?></label>
 		                        <div class="col-md-9">
+                                    <?php if(in_array($option->name, $dates)) {
+                                        echo ($option->value > 0) ? date('d.m.Y H:i', $option->value) : 'Дані відсутні';
+                                    } elseif(in_array($option->name, $bools)) { ?>
+                                        <input name="option-<?=$option->id?>-<?=$option->name?>" type="checkbox" data-render="switchery" <?=($option->value == 1) ? 'checked' : ''?> value="1" />
+                                    <?php } else { ?>
 		                            <input type="text" class="form-control" name="option-<?=$option->id?>" value="<?=$option->value?>" placeholder="<?=$option->name?>">
+                                    <?php } ?>
 		                        </div>
 		                    </div>
 		                <?php } ?>

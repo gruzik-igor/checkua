@@ -26,7 +26,7 @@
 						</div>
 	                </div>
 	                <div class="form-group">
-	                	<label class="col-md-6 control-label">Остання зміни інформації на сайті</label>
+	                	<label class="col-md-6 control-label">Остання зміна інформації на сайті</label>
 	                    <div class="col-md-6">
                     		<?= ($_SESSION['option']->sitemap_lastedit > 0) ? date('d.m.Y H:i', $_SESSION['option']->sitemap_lastedit) : 'Дані відсутні' ?>
 						</div>

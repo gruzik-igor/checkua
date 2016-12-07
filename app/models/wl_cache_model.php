@@ -42,7 +42,8 @@ class wl_cache_model extends Loader
 					else
 						echo ( $this->page->data );
 
-					$this->showTime('load from cache');
+					if($_SESSION['option']->showTimeSiteGenerate)
+						$this->showTime('load from cache');
 					exit();
 				}
 				break;
@@ -89,7 +90,8 @@ class wl_cache_model extends Loader
 		if(!empty($cache))
 			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
 
-		// $this->showTime();
+		if($_SESSION['option']->showTimeSiteGenerate)
+			$this->showTime();
 		exit;
 	}
 

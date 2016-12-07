@@ -416,9 +416,20 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   `code` smallint(5) UNSIGNED DEFAULT NULL COMMENT '200 cache ok; 201 no cache, 301 redirect, 404',
   `data` blob,
   `time` int(11) NOT NULL,
+  `changefreq` enum('always','hourly','daily','weekly','monthly','yearly','never') NOT NULL DEFAULT 'daily',
+  `priority` tinyint(2) NOT NULL DEFAULT '5',
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`,`language`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Індекси збережених таблиць
+--
+
+--
+-- Індекси таблиці `wl_sitemap`
+--
+ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
 
 --
 -- Дамп даних таблиці `wl_sitemap`

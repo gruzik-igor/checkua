@@ -176,7 +176,9 @@
                         <label class="col-md-3 control-label"></label>
                         <div class="col-md-9">
                             <button name="do" value="save" type="submit" class="btn btn-sm btn-success">Зберегти</button>
-                            <button name="do" value="clearCache" type="submit" class="btn btn-sm btn-warning">Очистити Cache</button>
+                            <?php if($_SESSION['cache']) { ?>
+                                <button name="do" value="clearCache" type="submit" class="btn btn-sm btn-warning">Очистити Cache</button>
+                            <?php } ?>
                             <button name="do" value="delete" type="submit" class="btn btn-sm btn-danger">Видалити</button>
                         </div>
                     </div>

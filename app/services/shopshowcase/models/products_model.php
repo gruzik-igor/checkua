@@ -281,6 +281,25 @@ class products_model {
 			else
 				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 			$link = $data['alias'];
+
+			$sitemap = array();
+			$sitemap['link'] = $_SESSION['alias']->alias.'/'.$link;
+			$sitemap['alias'] = $_SESSION['alias']->id;
+			$sitemap['content'] = $id;
+			$sitemap['code'] = 200;
+			$sitemap['data'] = NULL;
+			$sitemap['time'] = time();
+			$sitemap['changefreq'] = 'daily';
+			$sitemap['priority'] = 5;
+			if($_SESSION['language'])
+			{
+				foreach ($_SESSION['all_languages'] as $lang) {
+					$sitemap['language'] = $lang;
+					$this->db->insertRow('wl_sitemap', $sitemap);
+				}
+			}
+			else
+				$this->db->insertRow('wl_sitemap', $sitemap);
 			
 			if($this->db->updateRow($this->table('_products'), $data, $id))
 				return $id;

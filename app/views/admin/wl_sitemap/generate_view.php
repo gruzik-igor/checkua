@@ -14,7 +14,7 @@
 							<small>Автоматично оновлювати SiteMap при зміні контенту на сайті</small>
 	                	</label>
 	                    <div class="col-md-3">
-                    		<input type="checkbox" data-render="switchery" checked value="1" name="active" />
+                    		<input type="checkbox" data-render="switchery" <?=($_SESSION['option']->sitemap_active)?'checked':''?> value="1" name="sitemap_active" />
 						</div>
 	                </div>
 	                <div class="form-group">
@@ -22,19 +22,25 @@
 							<small>google.com, yahoo.com, ask.com, bing.com не частіше 1 раза за добу <br>та не менше 2 год від останньої зміни інформації на сайті</small>
 	                	</label>
 	                    <div class="col-md-3">
-                    		<input type="checkbox" data-render="switchery" checked value="1" name="sent" />
+                    		<input type="checkbox" data-render="switchery" <?=($_SESSION['option']->sitemap_autosent)?'checked':''?> value="1" name="sitemap_autosent" />
+						</div>
+	                </div>
+	                <div class="form-group">
+	                	<label class="col-md-6 control-label">Остання зміни інформації на сайті</label>
+	                    <div class="col-md-6">
+                    		<?= ($_SESSION['option']->sitemap_lastedit > 0) ? date('d.m.Y H:i', $_SESSION['option']->sitemap_lastedit) : 'Дані відсутні' ?>
 						</div>
 	                </div>
 	                <div class="form-group">
 	                	<label class="col-md-6 control-label">Остання генерація</label>
 	                    <div class="col-md-6">
-                    		<?= date('d.m.Y H:i') ?>
+                    		<?= ($_SESSION['option']->sitemap_lastgenerate > 0) ? date('d.m.Y H:i', $_SESSION['option']->sitemap_lastgenerate) : 'Дані відсутні' ?>
 						</div>
 	                </div>
 	                <div class="form-group">
 	                	<label class="col-md-6 control-label">Відправлено пошуковим роботам</label>
 	                    <div class="col-md-6">
-                    		<?= date('d.m.Y H:i') ?>
+                    		<?= ($_SESSION['option']->sitemap_lastsent > 0) ? date('d.m.Y H:i', $_SESSION['option']->sitemap_lastsent) : 'Дані відсутні' ?>
 						</div>
 	                </div>
 	                <div class="form-group">

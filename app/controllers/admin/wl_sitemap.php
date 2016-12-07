@@ -329,35 +329,62 @@ class wl_sitemap extends Controller {
         $this->load->admin_view('wl_sitemap/generate_view');
     }
 
+    public function save_generate()
+    {
+        $fields = array('sitemap_active' => 0, 'sitemap_autosent' => 0);
+        foreach ($fields as $key => $value) {
+            if(isset($_POST[$key]) && $_POST[$key] == 1) $value = 1;
+            $this->db->updateRow('wl_options', array('value' => $value), array('service' => 0, 'alias' => 0, 'name' => $key));
+        }
+        $_SESSION['notify'] = new stdClass();
+        $_SESSION['notify']->success = 'Загальні налаштування SiteMap успішно оновлено!';
+        $this->redirect();
+    }
+
     public function start_generate()
     {
-        $this->load->model('wl_cache_model');
-        if($sitemap = $this->wl_cache_model->SiteMap(true))
+        $_SESSION['notify'] = new stdClass();
+        if($this->data->post('code_hidden') == $this->data->post('code_open') && $this->data->post('code_hidden') > 0)
         {
-            $this->load->library('SitemapGenerator');
-            foreach ($sitemap as $url) {
-                if($url->link == 'main') $url->link = '';
-                $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
-            }
-            try {
-                // create sitemap
-                $this->sitemapgenerator->createSitemap();
-                // write sitemap as file
-                $this->sitemapgenerator->writeSitemap();
-                // update robots.txt file
-                $this->sitemapgenerator->updateRobots();
-                // submit sitemaps to search engines
-                // $result = $sitemap->submitSitemap("yahooAppId");
-                // shows each search engine submitting status
-                // echo "<pre>";
-                // print_r($result);
-                // echo "</pre>";
-                
-            }
-            catch (Exception $exc) {
-                echo $exc->getTraceAsString();
+            $this->load->model('wl_cache_model');
+            if($sitemap = $this->wl_cache_model->SiteMap(true))
+            {
+                $this->load->library('SitemapGenerator');
+                foreach ($sitemap as $url) {
+                    if($url->link == 'main') $url->link = '';
+                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
+                }
+                try {
+                    // create sitemap
+                    $this->sitemapgenerator->createSitemap();
+                    // write sitemap as file
+                    $this->sitemapgenerator->writeSitemap();
+                    // update robots.txt file
+                    $this->sitemapgenerator->updateRobots();
+
+                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
+                    $_SESSION['notify']->success = 'SiteMap успішно згенеровано!';
+
+                    if($this->data->post('sent') == 1)
+                    {
+                        // submit sitemaps to search engines
+                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
+                        $result = $this->sitemapgenerator->submitSitemap();
+                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
+                        // shows each search engine submitting status
+                        $_SESSION['notify']->success .= "<br><br><pre>";
+                        $_SESSION['notify']->success .= print_r($result, true);
+                        $_SESSION['notify']->success .= "</pre>";
+                    }
+                }
+                catch (Exception $exc) {
+                    $_SESSION['notify']->errors = $exc->getTraceAsString();
+                }
             }
         }
+        else
+            $_SESSION['notify']->errors = 'Невірний код безпеки!';
+        $this->redirect();
     }
 
 }

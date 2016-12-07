@@ -4,7 +4,6 @@ class wl_cache_model extends Loader
 {
 
 	public $page = false;
-	public $updateSiteMap = false;
 	
 	public function init($link)
 	{
@@ -25,7 +24,6 @@ class wl_cache_model extends Loader
 			$page['time'] = $this->page->time = time();
 			$this->db->insertRow('wl_sitemap', $page);
 			$this->page->id = $this->db->getLastInsertedId();
-			$this->updateSiteMap = true;
 		}
 
 		$_SESSION['alias']->siteMap = $this->page->id;
@@ -116,19 +114,21 @@ class wl_cache_model extends Loader
 
 	public function SiteMap($force = false)
 	{
-		$update = true;
-		if(!$force && $this->updateSiteMap)
+		$update = $_SESSION['option']->sitemap_active;
+		if(!$force && $update)
 		{
-			$where = array('service' => 0, 'alias' => 0, 'name' => 'siteMapLastUpdate');
-			if($siteMapLastUpdate = $this->db->getAllDataById('wl_options', $where))
-			{
-				if($siteMapLastUpdate->value + 3600 < time())
-					$update = false;
-			}
+			if($_SESSION['option']->sitemap_lastedit + 7200 < time())
+				$update = false;
+			if($update && $_SESSION['option']->sitemap_lastgenerate > $_SESSION['option']->sitemap_lastedit)
+				$update = false;
+			$lastedit_day = mktime (1, 0, 0, date("n", $_SESSION['option']->sitemap_lastedit), date("j", $_SESSION['option']->sitemap_lastedit), date("Y", $_SESSION['option']->sitemap_lastedit));
+			if($lastedit_day + 3600 * 24 < time())
+				$update = false;
 		}
 		if($update || $force)
 		{
 			$where = array();
+			$where['alias'] = '>0';
 			$where['code'] = '!301';
 			$where['+code'] = '!404';
 			$where['priority'] = '>=0';

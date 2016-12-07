@@ -160,6 +160,9 @@ class wl_ntkd extends Controller {
 
                         $res['result'] = true;
                         $res['error'] = '';
+
+                        $_SESSION['option']->sitemap_lastedit = time();
+                        $this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
                     }
                     else
                         $res['error'] = 'Невірне адреса!';

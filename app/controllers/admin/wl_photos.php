@@ -64,6 +64,9 @@ class wl_photos extends Controller {
                         $photo['url'] = IMG_PATH.$this->data->post('ALIAS_FOLDER').'/'.$id.'/'.$photo_name;
                         $photo['thumbnailUrl'] = IMG_PATH.$this->data->post('ALIAS_FOLDER').'/'.$id.'/admin_'.$photo_name;
                         $filejson->files[] = $photo;
+
+                        $_SESSION['option']->sitemap_lastedit = time();
+                        $this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
                     }
                     else
                         $error++;

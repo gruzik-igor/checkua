@@ -43,7 +43,8 @@ class wl_Video extends Controller {
 					$site_link=substr($controler_video['path'],1);
 				}
 			}
-			if($site != ''){
+			if($site != '')
+			{
 				$data['author'] = $_SESSION['user']->id;
 				$data['date_add'] = time();
 				$data['alias'] = $_POST['alias'];
@@ -52,7 +53,11 @@ class wl_Video extends Controller {
 				$data['link'] = $site_link;
 				$data['active'] = 1;
 
-				if($this->db->insertRow('wl_video', $data)){
+				if($this->db->insertRow('wl_video', $data))
+				{
+					$_SESSION['option']->sitemap_lastedit = time();
+					$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
+
 					header('Location: '.$_SERVER['HTTP_REFERER'].'#tab-video');
 					exit;
 				}
@@ -67,11 +72,18 @@ class wl_Video extends Controller {
 
 	public function delete()
 	{
-		if($this->userCan() && isset($_GET['id']) && is_numeric($_GET['id'])){
+		if($this->userCan() && isset($_GET['id']) && is_numeric($_GET['id']))
+		{
 			$this->db->deleteRow('wl_video', $_GET['id']);
+
+			$_SESSION['option']->sitemap_lastedit = time();
+			$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
+
 			header('Location: '.$_SERVER['HTTP_REFERER'].'#tab-video');
 			exit;
-		} else $this->load->page_404();
+		}
+		else
+			$this->load->page_404();
 	}
 }
 ?>

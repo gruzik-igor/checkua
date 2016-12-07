@@ -67,6 +67,8 @@ class wl_Audio extends Controller {
 					$data['position'] = $this->db->getCount('wl_audio', array('alias' => $alias, 'content' => $content)) + 1;
 
 					$this->db->insertRow('wl_audio', $data);
+					$_SESSION['option']->sitemap_lastedit = time();
+					$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
 				}
 				else
 				{
@@ -99,6 +101,9 @@ class wl_Audio extends Controller {
 
 			$filePath = "audio/".$alias."/".$content."/".$name;
 			@unlink ($filePath);
+
+			$_SESSION['option']->sitemap_lastedit = time();
+			$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
 
 			header('Location: '.$_SERVER['HTTP_REFERER'].'#tab-audio');
 			exit;
@@ -139,6 +144,9 @@ class wl_Audio extends Controller {
 			{
 				$res['result'] = true;
 				$res['error'] = '';
+				
+				$_SESSION['option']->sitemap_lastedit = time();
+				$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
 			}
 			else
 				$res['error'] = 'Фотографію не знайдено!';

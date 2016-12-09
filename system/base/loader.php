@@ -123,10 +123,13 @@ class Loader {
 
 	function page_404($update_SiteMap = true)
 	{
-		if($update_SiteMap && isset($_SESSION['alias']->siteMap) && $_SESSION['alias']->siteMap > 0)
+		if($update_SiteMap)
 		{
 			$this->library('db');
-			$this->db->updateRow('wl_sitemap', array('code' => 404, 'time' => time()), $_SESSION['alias']->siteMap);
+			if($_SESSION['alias']->id == 0)
+				$this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->alias, 404);
+			else
+				$this->db->sitemap_update($_SESSION['alias']->content, 'code', 404);
 		}
 		header('HTTP/1.0 404 Not Found');
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';

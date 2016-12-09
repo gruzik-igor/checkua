@@ -12,7 +12,7 @@ class wl_alias_model
 		$_SESSION['service'] = new stdClass();
 
 		$_SESSION['alias']->alias = $link;
-		$_SESSION['alias']->id = $_SESSION['alias']->siteMap = 0;
+		$_SESSION['alias']->id = 0;
 		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;

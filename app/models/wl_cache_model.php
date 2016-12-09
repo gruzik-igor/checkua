@@ -11,24 +11,13 @@ class wl_cache_model extends Loader
 		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
 		
 		$this->page = $this->db->getAllDataById('wl_sitemap', $where);
-		if($this->page == false)
+		if($this->page)
 		{
-			$this->page = new stdClass();
-			$page = array();
-			$page['link'] = $this->page->link = $link;
-			$page['alias'] = $this->page->alias = 0;
-			$page['content'] = $this->page->content = 0;
-			$page['language'] = $this->page->language = $_SESSION['language'];
-			$page['code'] = $this->page->code = 200;
-			$page['data'] = $this->page->data = NULL;
-			$page['time'] = $this->page->time = time();
-			$this->db->insertRow('wl_sitemap', $page);
-			$this->page->id = $this->db->getLastInsertedId();
+			$this->page->uniq_link = $link;
+			if($_SESSION['language']) $this->page->uniq_link .= '/'.$_SESSION['language'];
+			return true;
 		}
-
-		$_SESSION['alias']->siteMap = $this->page->id;
-		$this->page->uniq_link = $link;
-		if($_SESSION['language']) $this->page->uniq_link .= '/'.$_SESSION['language'];
+		return false;
 	}
 
 	public function get()

@@ -121,6 +121,25 @@ class groups_model {
 				$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
 			else
 				$data['position'] = $position;
+
+			$sitemap = array();
+			$sitemap['link'] = $_SESSION['alias']->alias.'/'.$alias;
+			$sitemap['alias'] = $_SESSION['alias']->id;
+			$sitemap['content'] = -$id;
+			$sitemap['code'] = 200;
+			$sitemap['data'] = NULL;
+			$sitemap['time'] = time();
+			$sitemap['changefreq'] = 'daily';
+			$sitemap['priority'] = 6;
+			if($_SESSION['language'])
+			{
+				foreach ($_SESSION['all_languages'] as $lang) {
+					$sitemap['language'] = $lang;
+					$this->db->insertRow('wl_sitemap', $sitemap);
+				}
+			}
+			else
+				$this->db->insertRow('wl_sitemap', $sitemap);
 			
 			if($this->db->updateRow($this->table(), $data, $id))
 				return $id;
@@ -149,6 +168,14 @@ class groups_model {
 			}
 			if($group->parent != $data['parent'])
 				$this->changeParent($group->id, $group->parent, $data['parent']);
+			if($group->alias != $data['alias'])
+			{
+				if($_SESSION['language'])
+				{
+					
+				}
+			}
+
 			if($this->db->updateRow($this->table(), $data, $id))
 				return true;
 		}

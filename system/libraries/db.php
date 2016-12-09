@@ -573,6 +573,78 @@ class Db {
         return $sizes_all;
     }
 
+    public function sitemap_add($content = 0, $link = '', $code = 200, $priority = 5, $changefreq = 'daily', $alias = 0)
+    {
+        $sitemap = array();
+        $sitemap['link'] = $link;
+        $sitemap['alias'] = ($alias > 0) ? $alias : $_SESSION['alias']->id;
+        $sitemap['content'] = ($content === NULL) ? 0 : $content;
+        $sitemap['code'] = $code;
+        $sitemap['data'] = $sitemap['language'] = NULL;
+        $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
+        $sitemap['changefreq'] = (in_array($changefreq, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $changefreq : 'daily';
+        if($priority < 1) $priority *= 10;
+        $sitemap['priority'] = $priority;
+        if($_SESSION['language'] && $content !== NULL)
+        {
+            foreach ($_SESSION['all_languages'] as $lang) {
+                $sitemap['language'] = $lang;
+                $this->insertRow('wl_sitemap', $sitemap);
+            }
+        }
+        else
+            $this->insertRow('wl_sitemap', $sitemap);
+        return $this->getLastInsertedId();
+    }
+
+    public function sitemap_update($content = 0, $key = 'link', $value = '', $alias = 0)
+    {
+        $sitemap = $where = array();
+        $where['alias'] = ($alias == 0) ? $_SESSION['alias']->id : $alias;
+        $where['content'] = ($content === NULL) ? 0 : $content;
+        if(is_array($key))
+        {
+            if(is_numeric($value) && $value > 0)
+                $where['alias'] = $value;
+            foreach ($key as $k => $v) {
+                if($k == 'changefreq')
+                    $sitemap['changefreq'] = (in_array($v, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $v : 'daily';
+                elseif($k == 'priority')
+                {
+                    $sitemap['priority'] = (is_numeric($v) && $v >= 0) ? $v : 5;
+                    if($sitemap['priority'] < 1)
+                        $sitemap['priority'] *= 10;
+                }
+                else
+                    $sitemap[$k] = $v;
+            }
+        }
+        else
+        {
+            if($key == 'changefreq')
+                $sitemap['changefreq'] = (in_array($value, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $value : 'daily';
+            elseif($key == 'priority')
+            {
+                $sitemap['priority'] = (is_numeric($value) && $value >= 0) ? $value : 5;
+                if($sitemap['priority'] < 1)
+                    $sitemap['priority'] *= 10;
+            }
+            else
+                $sitemap[$key] = $value;
+        }
+        $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
+        $this->updateRow('wl_sitemap', $sitemap, $where);
+        return true;
+    }
+
+    public function sitemap_remove($content = 0, $alias = 0)
+    {
+        if($alias == 0) $alias = $_SESSION['alias']->id;
+        $where = array('alias' => $alias, 'content' => $content);
+        $this->deleteRow('wl_sitemap', $where);
+        return true;
+    }
+
 }
 
 ?>

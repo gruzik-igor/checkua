@@ -70,15 +70,16 @@ class Router extends Loader {
 			if(empty($_POST) && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload')))
 			{
 				parent::model('wl_cache_model');
-				$this->wl_cache_model->init($this->request);
-
-				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				if($this->wl_cache_model->init($this->request))
 				{
-					parent::model('wl_statistic_model');
-					$this->wl_statistic_model->set($this->wl_cache_model->page);
+					if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+					{
+						parent::model('wl_statistic_model');
+						$this->wl_statistic_model->set($this->wl_cache_model->page);
+					}
+					
+					$this->wl_cache_model->get();
 				}
-				
-				$this->wl_cache_model->get();
 			}
 		}
 
@@ -129,39 +130,57 @@ class Router extends Loader {
 		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
 		if(!$admin && empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
 		{
-			if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
-				$this->wl_statistic_model->updatePageIndex();
-			$this->wl_cache_model->set();
+			if($this->wl_cache_model->page == false)
+			{
+				$this->wl_cache_model->page = new stdClass();
+				$this->wl_cache_model->page->id = $this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->alias, $_SESSION['alias']->code);
+				$this->wl_cache_model->page->alias = $_SESSION['alias']->id;
+				$this->wl_cache_model->page->content = $_SESSION['alias']->content;
+				$this->wl_cache_model->page->code = $_SESSION['alias']->code;
+				$this->wl_cache_model->page->uniq_link = $this->request;
+				if($_SESSION['language']) $this->wl_cache_model->page->uniq_link .= '/'.$_SESSION['language'];
+				parent::model('wl_statistic_model');
+				$this->wl_statistic_model->set($this->wl_cache_model->page);
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+					$this->wl_statistic_model->updatePageIndex();
+				$this->wl_cache_model->set();
+			}
+			else
+			{
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+					$this->wl_statistic_model->updatePageIndex();
+				$this->wl_cache_model->set();
 
-			if($sitemap = $this->wl_cache_model->SiteMap())
-            {
-                parent::library('SitemapGenerator');
-                foreach ($sitemap as $url) {
-                    if($url->link == 'main') $url->link = '';
-                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
-                }
-                try {
-                    // create sitemap
-                    $this->sitemapgenerator->createSitemap();
-                    // write sitemap as file
-                    $this->sitemapgenerator->writeSitemap();
-                    // update robots.txt file
-                    $this->sitemapgenerator->updateRobots();
+				if($sitemap = $this->wl_cache_model->SiteMap())
+	            {
+	                parent::library('SitemapGenerator');
+	                foreach ($sitemap as $url) {
+	                    if($url->link == 'main') $url->link = '';
+	                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
+	                }
+	                try {
+	                    // create sitemap
+	                    $this->sitemapgenerator->createSitemap();
+	                    // write sitemap as file
+	                    $this->sitemapgenerator->writeSitemap();
+	                    // update robots.txt file
+	                    $this->sitemapgenerator->updateRobots();
 
-                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
+	                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
 
-                    if($_SESSION['option']->sitemap_autosent == 1)
-                    {
-                        // submit sitemaps to search engines
-                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
-                        $result = $this->sitemapgenerator->submitSitemap();
-                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
-                    }
-                }
-                catch (Exception $exc) {
-                    $_SESSION['notify']->errors = $exc->getTraceAsString();
-                }
-            }
+	                    if($_SESSION['option']->sitemap_autosent == 1)
+	                    {
+	                        // submit sitemaps to search engines
+	                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
+	                        $result = $this->sitemapgenerator->submitSitemap();
+	                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
+	                    }
+	                }
+	                catch (Exception $exc) {
+	                    $_SESSION['notify']->errors = $exc->getTraceAsString();
+	                }
+	            }
+	        }
 		}
 	}
 	

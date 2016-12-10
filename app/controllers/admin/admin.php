@@ -32,7 +32,7 @@ class admin extends Controller {
             {
                 $_SESSION['alias'] = clone $alias;
                 $this->load->model('wl_alias_model');
-                $this->wl_alias_model->alias($alias->alias);
+                $this->wl_alias_model->init($alias->alias);
                 if($alias->service > 0)
                 {
                     $function = 'index';

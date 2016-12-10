@@ -71,13 +71,15 @@ class wl_cache_model extends Loader
 				$cache['data'] = (string) $data;
 			else
 				$cache['data'] = (string) $content;
-			$cache['time'] = time();
 
 			ob_end_flush();
 		}
 
 		if(!empty($cache))
+		{
+			$cache['time'] = time();
 			$this->db->updateRow('wl_sitemap', $cache, $this->page->id);
+		}
 
 		if($_SESSION['option']->showTimeSiteGenerate)
 			$this->showTime();

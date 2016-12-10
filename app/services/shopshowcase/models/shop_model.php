@@ -17,7 +17,13 @@ class shop_model {
 			if($url != $product->link)
 			{
 				$link = SITE_URL;
-				if($admin) $link .= 'admin/';
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+					$this->db->sitemap_redirect($product->link);
+				else
+					$this->db->sitemap_update($product->id, 'link',  $product->link);
+				if($admin)
+					$link .= 'admin/';
+					
 				header ('HTTP/1.1 301 Moved Permanently');
 				header ('Location: '. $link. $product->link);
 				exit();

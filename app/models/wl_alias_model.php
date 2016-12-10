@@ -4,19 +4,20 @@ class wl_alias_model
 {
 	public $service = false;
 
-    public function alias($link)
+    public function init($alias, $link = '')
     {
-		$link = $this->db->sanitizeString($link);
+		$alias = $this->db->sanitizeString($alias);
 		$_SESSION['alias'] = new stdClass();
 		$_SESSION['option'] = new stdClass();
 		$_SESSION['service'] = new stdClass();
 
-		$_SESSION['alias']->alias = $link;
+		$_SESSION['alias']->alias = $alias;
+		$_SESSION['alias']->link = $this->db->sanitizeString($link);
 		$_SESSION['alias']->id = 0;
 		$_SESSION['alias']->content = NULL;
 		$_SESSION['alias']->code = 200;
 		$_SESSION['alias']->service = false;
-		$_SESSION['alias']->name = $_SESSION['alias']->title = $_SESSION['alias']->breadcrumb_name = $link;
+		$_SESSION['alias']->name = $_SESSION['alias']->title = $_SESSION['alias']->breadcrumb_name = $alias;
 		$_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = $_SESSION['alias']->meta = '';
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
@@ -27,7 +28,7 @@ class wl_alias_model
 				$_SESSION['option']->$key = $opt->value;
 			}
 
-		if($alias = $this->db->getAllDataById('wl_aliases', $link, 'alias'))
+		if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
 		{
 			$_SESSION['alias']->id = $alias->id;
 			$_SESSION['alias']->table = $alias->table;

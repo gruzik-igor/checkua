@@ -445,6 +445,15 @@ INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, 
 (7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
 (8, 'logout', 0, 0, NULL, 201, NULL, 0);
 
+
+DROP TABLE IF EXISTS `wl_sitemap_from`;
+CREATE TABLE IF NOT EXISTS `wl_sitemap_from` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `sitemap` int(11) NOT NULL,
+  `from` text NOT NULL,
+  `time` int(11) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 -- --------------------------------------------------------
 
 --

@@ -4,7 +4,7 @@ class wl_statistic_model {
 
 	public $page_id = 0;
 
-	public function set($page)
+	public function set_views()
 	{	
 		if($this->searchBot()) return true;
 
@@ -29,6 +29,12 @@ class wl_statistic_model {
 			$this->db->insertRow('wl_statistic_views', $data);
 		}
 
+		setcookie('statisticViews', 'views', time() + 3600*24*31, '/');
+	}
+
+	public function set_page($page)
+	{
+		$today = strtotime('today');
 		if(!isset($_SESSION['statistic']))
 		{
 			$_SESSION['statistic'] = new stdClass();
@@ -42,8 +48,6 @@ class wl_statistic_model {
 		}
 		else
 			$this->updatePageViews($page, $today);
-
-		setcookie('statisticViews', 'views', time() + 3600*24*31, '/');
 	}
 
 	private function updatePageViews($page, $today, $unique = false)

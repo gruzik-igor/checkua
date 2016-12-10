@@ -127,7 +127,7 @@ class Loader {
 		{
 			$this->library('db');
 			if($_SESSION['alias']->id == 0)
-				$this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->alias, 404);
+				$this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->link, 404);
 			else
 				$this->db->sitemap_update($_SESSION['alias']->content, 'code', 404);
 		}
@@ -294,7 +294,7 @@ class Loader {
 				else
 				{
 					$this->model('wl_alias_model');
-					$this->wl_alias_model->alias($alias->alias);
+					$this->wl_alias_model->init($alias->alias);
 					$service = $alias->alias;
 					$model_path = APP_PATH.'controllers'.DIRSEP.$service.'.php';
 					if($admin)

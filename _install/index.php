@@ -11,17 +11,20 @@ if($_SERVER["SERVER_NAME"] == 'localhost')
 	if(isset($REQUEST_URI[1]))
 	{
 		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+		define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
 		define('SITE_NAME', $REQUEST_URI[1]);
 	}
 	else
 	{
 		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+		define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
 		define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 	}
 }
 else
 {
 	define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+	define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
 	define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 }
 

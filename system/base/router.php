@@ -52,7 +52,7 @@ class Router extends Loader {
 					else
 					{
 						parent::model('wl_alias_model');
-						$this->wl_alias_model->alias($parts[1]);
+						$this->wl_alias_model->init($parts[1], $this->request);
 						$this->wl_alias_model->admin_options();
 					}
 				}
@@ -65,18 +65,21 @@ class Router extends Loader {
 		else
 		{
 			parent::model('wl_alias_model');
-			$this->wl_alias_model->alias($parts[0]);
+			$this->wl_alias_model->init($parts[0], $this->request);
 
 			if(empty($_POST) && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload')))
 			{
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					parent::model('wl_statistic_model');
+					$this->wl_statistic_model->set_views();
+				}
+
 				parent::model('wl_cache_model');
 				if($this->wl_cache_model->init($this->request))
 				{
 					if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
-					{
-						parent::model('wl_statistic_model');
-						$this->wl_statistic_model->set($this->wl_cache_model->page);
-					}
+						$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					
 					$this->wl_cache_model->get();
 				}
@@ -132,23 +135,22 @@ class Router extends Loader {
 		{
 			if($this->wl_cache_model->page == false)
 			{
-				$this->wl_cache_model->page = new stdClass();
-				$this->wl_cache_model->page->id = $this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->alias, $_SESSION['alias']->code);
-				$this->wl_cache_model->page->alias = $_SESSION['alias']->id;
-				$this->wl_cache_model->page->content = $_SESSION['alias']->content;
-				$this->wl_cache_model->page->code = $_SESSION['alias']->code;
-				$this->wl_cache_model->page->uniq_link = $this->request;
-				if($_SESSION['language']) $this->wl_cache_model->page->uniq_link .= '/'.$_SESSION['language'];
-				parent::model('wl_statistic_model');
-				$this->wl_statistic_model->set($this->wl_cache_model->page);
+				$this->wl_cache_model->page = $this->db->sitemap_add($_SESSION['alias']->content, $this->request);
+				
 				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					$this->wl_statistic_model->updatePageIndex();
+				}
 				$this->wl_cache_model->set();
 			}
 			else
 			{
 				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					$this->wl_statistic_model->updatePageIndex();
+				}
 				$this->wl_cache_model->set();
 
 				if($sitemap = $this->wl_cache_model->SiteMap())

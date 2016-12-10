@@ -344,7 +344,7 @@ class products_model {
 				if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
 			}
 		}
-		
+		$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$data['alias']);
 		$this->db->updateRow($this->table(), $data, $id);
 		return $data['alias'];
 	}

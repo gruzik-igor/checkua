@@ -573,13 +573,14 @@ class Db {
         return $sizes_all;
     }
 
-    public function sitemap_add($content = 0, $link = '', $code = 200, $priority = 5, $changefreq = 'daily', $alias = 0)
+    public function sitemap_add($content = NULL, $link = '', $code = 0, $priority = 5, $changefreq = 'daily', $alias = 0)
     {
         $sitemap = array();
-        $sitemap['link'] = $link;
-        $sitemap['alias'] = ($alias > 0) ? $alias : $_SESSION['alias']->id;
-        $sitemap['content'] = ($content === NULL) ? 0 : $content;
-        $sitemap['code'] = $code;
+        $page = new stdClass();
+        $sitemap['link'] = $page->uniq_link = $link;
+        $sitemap['alias'] = $page->alias = ($alias > 0) ? $alias : $_SESSION['alias']->id;
+        $sitemap['content'] = $page->content = ($content === NULL) ? 0 : $content;
+        $sitemap['code'] = $page->code = ($code > 0) ? $code : $_SESSION['alias']->code;
         $sitemap['data'] = $sitemap['language'] = NULL;
         $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
         $sitemap['changefreq'] = (in_array($changefreq, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $changefreq : 'daily';
@@ -594,10 +595,27 @@ class Db {
         }
         else
             $this->insertRow('wl_sitemap', $sitemap);
-        return $this->getLastInsertedId();
+        $page->id = $this->getLastInsertedId();
+        if($_SESSION['language'])
+            $page->uniq_link .= '/'.$_SESSION['language'];
+        return $page;
     }
 
-    public function sitemap_update($content = 0, $key = 'link', $value = '', $alias = 0)
+    public function sitemap_redirect($to = '')
+    {
+        $sitemap = array();
+        $sitemap['link'] = $_SESSION['alias']->link;
+        $sitemap['alias'] = $sitemap['content'] = 0;
+        $sitemap['code'] = 301;
+        $sitemap['data'] = $to;
+        $sitemap['language'] = NULL;
+        $sitemap['time'] = time();
+        $sitemap['changefreq'] = 'daily';
+        $sitemap['priority'] = -5;
+        $this->insertRow('wl_sitemap', $sitemap);
+    }
+
+    public function sitemap_update($content = NULL, $key = 'link', $value = '', $alias = 0)
     {
         $sitemap = $where = array();
         $where['alias'] = ($alias == 0) ? $_SESSION['alias']->id : $alias;
@@ -615,6 +633,13 @@ class Db {
                     if($sitemap['priority'] < 1)
                         $sitemap['priority'] *= 10;
                 }
+                elseif($k == 'redirect' || $k == 301)
+                {
+                    $sitemap['alias'] = $sitemap['content'] = 0;
+                    $sitemap['code'] = 301;
+                    $sitemap['data'] = $v;
+                    $_SESSION['alias']->redirect = $v;
+                }
                 else
                     $sitemap[$k] = $v;
             }
@@ -628,6 +653,18 @@ class Db {
                 $sitemap['priority'] = (is_numeric($value) && $value >= 0) ? $value : 5;
                 if($sitemap['priority'] < 1)
                     $sitemap['priority'] *= 10;
+            }
+            elseif($key == 301)
+            {
+                $sitemap['alias'] = $sitemap['content'] = 0;
+                $sitemap['code'] = 301;
+                $sitemap['data'] = $value;
+                $_SESSION['alias']->redirect = $value;
+            }
+            elseif ($key == 'link')
+            {
+                $this->deleteRow('wl_sitemap', $value, 'link');
+                $sitemap['link'] = $value;
             }
             else
                 $sitemap[$key] = $value;

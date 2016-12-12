@@ -35,6 +35,8 @@ class wl_users extends Controller {
                     $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', $user->name => '');
                     $this->load->admin_view('wl_users/edit_view', array('user' => $user, 'status' => $status, 'types' => $types));
                 }
+                else
+                    $this->load->page_404();
             }
             else
                 $this->load->admin_view('wl_users/list_view');
@@ -76,10 +78,10 @@ class wl_users extends Controller {
                     $this->db->register('reset', $user->password);
                     $_SESSION['notify']->success = 'Пароль успішно змінено!';
                 } else {
-                    $_SESSION['notify']->error = $this->validator->getErrors();
+                    $_SESSION['notify']->errors = $this->validator->getErrors();
                 }
             } else {
-                $_SESSION['notify']->error = 'Невірний поточний пароль.';
+                $_SESSION['notify']->errors = 'Невірний поточний пароль.';
             }
         }
         header("Location: ".SITE_URL."admin/wl_users/my");
@@ -128,8 +130,10 @@ class wl_users extends Controller {
                         if($this->db->getAllDataById('wl_users', $user['email'], 'email') == false)
                         {
                             $user['name'] = $this->data->post('name');
+                            $user['alias'] = $this->data->latterUAtoEN($user['name']);
                             $user['type'] = $this->data->post('type');
                             $user['status'] = 1;
+                            $user['last_login'] = 0;
                             $user['registered'] = time();
                             if($this->db->insertRow('wl_users', $user))
                             {
@@ -181,10 +185,11 @@ class wl_users extends Controller {
                             }
                         }
                         else
-                            $this->load->page_view('wl_users/add_view', array('errors' => 'Даний email вже є у базі!'));
+                            $_SESSION['notify']->errors = 'Даний email вже є у базі!';
                     }
                     else
-                        $this->load->page_view('wl_users/add_view', array('errors' => $this->validator->getErrors()));
+                        $_SESSION['notify']->errors = $this->validator->getErrors();
+                    $this->redirect();
                 }
                 elseif (is_numeric($_POST['id']) && $_POST['id'] > 0)
                 {
@@ -254,14 +259,14 @@ class wl_users extends Controller {
                             }
                         }
                         else
-                            $_SESSION['notify']->error = 'Даний email вже є у базі!';
+                            $_SESSION['notify']->errors = 'Даний email вже є у базі!';
                     }
                     else
-                        $_SESSION['notify']->error = $this->validator->getErrors();
+                        $_SESSION['notify']->errors = $this->validator->getErrors();
                 }
             }
             else
-                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
+                $_SESSION['notify']->errors = 'Невірний пароль адміністратора';
         }
 
         $this->redirect();
@@ -275,7 +280,7 @@ class wl_users extends Controller {
             $password = sha1($_SESSION['user']->email . $password . SYS_PASSWORD . $_SESSION['user']->id);
             if($password == $admin->password){
                 if($_POST['id'] == $_SESSION['user']->id) {
-                    $_SESSION['notify']->error = 'Видалити самого себе неможна!';
+                    $_SESSION['notify']->errors = 'Видалити самого себе неможна!';
                 } else {
                     $user = $this->db->getQuery("SELECT u.*, t.title as type_title FROM wl_users as u LEFT JOIN wl_user_types as t ON t.id = u.type WHERE u.id = {$_POST['id']}");
                     if($user) {
@@ -290,11 +295,11 @@ class wl_users extends Controller {
                         header("Location: ".SITE_URL."admin/wl_users");
                         exit();
                     } else {
-                        $_SESSION['notify']->error = 'Профіль користувача не знайдено!';
+                        $_SESSION['notify']->errors = 'Профіль користувача не знайдено!';
                     }
                 }
             } else {
-                $_SESSION['notify']->error = 'Невірний пароль адміністратора';
+                $_SESSION['notify']->errors = 'Невірний пароль адміністратора';
             }
         }
 

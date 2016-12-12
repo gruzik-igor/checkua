@@ -1,15 +1,3 @@
-<?php if(!empty($_SESSION['notify']->error)) { ?>
-<div class="row">
-    <div class="col-md-6">
-		<div class="alert alert-danger fade in m-b-15">
-			<strong>Помилка!</strong>
-			<?=$_SESSION['notify']->error?>
-			<span class="close" data-dismiss="alert">&times;</span>
-		</div>
-    </div>
-</div>
-<?php unset($_SESSION['notify']->error); } ?>
-
 <!-- begin row -->
 <div class="row">
     <!-- begin col-6 -->
@@ -25,13 +13,13 @@
                     <div class="form-group" title="УВАГА! На даний емейл буде надіслано пароль користувача">
                         <label class="col-md-3 control-label">email користувача</label>
                         <div class="col-md-9">
-                            <input type="email" name="email" class="form-control" value="<?=(isset($_POST['email']))?$_POST['email']:''?>" required placeholder="email" />
+                            <input type="email" name="email" class="form-control" value="<?=$this->data->re_post('email')?>" required placeholder="email" />
                         </div>
                     </div>
                     <div class="form-group">
                         <label class="col-md-3 control-label">Ім'я користувача</label>
                         <div class="col-md-9">
-                            <input type="text" name="name" class="form-control" value="<?=(isset($_POST['name']))?$_POST['name']:''?>" required placeholder="Ім'я користувача" />
+                            <input type="text" name="name" class="form-control" value="<?=$this->data->re_post('name')?>" required placeholder="Ім'я користувача" />
                         </div>
                     </div>
                     <div class="form-group">
@@ -46,7 +34,7 @@
                     <div id="userPassword" class="form-group" style="display:none">
                         <label class="col-md-3 control-label">Пароль користувача</label>
                         <div class="col-md-9">
-                            <input type="text" name="user-password" class="form-control" />
+                            <input type="text" name="user-password" class="form-control" value="<?=$this->data->re_post('user-password')?>" />
                         </div>
 
                         <script type="text/javascript">

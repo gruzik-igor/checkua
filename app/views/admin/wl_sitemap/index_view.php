@@ -52,11 +52,11 @@
                             <tr>
                                 <th><input type="checkbox" id="all" onchange="selectAll(this)"></th>
                                 <th width="100px"></th>
-                                <th>Адреса</th>
-                                <th>Код відповіді</th>
                                 <?php if($_SESSION['language']) { ?>
                                     <th>Мова</th>
                                 <?php } ?>
+                                <th>Адреса</th>
+                                <th>Код відповіді</th>
                                 <th>Частота</th>
                                 <th>Пріорітет [0..1]</th>
                                 <th>Оновлено</th>
@@ -68,6 +68,9 @@
                                 <tr>
                                     <td><input type="checkbox" id="<?=$map->id?>" class="sitemap-multiedit" onChange="setEditPoint('<?=$map->id?>')"></td>
                                     <td><a href="<?=SITE_URL?>admin/wl_sitemap/<?=$map->id?>" class="btn btn-xs btn-default"><i class="fa fa-pencil"></i> Редагувіти <i class="fa fa-signal"></i> Статистика</a></td>
+                                    <?php if($_SESSION['language']) { ?>
+                                        <td><?=$map->language?></td>
+                                    <?php } ?>
                                     <td>
                                         <i class="fa fa-<?=($map->alias > 0)?'check':'times'?>"></i> 
                                         <?=$map->link?>
@@ -90,9 +93,7 @@
                                             echo('404 Адреса недоступна');
                                             break;
                                     }?></td>
-                                    <?php if($_SESSION['language']) { ?>
-                                        <td><?=$map->language?></td>
-                                    <?php } if($map->alias == 0 || $map->priority < 0) echo('<td colspan="2">Сторінка не індексується</td>'); else { ?>
+                                    <?php if($map->alias == 0 || $map->priority < 0) echo('<td colspan="2">Сторінка не індексується</td>'); else { ?>
                                         <td><?=$map->changefreq?></td>
                                         <td><?=$map->priority/10?></td>
                                     <?php } ?>

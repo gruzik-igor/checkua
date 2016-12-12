@@ -266,6 +266,7 @@ class products_model {
 						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
 					}
 					$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
+					$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
 				}
 				else
 				{
@@ -273,17 +274,34 @@ class products_model {
 					{
 						$data['group'] = $_POST['group'];
 						$data['position'] = $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
+
+						if($data['group'] == 0)
+							$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
+						else
+						{
+							$list = array();
+				            $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+				            foreach ($groups as $Group) {
+				            	$list[$Group->id] = clone $Group;
+				            }
+				            $link = $this->makeLink($list, $data['group'], $data['alias']);
+				            $this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
+						}
 					}
 					else
+					{
 						$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
+						$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
+					}
 				}
 			}
 			else
+			{
 				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
-			$link = $data['alias'];
+				$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
+			}
 
-			$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
-			
+			$data['position'] += 1;
 			if($this->db->updateRow($this->table('_products'), $data, $id))
 				return $id;
 		}
@@ -300,6 +318,7 @@ class products_model {
 		}
 		else
 			$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+		$link = $data['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 0)
 			$data['active'] = 0;
 		if(isset($_POST['availability']) && is_numeric($_POST['availability']))
@@ -310,6 +329,7 @@ class products_model {
 		{
 			if($_SESSION['option']->ProductMultiGroup)
 			{
+				$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$data['alias']);
 				$use = array();
 				$activegroups = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $id, 'product');
 				if($activegroups)
@@ -334,19 +354,35 @@ class products_model {
 				}
 				if($activegroups)
 					foreach ($activegroups as $ac) {
-						if(!in_array($ac, $use)){
+						if(!in_array($ac, $use))
 							$this->db->executeQuery("DELETE FROM {$this->table('_product_group')} WHERE `product` = '{$id}' AND `group` = '{$ac}'");
-						}
 					}
 			}
-			else
+			elseif(isset($_POST['group']) && is_numeric($_POST['group']) && isset($_POST['group_old']))
 			{
-				if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
+				if($_POST['group'] > 0)
+				{
+					$list = array();
+		            $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+		            $link = $this->makeLink($list, $_POST['group'], $data['alias']);
+		        }
+
+				if($_POST['group'] != $_POST['group_old'])
+				{
+					$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$_POST['position_old']}' AND `group` = '{$_POST['group_old']}'");
+					$data['group'] = $_POST['group'];
+					$data['position'] = 1 + $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
+					$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
+				}
 			}
 		}
-		$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$data['alias']);
+		else
+			$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
 		$this->db->updateRow($this->table(), $data, $id);
-		return $data['alias'];
+		return $link;
 	}
 
 	public function delete($id)
@@ -354,9 +390,16 @@ class products_model {
 		$product = $this->getById($id);
 		if($product)
 		{
+			$this->db->sitemap_remove($product->id);
 			$this->db->deleteRow($this->table(), $product->id);
-			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `id` > '{$product->id}'");
-			$this->db->executeQuery("DELETE FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$product->id}'");
+			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$product->position}' AND `group` = '{$product->group}'");
+			$this->db->deleteRow($this->table('_product_options'), $product->id, 'product');
+			if($_SESSION['option']->searchHistory)
+				$this->db->deleteRow($this->table('_search_history'), $product->id, 'product_id');
+			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
+			$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
+			$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
+			$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			
 			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$product->id;
 			$path = substr($path, strlen(SITE_URL));

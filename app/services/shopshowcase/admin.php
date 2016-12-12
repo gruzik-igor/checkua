@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.3"
+ 	Service "Shop Showcase 2.3.1"
 	for WhiteLion 1.0
 
 */
@@ -179,18 +179,14 @@ class shopshowcase extends Controller {
 				$link = $this->products_model->save($_POST['id']);
 				$this->products_model->saveProductOptios($_POST['id']);
 
-				if(isset($_POST['to']) && $_POST['to'] == 'new') {
+				if(isset($_POST['to']) && $_POST['to'] == 'new')
 					$this->redirect("admin/{$_SESSION['alias']->alias}/add");
-				} elseif(isset($_POST['to']) && $_POST['to'] == 'category') {
-					$link = 'admin/'.$_SESSION['alias']->alias;
-					$product = $this->products_model->getById($_POST['id']);
-					$product->link = explode('/', $product->link);
-					array_pop ($product->link);
-					if(!empty($product->link))
-					{
-						$product->link = implode('/', $product->link);
-						$link .= '/'.$product->link;
-					}
+				elseif(isset($_POST['to']) && $_POST['to'] == 'category')
+				{
+					$link = 'admin/'.$_SESSION['alias']->alias.'/'.$link;
+					$link = explode('/', $link);
+					array_pop ($link);
+					$link = implode('/', $link);
 					$this->redirect($link);
 				}
 

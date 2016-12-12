@@ -35,7 +35,7 @@
 						<?php if(!empty($group->parents)) {
 							$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
 							foreach ($group->parents as $parent) { 
-								$link .= '/'.$parent->link;
+								$link .= '/'.$parent->alias;
 								echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
 							}
 						} ?>

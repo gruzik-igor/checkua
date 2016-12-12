@@ -74,6 +74,8 @@
 			}
 			else
 			{
+				echo('<input type="hidden" name="group_old" value="'.$product->group.'">');
+				echo('<input type="hidden" name="position_old" value="'.$product->position.'">');
 				echo('<select name="group" class="form-control">');
 				echo ('<option value="0">Немає</option>');
 				if(!empty($list))

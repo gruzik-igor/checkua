@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.2"
+ 	Service "Shop Showcase 2.3.1"
 	for WhiteLion 1.0
 
 */
@@ -68,9 +68,9 @@ class shopshowcase extends Controller {
 				}
 				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
-				$groups = $this->shop_model->getGroups($group->id);
+				$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
-				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'products' => $products));
+				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products));
 			}
 			else
 				$this->load->page_404();

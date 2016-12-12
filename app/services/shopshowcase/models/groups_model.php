@@ -75,9 +75,9 @@ class groups_model {
 	{
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
-		$data['parent'] = 0;
+		$parent = $data['parent'] = 0;
 		if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] > 0)
-			$data['parent'] = $_POST['parent'];
+			$parent = $data['parent'] = $_POST['parent'];
 		$data['active'] = 1;
 		$data['author_add'] = $_SESSION['user']->id;
 		$data['date_add'] = time();
@@ -86,7 +86,7 @@ class groups_model {
 		if($this->db->insertRow($this->table(), $data)){
 			$id = $this->db->getLastInsertedId();
 
-			$position = $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
+			$position = 1 + $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
 
 			$data = array();
 			$data['alias'] = '';
@@ -115,31 +115,25 @@ class groups_model {
 				$name = $ntkd['name'];
 			}
 
-			$data['alias'] = $this->makeLink($data['alias']);
+			$data['alias'] = $this->makeLink($data['alias'], $parent);
 			$alias = $data['alias'];
-			if($position == 0)
-				$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
+			if($position == 1)
+				$data['position'] = 1 + $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
 			else
 				$data['position'] = $position;
 
-			$sitemap = array();
-			$sitemap['link'] = $_SESSION['alias']->alias.'/'.$alias;
-			$sitemap['alias'] = $_SESSION['alias']->id;
-			$sitemap['content'] = -$id;
-			$sitemap['code'] = 200;
-			$sitemap['data'] = NULL;
-			$sitemap['time'] = time();
-			$sitemap['changefreq'] = 'daily';
-			$sitemap['priority'] = 6;
-			if($_SESSION['language'])
-			{
-				foreach ($_SESSION['all_languages'] as $lang) {
-					$sitemap['language'] = $lang;
-					$this->db->insertRow('wl_sitemap', $sitemap);
-				}
-			}
+			if($parent == 0)
+				$this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$alias, 200, 6);
 			else
-				$this->db->insertRow('wl_sitemap', $sitemap);
+			{
+				$list = array();
+	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+	            foreach ($groups as $Group) {
+	            	$list[$Group->id] = clone $Group;
+	            }
+	            $link = $this->getLink($list, $parent, $alias);
+	            $this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$link, 200, 6);
+			}
 			
 			if($this->db->updateRow($this->table(), $data, $id))
 				return $id;
@@ -168,12 +162,16 @@ class groups_model {
 			}
 			if($group->parent != $data['parent'])
 				$this->changeParent($group->id, $group->parent, $data['parent']);
-			if($group->alias != $data['alias'])
+
+			if($group->alias != $data['alias'] || $group->parent != $data['parent'])
 			{
-				if($_SESSION['language'])
-				{
-					
-				}
+				$list = array();
+	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+	            foreach ($groups as $Group) {
+	            	$list[$Group->id] = clone $Group;
+	            }
+	            $link = $this->getLink($list, $data['parent'], $data['alias']);
+	            $this->db->sitemap_update(-$id, 'link', $_SESSION['alias']->alias.'/'.$link);
 			}
 
 			if($this->db->updateRow($this->table(), $data, $id))
@@ -237,9 +235,13 @@ class groups_model {
 				$this->db->executeQuery("UPDATE `{$this->table('_products')}` SET `group` = '{$group->parent}' WHERE `group` = '{$group->id}'");
 			}
 
+			$this->db->sitemap_remove(-$group->id);
 			$this->db->deleteRow($this->table(), $group->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$group->position}'");
 			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
 
 			$path = IMG_PATH.$_SESSION['option']->folder.'/-'.$group->id;
 			$path = substr($path, strlen(SITE_URL));
@@ -328,22 +330,25 @@ class groups_model {
 		return $parents;
 	}
 
-	private function makeLink($link){
-		$Group = $this->getByAlias($link);
+	private function makeLink($link, $parent = 0){
+		$Group = $this->getByAlias($link, $parent);
 		$end = 0;
 		$link2 = $link;
 		while ($Group) {
 			$end++;
 			$link2 = $link.'-'.$end;
-		 	$Group = $this->getByAlias($link2);
+		 	$Group = $this->getByAlias($link2, $parent);
 		}
 		return $link2;
 	}
 
 	private function getLink($all, $parent, $link)
 	{
-		$link = $all[$parent]->alias .'/'.$link;
-		if($all[$parent]->parent > 0) $link = $this->getLink ($all, $all[$parent]->parent, $link);
+		if($parent > 0)
+		{
+			$link = $all[$parent]->alias .'/'.$link;
+			if($all[$parent]->parent > 0) $link = $this->getLink ($all, $all[$parent]->parent, $link);
+		}
 		return $link;
 	}
 
@@ -362,8 +367,15 @@ class groups_model {
 		$products = $this->db->getAllDataByFieldInArray($this->table('_products'), $group, 'group');
 		if($products)
 			foreach ($products as $a) {
+				$this->db->sitemap_remove($a->id);
 				$this->db->deleteRow($this->table('_products'), $a->id);
+				$this->db->deleteRow($this->table('_product_options'), $a->id, 'product');
+				if($_SESSION['option']->searchHistory)
+					$this->db->deleteRow($this->table('_search_history'), $a->id, 'product_id');
 				$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
 
 				$path = IMG_PATH.$_SESSION['option']->folder.'/'.$a->id;
 				$path = substr($path, strlen(SITE_URL));

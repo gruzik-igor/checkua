@@ -17,7 +17,7 @@
 		</div>
 		<div class="input-group">
 		    <span class="input-group-addon">description</span>
-		    <input type="text" value="<?=$ntkd[$lang]->description?>" class="form-control" placeholder="<?=$ntkd->list?>" onChange="save('description', this, '<?=$lang?>')" maxlength="155">
+		    <input type="text" value="<?=$ntkd[$lang]->description?>" class="form-control" placeholder="<?=$ntkd[$lang]->list?>" onChange="save('description', this, '<?=$lang?>')" maxlength="155">
 		    <span class="input-group-addon">max: 155</span>
 		</div>
 	</div>
@@ -59,7 +59,7 @@
 				}
 			}
 		}
-		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
+		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$lang}' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>

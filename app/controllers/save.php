@@ -20,13 +20,13 @@ class save extends Controller {
     	if($formName != '')
         {
             $form = $this->db->getAllDataById('wl_forms', $formName, 'name');
-            if($form && $form->table != '' && $form->send_mail == 1 && $form->type > 0 && $form->type_data > 0)
+            if($form && $form->table != '' && $form->type > 0 && $form->type_data > 0)
             {
                 $fields = $this->db->getQuery("SELECT f.*, t.name as type_name FROM wl_fields as f LEFT JOIN wl_input_types as t ON t.id = f.input_type WHERE f.form = {$form->id}", 'array');
 
-                if($fields){
+                if($fields)
+                {
                 	$data = $data_id = $this->errors = array();
-
                 	foreach ($fields as $field) 
                     {
                 		$input_data = null;
@@ -60,9 +60,15 @@ class save extends Controller {
                             $data['id'] = $this->db->getLastInsertedId();
                         }
                 	}
+                    else
+                    {
+                        echo('<pre>');
+                        print_r($data);
+                        print_r($this->errors);
+                        exit();
+                    }
                     $where['form'] = $form->id;
                     $where['active'] = 1;
-
 
                     if($form->send_sms == 1 && $form->sms_text != '' &&($data['tel'] || $data['phone']))
                     {
@@ -118,7 +124,8 @@ class save extends Controller {
                                             $this->redirect();
                                             break;
                                         case '2':
-                                            $text = $_SESSION['all_languages'] ? json_decode($form->success_data)->$_SESSION['language'] : $form->success_data;
+                                            $lang = $_SESSION['language'];
+                                            $text = $_SESSION['all_languages'] ? json_decode($form->success_data)->$lang : $form->success_data;
                                             $this->load->notify_view(array('success' => $text));
                                             break;
                                         case '3':
@@ -131,7 +138,20 @@ class save extends Controller {
                     }
                     else 
                     {
-                        $this->redirect();
+                        switch ($form->success) 
+                        {
+                            case '1':
+                                $this->redirect();
+                                break;
+                            case '2':
+                                $lang = $_SESSION['language'];
+                                $text = $_SESSION['all_languages'] ? json_decode($form->success_data)->$lang : $form->success_data;
+                                $this->load->notify_view(array('success' => $text));
+                                break;
+                            case '3':
+                                header("Location:".SITE_URL.$form->success_data);
+                                break;
+                        }
                     }
                 }
             }

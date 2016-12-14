@@ -27,7 +27,9 @@
     </li>
     <?php
     $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
-
+    if($sidebarForms) foreach($sidebarForms as $sidebarForm) { ?>
+        <li><a href="<?= SITE_URL.'admin/wl_forms/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
+    <?php }
     $this->db->select('wl_aliases', 'id, alias, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');
     $this->db->order('admin_order DESC');
@@ -64,9 +66,6 @@
                 if(isset($sub_menus[$wl_alias->id]) && is_array($sub_menus[$wl_alias->id]) && !empty($sub_menus[$wl_alias->id]))
                   $sub_menu = $sub_menus[$wl_alias->id];
     ?>
-    <?php if($sidebarForms) foreach($sidebarForms as $sidebarForm) {?>
-        <li><a href="<?= SITE_URL.'admin/wl_forms/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
-    <?php } ?>
         <li class="<?=($_SESSION['alias']->alias == $wl_alias->alias)?'active':''?> <?=($sub_menu)?'has-sub':''?>">
             <?php if($sub_menu) { ?>
                 <a href="javascript:;">

@@ -197,14 +197,14 @@ class wl_forms extends Controller {
         $data = array();
         $formId = $_POST['formId'];
 
-        $data['sidebar'] = $this->data->post('sidebar');
+        $data['sidebar'] = ($this->data->post('sidebar')) ? $this->data->post('sidebar') : 0;
         $data['name'] = $this->data->post('name');
-        $data['captcha'] = $this->data->post('captcha');
+        $data['captcha'] = ($this->data->post('captcha')) ? $this->data->post('captcha') : 0;
         $data['title'] = $this->data->post('title');
         $data['table'] = $this->data->post('table');
         $data['type'] = $this->data->post('type') == 'get' ? 1 : 2;
         $data['type_data'] = 2;
-        $data['send_mail'] = $this->data->post('send_mail');
+        $data['send_mail'] = ($this->data->post('send_mail')) ? $this->data->post('send_mail') : 0;
         $data['success'] = $this->data->post('after');
 
         switch ($data['success'])
@@ -223,7 +223,7 @@ class wl_forms extends Controller {
         }
 
 
-        $data['send_sms'] = $this->data->post('send_sms');
+        $data['send_sms'] = ($this->data->post('send_sms')) ? $this->data->post('send_sms') : 0;
         $data['sms_text'] = isset($_POST['sms_text']) ? $this->data->post('sms_text') : '';
 
         if($this->data->post('create'))
@@ -248,7 +248,7 @@ class wl_forms extends Controller {
             $this->db->updateRow('wl_forms', $data, $formId);
 
             $this->db->executeQuery("DELETE FROM `wl_mail_active` WHERE `form` = $formId");
-            if(isset($_POST['templates']))
+            if(isset($_POST['templates']) && $data['send_mail'])
             {
                 foreach ($_POST['templates'] as $template) 
                 {
@@ -257,8 +257,7 @@ class wl_forms extends Controller {
             }
         }
 
-        header("Location: ".SITE_URL."admin/wl_forms/".$data['name']);
-        exit;
+        $this->redirect("admin/wl_forms/".$data['name']);
     }
 }
 

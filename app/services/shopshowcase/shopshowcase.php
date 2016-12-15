@@ -26,8 +26,10 @@ class shopshowcase extends Controller {
 			$type = null;
 			$product = $this->shop_model->routeURL($this->data->url(), $type);
 
-			if($type == 'product' && $product && ($product->active == 1 || $this->userCan()))
+			if($type == 'product' && $product)
 			{
+				if($product->active == 0 || !$this->userCan())
+					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
@@ -38,8 +40,10 @@ class shopshowcase extends Controller {
 					$_SESSION['alias']->title = $product->article . ' ' . $_SESSION['alias']->name;
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
-			elseif($_SESSION['option']->useGroups && $type == 'group' && $product && ($product->active == 1 || $this->userCan()))
+			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)
 			{
+				if($product->active == 0 || !$this->userCan())
+					$this->load->page_404(false);
 				$group = clone $product;
 				unset($product);
 

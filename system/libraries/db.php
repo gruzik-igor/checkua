@@ -586,7 +586,7 @@ class Db {
         $sitemap['changefreq'] = (in_array($changefreq, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $changefreq : 'daily';
         if($priority < 1) $priority *= 10;
         $sitemap['priority'] = $priority;
-        if($_SESSION['language'] && $content !== NULL)
+        if($_SESSION['language'])
         {
             foreach ($_SESSION['all_languages'] as $lang) {
                 $sitemap['language'] = $lang;
@@ -613,6 +613,7 @@ class Db {
         $sitemap['changefreq'] = 'daily';
         $sitemap['priority'] = -5;
         $this->insertRow('wl_sitemap', $sitemap);
+        return $this->getLastInsertedId();
     }
 
     public function sitemap_update($content = NULL, $key = 'link', $value = '', $alias = 0)
@@ -671,7 +672,6 @@ class Db {
         }
         $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
         $this->updateRow('wl_sitemap', $sitemap, $where);
-        return true;
     }
 
     public function sitemap_remove($content = 0, $alias = 0)

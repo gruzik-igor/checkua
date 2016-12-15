@@ -37,6 +37,16 @@ if(file_exists($file_config))
 						(6, 0, '{$value}', 'Відновлення паролю {$site_name}'),
 						(7, 0, '{$value}', 'Підписка');";
 			$connect->query($query);
+			$query = "INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, `data`, `time`) VALUES
+					(1, 'main', 1, 0, '{$value}', 200, NULL, 1471428532),
+					(2, 'search', 2, 0, '{$value}', 201, NULL, 0),
+					(3, 'profile', 3, 0, '{$value}', 201, NULL, 0),
+					(4, 'login', 4, 0, '{$value}', 201, NULL, 0),
+					(5, 'signup', 5, 0, '{$value}', 200, NULL, 0),
+					(6, 'reset', 6, 0, '{$value}', 201, NULL, 0),
+					(7, 'subscribe', 0, 0, '{$value}', 200, NULL, 0),
+					(8, 'logout', 0, 0, '{$value}', 201, NULL, 0);";
+			$connect->query($query);
 		}
 	}
 	else
@@ -49,6 +59,16 @@ if(file_exists($file_config))
 						(5, 0, 'Реєстрація {$site_name}'),
 						(6, 0, 'Відновлення паролю {$site_name}'),
 						(7, 0, 'Підписка');";
+		$connect->query($query);
+		$query = "INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, `data`, `time`) VALUES
+					(1, 'main', 1, 0, NULL, 200, NULL, 1471428532),
+					(2, 'search', 2, 0, NULL, 201, NULL, 0),
+					(3, 'profile', 3, 0, NULL, 201, NULL, 0),
+					(4, 'login', 4, 0, NULL, 201, NULL, 0),
+					(5, 'signup', 5, 0, NULL, 200, NULL, 0),
+					(6, 'reset', 6, 0, NULL, 201, NULL, 0),
+					(7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
+					(8, 'logout', 0, 0, NULL, 201, NULL, 0);";
 		$connect->query($query);
 	}
 	$connect->close();

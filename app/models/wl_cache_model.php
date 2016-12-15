@@ -38,12 +38,30 @@ class wl_cache_model extends Loader
 				break;
 			
 			case 301:
+				if(!empty($_SERVER['HTTP_REFERER']))
+				{
+					$referer = array();
+					$referer['sitemap'] = $this->page->id;
+					$referer['from'] = $this->db->sanitizeString($_SERVER['HTTP_REFERER']);
+					$referer['date'] = time();
+					$this->db->insertRow('wl_sitemap_from', $referer);
+				}
+
 				header ('HTTP/1.1 301 Moved Permanently');
 				header("Location: ".SITE_URL.$this->page->data);
 				exit();
 				break;
 
 			case 404:
+				if(!empty($_SERVER['HTTP_REFERER']))
+				{
+					$referer = array();
+					$referer['sitemap'] = $this->page->id;
+					$referer['from'] = $this->db->sanitizeString($_SERVER['HTTP_REFERER']);
+					$referer['date'] = time();
+					$this->db->insertRow('wl_sitemap_from', $referer);
+				}
+				
 				new Page404(false);
 				break;
 		}

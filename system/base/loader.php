@@ -126,8 +126,18 @@ class Loader {
 		if($update_SiteMap)
 		{
 			$this->library('db');
-			if($_SESSION['alias']->id == 0)
-				$this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->link, 404);
+			if($_SESSION['alias']->content === NULL)
+			{
+				$page = $this->db->sitemap_add($_SESSION['alias']->content, $_SESSION['alias']->link, 404);
+				if(!empty($_SERVER['HTTP_REFERER']))
+				{
+					$referer = array();
+					$referer['sitemap'] = $page->id;
+					$referer['from'] = $this->db->sanitizeString($_SERVER['HTTP_REFERER']);
+					$referer['date'] = time();
+					$this->db->insertRow('wl_sitemap_from', $referer);
+				}
+			}
 			else
 				$this->db->sitemap_update($_SESSION['alias']->content, 'code', 404);
 		}

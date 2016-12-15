@@ -431,28 +431,15 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
 --
 ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
 
---
--- Дамп даних таблиці `wl_sitemap`
---
-
-INSERT INTO `wl_sitemap` (`id`, `link`, `alias`, `content`, `language`, `code`, `data`, `time`) VALUES
-(1, 'main', 1, 0, NULL, 200, NULL, 1471428532),
-(2, 'search', 2, 0, NULL, 201, NULL, 0),
-(3, 'profile', 3, 0, NULL, 201, NULL, 0),
-(4, 'login', 4, 0, NULL, 201, NULL, 0),
-(5, 'signup', 5, 0, NULL, 200, NULL, 0),
-(6, 'reset', 6, 0, NULL, 201, NULL, 0),
-(7, 'subscribe', 0, 0, NULL, 200, NULL, 0),
-(8, 'logout', 0, 0, NULL, 201, NULL, 0);
-
 
 DROP TABLE IF EXISTS `wl_sitemap_from`;
 CREATE TABLE IF NOT EXISTS `wl_sitemap_from` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `sitemap` int(11) NOT NULL,
   `from` text NOT NULL,
-  `time` int(11) NOT NULL,
-  PRIMARY KEY (`id`)
+  `date` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  KEY `sitemap` (`sitemap`)
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 -- --------------------------------------------------------
 

@@ -277,13 +277,32 @@
 			                </tr>
 			            </thead>
 			            <tbody>
-			            	<?php if($wl_statistic) { foreach ($wl_statistic as $statistic) { ?>
+			            	<?php if($wl_statistic) {
+			            		foreach ($wl_statistic as $statistic) { ?>
 				                <tr>
 				                    <td><?=date('d.m.Y', $statistic->day)?></td>
 				                    <td><?=$statistic->unique?></td>
 				                    <td><?=$statistic->views?></td>
 				                </tr>
-			                <?php } } else { ?>
+			                <?php if($sitemap->code > 299)
+				                	{
+				                		$where = array();
+				                		$where['sitemap'] = $sitemap->id;
+				                		$where['date'] = '>='.$statistic->day;
+				                		$statistic->day += 3600*24;
+				                		$where['+date'] = '<'.$statistic->day;
+				                		if($wl_sitemap_from = $this->db->getAllDataByFieldInArray('wl_sitemap_from', $where))
+				                		{
+				                			foreach ($wl_sitemap_from as $from) { ?>
+				                				<tr>
+								                    <td><?=date('d.m.Y H:i', $from->date)?></td>
+								                    <td colspan="2"><?=$from->from?></td>
+								                </tr>
+				                			<?php }
+				                		}
+				                	}
+			                 	}
+			                } else { ?>
 				                <tr>
 				                	<td colspan="3">Інформація відсутня.</td>
 				                </tr>
@@ -298,7 +317,34 @@
 		    </div>
 		</div>
 	</div>
-<?php } 
+<?php } elseif($sitemap->code > 299) {
+	if($wl_sitemap_from = $this->db->getAllDataByFieldInArray('wl_sitemap_from', $sitemap->id, 'sitemap')) { ?>
+	<div class="col-md-8">
+		<div class="row">
+			<div class="panel panel-inverse" data-sortable-id="form-plugins-2">
+				<div class="panel-body">
+					<table class="table table-striped table-responsive table-hover">
+			            <thead>
+			                <tr>
+			                    <th>День та година</th>
+			                    <th>Адреса ініціалізації</th>
+			                </tr>
+			            </thead>
+			            <tbody>
+						<?php foreach ($wl_sitemap_from as $from) { ?>
+							<tr>
+				                <td><?=date('d.m.Y H:i', $from->date)?></td>
+				                <td><?=$from->from?></td>
+				            </tr>
+						<?php } ?>
+						</tbody>
+					</table>
+				</div>
+			</div>
+		</div>
+	</div>
+	<?php }
+}
 $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
 ?>
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />

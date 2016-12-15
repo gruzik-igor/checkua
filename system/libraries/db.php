@@ -578,7 +578,7 @@ class Db {
         $sitemap = array();
         $page = new stdClass();
         $sitemap['link'] = $page->uniq_link = $link;
-        $sitemap['alias'] = $page->alias = ($alias > 0) ? $alias : $_SESSION['alias']->id;
+        $sitemap['alias'] = $page->alias = ($alias > 0 || $content === NULL) ? $alias : $_SESSION['alias']->id;
         $sitemap['content'] = $page->content = ($content === NULL) ? 0 : $content;
         $sitemap['code'] = $page->code = ($code > 0) ? $code : $_SESSION['alias']->code;
         $sitemap['data'] = $sitemap['language'] = NULL;
@@ -591,11 +591,15 @@ class Db {
             foreach ($_SESSION['all_languages'] as $lang) {
                 $sitemap['language'] = $lang;
                 $this->insertRow('wl_sitemap', $sitemap);
+                if($lang == $_SESSION['language'])
+                    $page->id = $this->getLastInsertedId();
             }
         }
         else
+        {
             $this->insertRow('wl_sitemap', $sitemap);
-        $page->id = $this->getLastInsertedId();
+            $page->id = $this->getLastInsertedId();
+        }
         if($_SESSION['language'])
             $page->uniq_link .= '/'.$_SESSION['language'];
         return $page;

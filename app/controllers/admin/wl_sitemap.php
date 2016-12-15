@@ -24,7 +24,7 @@ class wl_sitemap extends Controller {
                 $sitemap->name = '';
                 $where = array('alias' => $sitemap->alias, 'content' => $sitemap->content);
                 if($_SESSION['language'])
-                    $where['language'] = $_SESSION['language'];
+                    $where['language'] = $sitemap->language;
 
                 if($sitemap->alias > 0)
                 {
@@ -35,11 +35,13 @@ class wl_sitemap extends Controller {
                         $sitemap->name = $ntkd->name;
                     }
                 }
+                else
+                    $where['content'] = $sitemap->id;
 
                 $this->db->select('wl_statistic_pages as s', '`day`, `unique`, `views`', $where);
                 $this->db->order('id DESC');
                 $start = 0;
-                $_SESSION['option']->paginator_per_page = 30;
+                $_SESSION['option']->paginator_per_page = ($sitemap->code < 299) ? 30 : 10;
                 if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
                     $start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
                 $this->db->limit($start, $_SESSION['option']->paginator_per_page);

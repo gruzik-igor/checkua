@@ -88,9 +88,9 @@ Morris.Line({
     hideHover: "auto"
 }).on('click', function (i, row) {
     var day = row.x.split('-');
-    var tomorrow = new Date(day[0],day[1],day[2]);
+    var tomorrow = new Date(day[0],(day[1]-1),day[2]);
     tomorrow.setDate(tomorrow.getDate() + 1);
-    location.href='<?=SITE_URL?>admin/wl_statistic?start='+day[2]+'.'+day[1]+'.'+day[0]+'&end='+tomorrow.getDate()+'.'+tomorrow.getMonth()+'.'+tomorrow.getFullYear(); });
+    location.href='<?=SITE_URL?>admin/wl_statistic?start='+day[2]+'.'+day[1]+'.'+day[0]+'&end='+tomorrow.getDate()+'.'+(tomorrow.getMonth()+1)+'.'+tomorrow.getFullYear(); });
 
 var handleVisitorsDonutChart = function() {
     var e = "#00acac";

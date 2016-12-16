@@ -42,7 +42,7 @@ class wl_analytic_model {
 				$where['content'] = $content;
 		}
 		$language = $this->data->get('language');
-		if($language != '*')
+		if($language && $language != '*')
 			$where['language'] = $language;
 		$get = array('start' => 'date', 'end' => 'date');
 		$get = $this->data->make($get, '_GET');

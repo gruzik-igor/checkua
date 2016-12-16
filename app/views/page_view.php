@@ -1,16 +1,20 @@
-<html lang="uk">
+<html lang="uk" prefix="og: http://ogp.me/ns#">
 <head>
-	<title><?=$_SESSION['alias']->title?></title>
-
-    <!-- Meta -->
+	<title><?=html_entity_decode($_SESSION['alias']->title, ENT_QUOTES)?></title>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="<?=$_SESSION['alias']->description?>">
-    <meta name="keywords" content="<?=$_SESSION['alias']->keywords?>">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="title" content="<?=html_entity_decode($_SESSION['alias']->title, ENT_QUOTES)?>">
+    <meta name="description" content="<?=html_entity_decode($_SESSION['alias']->description, ENT_QUOTES)?>">
+    <meta name="keywords" content="<?=html_entity_decode($_SESSION['alias']->keywords, ENT_QUOTES)?>">
     <meta name="author" content="webspirit.com.ua">
 
-    <?=$_SESSION['option']->global_MetaTags?>
-    <?=$_SESSION['alias']->meta?>
+    <?=html_entity_decode($_SESSION['option']->global_MetaTags, ENT_QUOTES)?>
+    <?=html_entity_decode($_SESSION['alias']->meta, ENT_QUOTES)?>
+
+    <meta property="og:locale"             content="uk_UA" />
+    <meta property="og:title"              content="<?=html_entity_decode($_SESSION['alias']->title, ENT_QUOTES)?>" />
+    <meta property="og:description"        content="<?=html_entity_decode($_SESSION['alias']->description, ENT_QUOTES)?>" />
+    <meta property="og:image"              content="<?=IMG_PATH.$_SESSION['alias']->image?>" />
 
 	<link rel="shortcut icon" href="<?=SERVER_URL?>style/admin/images/whitelion-black.png">
 

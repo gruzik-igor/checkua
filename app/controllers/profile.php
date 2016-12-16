@@ -32,7 +32,12 @@ class Profile extends Controller {
                 $this->load->page_404();
         } 
         elseif($this->userIs())
-            $this->redirect('profile/'.$_SESSION['user']->alias);
+        {
+            if(isset($_SESSION['user']->alias))
+                $this->redirect('profile/'.$_SESSION['user']->alias);
+            else
+                $this->load->page_404(false);
+        }
         else
             $this->redirect('login');
     }

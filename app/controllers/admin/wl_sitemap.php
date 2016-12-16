@@ -168,8 +168,9 @@ class wl_sitemap extends Controller {
                 $this->db->select('wl_sitemap', 'id, link, alias, content', $_POST['id']);
                 if($sitemap = $this->db->get())
                 {
+                    $this->db->deleteRow('wl_sitemap_from', $sitemap->id, 'sitemap');
                     if($sitemap->alias == 0)
-                        $this->db->deleteRow('wl_statistic_pages', array('alias' => $sitemap->alias, 'content' => $sitemap->content));
+                        $this->db->deleteRow('wl_statistic_pages', array('alias' => 0, 'content' => $sitemap->id));
                     if($_SESSION['language'] && isset($_POST['all_languages']) && $_POST['all_languages'] == 1)
                         $this->db->deleteRow('wl_sitemap', array('alias' => $sitemap->alias, 'content' => $sitemap->content));
                     else
@@ -267,6 +268,10 @@ class wl_sitemap extends Controller {
                 elseif($_POST['do'] == 'delete')
                 {
                     $this->db->deleteRow('wl_sitemap', array('id' => $ids));
+                    foreach ($ids as $id) {
+                        $this->db->deleteRow('wl_sitemap_from', $id, 'sitemap');
+                        $this->db->deleteRow('wl_statistic_pages', array('alias' => 0, 'content' => $id));
+                    }
                     $_SESSION['notify'] = new stdClass();
                     $_SESSION['notify']->success = 'Дані успішно видалено!';
                 }

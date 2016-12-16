@@ -87,7 +87,7 @@
 								<input type="checkbox" data-render="switchery" <?=($siteMap->priority >= 0) ? 'checked' : ''?> value="1"  onChange="save('SiteMapIndex', this, '<?=$lang?>')" />
 							</div>
 							<label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Частота оновлення:</label>
-							<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+							<div class="col-md-2 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
 								<select onChange="save('changefreq', this, '<?=$lang?>')" class="form-control">
 									<?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'); 
 									foreach ($changefreq as $freq) {
@@ -167,7 +167,7 @@
 					<input type="checkbox" data-render="switchery" <?=($siteMap->priority >= 0) ? 'checked' : ''?> value="1"  onChange="save('SiteMapIndex', this)" />
 				</div>
 				<label class="col-md-1 control-label SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>Частота оновлення:</label>
-				<div class="col-md-1 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
+				<div class="col-md-2 SiteMap" <?=($siteMap->priority < 0) ? 'style="display:none"' : ''?>>
 					<select onChange="save('changefreq', this)" class="form-control">
 						<?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never'); 
 						foreach ($changefreq as $freq) {

@@ -90,7 +90,7 @@ a.left {
 {
     margin: 0 0 10px;
 }
-.tab-content .tab-pane small
+.tab-content .tab-pane small.badge
 {
     text-align: center;
     cursor: pointer;

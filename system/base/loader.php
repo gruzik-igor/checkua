@@ -50,6 +50,15 @@ class Loader {
 				$this->$class = $this->register($class);
 		}
 	}
+
+	function authorize()
+    {
+        if(isset($_COOKIE['auth_id']) && empty($_SESSION['user']->id))
+        {
+            $this->model('wl_auth_model');
+            $this->wl_auth_model->authByCookies($_COOKIE['auth_id']);
+        }
+    }
 	
 	/**
 	 * Завантажуємо подання

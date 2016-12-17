@@ -19,7 +19,6 @@ class Controller extends Loader {
     {
         parent::__construct();
         $this->load = $this;
-        $this->authorize();
 	}
 	
 	/**
@@ -32,15 +31,6 @@ class Controller extends Loader {
     {
 		parent::library($classname, $this);
 	}
-	
-	private function authorize()
-    {
-        if(isset($_COOKIE['auth_id']) && !$this->userIs())
-        {
-            $this->load->model('wl_auth_model');
-            $this->wl_auth_model->authByCookies($_COOKIE['auth_id']);
-        }
-    }
 
     public function userIs()
     {

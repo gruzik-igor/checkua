@@ -27,6 +27,7 @@ class Router extends Loader {
 	function findRoute()
 	{
 		parent::library('db', $this);
+		$this->authorize();
 
 		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
@@ -67,7 +68,7 @@ class Router extends Loader {
 			parent::model('wl_alias_model');
 			$this->wl_alias_model->init($parts[0], $this->request);
 
-			if(empty($_POST) && !in_array($parts[0], array('app', 'assets', 'style', 'js', 'css', 'images', 'upload')))
+			if(empty($_POST))
 			{
 				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
 				{

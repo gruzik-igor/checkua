@@ -74,7 +74,7 @@
                     $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colReorder.js'; 
                     $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colVis.js'; 
                     $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.responsive.js'; 
-                    $_SESSION['alias']->js_load[] = 'js/admin/table-list.js';
+                    $_SESSION['alias']->js_load[] = 'assets/color-admin/table-list.js';
                     $_SESSION['alias']->js_init[] = 'TableManageCombine.init();'; 
                 } else {
                 ?>

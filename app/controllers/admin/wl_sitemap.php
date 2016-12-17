@@ -75,7 +75,9 @@ class wl_sitemap extends Controller {
             if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
                 $start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
             $this->db->limit($start, $_SESSION['option']->paginator_per_page);
-            $sitemap = $this->db->get('array');
+            $sitemap = $this->db->get('array', false);
+            $_SESSION['option']->paginator_total = $this->db->get('count');
+            
             $this->load->admin_view('wl_sitemap/index_view', array('sitemap' => $sitemap));
         }
         else
@@ -165,7 +167,7 @@ class wl_sitemap extends Controller {
         {
             if($_POST['code_hidden'] == $_POST['code_open'])
             {
-                $this->db->select('wl_sitemap', 'id, link, alias, content', $_POST['id']);
+                $this->db->select('wl_sitemap', 'id, link, alias, content, code', $_POST['id']);
                 if($sitemap = $this->db->get())
                 {
                     $this->db->deleteRow('wl_sitemap_from', $sitemap->id, 'sitemap');
@@ -177,7 +179,7 @@ class wl_sitemap extends Controller {
                         $this->db->deleteRow('wl_sitemap', $sitemap->id);
                     $_SESSION['notify'] = new stdClass();
                     $_SESSION['notify']->success = 'Дані <strong>'.SITE_URL.$sitemap->link.'</strong> успішно видалено!';
-                    $this->redirect('admin/wl_sitemap');
+                    $this->redirect('admin/wl_sitemap?code='.$sitemap->code);
                 }
             }
             else

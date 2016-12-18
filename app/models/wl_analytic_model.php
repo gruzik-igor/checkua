@@ -72,6 +72,36 @@ class wl_analytic_model {
 		return $this->db->get('array');
 	}
 
+	public function getPageStatistic($content = NULL, $alias = 0)
+	{
+		$where = array();
+		$where['alias'] = ($alias > 0) ? $alias : $_SESSION['alias']->id;
+		$where['content'] = ($content !== NULL) ? $content : $_SESSION['alias']->content;
+
+		$language = $this->data->get('language');
+		if($language && $language != '*')
+			$where['language'] = $language;
+		$get = array('start' => 'date', 'end' => 'date');
+		$get = $this->data->make($get, '_GET');
+		if(isset($get['start']))
+			$where['day'] = '>='.$get['start'];
+		if(isset($get['end']))
+			$where['+day'] = '<='.$get['end'];
+
+		$this->db->select('wl_statistic_pages as s', '*', $where);
+		$this->db->order('id DESC');
+		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+		{
+			$start = 0;
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
+				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
+				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
+			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
+		}
+		return $this->db->get('array');
+	}
+
 } 
 
 ?>

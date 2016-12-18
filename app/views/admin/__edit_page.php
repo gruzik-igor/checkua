@@ -41,6 +41,7 @@
             }
         }
         ?>
+        <li><a href="#tab-statistic" data-toggle="tab" aria-expanded="true">Статистика</a></li>
     </ul>
 
     <div class="tab-content">
@@ -86,6 +87,9 @@
             }
         }
         ?>
+        <div class="tab-pane fade" id="tab-statistic">
+            <?php require_once 'wl_statistic/__statistic.php'; ?>
+        </div>
     </div>
 </div>
 

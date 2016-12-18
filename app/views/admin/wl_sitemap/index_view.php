@@ -45,6 +45,9 @@
                         <li <?=($this->data->get('code') == 404) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 404)?>">404 Адреса недоступна</a></li>
                     </ul>
                 </div>
+                <?php if($_SESSION['cache']) { ?>
+                    <a href="#modal-deleteCache" class="btn btn-danger btn-xs pull-right" data-toggle="modal">Очистити весь Cache сайту</a>
+                <?php } ?>
                 <div class="clear"></div>
                 <div class="table-responsive">
                     <table id="data-table" class="table table-striped table-bordered" width="100%">
@@ -206,7 +209,25 @@
         </div>
     </div>
 </div>
-
+<?php if($_SESSION['cache']) { ?>
+    <div class="modal fade" id="modal-deleteCache">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Очистити весь Cache сайту</h4>
+                </div>
+                <div class="modal-body">
+                    Увага! Видалити весь наявний Cache сайту? <br>Всі налаштування та параметри залишаться без змін.
+                </div>
+                <div class="modal-footer">
+                    <a href="<?=SITE_URL?>admin/wl_sitemap/clearSiteCache" class="btn btn-sm btn-danger">Видалити</a>
+                    <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Закрити</a>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php } ?>
 
 <link rel="stylesheet" href="<?=SITE_URL?>assets/DataTables/css/data-table.css" />
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />

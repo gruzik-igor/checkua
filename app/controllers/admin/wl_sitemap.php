@@ -333,6 +333,14 @@ class wl_sitemap extends Controller {
         $this->redirect();
     }
 
+    public function clearSiteCache()
+    {
+        $this->db->updateRow('wl_sitemap', array('data' => NULL), array('code' => '!301'));
+        $_SESSION['notify'] = new stdClass();
+        $_SESSION['notify']->success = 'Cache сайту видалено!';
+        $this->redirect();
+    }
+
     public function generate()
     {
         $this->load->admin_view('wl_sitemap/generate_view');

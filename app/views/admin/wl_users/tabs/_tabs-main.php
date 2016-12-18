@@ -46,7 +46,7 @@
 					</tr>
 		    		<tr>
 						<td class="field">Дата останнього входу</td>
-						<td><?=date("d.m.Y H:i", $user->last_login)?></td>
+						<td><?=($user->last_login > 0)?date("d.m.Y H:i", $user->last_login):'Дані відсутні'?></td>
 					</tr>
 		    		<tr>
 						<td class="field">Дата реєстрації</td>

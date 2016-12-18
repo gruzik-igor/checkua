@@ -174,6 +174,7 @@ class groups_model {
 	            $this->db->sitemap_update(-$id, 'link', $_SESSION['alias']->alias.'/'.$link);
 			}
 
+			$this->db->cache_clear(-$id);
 			if($this->db->updateRow($this->table(), $data, $id))
 				return true;
 		}

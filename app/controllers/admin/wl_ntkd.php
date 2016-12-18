@@ -174,6 +174,9 @@ class wl_ntkd extends Controller {
                         $res['result'] = true;
                         $res['error'] = '';
 
+                        $language = false;
+                        if($_SESSION['language'] && isset($_POST['language'])) $language = $_POST['language'];
+                        $this->db->cache_clear($content, $language, $alias);
                         $_SESSION['option']->sitemap_lastedit = time();
                         $this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
                     }

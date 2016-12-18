@@ -11,14 +11,16 @@ class wl_Video extends Controller {
         }
     }
 
-    function index(){
+    function index()
+    {
     	header("Location: ".SITE_URL);
     	exit();
 	}
 	
 	function save()
 	{
-		if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['content']) && is_numeric($_POST['content']) && $_POST['video'] != ''){
+		if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['content']) && is_numeric($_POST['content']) && $_POST['video'] != '')
+		{
 			$videolink = $this->data->post('video', true); 
 			$controler_video=parse_url($videolink);
 			$site = '';
@@ -57,30 +59,35 @@ class wl_Video extends Controller {
 				{
 					$_SESSION['option']->sitemap_lastedit = time();
 					$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
+					$this->db->cache_clear($_POST['content'], false, $_POST['alias']);
 
-					header('Location: '.$_SERVER['HTTP_REFERER'].'#tab-video');
-					exit;
+					$this->redirect('#tab-video');
 				}
-			} else {
+			}
+			else
+			{
 				$_SESSION['notify'] = new stdClass();
 				$_SESSION['notify']->errors = 'Невірна адреса відео. Підтримуються сервіси youtu.be, youtube.com, vimeo.com!';
-				header('Location: '.SITE_URL.$_SERVER['HTTP_REFERER']);
-				exit;
+				$this->redirect('#tab-video');
 			}
-		} else $this->load->page_404();
+		}
+		else
+			$this->load->page_404();
 	}
 
 	public function delete()
 	{
 		if($this->userCan() && isset($_GET['id']) && is_numeric($_GET['id']))
 		{
-			$this->db->deleteRow('wl_video', $_GET['id']);
+			if($video = $this->db->getAllDataById('wl_video', $_GET['id']))
+			{
+				$this->db->deleteRow('wl_video', $_GET['id']);
 
-			$_SESSION['option']->sitemap_lastedit = time();
-			$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
-
-			header('Location: '.$_SERVER['HTTP_REFERER'].'#tab-video');
-			exit;
+				$_SESSION['option']->sitemap_lastedit = time();
+				$this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
+				$this->db->cache_clear($video->content, false, $video->alias);
+			}
+			$this->redirect('#tab-video');
 		}
 		else
 			$this->load->page_404();

@@ -686,6 +686,21 @@ class Db {
         return true;
     }
 
+    public function cache_clear($content = NULL, $language = false, $alias = 0)
+    {
+        if($content === NULL) return false;
+        $where = array('content' => $content, 'code' => '!301');
+        
+        if($_SESSION['language'] && !is_numeric($language))
+            $where['language'] = $language;
+        elseif(is_numeric($language) && $language > 0)
+            $alias = $language;
+        
+        $where['alias'] = ($alias == 0) ? $_SESSION['alias']->id : $alias;
+        $this->updateRow('wl_sitemap', array('data' => NULL), $where);
+        return true;
+    }
+
 }
 
 ?>

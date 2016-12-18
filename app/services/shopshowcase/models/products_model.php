@@ -381,6 +381,7 @@ class products_model {
 		}
 		else
 			$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
+		$this->db->cache_clear($id);
 		$this->db->updateRow($this->table(), $data, $id);
 		return $link;
 	}

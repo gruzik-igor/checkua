@@ -67,6 +67,7 @@ class wl_photos extends Controller {
 
                         $_SESSION['option']->sitemap_lastedit = time();
                         $this->db->updateRow('wl_options', array('value' => $_SESSION['option']->sitemap_lastedit), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastedit'));
+                        $this->db->cache_clear($data['content'], false, $data['alias']);
                     }
                     else
                         $error++;
@@ -102,6 +103,7 @@ class wl_photos extends Controller {
                         {
                             $res['result'] = true;
                             $res['error'] = '';
+                            $this->db->cache_clear($photo->content, false, $photo->alias);
                         }
                         $this->updateAdditionall();
                         break;
@@ -111,6 +113,7 @@ class wl_photos extends Controller {
                         {
                             $res['result'] = true;
                             $res['error'] = '';
+                            $this->db->cache_clear($photo->content, false, $photo->alias);
                         }
                         $this->updateAdditionall();
                         break;
@@ -144,6 +147,7 @@ class wl_photos extends Controller {
                     }
 
                     $this->updateAdditionall();
+                    $this->db->cache_clear($photo->content, false, $photo->alias);
 
                     $res['result'] = true;
                     $res['error'] = '';

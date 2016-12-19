@@ -14,6 +14,7 @@
  * Версія 2.0.4 (12.09.2016) - додано getAliasImageSizes()
  * Версія 2.1 (22.09.2016) - updateRow(), deleteRow() адаптовано через makeWhere(); у makeWhere() виправлено роботу з нульовими значеннями; до getRows() додати перевірку на тип single
  * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
+ * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
  */
 
 class Db {
@@ -256,8 +257,13 @@ class Db {
                 {
                     if($key[0] == '+')
                         $key = substr($key, 1);
-                    if($prefix)
+                    if($prefix && $key[0] != '#')
                         $where .= "{$prefix}.{$key}";
+                    elseif($key[0] == '#')
+                    {
+                        $key = substr($key, 1);
+                        $where .= $key;
+                    }
                     else
                         $where .= "`{$key}`";
                     if(is_array($value))
@@ -427,6 +433,14 @@ class Db {
                 $where = '';
                 if($this->query_prefix)
                     $where = "AS {$this->query_prefix} ";
+                //join
+                if(!empty($this->query_join))
+                    foreach ($this->query_join as $join) {
+                        $where .= "{$join->type} JOIN `{$join->table}` ";
+                        if($join->prefix != $join->table)
+                            $where .= "AS {$join->prefix} ";
+                        $where .= "ON {$join->where} ";
+                    }
                 if($this->query_where != '')
                     $where .= 'WHERE '.$this->query_where;
                 $row = $this->getQuery("SELECT count(*) as count FROM {$this->query_table} {$where}");
@@ -676,6 +690,15 @@ class Db {
         }
         $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
         $this->updateRow('wl_sitemap', $sitemap, $where);
+    }
+
+    public function sitemap_index($content = 0, $value = 1, $alias = 0)
+    {
+        if($alias == 0) $alias = $_SESSION['alias']->id;
+        if($value == 0)
+            $this->executeQuery("UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `alias` = {$alias} AND `content` = {$content} AND `priority` > 0");
+        else
+            $this->executeQuery("UPDATE `wl_sitemap` SET `priority` = `priority` * -1 WHERE `alias` = {$alias} AND `content` = {$content} AND `priority` < 0");
     }
 
     public function sitemap_remove($content = 0, $alias = 0)

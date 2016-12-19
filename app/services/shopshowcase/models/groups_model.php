@@ -146,11 +146,11 @@ class groups_model {
 		$group = $this->db->getAllDataById($this->table(), $id);
 		if($group)
 		{
-			$data = array('active' => 1);
+			$data = array('active' => 0);
 			if(isset($_POST['alias']) && $_POST['alias'] != '')
 				$data['alias'] = $this->data->post('alias');
-			if(isset($_POST['active']) && $_POST['active'] == 0)
-				$data['active'] = 0;
+			if(isset($_POST['active']) && $_POST['active'] == 1)
+				$data['active'] = 1;
 			if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] >= 0)
 				$data['parent'] = $_POST['parent'];
 			if (isset($_SESSION['admin_options']['groups:additional_fields']) && $_SESSION['admin_options']['groups:additional_fields'] != '')
@@ -172,11 +172,52 @@ class groups_model {
 	            }
 	            $link = $this->getLink($list, $data['parent'], $data['alias']);
 	            $this->db->sitemap_update(-$id, 'link', $_SESSION['alias']->alias.'/'.$link);
+	            $this->db->cache_clear(0);
 			}
-
+			
 			$this->db->cache_clear(-$id);
 			if($this->db->updateRow($this->table(), $data, $id))
+			{
+				if($group->active != $data['active'] || $group->alias != $data['alias'] || $group->parent != $data['parent'])
+				{
+					if($_SESSION['option']->ProductMultiGroup)
+					{
+						$this->db->sitemap_index(-$id, $data['active']);
+						if($groups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $id, 'group'))
+							foreach ($groups as $pg) {
+								$this->db->cache_clear($pg->product);
+							}
+					}
+					else
+					{
+						if(empty($list) || !is_array($list) || $list[$id]->id != $id)
+						{
+							$list = array();
+				            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+				            foreach ($groups as $Group) {
+				            	$list[$Group->id] = clone $Group;
+				            }
+						}
+						$up = $id;
+						while ($up > 0) {
+							if($group->active != $data['active'])
+								$this->db->sitemap_index(-$up, $data['active']);
+							if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), $up, 'group'))
+							{
+								foreach ($products as $product) {
+									if($group->active != $data['active'])
+										$this->db->sitemap_index($product->id, $data['active']);
+									if($group->alias != $data['alias'] || $group->parent != $data['parent'])
+										$this->db->cache_clear($product->id);
+								}
+							}
+							$this->db->cache_clear(-$up);
+							$up = $list[$up]->parent;
+						}
+					}
+				}
 				return true;
+			}
 		}
 		return false;
 	}

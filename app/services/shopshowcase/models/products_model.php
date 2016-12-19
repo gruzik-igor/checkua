@@ -310,7 +310,7 @@ class products_model {
 
 	public function save($id)
 	{
-		$data = array('active' => 1, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
+		$data = array('active' => 0, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
 		if($_SESSION['option']->ProductUseArticle)
 		{
 			$data['article'] = trim($this->data->post('article'));
@@ -319,8 +319,8 @@ class products_model {
 		else
 			$data['alias'] = $id .'-'. trim($this->data->post('alias'));
 		$link = $data['alias'];
-		if(isset($_POST['active']) && $_POST['active'] == 0)
-			$data['active'] = 0;
+		if(isset($_POST['active']) && $_POST['active'] == 1)
+			$data['active'] = 1;
 		if(isset($_POST['availability']) && is_numeric($_POST['availability']))
 			$data['availability'] = $_POST['availability'];
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] >= 0)
@@ -337,6 +337,7 @@ class products_model {
 					$temp = array();
 					foreach ($activegroups as $ac) {
 						$temp[] = $ac->group;
+						$this->db->cache_clear(-$ac->group);
 					}
 					$activegroups = $temp;
 					$temp = null;
@@ -368,6 +369,11 @@ class products_model {
 		            	$list[$Group->id] = clone $Group;
 		            }
 		            $link = $this->makeLink($list, $_POST['group'], $data['alias']);
+		            $up = $Group->id;
+		            while ($up > 0) {
+		            	$this->db->cache_clear(-$up);
+		            	$up = $list[$up]->parent;
+		            }
 		        }
 
 				if($_POST['group'] != $_POST['group_old'])
@@ -376,11 +382,13 @@ class products_model {
 					$data['group'] = $_POST['group'];
 					$data['position'] = 1 + $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
 					$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
+					$this->db->cache_clear(0);
 				}
 			}
 		}
 		else
 			$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
+		$this->db->sitemap_index($id, $data['active']);
 		$this->db->cache_clear($id);
 		$this->db->updateRow($this->table(), $data, $id);
 		return $link;

@@ -162,7 +162,9 @@ class shop_model {
 				}
 			}
 		}
-		
+		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
+			$where['#g.active'] = 1;
+
 		$this->db->select($this->table('_products').' as p', '*', $where);
 		
 		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
@@ -182,6 +184,7 @@ class shop_model {
 			$where_gn['content'] = "#-p.group";
 			if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
 			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
+			$this->db->join($this->table('_groups').' as g', 'active as group_active', '#p.group');
 		}
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;
@@ -270,7 +273,7 @@ class shop_model {
 						$product->group = array();
 
 						$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
-						$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
+						$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
 						$where_ntkd['content'] = "#-pg.group";
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$product->group = $this->db->get('array');
@@ -371,7 +374,7 @@ class shop_model {
 					$product->group = array();
 
 					$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
-					$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
+					$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
 					$where_ntkd['content'] = "#-pg.group";
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					$product->group = $this->db->get('array');

@@ -197,17 +197,19 @@ class articles_model {
 
 			$ntkd['alias'] = $_SESSION['alias']->id;
 			$ntkd['content'] = $id;
-			if($_SESSION['language']){
+			if($_SESSION['language'])
+			{
 				foreach ($_SESSION['all_languages'] as $lang) {
 					$ntkd['language'] = $lang;
 					$name = trim($this->data->post('name_'.$lang));
 					$ntkd['name'] = $name;
-					if($lang == $_SESSION['language']){
+					if($lang == $_SESSION['language'])
 						$data['alias'] = $this->data->latterUAtoEN($name);
-					}
 					$this->db->insertRow('wl_ntkd', $ntkd);
 				}
-			} else {
+			}
+			else
+			{
 				$name = trim($this->data->post('name'));
 				$ntkd['name'] = $name;
 				$data['alias'] = $this->data->latterUAtoEN($name);
@@ -231,7 +233,6 @@ class articles_model {
 					{
 						$data['group'] = $_POST['group'];
 						$data['position'] = $this->db->getCount($this->table('_articles'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
-						$data['position']++;
 
 						if($data['group'] > 0)
 						{
@@ -244,16 +245,14 @@ class articles_model {
 						}
 					}
 					else
-					{
 						$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
-					}
 				}
 			}
 			else
-			{
 				$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
-			}
 
+			$data['position'] += 1;
+			$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
 			if($this->db->updateRow($this->table('_articles'), $data, $id)) return $id;
 		}
 		return false;
@@ -261,7 +260,7 @@ class articles_model {
 
 	public function save($id)
 	{
-		$data = array('active' => 1, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
+		$data = array('active' => 0, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
 
 		$data['alias'] = trim($this->data->post('alias'));
 		$check_article = $this->db->getAllDataById($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'alias' => $data['alias']));
@@ -274,7 +273,7 @@ class articles_model {
 		$check_article->link = $check_article->alias;
 		if(isset($data['alias'])) $check_article->link = $data['alias'];
 
-		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
+		if(isset($_POST['active']) && $_POST['active'] == 1) $data['active'] = 1;
 		if($_SESSION['option']->useGroups)
 		{
 			if($_SESSION['option']->articleMultiGroup)
@@ -288,40 +287,49 @@ class articles_model {
 					}
 					$activegroups = $temp;
 					$temp = null;
-				} else $activegroups = array();
-				if(isset($_POST['group']) && is_array($_POST['group'])){
+				}
+				else
+					$activegroups = array();
+				if(isset($_POST['group']) && is_array($_POST['group']))
+				{
 					foreach ($_POST['group'] as $group) {
-						if(!in_array($group, $activegroups)){
+						if(!in_array($group, $activegroups))
 							$this->db->insertRow($this->table('_article_group'), array('article' => $id, 'group' => $group));
-						}
 						$use[] = $group;
 					}
 				}
-				if($activegroups) {
+				if($activegroups)
+				{
 					foreach ($activegroups as $ac) {
-						if(!in_array($ac, $use)){
+						if(!in_array($ac, $use))
 							$this->db->executeQuery("DELETE FROM {$this->table('_article_group')} WHERE `article` = '{$id}' AND `group` = '{$ac}'");
-						}
 					}
 				}
-			} else {
-				if(isset($_POST['group']) && is_numeric($_POST['group']))
+			}
+			else
+			{
+				if(isset($_POST['group']) && is_numeric($_POST['group']) && $_POST['group'] != $_POST['group_old'])
 				{
 					$data['group'] = $_POST['group'];
+					$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$_POST['position_old']}' AND `group` = '{$_POST['group_old']}'");
+					$data['position'] = 1 + $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
 					if($data['group'] > 0)
 					{
 						$groups = array();
 						$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-			            if($all_groups) foreach ($all_groups as $g) {
-			            	$groups[$g->id] = clone $g;
-			            }
+			            if($all_groups) 
+			            	foreach ($all_groups as $g) {
+				            	$groups[$g->id] = clone $g;
+				            }
 						$check_article->link = $this->makeLink($groups, $_POST['group'], $check_article->link);
 					}
 				}
 			}
 		}
-		
+		$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$check_article->link);
+		$this->db->sitemap_index($id, $data['active']);
 		$this->db->updateRow($this->table(), $data, $id);
+		$this->db->cache_clear(0);
 		return $check_article->link;
 	}
 
@@ -399,9 +407,13 @@ class articles_model {
 		$article = $this->getById($id);
 		if($article)
 		{
+			$this->db->sitemap_remove($article->id);
 			$this->db->deleteRow($this->table(), $article->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `id` > '{$article->id}'");
 			$this->db->executeQuery("DELETE FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$article->id}'");
+			$this->db->executeQuery("DELETE FROM `wl_audio` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$article->id}'");
+			$this->db->executeQuery("DELETE FROM `wl_images` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$article->id}'");
+			$this->db->executeQuery("DELETE FROM `wl_video` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '{$article->id}'");
 			
 			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$article->id;
 			$path = substr($path, strlen(SITE_URL));

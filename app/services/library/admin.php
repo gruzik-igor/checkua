@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.6"
+ 	Service "Library 2.7"
 	for WhiteLion 1.0
 
 */
@@ -107,7 +107,7 @@ class library extends Controller {
 		$groups = null;
 		if($_SESSION['option']->useGroups)
 		{
-			$groups = $this->library_model->getGroups();
+			$groups = $this->library_model->getGroups(-1);
 			if($_SESSION['option']->articleMultiGroup)
 			{
 				$activeGroups = $this->db->getAllDataByFieldInArray($this->library_model->table('_article_group'), $article->id, 'article');
@@ -189,20 +189,17 @@ class library extends Controller {
 		{
 			$this->load->smodel('articles_model');
 			$this->load->model('wl_position_model');
+			$this->wl_position_model->where = 'wl_alias = '.$_SESSION['alias']->id;
+			$this->wl_position_model->table = $this->articles_model->table();
 			
 			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->articleMultiGroup == 0)
 			{
-				$article = $this->db->getAllDataById($this->articles_model->table(), $_POST['id']);
-				if($article) {
-					$this->wl_position_model->where = "`group` = '{$article->group}'";
-				}
+				if($article = $this->db->getAllDataById($this->articles_model->table(), $_POST['id']))
+					$this->wl_position_model->where .= " AND `group` = '{$article->group}'";
 			}
 			
-			$this->wl_position_model->table = $this->articles_model->table();
-			$this->wl_position_model->where = 'wl_alias = '.$_SESSION['alias']->id;
-			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
+			if($this->wl_position_model->change($_POST['id'], $_POST['position']))
 				$this->redirect();
-			}
 		}
 	}
 
@@ -243,7 +240,7 @@ class library extends Controller {
 			$_SESSION['alias']->breadcrumb = array('Групи' => 'admin/'.$_SESSION['alias']->alias.'/groups', 'Редагувати групу' => '');
 			$this->load->admin_view('groups/edit_view', array('group' => $group, 'groups' => $groups));
 		}
-		$this->load->page_404();
+		$this->load->page_404(false);
 	}
 
 	public function save_group()
@@ -292,19 +289,15 @@ class library extends Controller {
 			$this->load->smodel('groups_model');
 			$this->load->model('wl_position_model');
 			
-			$group = $this->db->getAllDataById($this->groups_model->table(), $_POST['id']);
-			if($group)
-				$parent = $group->parent;
-			
 			$this->wl_position_model->table = $this->groups_model->table();
 			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
-			if($parent >= 0)
-				$this->wl_position_model->where .= " `parent` = '{$parent}'";
+			if($group = $this->db->getAllDataById($this->groups_model->table(), $_POST['id']))
+				$this->wl_position_model->where .= " AND `parent` = '{$group->parent}'";
 
 			if($this->wl_position_model->change($_POST['id'], $_POST['position']))
 				$this->redirect();
 		}
-		$this->load->page_404();
+		$this->load->page_404(false);
 	}
 
 	public function options()
@@ -442,22 +435,16 @@ class library extends Controller {
 		{
 			$this->load->smodel('options_model');
 			$this->load->model('wl_position_model');
-			
-			$option = $this->db->getAllDataById($this->options_model->table('_options'), $_POST['id']);
-			if($option) {
-				$parent = $option->group;
-			}
-			
+
 			$this->wl_position_model->table = $this->options_model->table();
 			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
-			if($parent >= 0) {
-				$this->wl_position_model->where = "`group` = '{$parent}'";
-			}
-			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
+			if($option = $this->db->getAllDataById($this->options_model->table('_options'), $_POST['id']))
+				$this->wl_position_model->where .= " AND `group` = '{$option->group}'";
+			
+			if($this->wl_position_model->change($_POST['id'], $_POST['position']))
 				$this->redirect();
-			}
 		}
-		$this->load->page_404();
+		$this->load->page_404(false);
 	}
 
 	public function deleteOptionProperty()

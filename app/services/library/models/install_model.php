@@ -13,7 +13,7 @@ class install
 	public $multi_alias = 1;
 	public $order_alias = 60;
 	public $admin_ico = 'fa-book';
-	public $version = "2.6";
+	public $version = "2.7";
 
 	public $options = array('useGroups' => 1, 'articleMultiGroup' => 0, 'articleUseOptions' => 0, 'folder' => 'library', 'articleOrder' => 'position DESC', 'groupOrder' => 'position ASC');
 	public $options_type = array('useGroups' => 'bool', 'articleMultiGroup' => 'bool', 'articleUseOptions' => 'bool', 'folder' => 'text', 'articleOrder' => 'text', 'groupOrder' => 'text');

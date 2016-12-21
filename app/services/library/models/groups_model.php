@@ -86,7 +86,7 @@ class groups_model {
 		if($this->db->insertRow($this->table(), $data)){
 			$id = $this->db->getLastInsertedId();
 
-			$position = $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
+			$position = 1 + $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
 
 			$data = array();
 			$data['alias'] = '';
@@ -117,10 +117,19 @@ class groups_model {
 
 			$data['alias'] = $this->makeLink($data['alias']);
 			$alias = $data['alias'];
-			if($position == 0)
-				$data['position'] = $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
+
+			if($parent == 0)
+				$this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$alias, 200, 6);
 			else
-				$data['position'] = $position;
+			{
+				$list = array();
+	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+	            foreach ($groups as $Group) {
+	            	$list[$Group->id] = clone $Group;
+	            }
+	            $link = $this->getLink($list, $parent, $alias);
+	            $this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$link, 200, 6);
+			}
 			
 			if($this->db->updateRow($this->table(), $data, $id))
 				return $id;
@@ -133,11 +142,11 @@ class groups_model {
 		$group = $this->db->getAllDataById($this->table(), $id);
 		if($group)
 		{
-			$data = array('active' => 1);
+			$data = array('active' => 0);
 			if(isset($_POST['alias']) && $_POST['alias'] != '')
 				$data['alias'] = $this->data->post('alias');
-			if(isset($_POST['active']) && $_POST['active'] == 0)
-				$data['active'] = 0;
+			if(isset($_POST['active']) && $_POST['active'] == 1)
+				$data['active'] = 1;
 			if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] >= 0)
 				$data['parent'] = $_POST['parent'];
 			if (isset($_SESSION['admin_options']['groups:additional_fields']) && $_SESSION['admin_options']['groups:additional_fields'] != '')
@@ -149,8 +158,62 @@ class groups_model {
 			}
 			if($group->parent != $data['parent'])
 				$this->changeParent($group->id, $group->parent, $data['parent']);
+
+			if($group->alias != $data['alias'] || $group->parent != $data['parent'])
+			{
+				$list = array();
+	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+	            foreach ($groups as $Group) {
+	            	$list[$Group->id] = clone $Group;
+	            }
+	            $link = $this->getLink($list, $data['parent'], $data['alias']);
+	            $this->db->sitemap_update(-$id, 'link', $_SESSION['alias']->alias.'/'.$link);
+	            $this->db->cache_clear(0);
+			}
+			
+			$this->db->cache_clear(-$id);
 			if($this->db->updateRow($this->table(), $data, $id))
+			{
+				if($group->active != $data['active'] || $group->alias != $data['alias'] || $group->parent != $data['parent'])
+				{
+					if($_SESSION['option']->articleMultiGroup)
+					{
+						$this->db->sitemap_index(-$id, $data['active']);
+						if($groups = $this->db->getAllDataByFieldInArray($this->table('_article_group'), $id, 'group'))
+							foreach ($groups as $pg) {
+								$this->db->cache_clear($pg->article);
+							}
+					}
+					else
+					{
+						if(empty($list) || !is_array($list) || $list[$id]->id != $id)
+						{
+							$list = array();
+				            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+				            foreach ($groups as $Group) {
+				            	$list[$Group->id] = clone $Group;
+				            }
+						}
+						$up = $id;
+						while ($up > 0) {
+							if($group->active != $data['active'])
+								$this->db->sitemap_index(-$up, $data['active']);
+							if($articles = $this->db->getAllDataByFieldInArray($this->table('_articles'), $up, 'group'))
+							{
+								foreach ($articles as $article) {
+									if($group->active != $data['active'])
+										$this->db->sitemap_index($article->id, $data['active']);
+									if($group->alias != $data['alias'] || $group->parent != $data['parent'])
+										$this->db->cache_clear($article->id);
+								}
+							}
+							$this->db->cache_clear(-$up);
+							$up = $list[$up]->parent;
+						}
+					}
+				}
 				return true;
+			}
 		}
 		return false;
 	}
@@ -187,11 +250,11 @@ class groups_model {
 	            }
 				$childs = $this->getParents($list, $childs1);
 
-				$this->deleteProductsByGroup($group->id);
+				$this->deleteArticlesByGroup($group->id);
 				if($childs)
 				{
 					foreach ($childs as $g) {
-						$this->deleteProductsByGroup($g);
+						$this->deleteArticlesByGroup($g);
 						$this->db->deleteRow($this->table(), $g);
 						$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$g}'");
 					}
@@ -210,9 +273,13 @@ class groups_model {
 				$this->db->executeQuery("UPDATE `{$this->table('_products')}` SET `group` = '{$group->parent}' WHERE `group` = '{$group->id}'");
 			}
 
+			$this->db->sitemap_remove(-$group->id);
 			$this->db->deleteRow($this->table(), $group->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$group->position}'");
 			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
+			$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '-{$group->id}'");
 
 			$path = IMG_PATH.$_SESSION['option']->folder.'/-'.$group->id;
 			$path = substr($path, strlen(SITE_URL));
@@ -330,13 +397,17 @@ class groups_model {
 		return $childs;
 	}
 
-	private function deleteProductsByGroup($group)
+	private function deleteArticlesByGroup($group)
 	{
-		$products = $this->db->getAllDataByFieldInArray($this->table('_products'), $group, 'group');
-		if($products)
-			foreach ($products as $a) {
-				$this->db->deleteRow($this->table('_products'), $a->id);
+		if($articles = $this->db->getAllDataByFieldInArray($this->table('_articles'), $group, 'group'))
+			foreach ($articles as $a) {
+				$this->db->sitemap_remove($a->id);
+				$this->db->deleteRow($this->table('_articles'), $a->id);
+				$this->db->deleteRow($this->table('_article_options'), $a->id, 'article');
 				$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
+				$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$a->id}'");
 
 				$path = IMG_PATH.$_SESSION['option']->folder.'/'.$a->id;
 				$path = substr($path, strlen(SITE_URL));

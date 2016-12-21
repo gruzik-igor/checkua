@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Library 2.6"
+ 	Service "Library 2.7"
 	for WhiteLion 1.0
 
 */
@@ -26,8 +26,10 @@ class library extends Controller {
 			$type = null;
 			$article = $this->library_model->routeURL($this->data->url(), $type);
 
-			if($type == 'article' && $article && ($article->active == 1 || $this->userCan()))
+			if($type == 'article' && $article)
 			{
+				if($article->active == 0 && !$this->userCan())
+					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($article->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
@@ -36,8 +38,10 @@ class library extends Controller {
 				}
 				$this->load->page_view('detal_view', array('article' => $article));
 			}
-			elseif($_SESSION['option']->useGroups && $type == 'group' && $article && ($article->active == 1 || $this->userCan()))
+			elseif($_SESSION['option']->useGroups && $type == 'group' && $article)
 			{
+				if($article->active == 0 && !$this->userCan())
+					$this->load->page_404(false);
 				$group = clone $article;
 				unset($article);
 
@@ -66,9 +70,9 @@ class library extends Controller {
 				}
 				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
-				$groups = $this->library_model->getGroups($group->id);
+				$subgroups = $this->library_model->getGroups($group->id);
 				$articles = $this->library_model->getArticles($group->id);
-				$this->load->page_view('group_view', array('group' => $group, 'groups' => $groups, 'articles' => $articles));
+				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'articles' => $articles));
 			}
 			else
 				$this->load->page_404();
@@ -76,6 +80,12 @@ class library extends Controller {
 		else
 		{
 			$this->wl_alias_model->setContent();
+			if($videos = $this->wl_alias_model->getVideosFromText())
+			{
+				$this->load->library('video');
+				$this->video->setVideosToText($videos);
+			}
+			
 			$articles = $this->library_model->getArticles();
 			if($_SESSION['option']->useGroups)
 			{

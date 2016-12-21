@@ -74,6 +74,25 @@ else
 				}
 				$request = implode('/', $request);
 			}
+			elseif(!$useWWW && $uri[0] == 'www')
+			{
+				array_shift($uri);
+				$uri = implode(".", $uri);
+				$request = '/';
+				if(isset($_GET['request'])) $request .= $_GET['request'];
+				header ('HTTP/1.1 301 Moved Permanently');
+				header ('Location: http://'. $uri . $request);
+				exit();
+			}
+			elseif($useWWW && $uri[0] != 'www')
+			{
+				$uri = implode(".", $uri);
+				$request = '/';
+				if(isset($_GET['request'])) $request .= $_GET['request'];
+				header ('HTTP/1.1 301 Moved Permanently');
+				header ('Location: http://www'. $uri . $request);
+				exit();
+			}
 			else
 			{
 				$_SESSION['language'] = $_SESSION['all_languages'][0];

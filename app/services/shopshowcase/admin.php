@@ -192,7 +192,7 @@ class shopshowcase extends Controller {
 
 				$_SESSION['notify'] = new stdClass();
 				$_SESSION['notify']->success = 'Дані успішно оновлено!';
-				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link);
+				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link.'#tab-main');
 			}
 		}
 	}

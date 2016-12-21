@@ -78,7 +78,7 @@ class options_model {
 				if(isset($_POST['group']) && is_numeric($_POST['group'])) $group = $_POST['group'];	
 			}
 			if($group == 0) $group = '>=0';
-			$data['position'] = $this->db->getCount($this->table('_options'), array('wl_alias'=> $_SESSION['alias']->id, 'group' => $group));
+			$data['position'] = 1 + $this->db->getCount($this->table('_options'), array('wl_alias'=> $_SESSION['alias']->id, 'group' => $group));
 			if($this->db->updateRow($this->table('_options'), $data, $id)) return $id;
 		}
 		return false;

@@ -1,54 +1,100 @@
-<a href="<?=SITE_URL?>admin/wl_users" style="float: right">До всіх користувачів</a>
-<h1>Додати користувача</h1>
+<!-- begin row -->
+<div class="row">
+    <!-- begin col-6 -->
+    <div class="col-md-6">
+        <!-- begin panel -->
+        <div class="panel panel-inverse" data-sortable-id="form-stuff-1">
+            <div class="panel-heading">
+                <h4 class="panel-title">Дані нового користувача</h4>
+            </div>
+            <div class="panel-body">
+                <form action="<?=SITE_URL?>admin/wl_users/save" method="POST" class="form-horizontal">
+                	<input type="hidden" name="id" value="0">
+                    <div class="form-group" title="УВАГА! На даний емейл буде надіслано пароль користувача">
+                        <label class="col-md-3 control-label">email користувача</label>
+                        <div class="col-md-9">
+                            <input type="email" name="email" class="form-control" value="<?=$this->data->re_post('email')?>" required placeholder="email" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Ім'я користувача</label>
+                        <div class="col-md-9">
+                            <input type="text" name="name" class="form-control" value="<?=$this->data->re_post('name')?>" required placeholder="Ім'я користувача" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Пароль</label>
+                        <div class="col-md-9">
+                            <select class="form-control" name="typePassword" onchange="chengePassword(this)" required>
+								<option value="toMail">Згенерувати та вислати на пошту</option>
+								<option value="own">Задати пароль</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="userPassword" class="form-group" style="display:none">
+                        <label class="col-md-3 control-label">Пароль користувача</label>
+                        <div class="col-md-9">
+                            <input type="text" name="user-password" class="form-control" value="<?=$this->data->re_post('user-password')?>" />
+                        </div>
 
-<form action="<?=SITE_URL?>admin/wl_users/save" method="POST">
-	<input type="hidden" name="id" value="0">
-	<table>
-		<tr>
-			<td title="Обов'язкове поле">email*</td>
-			<td><input type="text" name="email" value="<?=(isset($_POST['email']))?$_POST['email']:''?>" required></td>
-		</tr>
-		<tr>
-			<td>name*</td>
-			<td><input type="text" name="name" value="<?=(isset($_POST['name']))?$_POST['name']:''?>" required></td>
-		</tr>
-		<tr>
-			<td>password*</td>
-			<td><input type="text" name="password" value="<?=(isset($_POST['password']))?$_POST['password']:''?>" required></td>
-		</tr>
-		<tr>
-			<td>type*</td>
-			<td><select name="type" onchange="chengeType(this)" required>
-		<?php $types = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
-			foreach ($types as $type) {
-				echo('<option value="'.$type->id.'"');
-				if($type->id == 2) echo " selected";
-				echo('>'.$type->name.'</option>');
-			} ?>
-			</select>
-			</td>
-		</tr>
-		<tr id="permissions">
-			<td>user permissions</td>
-			<td>
-				<?php $permissions = $this->db->getAllData('wl_aliases');
-					foreach ($permissions as $p) { ?>
-						<input type="checkbox" id="<?=$p->alias?>" name="permissions[]" value="<?=$p->id?>"><label for="<?=$p->alias?>"><?=$p->alias?></label>
-				<?php } ?>
-			</td>
-		</tr>
-		<tr>
-			<td colspan="2"><input type="submit" value="Додати"></td>
-		</tr>
-	</table>
-</form>
+                        <script type="text/javascript">
+							function chengePassword (e) {
+								if(e.value == 'own'){
+									$('#userPassword').slideDown('slow');
+								} else {
+									$('#userPassword').slideUp('slow');
+								}
+							}
+						</script>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Тип користувача</label>
+                        <div class="col-md-9">
+                            <select class="form-control" name="type" onchange="chengeType(this)" required>
+							<?php $types = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
+								foreach ($types as $type) {
+									echo('<option value="'.$type->id.'"');
+									if($type->id == 2) echo " selected";
+									echo('>'.$type->title.'</option>');
+								} ?>
+                            </select>
+                        </div>
+                    </div>
+                    <div id="permissions" class="form-group">
+                        <label class="col-md-3 control-label">Сторінки доступу</label>
+                        <div class="col-md-9">
+                            <?php $permissions = $this->db->getAllData('wl_aliases');
+								foreach ($permissions as $p) { ?>
+									<input type="checkbox" id="<?=$p->alias?>" name="permissions[]" value="<?=$p->id?>"><label for="<?=$p->alias?>"><?=$p->alias?></label>
+							<?php } ?>
+                        </div>
 
-<script type="text/javascript">
-	function chengeType (e) {
-		if(e.value == 2){
-			$('#permissions').slideDown('slow');
-		} else {
-			$('#permissions').slideUp('slow');
-		}
-	}
-</script>
+                        <script type="text/javascript">
+							function chengeType (e) {
+								if(e.value == 2){
+									$('#permissions').slideDown('slow');
+								} else {
+									$('#permissions').slideUp('slow');
+								}
+							}
+						</script>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Пароль адміністратора</label>
+                        <div class="col-md-9">
+                            <input type="password" name="admin-password" class="form-control" required placeholder="Пароль адміністратора для підтвердження" />
+                        </div>
+                    </div>
+                    <div class="form-group">
+                    	<div class="col-md-3"></div>
+                        <div class="col-md-9">
+                            <button type="submit" class="btn btn-sm btn-success ">Зберегти</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <!-- end panel -->
+    </div>
+    <!-- end col-6 -->
+</div>

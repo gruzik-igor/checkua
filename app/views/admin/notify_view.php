@@ -1,34 +1,14 @@
-<div style="padding:15px">
-    <?php if(!empty($guest) && $guest == true) : ?>
-        <div class="notify-error">Ви не авторизовані. Будь ласка <a href="<?=SITE_URL?>login">увійдіть</a> або <a href="<?=SITE_URL?>signup">зареєструйтесь</a></div>
-    <?php elseif(!empty($errors)): ?>
-        <div class="notify-error"><?=$errors?></div>
-    <?php elseif(!empty($success)): ?>
-        <div class="notify-success"><?=$success?></div>
-    <?php endif; ?>
-</div>
-
-
-<STYLE type="text/css">
-	.notify-success {
-    margin: 5px 0px;
-    padding: 5px;
-    width: 625px;;
-    background-color: #F1FFEF;
-    border: 1px solid #8CBF83;
-	color:black;
-}
-
-	.notify-error {
-    margin: 5px 0px;
-    padding: 5px;
-    width: 625px;;
-    background-color: #FFF2E8;
-    border: 1px solid #FF0000;
-	color:black;
-}
-
-	.notify-error li {
-    margin: 5px 20px;
-}
- </STYLE>
+<?php if(!empty($_SESSION['notify']->errors)): ?>
+   <div class="alert alert-danger fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <h4><?=(isset($_SESSION['notify']->title)) ? $_SESSION['notify']->title : 'Помилка!'?></h4>
+        <p><?=$_SESSION['notify']->errors?></p>
+    </div>
+<?php elseif(!empty($_SESSION['notify']->success)): ?>
+    <div class="alert alert-success fade in">
+        <span class="close" data-dismiss="alert">×</span>
+        <i class="fa fa-check fa-2x pull-left"></i>
+        <h4><?=(isset($_SESSION['notify']->title)) ? $_SESSION['notify']->title : 'Успіх!'?></h4>
+        <p><?=$_SESSION['notify']->success?></p>
+    </div>
+<?php endif; unset($_SESSION['notify']); ?>

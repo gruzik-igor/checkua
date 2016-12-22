@@ -6,14 +6,16 @@
  * Шукає шлях до контроллеру і створює об'єкт
  */
  
-class Router  extends Loader {
+class Router extends Loader {
 	
 	private $request;
 	private $class;
 	private $method;
 	
-	function __construct($req = null){
-		if($req != null){
+	function __construct($req = null)
+	{
+		if($req != null)
+		{
 			$this->request = $req;
 			$this->findRoute();
 		}
@@ -22,95 +24,209 @@ class Router  extends Loader {
 	/**
 	 * Шукаємо шлях
 	 */
-	function findRoute(){
-		$route = trim($this->request, '/\\');
-		$parts = explode('/', $route);
-				
+	function findRoute()
+	{
+		parent::library('db', $this);
+		$this->authorize();
+
+		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
 		$admin = false;
 
-		if($parts[0] == 'admin'){
-			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && ($_SESSION['user']->admin || $_SESSION['user']->manager)){
-				if(count($parts) == 1) $parts[] = 'admin';
-				$admin = true;
-				$_SESSION['alias']->service = false;
-			} else {
-				header("Location: ".SITE_URL."login");
-				exit();
+		if($parts[0] == 'admin')
+		{
+			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+			{
+				if($_SESSION['user']->admin)
+					$admin = true;
+    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions)))
+    				$admin = true;
+    			if($admin)
+    			{
+					if(count($parts) == 1)
+					{
+						$parts[] = 'admin';
+						$_SESSION['alias'] = new stdClass();
+						$_SESSION['alias']->service = false;
+						$_SESSION['service'] = new stdClass();
+					}
+					else
+					{
+						parent::model('wl_alias_model');
+						$this->wl_alias_model->init($parts[1], $this->request);
+						$this->wl_alias_model->admin_options();
+					}
+				}
+				else
+					new Page404();
 			}
-		} else {
-			parent::library('db', $this);
+			else
+				parent::redirect('login');
+		}
+		else
+		{
 			parent::model('wl_alias_model');
-			$this->wl_alias_model->alias($parts[0]);
+			$this->wl_alias_model->init($parts[0], $this->request);
+
+			if(empty($_POST))
+			{
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					parent::model('wl_statistic_model');
+					$this->wl_statistic_model->set_views();
+				}
+
+				parent::model('wl_cache_model');
+				if($this->wl_cache_model->init($this->request))
+				{
+					if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+						$this->wl_statistic_model->set_page($this->wl_cache_model->page);
+					
+					$this->wl_cache_model->get();
+				}
+			}
 		}
 
-		if($admin == false && $this->isservice()){
-			
-			$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP;
-			array_shift($parts);
-			
-		} else {
-		
-			foreach($parts as $part){
-			
-				if(is_dir($path.$part.DIRSEP)){
+		if($this->isService())
+		{
+			if($admin)
+			{
+				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'admin';
+				$this->method = (!isset($parts[2])) ? 'index' : $parts[2];
+			}
+			else
+			{
+				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.$_SESSION['alias']->service;
+				$this->method = (!isset($parts[1])) ? 'index' : $parts[1];
+			}
+		}
+		else
+		{
+			foreach($parts as $part)
+			{
+				if(is_dir($path.$part.DIRSEP))
+				{
 					$path .= $part.DIRSEP;
 					array_shift($parts);
 					continue;
 				}
 				
-				if(is_file($path.$part.'.php')){
+				if(is_file($path.$part.'.php'))
+				{
 					$this->class = $part;
 					array_shift($parts);
 					break;
 				}
 			}
-			
+
+			$path .= $this->class;
+			$this->method = (empty($parts)) ? 'index' : $parts[0];
 		}
 		
-		$this->method = (empty($parts)) ? 'index' : $parts[0];
-		if(is_readable($path.$this->class.'.php')){
-			require $path.$this->class.'.php';
+		if(is_readable($path.'.php'))
+		{
+			require $path.'.php';
 			$this->callController();
-		} elseif($admin) {
-			$this->class = 'admin';
-			require $path.$this->class.'.php';
-			$this->callController();
-		} else {
-			header('HTTP/1.0 404 Not Found');
-			exit(file_get_contents('404.html'));
+		}
+		else
+			new Page404();
+
+		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
+		if(!$admin && empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
+		{
+			if($this->wl_cache_model->page == false)
+			{
+				$this->wl_cache_model->page = $this->db->sitemap_add($_SESSION['alias']->content, $this->request);
+				
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
+					$this->wl_statistic_model->updatePageIndex();
+				}
+				$this->wl_cache_model->set();
+			}
+			else
+			{
+				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				{
+					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
+					$this->wl_statistic_model->updatePageIndex();
+				}
+				$this->wl_cache_model->set();
+
+				if($sitemap = $this->wl_cache_model->SiteMap())
+	            {
+	                parent::library('SitemapGenerator');
+	                foreach ($sitemap as $url) {
+	                    if($url->link == 'main') $url->link = '';
+	                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
+	                }
+	                try {
+	                    // create sitemap
+	                    $this->sitemapgenerator->createSitemap();
+	                    // write sitemap as file
+	                    $this->sitemapgenerator->writeSitemap();
+	                    // update robots.txt file
+	                    $this->sitemapgenerator->updateRobots();
+
+	                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
+
+	                    if($_SESSION['option']->sitemap_autosent == 1)
+	                    {
+	                        // submit sitemaps to search engines
+	                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
+	                        $result = $this->sitemapgenerator->submitSitemap();
+	                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
+	                    }
+	                }
+	                catch (Exception $exc) {
+	                    $_SESSION['notify']->errors = $exc->getTraceAsString();
+	                }
+	            }
+	        }
 		}
 	}
 	
 	/**
 	 * Створюємо об'єкт і викликаємо метод
 	 */	
-	function callController(){
+	function callController()
+	{
 		$controller = new $this->class();
 		$method = $this->method;
-		if(is_callable(array($controller, '_remap'))){
+		if(is_callable(array($controller, '_remap'))) {
 			$controller->_remap($method);
 		} else if(is_callable(array($controller, $method)) && $method != 'library' && $method != 'db') {
 			$controller->$method();
 		} else {
-			header('HTTP/1.0 404 Not Found');
-			exit(file_get_contents('404.html'));
+			$controller->load->page_404();
 		}
 	}
 	
-	private function isservice(){
-		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service){
-			
+	private function isService()
+	{
+		if(isset($_SESSION['alias']->service) && $_SESSION['alias']->service)
+		{
 			$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP;
-			if(is_file($path.$_SESSION['alias']->service.'.php')){
+			if(is_file($path.$_SESSION['alias']->service.'.php'))
+			{
 				$this->class = $_SESSION['alias']->service;
 				return true;
 			}
-			
 		}
 		return false;
 	}
 	
+}
+
+class Page404 extends Controller {
+
+	function __construct($update_SiteMap = true)
+	{
+		parent::__construct();
+		$this->load->page_404($update_SiteMap);
+	}
+
 }
 
 ?>

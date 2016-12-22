@@ -61,7 +61,15 @@ Examples:
 
 ATTENTION: The trailing slash is required.
 */
+
 $baseUrl = 'http://'.$_SERVER["SERVER_NAME"].'/upload/';
+if($_SERVER["SERVER_NAME"] == 'localhost')
+{
+	$REQUEST_URI = explode('/', $_SERVER["REQUEST_URI"]);
+	if(isset($REQUEST_URI[1]))
+		$baseUrl = 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/upload/';
+}
+
 
 /*
 $baseDir : the path to the local directory (in the server) which points to the

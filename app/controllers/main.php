@@ -2,10 +2,12 @@
 
 class Main extends Controller {
 
-    function index(){
-        $this->load->view('index_view');
+    public function index()
+    {
+        $this->wl_alias_model->setContent();
+        $this->load->page_view('index_view');
     }
-	
+
 }
 
 ?>

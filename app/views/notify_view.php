@@ -1,32 +1,27 @@
-<div style="padding:15px">
-<?php if(!empty($guest) && $guest == true) : ?>
-    <div class="notify-error">Ви не авторизовані. Будь ласка <a href="<?=SITE_URL?>login">увійдіть</a> або <a href="<?=SITE_URL?>signup">зареєструйтесь</a></div>
-<?php elseif(!empty($errors)): ?>
-    <div class="notify-error"><?=$errors?></div>
-<?php elseif(!empty($success)): ?>
-    <div class="notify-success"><?=$success?></div>
-<?php endif; ?>
+<div class="row">
+    <div class="container content">
+        <?php if(!empty($errors)): ?>
+           <div class="alert alert-danger fade in">
+                <h4>Помилка!</h4>
+                <p><?=$errors?></p>
+                <p>
+                    <?php if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] != ''){ ?>
+                        <a class="btn-u btn-u-red" href="<?=$_SERVER['HTTP_REFERER']?>">Повернутися назад</a>
+                    <?php } ?>
+                    <a class="btn-u btn-u-sea" href="<?=SITE_URL?>">На головну</a>
+                </p>
+            </div>
+        <?php elseif(!empty($success)): ?>
+            <div class="alert alert-success fade in">
+                <h4>Успіх!</h4>
+                <p><?=$success?></p>
+                <p>
+                    <?php if(isset($_SERVER['HTTP_REFERER']) && $_SERVER['HTTP_REFERER'] != ''){ ?>
+                        <a class="btn-u btn-u-red" href="<?=$_SERVER['HTTP_REFERER']?>">Повернутися назад</a>
+                    <?php } ?>
+                    <a class="btn-u btn-u-sea" href="<?=SITE_URL?>">На головну</a>
+                </p>
+            </div>
+        <?php endif; ?>
+    </div>
 </div>
-<STYLE type="text/css">
-	.notify-success {
-    margin: 5px 0px;
-    padding: 5px;
-    width: 625px;;
-    background-color: #F1FFEF;
-    border: 1px solid #8CBF83;
-	color:black;
-}
-
-	.notify-error {
-    margin: 5px 0px;
-    padding: 5px;
-    width: 625px;;
-    background-color: #FFF2E8;
-    border: 1px solid #FF0000;
-	color:black;
-}
-
-	.notify-error li {
-    margin: 5px 20px;
-}
- </STYLE>

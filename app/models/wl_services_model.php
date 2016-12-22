@@ -1,6 +1,6 @@
 <?php
 
-class wl_services_model{
+class wl_services_model {
 
 	public function getServicesList()
 	{
@@ -9,29 +9,24 @@ class wl_services_model{
 
 	public function loadService($service)
 	{
-		$this->db->executeQuery("SELECT `id`, `name`, `table` FROM `wl_services` WHERE `name` = '{$service}' AND `active` = 1");
-		if($this->db->numRows() == 1){
-			$service = $this->db->getRows();
+		if($service = $this->db->getQuery("SELECT `id`, `name`, `table` FROM `wl_services` WHERE `id` = '{$service}'"))
+		{
 			$_SESSION['alias']->service = $service->name;
-			@$_SESSION['service']->name = $service->name;
+			$_SESSION['service'] = new stdClass();
+			$_SESSION['service']->name = $service->name;
 			$_SESSION['service']->table = $service->table;
 
-			$this->db->executeQuery("SELECT `name`, `value` FROM `wl_options` WHERE `service` = {$service->id} AND `alias` = 0");
-			if($this->db->numRows() > 0){
-				$options = $this->db->getRows('array');
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $service->id, 'alias' => 0)))
 				foreach($options as $opt){
 					$key = $opt->name;
 					@$_SESSION['option']->$key = $opt->value;
 				}
-			}
-			$this->db->executeQuery("SELECT `name`, `value` FROM `wl_options` WHERE `service` = {$service->id} AND `alias` = {$_SESSION['alias']->id}");
-			if($this->db->numRows() > 0){
-				$options = $this->db->getRows('array');
+
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $service->id, 'alias' => $_SESSION['alias']->id)))
 				foreach($options as $opt){
 					$key = $opt->name;
 					$_SESSION['option']->$key = $opt->value;
 				}
-			}
 
 			return true;
 		}

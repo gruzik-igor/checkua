@@ -1,0 +1,7 @@
+User-agent: *
+Disallow: /admin/
+Disallow: /profile/
+Disallow: /app/
+Disallow: /system/
+Disallow: /*index?
+Sitemap: http://localhost/whitelion.cms/sitemap.xml

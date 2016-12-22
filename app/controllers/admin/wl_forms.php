@@ -85,7 +85,8 @@ class wl_forms extends Controller {
                 }
             } else $this->load->page_404();
         } else {
-            $this->load->admin_view('wl_forms/list_view');
+            $forms = $this->db->getAllData('wl_forms');
+            $this->load->admin_view('wl_forms/list_view', array('forms' => $forms));
         }
     }
 
@@ -140,7 +141,8 @@ class wl_forms extends Controller {
             $required = ($_POST['required'] == '1')? 1 : 0;
             if(!empty($_POST['title'])) $title = $_POST['title'];
 
-            $this->db->executeQuery("ALTER TABLE `{$formName}` ADD {$name} text AFTER `id`");
+            $lastColumn = end($namesById);
+            $this->db->executeQuery("ALTER TABLE `{$formName}` ADD {$name} text AFTER `{$lastColumn}`");
 
             if(isset($name, $input_type, $title)){
                 $this->db->executeQuery("INSERT INTO `wl_fields` (`id`, `form`, `name`, `input_type`, `required`, `title`) VALUES (NULL, $form, '$name', $input_type, $required, '$title')");
@@ -236,7 +238,7 @@ class wl_forms extends Controller {
             $sql = "CREATE TABLE IF NOT EXISTS `{$data['name']}` (
                       `id` int(11) NOT NULL AUTO_INCREMENT,
                       {$fieldsName},
-                      `date` int(11) NOT NULL,
+                      `date_add` int(11) NOT NULL,
                       `language` text,
                       PRIMARY KEY (`id`)
                     ) ENGINE=InnoDB CHARSET=utf8;";
@@ -258,6 +260,19 @@ class wl_forms extends Controller {
         }
 
         $this->redirect("admin/wl_forms/".$data['name']);
+    }
+
+    public function info()
+    {
+        $table = $this->data->uri(3);
+
+        $tableId = $this->db->getQuery("SELECT id FROM `wl_forms` WHERE `table` = '{$table}'")->id;
+        $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$tableId}'");
+
+        $tableInfo = $this->db->getQuery("SELECT * FROM $table", 'array');
+
+        $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+
     }
 }
 

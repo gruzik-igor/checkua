@@ -28,7 +28,7 @@
     <?php
     $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
     if($sidebarForms) foreach($sidebarForms as $sidebarForm) { ?>
-        <li><a href="<?= SITE_URL.'admin/wl_forms/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
+        <li><a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
     <?php }
     $this->db->select('wl_aliases', 'id, alias, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');

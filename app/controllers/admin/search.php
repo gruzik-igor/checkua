@@ -14,8 +14,7 @@ class Search extends Controller {
 		if($this->validator->run())
 		{
 			$this->load->model('wl_search_model');
-			$language_all = ($this->data->get('language-all')) ? true : false;
-			$search_data = $this->wl_search_model->get($this->data->get('by'), $language_all);
+			$search_data = $this->wl_search_model->get($this->data->get('by'), true);
 			if($search_data)
 			{
 				$per_page = 0;

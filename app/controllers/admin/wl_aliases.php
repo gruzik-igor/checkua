@@ -220,6 +220,7 @@ class wl_aliases extends Controller {
                     $this->db->insertRow('wl_aliases', $data);
                     $alias = $this->db->getLastInsertedId();
                     $this->db->register('alias_add', $data['alias'].' ('.$alias.')');
+                    $this->db->sitemap_add(0, $data['alias'], 200, 7, 'daily', $alias);
                     
                     if($data['service'] > 0)
                     {
@@ -313,6 +314,7 @@ class wl_aliases extends Controller {
                     $data['admin_ico'] = $this->data->post('admin_ico');
                     $data['admin_order'] = $this->data->post('admin_order');
                     $this->db->updateRow('wl_aliases', $data, $_POST['id']);
+                    $this->db->sitemap_update(0, 'link', $data['alias'], $_POST['id']);
 
                     $options = array();
                     $options_id = array();
@@ -419,6 +421,8 @@ class wl_aliases extends Controller {
                 {
                     if($alias = $this->db->getAllDataById('wl_aliases', $_POST['id']))
                     {
+                        $this->db->deleteRow('wl_sitemap', $alias->id, 'alias');
+                        
                         $additionally = "{$alias->id}. {$alias->alias}. ";
                         $where = array('service' => $alias->service, 'alias' => $alias->id, 'name' => 'folder');
                         if($option = $this->db->getAllDataById('wl_options', $where))

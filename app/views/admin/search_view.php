@@ -12,20 +12,24 @@
                             <i class="fa fa-cog"></i>
                         </button>
                         <ul class="dropdown-menu pull-right">
-                            <li><a href="javascript:;" title="Скасувати фільтр">Пошук всюди</a></li>
+                            <li><a href="?by=<?=$this->data->get('by')?>" title="Скасувати фільтр">Пошук всюди</a></li>
                             <?php if($_SESSION['language']) { ?>
                                 <li class="divider"></li>
-                                <li><a href="javascript:;" title="Включення результату видачі на всіх мовах">Пошук у всіх мовах</a></li>
+                                <li <?=(!$this->data->get('language')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('language')?>" title="Включення результату видачі на всіх мовах">Пошук у всіх мовах</a></li>
                                 <?php foreach ($_SESSION['all_languages'] as $language) {
-                                    echo '<li><a href="javascript:;">Пошук тільки <strong>'.$language.'</strong></a></li>';
+                                    echo '<li';
+                                    if($this->data->get('language') == $language) echo ' class="active"';
+                                    echo '><a href="'.$this->data->get_link('language', $language).'">Пошук тільки <strong>'.$language.'</strong></a></li>';
                                 }
                             }
                             if($wl_aliases) { ?>
                                 <li class="divider"></li>
-                                <li><a href="javascript:;" title="Скасувати фільтр">Пошук у всіх розділах</a></li>
+                                <li <?=(!$this->data->get('alias')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('alias')?>" title="Скасувати фільтр">Пошук у всіх розділах</a></li>
                                 <?php foreach ($wl_aliases as $wl_alias)
                                     if($this->userCan($wl_alias->alias)) {
-                                        echo '<li><a href="javascript:;">Пошук тільки <strong>'.$wl_alias->name.'</strong></a></li>';
+                                        echo '<li';
+                                        if($this->data->get('alias') == $wl_alias->alias) echo ' class="active"';
+                                        echo '><a href="'.$this->data->get_link('alias', $wl_alias->alias).'">Пошук тільки <strong>'.$wl_alias->name.'</strong></a></li>';
                                 }
                             } ?>
                         </ul>
@@ -39,30 +43,19 @@
                         Сортувати за <span class="caret m-l-5"></span>
                     </a>
                     <ul class="dropdown-menu" role="menu">
-                        <li><a href="javascript:;">Авто</a></li>
+                        <li <?=(!$this->data->get('sort')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('sort')?>">Авто</a></li>
                         <li class="divider"></li>
-                        <li><a href="javascript:;">Датою останнього редагування <i class="fa fa-level-down"></i></a></li>
-                        <li><a href="javascript:;">Датою останнього редагування <i class="fa fa-level-up"></i></a></li>
-                        <li class="divider"></li>
-                        <li><a href="javascript:;">Назві аА..яЯ <i class="fa fa-level-down"></i></a></li>
-                        <li><a href="javascript:;">Назві яЯ..аА <i class="fa fa-level-up"></i></a></li>
-                        <li class="divider"></li>
-                        <li><a href="javascript:;">Перегляди від найбільших <i class="fa fa-level-down"></i></a></li>
-                        <li><a href="javascript:;">Перегляди від найменших <i class="fa fa-level-up"></i></a></li>
+                        <li <?=($this->data->get('sort') == 'name_up') ? 'class="active"':''?>><a href="<?=$this->data->get_link('sort', 'name_up')?>">Назві аА..яЯ <i class="fa fa-level-down"></i></a></li>
+                        <li <?=($this->data->get('sort') == 'name_down') ? 'class="active"':''?>><a href="<?=$this->data->get_link('sort', 'name_down')?>">Назві яЯ..аА <i class="fa fa-level-up"></i></a></li>
                     </ul>
                 </div>
-                <ul class="pagination pagination-without-border pull-right m-t-0">
-                    <li class="disabled"><a href="javascript:;">«</a></li>
-                    <li class="active"><a href="javascript:;">1</a></li>
-                    <li><a href="javascript:;">2</a></li>
-                    <li><a href="javascript:;">3</a></li>
-                    <li><a href="javascript:;">4</a></li>
-                    <li><a href="javascript:;">5</a></li>
-                    <li><a href="javascript:;">6</a></li>
-                    <li><a href="javascript:;">7</a></li>
-                    <li><a href="javascript:;">»</a></li>
-                </ul>
-                <ul class="result-list">
+                <?php
+                    $this->load->library('paginator');
+                    $this->paginator->style('ul', "pagination pagination-without-border pull-right m-t-0");
+                    echo $this->paginator->get();
+                ?>
+                <div class="clearfix"></div>
+                <ul class="result-list m-t-10">
                     <?php foreach ($data as $search) { ?>
                     <li>
                         <?php if($search->image) { ?>
@@ -89,7 +82,7 @@
                                     <a href="<?=SITE_URL.$search->edit_link?>#tab-audio" data-toggle="tooltip" data-container="body" data-title="Редагувати аудіо"><i class="fa fa-fw fa-tasks"></i></a>
                                 <?php } ?>
                                 <a href="<?=SITE_URL.$search->edit_link?>#tab-video" data-toggle="tooltip" data-container="body" data-title="Редагувати відео"><i class="fa fa-fw fa-video-camera"></i></a>
-                                <a href="<?=SITE_URL.$search->edit_link?>" data-toggle="tooltip" data-container="body" data-title="Analytics"><i class="fa fa-fw fa-bar-chart-o"></i></a>
+                                <a href="<?=SITE_URL.$search->edit_link?>#tab-statistic" data-toggle="tooltip" data-container="body" data-title="Статистика"><i class="fa fa-fw fa-bar-chart-o"></i></a>
                                 <a href="<?=SITE_URL?>admin/wl_users/<?=$search->author?>" data-toggle="tooltip" data-container="body" data-title="Автор"><i class="fa fa-fw fa-user"></i></a>
                             </div>
                         </div>
@@ -97,17 +90,11 @@
                     <?php } ?>
                 </ul>
                 <div class="clearfix">
-                    <ul class="pagination pagination-without-border pull-right">
-                        <li class="disabled"><a href="javascript:;">«</a></li>
-                        <li class="active"><a href="javascript:;">1</a></li>
-                        <li><a href="javascript:;">2</a></li>
-                        <li><a href="javascript:;">3</a></li>
-                        <li><a href="javascript:;">4</a></li>
-                        <li><a href="javascript:;">5</a></li>
-                        <li><a href="javascript:;">6</a></li>
-                        <li><a href="javascript:;">7</a></li>
-                        <li><a href="javascript:;">»</a></li>
-                    </ul>
+                    <?php
+                        $this->load->library('paginator');
+                        $this->paginator->style('ul', "pagination pagination-without-border pull-right");
+                        echo $this->paginator->get();
+                    ?>
                 </div>
             <?php } else { ?>
                 <div class="alert alert-warning  m-b-15">

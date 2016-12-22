@@ -28,7 +28,7 @@
 
 			if($list)
 			{
-				$parent = $product->group;
+				$parent = $article->group;
 				while ($parent != 0) {
 					array_unshift($options_parents, $parent);
 					$parent = $list[$parent]->parent;
@@ -78,6 +78,8 @@
 				}
 				showList($article->group, $list, $list);
 			} else {
+				echo('<input type="hidden" name="group_old" value="'.$article->group.'">');
+				echo('<input type="hidden" name="position_old" value="'.$article->position.'">');
 				echo('<select name="group" class="form-control">');
 				echo ('<option value="0">Немає</option>');
 				if(!empty($list)){

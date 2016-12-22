@@ -28,7 +28,7 @@ class shopshowcase extends Controller {
 
 			if($type == 'product' && $product)
 			{
-				if($product->active == 0 || !$this->userCan())
+				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
@@ -42,7 +42,7 @@ class shopshowcase extends Controller {
 			}
 			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)
 			{
-				if($product->active == 0 || !$this->userCan())
+				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
 				$group = clone $product;
 				unset($product);

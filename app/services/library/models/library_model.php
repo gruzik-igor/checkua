@@ -126,6 +126,8 @@ class library_model {
 			else
 				return false;
 		}
+		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->articleMultiGroup == 0)
+			$where['#g.active'] = 1;
 		
 		$this->db->select($this->table('_articles').' as a', '*', $where);
 		
@@ -139,6 +141,7 @@ class library_model {
 			if($_SESSION['language'])
 				$where_gn['language'] = $_SESSION['language'];
 			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
+			$this->db->join($this->table('_groups').' as g', 'active as group_active', '#a.group');
 		}
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;

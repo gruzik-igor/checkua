@@ -117,10 +117,6 @@ class groups_model {
 
 			$data['alias'] = $this->makeLink($data['alias'], $parent);
 			$alias = $data['alias'];
-			if($position == 1)
-				$data['position'] = 1 + $this->db->getCount($this->table(), $_SESSION['alias']->id, 'wl_alias');
-			else
-				$data['position'] = $position;
 
 			if($parent == 0)
 				$this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$alias, 200, 6);
@@ -183,7 +179,7 @@ class groups_model {
 					if($_SESSION['option']->ProductMultiGroup)
 					{
 						$this->db->sitemap_index(-$id, $data['active']);
-						if($groups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $id, 'group'))
+						if($groups = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $id, 'group'))
 							foreach ($groups as $pg) {
 								$this->db->cache_clear($pg->product);
 							}

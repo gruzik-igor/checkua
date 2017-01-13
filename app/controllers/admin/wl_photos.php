@@ -23,10 +23,29 @@ class wl_photos extends Controller {
         $id = $this->data->uri(3);
         if(is_numeric($id) && isset($_POST['ALIAS_ID']) && isset($_POST['ALIAS_FOLDER']) && isset($_POST['PHOTO_FILE_NAME']) && isset($_POST['PHOTO_TITLE']))
         {
-            $path = IMG_PATH.$this->data->post('ALIAS_FOLDER').'/'.$id;
+            $path = IMG_PATH;
             $path = substr($path, strlen(SITE_URL));
+            $path = substr($path, 0, -1);
             $name_field = 'photos';
             $error = 0;
+            if(!is_dir($path))
+            {
+                if(mkdir($path, 0777) == false)
+                {
+                    $error++;
+                    $filejson->files['error'] = 'Error create dir ' . $path;
+                } 
+            }
+            $path .= '/'.$this->data->post('ALIAS_FOLDER');
+            if(!is_dir($path))
+            {
+                if(mkdir($path, 0777) == false)
+                {
+                    $error++;
+                    $filejson->files['error'] = 'Error create dir ' . $path;
+                } 
+            }
+            $path .= '/'.$id;
             if(!is_dir($path))
             {
                 if(mkdir($path, 0777) == false)
@@ -42,11 +61,11 @@ class wl_photos extends Controller {
                 $length = count($_FILES[$name_field]['name']);
                 for($i = 0; $i < $length; $i++) {
                     $data['alias'] = $this->data->post('ALIAS_ID');
-                    $data['content'] = $id;
+                    $data['content'] = $data['main'] = $id;
                     $data['file_name'] = '';
                     $data['title'] = $this->data->post('PHOTO_TITLE');
                     $data['author'] = $_SESSION['user']->id;
-                    $data['date_add'] = $data['main'] = time();
+                    $data['date_add'] = time();
                     $this->db->insertRow('wl_images', $data);
                     $photo_id = $this->db->getLastInsertedId();
                     $photo_name = $this->data->post('PHOTO_FILE_NAME') . '-' . $photo_id;
@@ -76,7 +95,6 @@ class wl_photos extends Controller {
             if($error > 0)
             {
                 $photo['result'] = false;
-                $photo['error'] = "Access Denied!";
                 $filejson->files[] = $photo;
             }
         }

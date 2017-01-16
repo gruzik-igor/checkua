@@ -221,7 +221,7 @@ class products_model {
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		if(isset($_POST['article'])) $data['article'] = trim($this->data->post('article'));
 		$data['active'] = $data['availability'] = 1;
-		$data['price'] = 0;
+		$data['price'] = $data['group'] = 0;
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] > 0) $data['price'] = $_POST['price'];
 		$data['author_add'] = $data['author_edit'] = $_SESSION['user']->id;
 		$data['date_add'] = $data['date_edit'] = time();
@@ -240,6 +240,8 @@ class products_model {
 					$ntkd['language'] = $lang;
 					$name = trim($this->data->post('name_'.$lang));
 					$ntkd['name'] = $name;
+					if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
+						$ntkd['name'] = trim($this->data->post('article')) .' '.$name;
 					if($lang == $_SESSION['language'])
 						$data['alias'] = $this->data->latterUAtoEN($name);
 					$this->db->insertRow('wl_ntkd', $ntkd);
@@ -249,6 +251,8 @@ class products_model {
 			{
 				$name = trim($this->data->post('name'));
 				$ntkd['name'] = $name;
+				if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
+					$ntkd['name'] = trim($this->data->post('article')) .' '.$name;
 				$data['alias'] = $this->data->latterUAtoEN($name);
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
@@ -257,6 +261,7 @@ class products_model {
 				$data['alias'] = $this->ckeckAlias($this->data->latterUAtoEN(trim($this->data->post('article'))) . '-' . $data['alias']);
 			else
 				$data['alias'] = $id . '-' . $data['alias'];
+			$link = $data['alias'];
 			
 			if($_SESSION['option']->useGroups)
 			{
@@ -266,7 +271,6 @@ class products_model {
 						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
 					}
 					$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
-					$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
 				}
 				else
 				{
@@ -275,9 +279,7 @@ class products_model {
 						$data['group'] = $_POST['group'];
 						$data['position'] = $this->db->getCount($this->table('_products'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
 
-						if($data['group'] == 0)
-							$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
-						else
+						if($data['group'] != 0)
 						{
 							$list = array();
 				            $groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
@@ -285,23 +287,16 @@ class products_model {
 				            	$list[$Group->id] = clone $Group;
 				            }
 				            $link = $this->makeLink($list, $data['group'], $data['alias']);
-				            $this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
 						}
 					}
 					else
-					{
 						$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
-						$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
-					}
 				}
 			}
 			else
-			{
 				$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
-				$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$data['alias']);
-			}
 
-			$data['position'] += 1;
+			$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
 			if($this->db->updateRow($this->table('_products'), $data, $id))
 				return $id;
 		}
@@ -311,10 +306,22 @@ class products_model {
 	public function save($id)
 	{
 		$data = array('active' => 0, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
-		if($_SESSION['option']->ProductUseArticle)
+		if($_SESSION['option']->ProductUseArticle && $this->data->post('article_old'))
 		{
 			$data['article'] = trim($this->data->post('article'));
 			$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+			if($names = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => $id)))
+			{
+				foreach ($names as $row) {
+					$name = explode(' ', $row->name);
+					if($name[0] == $this->data->post('article_old'))
+					{
+						$name[0] = $data['article'];
+						$name = implode(' ', $name);
+						$this->db->updateRow('wl_ntkd', array('name' => $name), $row->id);
+					}
+				}
+			}
 		}
 		else
 			$data['alias'] = $id .'-'. trim($this->data->post('alias'));

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.3.2"
+ 	Service "Shop Showcase 2.3.3"
 	for WhiteLion 1.0
 
 */
@@ -36,8 +36,6 @@ class shopshowcase extends Controller {
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				if($_SESSION['alias']->title == $_SESSION['alias']->name && $_SESSION['option']->ProductUseArticle)
-					$_SESSION['alias']->title = $product->article . ' ' . $_SESSION['alias']->name;
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
 			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)

@@ -82,6 +82,7 @@
           <li><a href="#tab-photo" data-toggle="tab" aria-expanded="true">Фото</a></li>
           <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
           <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
+          <li><a href="#tab-statistic" data-toggle="tab" aria-expanded="true">Статистика</a></li>
         </ul>
         <div class="tab-content">
           <?php if(!empty($storages)) { ?>
@@ -114,6 +115,9 @@
           </div>
           <div class="tab-pane fade" id="tab-audio">
             <?php require_once APP_PATH.'views/admin/wl_audio/__tab-audio.php'; ?>
+          </div>
+          <div class="tab-pane fade" id="tab-statistic">
+            <?php require_once APP_PATH.'views/admin/wl_statistic/__statistic.php'; ?>
           </div>
         </div>
 

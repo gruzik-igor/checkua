@@ -162,7 +162,7 @@ class shop_model {
 				}
 			}
 		}
-		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
+		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
 			$where['#g.active'] = 1;
 
 		$this->db->select($this->table('_products').' as p', '*', $where);

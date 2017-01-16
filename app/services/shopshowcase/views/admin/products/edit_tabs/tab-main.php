@@ -4,7 +4,10 @@
 		<?php if($_SESSION['option']->ProductUseArticle) { ?>
     		<tr>
 				<th>Артикул</th>
-				<td><input type="text" name="article" value="<?=$product->article?>" class="form-control" required></td>
+				<td>
+					<input type="text" name="article" value="<?=$product->article?>" class="form-control" required>
+					<input type="hidden" name="article_old" value="<?=$product->article?>">
+				</td>
 			</tr>
 		<?php }
 		if($_SESSION['option']->useGroups && $groups)

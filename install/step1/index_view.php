@@ -12,6 +12,9 @@
 	<div class="form-group m-b-20">
         <input type="text" name="db" id="db" value="<?=SITE_NAME?>" class="form-control input-lg" placeholder="Data base" required />
     </div>
+    <div class="m-b-20">
+        <label><input type="checkbox" name="create" id="create" value="1" /> Спробувати створити базу даних</label>
+    </div>
 	<button type="button" onclick="checkConnection()" class="btn btn-success btn-block btn-lg">Далі</button>
 </form>
 
@@ -27,6 +30,7 @@ function checkConnection ()
 			user : $('#user').val(),
 			password : $('#password').val(),
 			db : $('#db').val(),
+			create : $('#create').is(':checked'),
 			json : true
 		},
 		success: function(res)

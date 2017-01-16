@@ -64,6 +64,9 @@ if(file_exists($file_config))
         	$query = "UPDATE `wl_sitemap` SET `code`= 404 WHERE `id` = 5";
 			$connect->query($query);
 
+			$query = "UPDATE `wl_user_status` SET `load`= 'admin' WHERE `id` = 1";
+			$connect->query($query);
+
         	$nextstep = 4;
         }
 

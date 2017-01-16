@@ -1,10 +1,10 @@
 <h4 style="color:#fff">3. Реєстрація адміністратора</h4>
 <form action="<?=SITE_URL?>step3" method="POST" class="margin-bottom-0">
 	<div class="form-group">
-        <input type="text" name="name" value="admin" class="form-control input-lg" placeholder="Ім'я яке відображається на сайті" required />
+        <input type="text" name="name" value="developer" class="form-control input-lg" placeholder="Ім'я яке відображається на сайті" required />
     </div>
     <div class="form-group">
-        <input type="email" name="email" value="" class="form-control input-lg" placeholder="email адміністратора (використовується при логінації)" required />
+        <input type="email" name="email" value="developer@webspirit.com.ua" class="form-control input-lg" placeholder="email адміністратора (використовується при логінації)" required />
     </div>
     <div class="form-group">
         <input type="password" name="admin_password" id="admin_password" value="" class="form-control input-lg" placeholder="Пароль" required />

@@ -120,7 +120,7 @@ class question_model {
 		$check = $this->getByAlias($this->data->post('alias'));
 		if($check && $check->id != $id) $go = false;
 		if($go){
-			$faq = $this->data->make(array('group' => 'number', 'active' => 'number', 'alias'));
+			$faq = $this->data->prepare(array('group' => 'number', 'active' => 'number', 'alias'));
 
 			if($_SESSION['option']->useGroups){
 				$question = $this->db->getAllDataById($this->table(), $id);

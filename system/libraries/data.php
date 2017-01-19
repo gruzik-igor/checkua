@@ -16,6 +16,7 @@
  * Версія 1.2.1 (17.10.2016) Виправлено latterUAtoEN(): додано символ +
  * Версія 1.2.2 (24.10.2016) Виправлено make(): правильно розпізнає поля як з типом так і без; непередані поля
  * Версія 1.3 (06.12.2016) Додано get_link() - формування лінку за GET зі змінами
+ * Версія 1.3.1 (20.01.2017) Функцію make() перейменовано на prepare()
  */
 
 class Data {
@@ -176,7 +177,13 @@ class Data {
         return $text;
     }
 
-	public function make($fields, $var = '_POST')
+    /**
+	 * Отримуємо та готуємо POST дані до вставки в бд
+	 *
+	 * @param string ключ
+	 * @param bool очистити від xss
+	 */
+	public function prepare($fields, $var = '_POST')
 	{
 		if(!empty($fields) && is_array($fields))
 		{

@@ -93,7 +93,7 @@ class groups_model {
 		$check = $this->getByAlias($this->data->post('alias'));
 		if($check && $check->id != $id) $go = false;
 		if($go){
-			$faq = $this->data->make(array('active' => 'number', 'alias'));
+			$faq = $this->data->prepare(array('active' => 'number', 'alias'));
 			$faq['author_edit'] = $_SESSION['user']->id;
 			$faq['date_edit'] = time();
 			if($this->db->updateRow($this->table(), $faq, $id)) return true;

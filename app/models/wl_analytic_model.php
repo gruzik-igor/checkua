@@ -8,7 +8,7 @@ class wl_analytic_model {
 		$day = strtotime('-1 month');
 
 		$get = array('start' => 'date', 'end' => 'date');
-		$get = $this->data->make($get, '_GET');
+		$get = $this->data->prepare($get, '_GET');
 		if(isset($get['start']))
 			$where = '`day` >= '.$get['start'];
 		else
@@ -45,7 +45,7 @@ class wl_analytic_model {
 		if($language && $language != '*')
 			$where['language'] = $language;
 		$get = array('start' => 'date', 'end' => 'date');
-		$get = $this->data->make($get, '_GET');
+		$get = $this->data->prepare($get, '_GET');
 		if(isset($get['start']))
 			$where['day'] = '>='.$get['start'];
 		if(isset($get['end']))
@@ -82,7 +82,7 @@ class wl_analytic_model {
 		if($language && $language != '*')
 			$where['language'] = $language;
 		$get = array('start' => 'date', 'end' => 'date');
-		$get = $this->data->make($get, '_GET');
+		$get = $this->data->prepare($get, '_GET');
 		if(isset($get['start']))
 			$where['day'] = '>='.$get['start'];
 		if(isset($get['end']))

@@ -1,4 +1,4 @@
-<div class="row"><?php $_SESSION['language'] = false ?>
+<div class="row">
     <div class="col-md-12">
         <div class="panel panel-inverse">
             <div class="panel-heading">
@@ -128,12 +128,12 @@
                            <?php if($_SESSION['language']){ ?>
                                 <ul class="nav nav-tabs">
                                     <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
-                                        <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
+                                        <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab2-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
                                     <?php } ?>
                                 </ul>
                                 <div class="tab-content">
                                     <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
-                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="language-tab-<?=$lang?>">
+                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="language-tab2-<?=$lang?>">
                                             <form  class="form-horizontal ">
                                                 <table>
                                                     <div class="form-group">

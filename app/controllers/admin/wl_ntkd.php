@@ -1,7 +1,7 @@
 <?php
 
 class wl_ntkd extends Controller {
-				
+
     function _remap($method)
     {
         $_SESSION['alias']->name = 'Налаштування SEO (name, title, descriptions)';
@@ -73,7 +73,7 @@ class wl_ntkd extends Controller {
         	$this->load->admin_view('wl_ntkd/index_view');
         else
             $this->load->notify_view(array('errors' => 'Доступ заборонено!'));
-        
+
         $_SESSION['alias']->id = 0;
         $_SESSION['alias']->alias = 'admin';
         $_SESSION['alias']->table = '';
@@ -220,6 +220,11 @@ class wl_ntkd extends Controller {
         exit;
     }
 
+    public function seo_robot()
+    {
+        $this->load->admin_view('wl_ntkd/seo_robot_view');
+    }
+
     private function access()
     {
         if(isset($_POST['alias']) && is_numeric($_POST['alias']))
@@ -229,9 +234,9 @@ class wl_ntkd extends Controller {
                 return true;
             return false;
         }
-        
+
     }
-	
+
 }
 
 ?>

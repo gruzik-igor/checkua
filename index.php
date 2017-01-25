@@ -8,6 +8,7 @@ session_start();
 error_reporting(E_ALL);
 
 define('DIRSEP', DIRECTORY_SEPARATOR);
+define('APP_PATH', getcwd() . DIRSEP.'app'.DIRSEP);
 
 if($_SERVER["SERVER_NAME"] == 'localhost')
 {

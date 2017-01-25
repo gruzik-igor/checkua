@@ -27,8 +27,10 @@
     </li>
     <?php
     $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
-    if($sidebarForms) foreach($sidebarForms as $sidebarForm) { ?>
-        <li><a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
+    if($sidebarForms) foreach($sidebarForms as $sidebarForm) {
+        $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
+     ?>
+        <li<?=$class?>><a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
     <?php }
     $this->db->select('wl_aliases', 'id, alias, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');
@@ -100,7 +102,7 @@
     if($_SESSION['user']->admin == 1){ ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
         <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
-        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template')))?'active':''?>">
+        <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template')) && $this->data->uri(2) != 'info')?'active':''?>">
             <a href="javascript:;">
                 <b class="caret pull-right"></b>
                 <i class="fa fa-cogs"></i>

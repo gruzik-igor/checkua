@@ -9,39 +9,41 @@ class Mail {
     private $message;
     private $params;
 
-    function subject($title){
+    public function subject($title)
+    {
         $this->subject = $title;
     }
 
-    function to($send_to){
+    public function to($send_to)
+    {
         $this->to = $send_to;
     }
 
-    function from($send_from){
-        // $pos = strpos($send_from, '@');
-        // $this->from = substr($send_from, 0, $pos);
+    public function from($send_from)
+    {
         $this->from = $send_from;
         $this->replyTo = $send_from;
     }
 
-    function message($msg){
+    public function message($msg)
+    {
         $this->message = $msg;
     }
 
-    function params($pms){
+    public function params($pms)
+    {
         $this->params = $pms;
+        $this->params['SITE_URL'] = SITE_URL;
+        $this->params['IMAGE_PATH'] = IMG_PATH;
     }
 
-    function send()
+    public function send()
     {
-        if($_SERVER["SERVER_NAME"] == 'localhost') return true;
-
-        if(is_array($this->params)){
-            foreach($this->params as $key => $value){
+        if(is_array($this->params))
+            foreach($this->params as $key => $value) {
+                $this->subject = str_replace('{'.$key.'}', $value, $this->subject);
                 $this->message = str_replace('{'.$key.'}', $value, $this->message);
             }
-        }
-
         // $this->message = mb_convert_encoding ($this->message, 'windows-1251', 'utf-8');
 
         $headers ="Mime-Version: 1.0 \r\n";
@@ -50,54 +52,66 @@ class Mail {
         $headers .= "From: ".SITE_NAME." <".$this->from."> \r\n";
         $headers .= 'Reply-To: '.$this->replyTo;
 
-        if(mail($this->to, $this->subject, $this->message, $headers)) {
-            return true;
-        } else {
-            return false;
-        }
+        $sent_mail = new stdClass();
+        $sent_mail->from = $this->from;
+        $sent_mail->to = $this->to;
+        $sent_mail->replyTo = $this->replyTo;
+        $sent_mail->subject = $this->subject;
+        $sent_mail->message = $this->message;
+        $sent_mail->headers = $headers;
+
+        if($_SERVER["SERVER_NAME"] == 'localhost')
+            return $sent_mail;
+        if(mail($this->to, $this->subject, $this->message, $headers))
+            return $sent_mail;
+        return false;
     }
 
-	function sendTemplate($template, $to, $data = array())
+	public function sendTemplate($template, $to, $data = array())
     {
 		$path = APP_PATH.'mails'.DIRSEP.$template.'.php';
-        if($_SESSION['language']){
+        if($_SESSION['language'])
+        {
             $path = APP_PATH.'mails'.DIRSEP.$_SESSION['language'].DIRSEP.$template.'.php';
-            if(file_exists($path) == false) $path = APP_PATH.'mails'.DIRSEP.$template.'.php';
+            if(file_exists($path) == false)
+                $path = APP_PATH.'mails'.DIRSEP.$template.'.php';
         }
-		if(file_exists($path)){
+		if(file_exists($path))
+        {
 			$subject = '';
 			$message = '';
             $from_mail = SITE_EMAIL;
             $from_name = 'Адміністрація '.SITE_NAME;
 			require($path);
-			if($message != '' && $subject != ''){
+			if($message != '' && $subject != '')
+            {
 				$this->params(array('name' => $from_name));
 				$this->message(html_entity_decode($message));
 				$this->subject($subject);
 				$this->to($to);
 				$this->from($from_mail);
 
-				if($this->send()) return true;
+				return $this->send();
 			}
 		}
 		return false;
 	}
 
-    function sendMailTemplate($template, $data = array())
+    public function sendMailTemplate($template, $data = array())
     {
         $from = $this->checkMail($template->from, $data);
         $to = $this->checkMail($template->to, $data);
 
-        if($from && $to){
+        if($from && $to)
+        {
             $this->params($data);
             $this->message(html_entity_decode($template->text));
             $this->subject($template->title);
             $this->to($to);
             $this->from($from);
 
-            if($this->send()) return true;
+            return $this->send();
         }
-
         return false;
     }
 
@@ -109,15 +123,16 @@ class Mail {
                 break;
 
             default:
-                if(!isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $mail)){
+                if(!isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $mail))
                     return $mail;
-                } else if(isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data[$mail])){
+                elseif(isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data[$mail]))
                     return $data[$mail];
-                } else return false;
+                else
+                    return false;
                 break;
         }
-
         return false;
     }
+
 }
 ?>

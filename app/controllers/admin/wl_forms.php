@@ -116,42 +116,43 @@ class wl_forms extends Controller {
 
     public function add_field()
     {
-        if(!empty($_POST)){
-
+        if(!empty($_POST))
+        {
             $form = $this->data->post('form');
             $formName = $this->data->post('form_name');
+            $formTable = $this->data->post('form_table');
 
+            //Провірка на унікальне ім'я
             $formById = $this->db->getAllDataByFieldInArray('wl_fields', $form, 'form');
             $namesById = array();
-            if($formById){
+            if($formById)
+            {
                 foreach ($formById as $names) {
                     $namesById[] = $names->name;
                 }
             }
-
-            if(!in_array($_POST['name'], $namesById) && !empty($_POST['name'])){  //Провірка на унікальне ім'я
+            if(!in_array($_POST['name'], $namesById) && !empty($_POST['name']))
                 $name = $this->data->post('name');
-            }
 
-            if(!empty($_POST['input_type'])) $input_type = $this->data->post('input_type');
-
-            $required = ($_POST['required'] == '1')? 1 : 0;
-            if(!empty($_POST['title'])) $title = $this->data->post('title');
+            $input_type = $this->data->post('input_type');
+            $required = ($_POST['required'] == '1') ? 1 : 0;
+            $title = $this->data->post('title');
 
             $lastColumn = end($namesById);
-            $this->db->executeQuery("ALTER TABLE `{$formName}` ADD {$name} text AFTER `{$lastColumn}`");
+            $this->db->executeQuery("ALTER TABLE `{$formTable}` ADD {$name} text AFTER `{$lastColumn}`");
 
-            if(isset($name, $input_type, $title)){
+            if(isset($name, $input_type, $title))
+            {
                 $this->db->executeQuery("INSERT INTO `wl_fields` (`id`, `form`, `name`, `input_type`, `required`, `title`) VALUES (NULL, $form, '$name', $input_type, $required, '$title')");
 
-                if(!empty($_POST['value'])){
+                if(!empty($_POST['value']))
+                {
                     $fieldId = $this->db->getLastInsertedId();
                     foreach ($_POST['value'] as $value) {
                         if(!empty($value)) $this->db->executeQuery("INSERT INTO `wl_fields_options` (`field`, `value`, `title`) VALUES($fieldId, '$value', '$value')");
                     }
                 }
             }
-
             header("Location: ".SITE_URL."admin/wl_forms/".$formName);
         }
     }
@@ -162,31 +163,37 @@ class wl_forms extends Controller {
             $id = $this->data->post('id');
             $form = $this->data->post('form');
             $formName = $this->data->post('formname');
-
+            $data = array();
+            
+            //Провірка на унікальне ім'я
             $formById = $this->db->getAllDataByFieldInArray('wl_fields', $form, 'form');
             foreach ($formById as $names) {
                 $namesById[] = $names->name;
             }
-            if(!in_array($_POST['name'], array_diff($namesById, array($_POST['field_name']))) && !empty($_POST['name'])){  //Провірка на унікальне ім'я
-                    $name = $_POST['name'];
-            }
+            if(!in_array($_POST['name'], array_diff($namesById, array($_POST['field_name']))) && !empty($_POST['name']))
+                $data['name'] = $this->data->post('name');
+            $data['input_type'] = $this->data->post('input_type');
+            $data['title'] = $this->data->post('title');
+            $data['required'] = $this->data->post('required');
 
-            if(!empty($_POST['input_type'])) $input_type = $_POST['input_type'];
-            $required = ($_POST['required'] == '1')? 1 : 0;
-            if(!empty($_POST['title'])) $title = $_POST['title'];
+            if(isset($data['name']))
+            {
+                $this->db->updateRow('wl_fields', $data, $id);
 
-            if(isset($name, $input_type, $title)){
-                $this->db->executeQuery("UPDATE `wl_fields` SET `form` = $form, `name` = '$name', `input_type` = $input_type, `required` = $required, `title` = '$title' WHERE `wl_fields`.`id` = $id");
+                $this->db->deleteRow('wl_fields_options', $id, 'field');
 
-                $this->db->executeQuery("DELETE FROM `wl_fields_options` WHERE `field` = $id");
-
-                if(!empty($_POST['value'])){
+                if(!empty($_POST['value']))
+                {
+                    $option = array('field' => $id);
                     foreach ($_POST['value'] as $value) {
-                        if(!empty($value)) $this->db->executeQuery("INSERT INTO `wl_fields_options` (`field`, `value`, `title`) VALUES($id, '$value', '$value')");
+                        if(!empty($value))
+                        {
+                            $option['value'] = $option['title'] = $value;
+                            $this->db->insertRow('wl_fields_options', $option);
+                        }
                     }
                 }
-
-                header("Location: ".SITE_URL."admin/wl_forms/".$formName.'/'.$name);
+                header("Location: ".SITE_URL."admin/wl_forms/".$formName.'/'.$data['name']);
             }
         }
     }
@@ -265,13 +272,13 @@ class wl_forms extends Controller {
 
     public function info()
     {
-        $name = $this->data->uri(3);
-
-        if($name){
-            if($form = $this->db->getQuery("SELECT `id`, `table` FROM `wl_forms` WHERE `name` = '{$name}'")){
+        if($name = $this->data->uri(3))
+        {
+            if($form = $this->db->getQuery("SELECT `id`, `table` FROM `wl_forms` WHERE `name` = '{$name}'"))
+            {
                 $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
 
-                $tableInfo = $this->db->getQuery("SELECT * FROM $form->table", 'array');
+                $tableInfo = $this->db->getQuery("SELECT * FROM `$form->table`", 'array');
 
                 $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
             }

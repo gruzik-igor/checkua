@@ -52,8 +52,8 @@
 				<div class="form-group">
 					<label class="col-md-3 control-label">required</label>
 					<div class="col-md-9">
-						<input type="radio" name="required" value="1" <?= ($field_name->required == 1)?'checked':'' ?>>Так
-						<input type="radio" name="required" value="0" <?= ($field_name->required == 0)?'checked':'' ?>>Ні
+						<label><input type="radio" name="required" value="1" <?= ($field_name->required == 1)?'checked':'' ?>>Так</label>
+						<label><input type="radio" name="required" value="0" <?= ($field_name->required == 0)?'checked':'' ?>>Ні</label>
 					</div>
 				</div>
 				<div class="form-group">

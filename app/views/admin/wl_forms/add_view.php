@@ -20,22 +20,22 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">captcha</label>
 							<div class="col-md-9">
-								<input type="radio" name="captcha" value="yes">Так
-								<input type="radio" name="captcha" value="no" checked>Ні
+								<label><input type="radio" name="captcha" value="yes">Так</label>
+								<label><input type="radio" name="captcha" value="no" checked>Ні</label>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-md-3 control-label">title</label>
 							<div class="col-md-9">
-								<input type="text" class="form-control" name="title" placeholder="title">
+								<input type="text" class="form-control" name="title" placeholder="title" required>
 								<small>назва у боковому меню</small>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-md-3 control-label">type*</label>
 							<div class="col-md-9">
-								<input type="radio" name="type" value="get" required>GET
-								<input type="radio" name="type" value="post" checked>POST
+								<label><input type="radio" name="type" value="get" required>GET</label>
+								<label><input type="radio" name="type" value="post" checked>POST</label>
 							</div>
 						</div>
 						<div class="form-group">

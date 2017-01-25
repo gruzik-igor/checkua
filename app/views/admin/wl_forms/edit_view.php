@@ -7,7 +7,9 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                 	<a href="javascript:;" class="btn btn-warning btn-xs" onclick="toggle(hidden_form)"><i class="fa fa-plus"></i> Додати поле</a>
-                	<a href="<?= SITE_URL.'admin/wl_forms/info/'.$form->name?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> Дивитися дані форми</a>
+                	<?php if($tableExist) { ?>
+                		<a href="<?= SITE_URL.'admin/wl_forms/info/'.$form->name?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> Дивитися дані форми</a>
+                	<?php } ?>
                 </div>
                 <h4 class="panel-title">Наявні поля:</h4>
             </div>
@@ -114,8 +116,8 @@
 							<div class="form-group">
 								<label class="col-md-3 control-label">type*</label>
 								<div class="col-md-9">
-									<input type="radio" name="type" value="get" required <?= $form->type == 1 ? 'checked' : '' ?> >GET
-									<input type="radio" name="type" value="post" <?= $form->type == 2 ? 'checked' : '' ?> >POST
+									<label><input type="radio" name="type" value="get" required <?= $form->type == 1 ? 'checked' : '' ?> >GET</label>
+									<label><input type="radio" name="type" value="post" <?= $form->type == 2 ? 'checked' : '' ?> >POST</label>
 								</div>
 							</div>
 							<div class="form-group">
@@ -211,6 +213,7 @@
 				<form action="<?=SITE_URL?>admin/wl_forms/add_field" method="POST" class="form-horizontal">
 					<input type="text" name="form" value="<?= $form->id ?>" hidden>
 					<input type="text" name="form_name" value="<?= $form->name ?>" hidden>
+					<input type="text" name="form_table" value="<?= $form->table ?>" hidden>
 					<table>
 						<div class="form-group">
 							<label class="col-md-3 control-label">name*</label>
@@ -247,8 +250,8 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">required</label>
 							<div class="col-md-9">
-								<input type="radio" name="required" value="1">Так
-								<input type="radio" name="required" value="0" checked>Ні
+								<label><input type="radio" name="required" value="1">Так</label>
+								<label><input type="radio" name="required" value="0" checked>Ні</label>
 							</div>
 						</div>
 						<div class="form-group">

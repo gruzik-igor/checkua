@@ -12,7 +12,7 @@
 			<?php } ?>
 		</ul>
 
-		<div class="tab-content">
+		<div class="tab-content" id="mailTemplate">
 			<div class="tab-pane active" id="tabs-main">
 				<form action="<?=SITE_URL?>admin/wl_mail_template/save" method="POST" class="form-horizontal">
 					<input type="hidden" name="mailTemplateId" value="<?= $mailTemplate->id?>">
@@ -20,6 +20,7 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Від</label>
 							<div class="col-md-9">
+								<small>У "від", "до" можна використовувати наступні поля: SITE_EMAIL, <?php if(!empty($fields)) foreach($fields as $field) { echo $field->type == 'email' ? $field->name.' ' : ''; } ?></small>
 								<input type="text" class="form-control" name="from" value="<?= $mailTemplate->from?>" placeholder="<?= SITE_EMAIL?>" required>
 							</div>
 						</div>
@@ -68,13 +69,20 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Текст</label>
 							<div class="col-md-9">
-								<textarea  class="form-control" rows="10" name="text" required><?= isset($mailTemplateData[$lang]->text) ? $mailTemplateData[$lang]->text : '<html><head><title></title></head><body></body></html>' ?></textarea>
+								<textarea class="form-control" style="height: 300px" rows="25" name="text" required><?= isset($mailTemplateData[$lang]->text) ? $mailTemplateData[$lang]->text : "<html><head>\n<title>\n\n</title>\n</head><body>\n<p>\n\n</p>\n</body></html>" ?></textarea>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-md-3 control-label">Слова</label>
 							<div class="col-md-9">
-								<span>SITE_URL, IMAGE_PATH<?php if(!empty($fields)) foreach($fields as $field) echo (", ".$field->name); ?></span>
+								<span class="words">
+									<button type="button" class="btn btn-sm btn-default">SITE_URL</button>
+									<button type="button" class="btn btn-sm btn-default">IMAGE_PATH</button>
+									<?php if(is_array($fields) || $fields->name != '') 
+										foreach($fields as $field)
+											echo (' <button type="button" class="btn btn-sm btn-default">{'.$field->name.'} </button>'); 
+									?>
+								</span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -102,13 +110,20 @@
 						<div class="form-group">
 							<label class="col-md-3 control-label">Текст</label>
 							<div class="col-md-9">
-								<textarea  class="form-control" rows="10" name="text" required><?= isset($mailTemplateData[0]->text) ? $mailTemplateData[0]->text : "<html><head>\n<title>\n\n</title>\n</head><body>\n<p>\n\n</p>\n</body></html>" ?></textarea>
+								<textarea class="form-control" style="height: 300px"  rows="25" name="text" required><?= isset($mailTemplateData[0]->text) ? $mailTemplateData[0]->text : "<html><head>\n<title>\n\n</title>\n</head><body>\n<p>\n\n</p>\n</body></html>" ?></textarea>
 							</div>
 						</div>
 						<div class="form-group">
 							<label class="col-md-3 control-label">Слова</label>
 							<div class="col-md-9">
-								<span>SITE_URL, IMAGE_PATH<?php if(is_array($fields) || $fields->name != '') foreach($fields as $field) echo (", ".$field->name); ?></span>
+								<span class="words">
+									<button type="button" class="btn btn-sm btn-default">SITE_URL</button>
+									<button type="button" class="btn btn-sm btn-default">IMAGE_PATH</button>
+									<?php if(is_array($fields) || $fields->name != '') 
+										foreach($fields as $field)
+											echo ('<button type="button" class="btn btn-sm btn-default">{'.$field->name.'} </button>'); 
+									?>
+								</span>
 							</div>
 						</div>
 						<div class="form-group">
@@ -130,4 +145,31 @@
     width: 30px;
 }
 </style>
+
+<script>
+document.onreadystatechange = function () {
+    if (document.readyState == "complete") {
+    	$('#mailTemplate  textarea').on('click',function (e) {
+            $('#mailTemplate').find('#wordTarget').removeAttr('id');
+            var $target = $(event.target).attr('id', 'wordTarget');
+        })
+
+		$('.words').on('click', function (e) {
+	        var $wordTarget = $('#wordTarget');
+	        if($wordTarget.length){
+	            var buttonText = event.target.textContent;
+	            var wordTargetValue = $wordTarget.val();
+	            var cursorPos = $('#wordTarget').prop('selectionStart');
+
+	            var textBefore = wordTargetValue.substring(0,  cursorPos );
+	            var textAfter  = wordTargetValue.substring( cursorPos, wordTargetValue.length );
+	            $('#wordTarget').val( textBefore + buttonText + textAfter );
+
+	            $('#wordTarget').focus()
+	            wordTarget.setSelectionRange(cursorPos + buttonText.length, cursorPos + buttonText.length);
+	        }
+	    })
+	}
+}
+</script>
 

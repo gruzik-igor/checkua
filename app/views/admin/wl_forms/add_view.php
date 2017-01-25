@@ -14,6 +14,7 @@
 							<label class="col-md-3 control-label">name*</label>
 							<div class="col-md-9">
 								<input type="text" class="form-control" name="name" placeholder="name" required>
+								<small>англ. літери</small>
 							</div>
 						</div>
 						<div class="form-group">
@@ -27,12 +28,7 @@
 							<label class="col-md-3 control-label">title</label>
 							<div class="col-md-9">
 								<input type="text" class="form-control" name="title" placeholder="title">
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">table*</label>
-							<div class="col-md-9">
-								<input type="text" class="form-control" name="table" placeholder="table" required>
+								<small>назва у боковому меню</small>
 							</div>
 						</div>
 						<div class="form-group">
@@ -40,20 +36,6 @@
 							<div class="col-md-9">
 								<input type="radio" name="type" value="get" required>GET
 								<input type="radio" name="type" value="post" checked>POST
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">send_email*</label>
-							<div class="col-md-9">
-								<input type="radio" name="send_mail" value="yes" required>yes
-								<input type="radio" name="send_mail" value="no" checked>no
-							</div>
-						</div>
-						<div class="form-group">
-							<label class="col-md-3 control-label">send_sms*</label>
-							<div class="col-md-9">
-								<input type="radio" name="send_sms" value="yes" required>yes
-								<input type="radio" name="send_sms" value="no" checked>no
 							</div>
 						</div>
 						<div class="form-group">

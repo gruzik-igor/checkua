@@ -79,7 +79,7 @@ class wl_forms extends Controller {
                         $form->success_data = json_decode($form->success_data);
                     }
 
-                    $tableExist = $this->db->getQuery("SHOW TABLES LIKE '{$form->name}'");
+                    $tableExist = $this->db->getQuery("SHOW TABLES LIKE '{$form->table}'");
 
                     $this->load->admin_view('wl_forms/edit_view', array('form' => $form, 'fields' => $fields, 'templates' => $templates, 'names' => $names, 'tableExist' => $tableExist));
                 }
@@ -101,16 +101,13 @@ class wl_forms extends Controller {
     {
 
         if(!empty($_POST)){
-            if(!empty($_POST['name'])) $name = $_POST['name'];
+            if(!empty($_POST['name'])) $name = $this->data->post('name');
             $captcha = ($_POST['captcha'] == 'yes' ) ? 1 : 0;
-            $title = (!empty($_POST['title']))? $_POST['title'] : '';
-            if(!empty($_POST['table'])) $table = $_POST['table'];
+            $title = $this->data->post('title');
             if(!empty($_POST['type'])) $type = ($_POST['type'] == 'get') ? 1 : 2;
-            if(!empty($_POST['send_mail'])) $send_mail = ($_POST['send_mail'] == 'yes') ? 1 : 0;
-            if(!empty($_POST['send_sms'])) $send_sms = ($_POST['send_sms'] == 'yes') ? 1 : 0;
 
-            if(isset($name,$table,$type)){
-                $this->db->executeQuery("INSERT INTO `wl_forms` (`id` ,`name` ,`captcha` ,`title` ,`table` ,`type` ,`type_data`, `send_mail`, `send_sms`) VALUES (NULL ,  '$name',  $captcha,  '$title',  '$table',  $type,  2, $send_mail, $send_sms)");
+            if(isset($name,$type)){
+                $this->db->executeQuery("INSERT INTO `wl_forms` (`id` ,`name` ,`captcha` ,`title` ,`table` ,`type` ,`type_data`, `send_mail`, `send_sms`, `sidebar`) VALUES (NULL ,  '$name',  $captcha,  '$title',  '$name',  $type,  2, 0, 0, 0)");
                 header("Location: ".SITE_URL."admin/wl_forms/".$name);
                 exit();
             }
@@ -133,13 +130,13 @@ class wl_forms extends Controller {
             }
 
             if(!in_array($_POST['name'], $namesById) && !empty($_POST['name'])){  //Провірка на унікальне ім'я
-                $name = $_POST['name'];
+                $name = $this->data->post('name');
             }
 
-            if(!empty($_POST['input_type'])) $input_type = $_POST['input_type'];
+            if(!empty($_POST['input_type'])) $input_type = $this->data->post('input_type');
 
             $required = ($_POST['required'] == '1')? 1 : 0;
-            if(!empty($_POST['title'])) $title = $_POST['title'];
+            if(!empty($_POST['title'])) $title = $this->data->post('title');
 
             $lastColumn = end($namesById);
             $this->db->executeQuery("ALTER TABLE `{$formName}` ADD {$name} text AFTER `{$lastColumn}`");
@@ -156,15 +153,15 @@ class wl_forms extends Controller {
             }
 
             header("Location: ".SITE_URL."admin/wl_forms/".$formName);
-
         }
     }
 
     public function edit_field($value='')
     {
         if(!empty($_POST)){
-            $id = $_POST['id'];
-            $form = $_POST['form'];
+            $id = $this->data->post('id');
+            $form = $this->data->post('form');
+            $formName = $this->data->post('formname');
 
             $formById = $this->db->getAllDataByFieldInArray('wl_fields', $form, 'form');
             foreach ($formById as $names) {
@@ -189,7 +186,7 @@ class wl_forms extends Controller {
                     }
                 }
 
-                $this->redirect();
+                header("Location: ".SITE_URL."admin/wl_forms/".$formName.'/'.$name);
             }
         }
     }
@@ -201,9 +198,9 @@ class wl_forms extends Controller {
 
         $data['sidebar'] = ($this->data->post('sidebar')) ? $this->data->post('sidebar') : 0;
         $data['name'] = $this->data->post('name');
+        $this->data->post('table') ? $data['table'] = $this->data->post('table') : '' ;
         $data['captcha'] = ($this->data->post('captcha')) ? $this->data->post('captcha') : 0;
         $data['title'] = $this->data->post('title');
-        $data['table'] = $this->data->post('table');
         $data['type'] = $this->data->post('type') == 'get' ? 1 : 2;
         $data['type_data'] = 2;
         $data['send_mail'] = ($this->data->post('send_mail')) ? $this->data->post('send_mail') : 0;
@@ -232,20 +229,24 @@ class wl_forms extends Controller {
         {
             $fields = $this->db->getAllDataByFieldInArray('wl_fields', $formId, 'form');
 
-            $fieldsName = array_map(function($f) { return '`'.$f->name.'` text'; }, $fields);
-            $fieldsName = implode(', ', $fieldsName);
+            if($fields)
+            {
+                $fieldsName = array_map(function($f) { return '`'.$f->name.'` text'; }, $fields);
+                $fieldsName = implode(', ', $fieldsName);
 
-            $sql = "CREATE TABLE IF NOT EXISTS `{$data['name']}` (
-                      `id` int(11) NOT NULL AUTO_INCREMENT,
-                      {$fieldsName},
-                      `date_add` int(11) NOT NULL,
-                      `language` text,
-                      PRIMARY KEY (`id`)
-                    ) ENGINE=InnoDB CHARSET=utf8;";
-            $this->db->executeQuery($sql);
+                $sql = "CREATE TABLE IF NOT EXISTS `{$data['table']}` (
+                          `id` int(11) NOT NULL AUTO_INCREMENT,
+                          {$fieldsName},
+                          `date_add` int(11) NOT NULL,
+                          `language` text,
+                          PRIMARY KEY (`id`)
+                        ) ENGINE=InnoDB CHARSET=utf8;";
+                $this->db->executeQuery($sql);
+            }
+            else $_SESSION['notify']->errors = "Спочатку додайте поля";
         }
 
-        if(isset($data['name'],$data['table'],$data['type'],$data['type_data'],$formId))
+        if(isset($data['type'],$data['type_data'],$formId))
         {
             $this->db->updateRow('wl_forms', $data, $formId);
 
@@ -264,15 +265,44 @@ class wl_forms extends Controller {
 
     public function info()
     {
-        $table = $this->data->uri(3);
+        $name = $this->data->uri(3);
 
-        $tableId = $this->db->getQuery("SELECT id FROM `wl_forms` WHERE `table` = '{$table}'")->id;
-        $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$tableId}'");
+        if($name){
+            if($form = $this->db->getQuery("SELECT `id`, `table` FROM `wl_forms` WHERE `name` = '{$name}'")){
+                $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
 
-        $tableInfo = $this->db->getQuery("SELECT * FROM $table", 'array');
+                $tableInfo = $this->db->getQuery("SELECT * FROM $form->table", 'array');
 
-        $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+                $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+            }
+        }
 
+        $this->load->page_404(false);
+    }
+
+    public function createMailTemplate()
+    {
+        $formId = $this->data->uri(3);
+
+        if(isset($formId) && is_numeric($formId))
+        {
+            $data = array();
+            $data['from'] = SITE_EMAIL;
+            $data['to'] = SITE_EMAIL;
+            $data['multilanguage'] = $_SESSION['language'] != false ? 1 : 0;
+            $data['savetohistory'] = 0;
+
+            $this->db->insertRow('wl_mail_templates', $data);
+            $mailTemplateId = $this->db->getLastInsertedId();
+
+            $this->db->insertRow('wl_mail_active', array('form' => $formId, 'template' => $mailTemplateId, 'active' => 1));
+            $this->db->updateRow('wl_forms', array('send_mail' => 1), $formId);
+            header('Location:'.SITE_URL.'admin/wl_mail_template/'.$mailTemplateId);
+        }
+        else 
+        {
+            $this->redirect();
+        }
     }
 }
 

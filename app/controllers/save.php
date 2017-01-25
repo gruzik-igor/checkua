@@ -55,7 +55,8 @@ class save extends Controller {
                         } 
                         elseif($form->type_data == 2)
                         {
-                           // $data['date'] = date("d.m.Y H:i", time());
+                            $data['date_add'] = time();
+                            $data['language'] = isset($_SESSION['language']) ? $_SESSION['language'] : null;
                             $this->db->insertRow($form->table, $data);
                             $data['id'] = $this->db->getLastInsertedId();
                         }
@@ -115,6 +116,8 @@ class save extends Controller {
 
                                     $this->db->insertRow('wl_mail_history', $updateHistory);
                                 }
+
+                                $data['date_add'] = date('d.m.Y H:i', $data['date_add']);
 
                                 if($this->mail->sendMailTemplate($mail, $data) && end($mails) == $currentMail)
                                 {

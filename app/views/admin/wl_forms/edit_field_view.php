@@ -9,6 +9,7 @@
 		<div  class="panel-body">
 			<form action="<?=SITE_URL?>admin/wl_forms/edit_field" method="POST" class="form-horizontal">
 				<input type="text" name="form" value="<?= $form->id ?>" hidden>
+				<input type="text" name="formname" value="<?= $form->name ?>" hidden>
 				<input type="text" name="id" value="<?=$field_name->id?>" hidden>
 				<input type="text" name="field_name" value="<?=$field_name->name?>" hidden>
 			 	<div class="form-group">

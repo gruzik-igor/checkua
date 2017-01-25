@@ -7,6 +7,7 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                 	<a href="javascript:;" class="btn btn-warning btn-xs" onclick="toggle(hidden_form)"><i class="fa fa-plus"></i> Додати поле</a>
+                	<a href="<?= SITE_URL.'admin/wl_forms/info/'.$form->name?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> Дивитися дані форми</a>
                 </div>
                 <h4 class="panel-title">Наявні поля:</h4>
             </div>
@@ -31,6 +32,28 @@
 									<td><?=$field->input_type_name?></td>
 									<td><?=($field->required)?'Так':'Ні'?></td>
 								</tr>
+							<?php } else { ?>
+								<tr>
+									<td colspan="5" class="text-center"><h4>Додайте поля і тоді створіть таблицю</h4></td>
+								</tr>
+							<?php } if($tableExist) {?>
+								<tr>
+									<td colspan="5" class="text-center"><h5>Службові поля</h5></td>
+								</tr>
+								<tr>
+									<td>-</td>
+									<td>Дата додачі</td>
+									<td>date_add</td>
+									<td>text</td>
+									<td>Hi</td>
+								</tr>
+								<tr>
+									<td>-</td>
+									<td>Мова</td>
+									<td>language</td>
+									<td>text</td>
+									<td>Hi</td>
+								</tr>
 							<?php } ?>
                         </tbody>
                     </table>
@@ -46,6 +69,7 @@
 		        </div>
 				<div  class="panel-body">
 						<input type="hidden" value="<?= $form->id?>" name="formId">
+						<p class="text-center"><?= SITE_URL.'save/'.$form->name?></p>
 						<table>
 							<?php if(!$tableExist) {?>
 							<div class="form-group">
@@ -54,11 +78,10 @@
 									<input type="checkbox" data-render="switchery" class="form-control" name="create" value="1">
 								</div>
 							</div>
-							<?php } ?>
 							<div class="form-group">
-								<label class="col-md-3 control-label">Показувати в sidebar?</label>
+								<label class="col-md-3 control-label">table*</label>
 								<div class="col-md-9">
-									<input type="checkbox" class="form-control" data-render="switchery" name="sidebar" <?= $form->sidebar == 1 ? 'checked' : '' ?> value="1">
+									<input type="text" class="form-control" name="table" value="<?= $form->table?>" placeholder="table" required>
 								</div>
 							</div>
 							<div class="form-group">
@@ -67,6 +90,15 @@
 									<input type="text" class="form-control" name="name" placeholder="name" value="<?= $form->name?>" required>
 								</div>
 							</div>
+							<?php } else { ?>
+							<input type="hidden" name="name" value="<?= $form->name?>">
+							<div class="form-group">
+								<label class="col-md-3 control-label">Показувати в sidebar?</label>
+								<div class="col-md-9">
+									<input type="checkbox" class="form-control" data-render="switchery" name="sidebar" <?= $form->sidebar == 1 ? 'checked' : '' ?> value="1">
+								</div>
+							</div>
+							<?php } ?>
 							<div class="form-group">
 								<label class="col-md-3 control-label">captcha</label>
 								<div class="col-md-9">
@@ -77,12 +109,6 @@
 								<label class="col-md-3 control-label">title</label>
 								<div class="col-md-9">
 									<input type="text" class="form-control" name="title" value="<?= $form->title?>" placeholder="help">
-								</div>
-							</div>
-							<div class="form-group">
-								<label class="col-md-3 control-label">table*</label>
-								<div class="col-md-9">
-									<input type="text" class="form-control" name="table" value="<?= $form->table?>" placeholder="table" required>
 								</div>
 							</div>
 							<div class="form-group">
@@ -103,10 +129,11 @@
 								<label class="col-md-3 control-label">Шаблони</label>
 								<div class="col-md-9">
 								<?php if($templates) {?>
-										<?php foreach ($templates as $template){ ?>
-										<label><input type="checkbox" name="templates[]" value="<?= $template->id?>" <?= (isset($template->checked) && $template->checked == 1) ? 'checked' : '' ?> ><?= isset($template->title) ? $template->title : $template->id ?></label><br>
-										<?php } ?>
+									<?php foreach ($templates as $template){ ?>
+									<label><input type="checkbox" name="templates[]" value="<?= $template->id?>" <?= (isset($template->checked) && $template->checked == 1) ? 'checked' : '' ?> ><a target="_blank" href="<?= SITE_URL.'admin/wl_mail_template/'.$template->id ?>"> <?= isset($template->title) ? $template->title : $template->id ?></a></label><br>
+									<?php } ?>
 								<?php } ?>
+									<label><a href="<?= SITE_URL?>admin/wl_forms/createMailTemplate/<?= $form->id ?>" class="btn btn-sm btn-success">Створити розсилку на основі форми</a></label>
 								</div>
 							</div>
 							<div class="form-group" >

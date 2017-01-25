@@ -12,7 +12,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <?php foreach ($formInfo as $info) { ?>
+                                <?php if($formInfo) foreach ($formInfo as $info) { ?>
                                 <th><?= $info->title?></th>
                                 <?php } ?>
                                 <th>Дата додачі</th>

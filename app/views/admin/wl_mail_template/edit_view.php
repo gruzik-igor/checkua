@@ -78,7 +78,7 @@
 								<span class="words">
 									<button type="button" class="btn btn-sm btn-default">SITE_URL</button>
 									<button type="button" class="btn btn-sm btn-default">IMAGE_PATH</button>
-									<?php if(is_array($fields) || $fields->name != '') 
+									<?php if(is_array($fields)) 
 										foreach($fields as $field)
 											echo (' <button type="button" class="btn btn-sm btn-default">{'.$field->name.'} </button>'); 
 									?>

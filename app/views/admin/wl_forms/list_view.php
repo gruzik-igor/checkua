@@ -31,7 +31,7 @@
                         	<?php if($forms) foreach ($forms as $f) { ?>
 								<tr>
 									<td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>"><?=$f->id?></a></td>
-                                    <td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>"><?=$f->name?></a></td>
+                                    <td><a href="<?=SITE_URL?>admin/wl_forms/<?=$f->name?>" class="btn btn-xs btn-info"><?=$f->name?></a></td>
 									<td><?=$f->title?></td>
                                     <td><?=($f->captcha)?'Так':'Ні'?></td>
 									<td><?=$f->table?></td>

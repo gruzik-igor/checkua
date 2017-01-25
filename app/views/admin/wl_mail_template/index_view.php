@@ -13,6 +13,7 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
+                                <th></th>
                                 <th>Від</th>
                                 <th>До</th>
                                 <th>Мульмимовність</th>
@@ -23,6 +24,7 @@
                             <?php if($mailTemplates) foreach ($mailTemplates as $template) { ?>
                             <tr>
                                 <td><a href="<?= SITE_URL.'admin/wl_mail_template/'. $template->id ?>"> <?= $template->id ?></a></td>
+                                <td><a href="<?= SITE_URL.'admin/wl_mail_template/'. $template->id ?>" class="btn btn-xs btn-info"> Дивитися</a></td>
                                 <td><?= $template->from ?></td>
                                 <td><?= $template->to ?></td>
                                 <td><?= $template->multilanguage ?></td>

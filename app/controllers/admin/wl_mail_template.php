@@ -77,7 +77,7 @@ class wl_mail_template extends Controller {
             $data['from'] = $this->data->post('from');
             $data['to'] = $this->data->post('to');
             $data['multilanguage'] = $_SESSION['language'] != false ? 1 : 0;
-            $data['savetohistory'] = $this->data->post('saveToHistory');
+            $data['savetohistory'] = $this->data->post('saveToHistory') ? 1 : 0;
 
             if(isset($_POST['mailTemplateId'])){
                 $mailTemplateId = $this->data->post('mailTemplateId');

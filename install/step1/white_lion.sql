@@ -352,6 +352,30 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `wl_ntkd_robot`
+--
+
+DROP TABLE IF EXISTS `wl_ntkd_robot`;
+CREATE TABLE IF NOT EXISTS `wl_ntkd_robot` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `alias` int(11) NOT NULL,
+  `content` int(11) NOT NULL,
+  `language` varchar(2) DEFAULT NULL,
+  `title` text,
+  `description` text,
+  `keywords` text,
+  `text` text,
+  `list` text,
+  `meta` text,
+  PRIMARY KEY (`id`),
+  KEY `alias` (`alias`),
+  KEY `content` (`content`),
+  KEY `language` (`language`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `wl_options`
 --
 

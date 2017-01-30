@@ -28,6 +28,13 @@ class wl_ntkd extends Controller {
                         $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => 'admin/wl_ntkd/'.$alias->alias, 'Головна сторінка' => '');
                         $this->load->admin_view('wl_ntkd/edit_view', array('alias' => $alias, 'content' => 0, 'ntkd' => $this->get($alias)));
                     }
+                    elseif($id == 'seo_robot')
+                    {
+                        $_SESSION['alias']->name = $alias->alias.' SEO Робот';
+                        $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', $alias->alias => 'admin/wl_ntkd/'.$alias->alias, 'SEO Робот' => '');
+                        $tkdtm = $this->db->getAllDataByFieldInArray('wl_ntkd_robot', $alias->id, 'alias');
+                        $this->load->admin_view('wl_ntkd/seo_robot_view', array('alias' => $alias, 'tkdtm' => $tkdtm));
+                    }
                     elseif(is_numeric($id))
                     {
                         $ntkd = $this->get($alias, $id);
@@ -222,7 +229,70 @@ class wl_ntkd extends Controller {
 
     public function seo_robot()
     {
-        $this->load->admin_view('wl_ntkd/seo_robot_view');
+        $_SESSION['alias']->name = 'SEO Робот на весь сайт. Найнижчий пріорітет';
+        $_SESSION['alias']->breadcrumb = array('SEO' => 'admin/wl_ntkd', 'SEO Робот' => '');
+        $tkdtm = $this->db->getAllDataByFieldInArray('wl_ntkd_robot', 0, 'alias');
+        $this->load->admin_view('wl_ntkd/seo_robot_view', array('tkdtm' => $tkdtm));
+    }
+
+    /**
+     * Зберігаємо дані до wl_ntkd_robot (30.01.2017)
+     * Ключові поля:
+     * @params $alias назва індексу масива
+     * @params $content назва індексу масива
+     * @params $field назва індексу масива
+     * @params $data назва індексу масива
+     * @params $language назва індексу масива
+     *
+     * @return значення асоційованого масиву у форматі application/json
+     */
+    public function save_robot()
+    {
+        $res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
+        if($this->userCan($_SESSION['alias']->alias) || $this->access())
+        {
+            $table = false;
+            $fields_ntkd = array('title', 'keywords', 'description', 'text', 'list', 'meta');
+            if(isset($_POST['field']) && isset($_POST['data']))
+            {
+                if(in_array($_POST['field'], $fields_ntkd)) $table = 'wl_ntkd_robot';
+
+                if($table)
+                {
+                    $field = htmlentities($_POST['data'], ENT_QUOTES, 'utf-8');
+                    $language = '';
+                    if($_SESSION['language'] && isset($_POST['language']))
+                    {
+                        $language = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
+                        $language = "AND `language` = '{$language}'";
+                    }
+
+                    $alias = $content = 0;
+                    if(isset($_POST['alias']) && is_numeric($_POST['alias']) && $_POST['alias'] > 0) $alias = $_POST['alias'];
+                    if(isset($_POST['content']) && is_numeric($_POST['content'])) $content = $_POST['content'];
+
+                    $this->db->executeQuery("UPDATE `{$table}` SET `{$_POST['field']}` = '{$field}' WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
+                    $this->db->executeQuery("SELECT `id` FROM `{$table}` WHERE `alias` = '{$alias}' AND `content` = '{$content}' {$language}");
+                    if($this->db->numRows() == 0)
+                    {
+                        $data['alias'] = $alias;
+                        $data['content'] = $content;
+                        if($_SESSION['language'] && isset($_POST['language']))
+                            $data['language'] = htmlentities($_POST['language'], ENT_QUOTES, 'utf-8');
+                        $data[$_POST['field']] = $field;
+                        $this->db->insertRow($table, $data);
+                    }
+
+                    $res['result'] = true;
+                    $res['error'] = '';
+                }
+            }
+            else
+                $res['error'] = 'Невірне поле для зберігання даних!';
+        }
+        header('Content-type: application/json');
+        echo json_encode($res);
+        exit;
     }
 
     private function access()

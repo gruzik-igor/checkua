@@ -14,7 +14,7 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                     <a href="<?=SITE_URL?>admin/wl_ntkd/global_metatags" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> Загальні Meta-теги</a>
-                    <a href="<?=SITE_URL?>admin/wl_ntkd/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO robot</a>
+                    <a href="<?=SITE_URL?>admin/wl_ntkd/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот</a>
                 </div>
                 <h4 class="panel-title">Наявні адреси:</h4>
             </div>

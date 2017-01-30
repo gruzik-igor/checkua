@@ -3,7 +3,8 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-            		<a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>/edit" class="btn btn-xs btn-warning"><i class="fa fa-at"></i> Головна сторінка</a>
+            		<a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>/edit" class="btn btn-xs btn-info"><i class="fa fa-at"></i> Головна сторінка</a>
+                    <a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот <?=$alias->alias?></a>
             	</div>
                 <h4 class="panel-title">Наявні адреси <strong><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></strong>:</h4>
             </div>

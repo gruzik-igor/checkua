@@ -3,9 +3,13 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-
+                    <?php if(isset($alias)) { ?>
+                        <a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>" class="btn btn-success btn-xs"><i class="fa <?=$alias->admin_ico?>"></i> До <?=$alias->alias?></a>
+                    <?php } else { ?>
+                        <a href="<?=SITE_URL?>admin/wl_ntkd" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> До розділів</a>
+                    <?php } ?>
                 </div>
-                <h4 class="panel-title">SEO robot:</h4>
+                <h4 class="panel-title">Значення за замовчуванням</h4>
             </div>
             <div class="panel-body" id="seo_robot">
                 <div class="col-md-9">
@@ -15,223 +19,265 @@
                     </ul>
                     <div class="tab-content">
                         <div class="tab-pane active" id="article">
-                            <?php if($_SESSION['language']){ ?>
+                            <?php if($_SESSION['language']) { ?>
                                 <ul class="nav nav-tabs">
                                     <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
                                         <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
                                     <?php } ?>
                                 </ul>
                                 <div class="tab-content">
-                                    <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
-                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="language-tab-<?=$lang?>">
-                                            <form  class="form-horizontal ">
-                                                <table>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Title</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="title" value="" placeholder="title" >
-                                                        </div>
+                                    <?php foreach ($_SESSION['all_languages'] as $lang) { 
+                                        $tab = array('title' => '', 'description' => '', 'keywords' => '', 'text' => '', 'list' => '', 'meta' => '');
+                                        if($tkdtm)
+                                            foreach ($tkdtm as $row) {
+                                                if($row->content > 0 && $row->language == $lang)
+                                                {
+                                                    foreach ($tab as $key => $value) {
+                                                        $tab[$key] = $row->$key;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        ?>
+                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="language-tab-<?=$lang?>">
+                                            <table>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Title</label>
+                                                    <div class="col-md-10">
+                                                        <input type="text" class="form-control" onChange="save('title', this, 1, '<?=$lang?>')" value="<?=$tab['title']?>" placeholder="Як назва сторінки" >
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Description</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="description" value="" placeholder="description" >
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Description</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('description', this, 1, '<?=$lang?>'" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Keywords</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="keywords" value="" placeholder="keywords" >
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Keywords</label>
+                                                    <div class="col-md-10">
+                                                        <input type="text" class="form-control" onChange="save('keywords', this, 1, '<?=$lang?>')" value="<?=$tab['keywords']?>" placeholder="keywords" >
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Meta</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="meta" value="" placeholder="meta" required>
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Meta</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('meta', this, 1, '<?=$lang?>')" class="form-control"><?=nl2br($tab['meta'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">List</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="list" value="" placeholder="list" required>
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Короткий опис сторінки</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('list', this, 1, '<?=$lang?>')" class="form-control" placeholder="Як у description"><?=nl2br($tab['list'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Text</label>
-                                                        <dic class="col-md-10">
-                                                            <textarea class="t-big" id="editor-<?=$lang?>"></textarea>
-                                                        </dic>
-                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Текст сторінки</label>
+                                                    <dic class="col-md-10">
+                                                        <textarea id="editor1-<?=$lang?>"><?=$tab['text']?></textarea>
+                                                    </dic>
+                                                </div>
 
-                                                    <div class="form-group">
-                                                        <div class="col-md-2"></div>
-                                                        <div class="col-md-10">
-                                                            <input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
-                                                        </div>
+                                                <div class="form-group">
+                                                    <div class="col-md-2"></div>
+                                                    <div class="col-md-10">
+                                                        <button type="button" class="btn btn-sm btn-warning " onclick="saveText(1, <?=$lang?>)">Зберегти текст сторінки</button>
                                                     </div>
-                                                </table>
-                                            </form>
+                                                </div>
+                                            </table>
                                         </div>
                                     <?php } ?>
                                 </div>
-                            <?php } else { ?>
-                            <form  class="form-horizontal ">
+                            <?php } else { 
+                                $tab = array('title' => '', 'description' => '', 'keywords' => '', 'text' => '', 'list' => '', 'meta' => '');
+                                if($tkdtm)
+                                    foreach ($tkdtm as $row) {
+                                        if($row->content > 0)
+                                        {
+                                            foreach ($tab as $key => $value) {
+                                                $tab[$key] = $row->$key;
+                                            }
+                                            break;
+                                        }
+                                    } ?>
+                            <div class="form-horizontal">
                                 <table>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Title</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="title" value="" placeholder="title" >
+                                            <input type="text" class="form-control" onChange="save('title', this, 1)" value="<?=$tab['title']?>" placeholder="Як назва сторінки" >
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Description</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="description" value="" placeholder="description" >
+                                            <textarea onChange="save('description', this, 1" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Keywords</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="keywords" value="" placeholder="keywords" >
+                                            <input type="text" class="form-control" onChange="save('keywords', this, 1)" value="<?=$tab['keywords']?>" placeholder="keywords" >
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Meta</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="meta" value="" placeholder="meta" required>
+                                            <textarea onChange="save('meta', this, 1)" class="form-control"><?=nl2br($tab['meta'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-2 control-label">List</label>
+                                        <label class="col-md-2 control-label">Короткий опис сторінки</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="list" value="" placeholder="list" required>
+                                            <textarea onChange="save('list', this, 1)" class="form-control" placeholder="Як у description"><?=nl2br($tab['list'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-2 control-label">Text</label>
+                                        <label class="col-md-2 control-label">Текст сторінки</label>
                                         <dic class="col-md-10">
-                                            <textarea class="t-big" id="editor"></textarea>
+                                            <textarea class="t-big" id="editor1"><?=$tab['text']?></textarea>
                                         </dic>
                                     </div>
 
                                     <div class="form-group">
                                         <div class="col-md-2"></div>
                                         <div class="col-md-10">
-                                            <input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
+                                            <button type="button" class="btn btn-sm btn-warning " onclick="saveText(1)">Зберегти текст сторінки</button>
                                         </div>
                                     </div>
                                 </table>
-                            </form>
+                            </div>
                             <?php } ?>
                         </div>
                         <div class="tab-pane " id="groups">
-                           <?php if($_SESSION['language']){ ?>
+                           <?php if($_SESSION['language']) { ?>
                                 <ul class="nav nav-tabs">
                                     <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
                                         <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab2-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
                                     <?php } ?>
                                 </ul>
                                 <div class="tab-content">
-                                    <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
-                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?>" id="language-tab2-<?=$lang?>">
-                                            <form  class="form-horizontal ">
-                                                <table>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Title</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="title" value="" placeholder="title" >
-                                                        </div>
+                                    <?php foreach ($_SESSION['all_languages'] as $lang) { 
+                                        $tab = array('title' => '', 'description' => '', 'keywords' => '', 'text' => '', 'list' => '', 'meta' => '');
+                                        if($tkdtm)
+                                            foreach ($tkdtm as $row) {
+                                                if($row->content < 0 && $row->language == $lang)
+                                                {
+                                                    foreach ($tab as $key => $value) {
+                                                        $tab[$key] = $row->$key;
+                                                    }
+                                                    break;
+                                                }
+                                            }
+                                        ?>
+                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="language-tab-<?=$lang?>">
+                                            <table>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Title</label>
+                                                    <div class="col-md-10">
+                                                        <input type="text" class="form-control" onChange="save('title', this, -1, '<?=$lang?>')" value="<?=$tab['title']?>" placeholder="Як назва сторінки" >
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Description</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="description" value="" placeholder="description" >
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Description</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('description', this, -1, '<?=$lang?>'" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Keywords</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="keywords" value="" placeholder="keywords" >
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Keywords</label>
+                                                    <div class="col-md-10">
+                                                        <input type="text" class="form-control" onChange="save('keywords', this, -1, '<?=$lang?>')" value="<?=$tab['keywords']?>" placeholder="keywords" >
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Meta</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="meta" value="" placeholder="meta" required>
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Meta</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('meta', this, -1, '<?=$lang?>')" class="form-control"><?=nl2br($tab['meta'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">List</label>
-                                                        <div class="col-md-10">
-                                                            <input type="text" class="form-control" name="list" value="" placeholder="list" required>
-                                                        </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Короткий опис сторінки</label>
+                                                    <div class="col-md-10">
+                                                        <textarea onChange="save('list', this, -1, '<?=$lang?>')" class="form-control" placeholder="Як у description"><?=nl2br($tab['list'])?></textarea>
                                                     </div>
-                                                    <div class="form-group">
-                                                        <label class="col-md-2 control-label">Text</label>
-                                                        <dic class="col-md-10">
-                                                            <textarea class="t-big" id="editor2-<?=$lang?>"></textarea>
-                                                        </dic>
-                                                    </div>
+                                                </div>
+                                                <div class="form-group">
+                                                    <label class="col-md-2 control-label">Текст сторінки</label>
+                                                    <dic class="col-md-10">
+                                                        <textarea class="t-big" id="editor-1-<?=$lang?>"><?=$tab['text']?></textarea>
+                                                    </dic>
+                                                </div>
 
-                                                    <div class="form-group">
-                                                        <div class="col-md-2"></div>
-                                                        <div class="col-md-10">
-                                                            <input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
-                                                        </div>
+                                                <div class="form-group">
+                                                    <div class="col-md-2"></div>
+                                                    <div class="col-md-10">
+                                                        <button type="button" class="btn btn-sm btn-warning " onclick="saveText(-1, <?=$lang?>)">Зберегти текст сторінки</button>
                                                     </div>
-                                                </table>
-                                            </form>
+                                                </div>
+                                            </table>
                                         </div>
                                     <?php } ?>
                                 </div>
-                            <?php } else { ?>
-                            <form  class="form-horizontal">
+                            <?php } else { 
+                                $tab = array('title' => '', 'description' => '', 'keywords' => '', 'text' => '', 'list' => '', 'meta' => '');
+                                if($tkdtm)
+                                    foreach ($tkdtm as $row) {
+                                        if($row->content < 0)
+                                        {
+                                            foreach ($tab as $key => $value) {
+                                                $tab[$key] = $row->$key;
+                                            }
+                                            break;
+                                        }
+                                    } ?>
+                            <div class="form-horizontal">
                                 <table>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Title</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="title" value="" placeholder="title" >
+                                            <input type="text" class="form-control" onChange="save('title', this, -1)" value="<?=$tab['title']?>" placeholder="Як назва сторінки" >
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Description</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="description" value="" placeholder="description" >
+                                            <textarea onChange="save('description', this, -1" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Keywords</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="keywords" value="" placeholder="keywords" >
+                                            <input type="text" class="form-control" onChange="save('keywords', this, -1)" value="<?=$tab['keywords']?>" placeholder="keywords" >
                                         </div>
                                     </div>
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Meta</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="meta" value="" placeholder="meta" required>
+                                            <textarea onChange="save('meta', this, -1)" class="form-control"><?=nl2br($tab['meta'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-2 control-label">List</label>
+                                        <label class="col-md-2 control-label">Короткий опис сторінки</label>
                                         <div class="col-md-10">
-                                            <input type="text" class="form-control" name="list" value="" placeholder="list" required>
+                                            <textarea onChange="save('list', this, -1)" class="form-control" placeholder="Як у description"><?=nl2br($tab['list'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
-                                        <label class="col-md-2 control-label">Text</label>
+                                        <label class="col-md-2 control-label">Текст сторінки</label>
                                         <dic class="col-md-10">
-                                            <textarea class="t-big" id="editor2"></textarea>
+                                            <textarea class="t-big" id="editor-1"><?=$tab['text']?></textarea>
                                         </dic>
                                     </div>
 
                                     <div class="form-group">
                                         <div class="col-md-2"></div>
                                         <div class="col-md-10">
-                                            <input type="submit" class="btn btn-sm btn-warning " value="Зберегти">
+                                            <button type="button" class="btn btn-sm btn-warning " onclick="saveText(-1)">Зберегти текст сторінки</button>
                                         </div>
                                     </div>
                                 </table>
-                            </form>
+                            </div>
                             <?php } ?>
                         </div>
                     </div>
@@ -244,6 +290,8 @@
                             <h4 class="panel-title">Слова</h4>
                         </div>
                         <div class="panel-body" id="words">
+                            <button type="button" class="btn btn-default">{SITE_URL}</button>
+                            <button type="button" class="btn btn-default">{IMG_PATH}</button>
                             <button type="button" class="btn btn-default">{page}</button>
                             <button type="button" class="btn btn-default">{name}</button>
                             <button type="button" class="btn btn-default">{test}</button>
@@ -259,7 +307,16 @@
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckeditor/ckeditor.js"></script>
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
-    <?php if($_SESSION['language']) foreach($_SESSION['all_languages'] as $lng){ echo "CKEDITOR.replace( 'editor-{$lng}' ); ";echo "CKEDITOR.replace( 'editor2-{$lng}' ); ";} else echo "CKEDITOR.replace( 'editor' ); "; echo "CKEDITOR.replace( 'editor2' );"; ?>
+    <?php if($_SESSION['language']) 
+        foreach($_SESSION['all_languages'] as $lng) { 
+            echo "CKEDITOR.replace( 'editor1-{$lng}' ); ";
+            echo "CKEDITOR.replace( 'editor-1-{$lng}' ); ";
+        }
+        else
+        {
+            echo "CKEDITOR.replace( 'editor1' ); ";
+            echo "CKEDITOR.replace( 'editor-1' );"; 
+        } ?>
         CKFinder.setupCKEditor( null, {
         basePath : '<?=SITE_URL?>assets/ckfinder/',
         filebrowserBrowseUrl : '<?=SITE_URL?>assets/ckfinder/ckfinder.html',
@@ -275,7 +332,12 @@
     document.onreadystatechange = function () {
         if (document.readyState == "complete") {
 
-            $('#seo_robot  input').on('click',function (e) {
+            $('#seo_robot input').on('click',function (e) {
+                $('#seo_robot').find('#wordTarget').removeAttr('id');
+                var $target = $(event.target).attr('id', 'wordTarget');
+            })
+
+            $('#seo_robot textarea').on('click',function (e) {
                 $('#seo_robot').find('#wordTarget').removeAttr('id');
                 var $target = $(event.target).attr('id', 'wordTarget');
             })
@@ -297,4 +359,56 @@
             })
        }
      }
+
+     var data;
+    function save (field, e, content, lang) {
+        $('#saveing').css("display", "block");
+        var value = '';
+        if(e != false) value = e.value;
+        else value = data;
+
+        $.ajax({
+            url: SITE_URL + "admin/wl_ntkd/save_robot",
+            type: 'POST',
+            data: {
+                alias: <?=(isset($alias)) ? $alias->id : 0 ?>,
+                content: content,
+                field: field,
+                data: value,
+                language: lang,
+                json: true
+            },
+            success: function(res){
+                if(res['result'] == false) {
+                    $.gritter.add({title:"Помилка!",text:res['error']});
+                } else {
+                    language = '';
+                    if(lang) language = lang;
+                    $.gritter.add({title:field+' '+language,text:"Дані успішно збережено!"});
+                }
+                $('#saveing').css("display", "none");
+            },
+            error: function(){
+                $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
+                $('#saveing').css("display", "none");
+            },
+            timeout: function(){
+                $.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
+                $('#saveing').css("display", "none");
+            }
+        });
+    }
+    <?php if($_SESSION['language']) { ?>
+        function saveText(content, lang)
+        {
+            data = CKEDITOR.instances['editor'+content+'-'+lang].getData();
+            save('text', false, content, lang);
+        }
+    <?php } else { ?>
+        function saveText(content)
+        {
+            data = CKEDITOR.instances['editor'+content].getData();
+            save('text', false, content, false);
+        }
+    <?php } ?>
 </script>

@@ -7,6 +7,9 @@
                 <div class="panel-heading-btn">
                     <a href="<?=SITE_URL?>admin/wl_sitemap/add_redirect" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> Додати 301 переадресацію</a>
                 	<a href="<?=SITE_URL?>admin/wl_sitemap/generate" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Генерувати карту сайту</a>
+                    <?php if($_SESSION['cache']) { ?>
+                        <a href="#modal-deleteCache" class="btn btn-danger btn-xs" data-toggle="modal"><i class="fa fa-trash"></i> Очистити весь Cache сайту</a>
+                    <?php } ?>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                 </div>
                 <h4 class="panel-title">Список всіх адрес, за якими відбувалися заходи на сайт</h4>
@@ -45,9 +48,16 @@
                         <li <?=($this->data->get('code') == 404) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 404)?>">404 Адреса недоступна</a></li>
                     </ul>
                 </div>
-                <?php if($_SESSION['cache']) { ?>
-                    <a href="#modal-deleteCache" class="btn btn-danger btn-xs pull-right" data-toggle="modal">Очистити весь Cache сайту</a>
-                <?php } ?>
+                <div class="pull-right" style="width: 400px">
+                    <form>
+                        <div class="input-group">
+                            <input type="text" name="link" class="form-control input-sm" placeholder="Адреса" required>
+                            <div class="input-group-btn">
+                                <input type="submit" class="btn btn-info btn-sm" value="Пошук">
+                            </div>
+                        </div>
+                    </form>
+                </div>
                 <div class="clear"></div>
                 <div class="table-responsive">
                     <table id="data-table" class="table table-striped table-bordered" width="100%">

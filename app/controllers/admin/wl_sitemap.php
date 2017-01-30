@@ -68,6 +68,8 @@ class wl_sitemap extends Controller {
                     $where['alias'] = '0';
                 if($code = $this->data->get('code'))
                     $where['code'] = $code;
+                if($link = $this->data->get('link'))
+                    $where['link'] = '%'.$link;
             }
             $this->db->select('wl_sitemap', 'id, link, alias, language, code, time, changefreq, priority', $where);
             if(isset($_GET['sort']) && $_GET['sort'] == 'down')

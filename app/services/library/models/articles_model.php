@@ -217,6 +217,7 @@ class articles_model {
 			}
 			
 			$link = $data['alias'] = $this->ckeckAlias($data['alias']);
+			$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
 			
 			if($_SESSION['option']->useGroups)
 			{
@@ -225,33 +226,23 @@ class articles_model {
 					foreach ($_POST['group'] as $group) {
 						$this->db->insertRow($this->table('_article_group'), array('article' => $id, 'group' => $group));
 					}
-					$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
 				}
-				else
+				elseif(isset($_POST['group']) && is_numeric($_POST['group']))
 				{
-					if(isset($_POST['group']) && is_numeric($_POST['group']))
-					{
-						$data['group'] = $_POST['group'];
-						$data['position'] = $this->db->getCount($this->table('_articles'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
+					$data['group'] = $_POST['group'];
+					$data['position'] = $this->db->getCount($this->table('_articles'), array('wl_alias' => $_SESSION['alias']->id, 'group' => $data['group']));
 
-						if($data['group'] > 0)
-						{
-							$groups = array();
-							$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-				            if($all_groups) foreach ($all_groups as $g) {
-				            	$groups[$g->id] = clone $g;
-				            }
-							$link = $this->makeLink($groups, $_POST['group'], $link);
-						}
+					if($data['group'] > 0)
+					{
+						$groups = array();
+						$all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+			            if($all_groups) foreach ($all_groups as $g) {
+			            	$groups[$g->id] = clone $g;
+			            }
+						$link = $this->makeLink($groups, $_POST['group'], $link);
 					}
-					else
-						$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
 				}
 			}
-			else
-				$data['position'] = $this->db->getCount($this->table('_articles'), $_SESSION['alias']->id, 'wl_alias');
-
-			$data['position'] += 1;
 			$this->db->sitemap_add($id, $_SESSION['alias']->alias.'/'.$link);
 			if($this->db->updateRow($this->table('_articles'), $data, $id)) return $id;
 		}

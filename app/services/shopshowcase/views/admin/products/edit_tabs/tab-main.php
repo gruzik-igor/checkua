@@ -116,11 +116,25 @@
 			$options_parents = array();
 			if($_SESSION['option']->useGroups && isset($list))
 			{
-				$parent = $product->group;
-				while ($parent != 0) {
-					array_unshift($options_parents, $parent);
-					$parent = $list[$parent]->parent;
+				if($_SESSION['option']->ProductMultiGroup)
+				{
+					foreach ($product->group as $parent) {
+						while ($parent != 0) {
+							if(!in_array($parent, $options_parents))
+								array_unshift($options_parents, $parent);
+							$parent = $list[$parent]->parent;
+						}
+					}
 				}
+				else
+				{
+					$parent = $product->group;
+					while ($parent != 0) {
+						array_unshift($options_parents, $parent);
+						$parent = $list[$parent]->parent;
+					}
+				}
+				
 			}
 			array_unshift($options_parents, 0);
 		} ?>
@@ -175,15 +189,18 @@
                 </div>
 			</td>
 		</tr>
-		<?php if(!empty($options_parents)) { ?>
-			<tr>
-				<td colspan="2"><h3>Властивості <?=$_SESSION['admin_options']['word:products']?></h3></td>
-			</tr>
-			<?php $this->load->smodel('options_model');
+		<?php if(!empty($options_parents)) {
+				$showh3 = true;
+			 $this->load->smodel('options_model');
 				foreach ($options_parents as $option_id) {
 					$options = $this->options_model->getOptions($option_id);
 					if($options)
 					{
+						if($showh3)
+						{
+							echo "<tr><td colspan=\"2\"><h3>Властивості {$_SESSION['admin_options']['word:products']}</h3></td></tr>";
+							$showh3 = false;
+						}
 						foreach ($options as $option) 
 						if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea'))
 						{

@@ -131,7 +131,7 @@
         </div>
     </div>
     <?php array_unshift($options_parents, 0);
-    if(!empty($options_parents)) { 
+    if(!empty($options_parents) && $_SESSION['option']->articleUseOptions) { 
 		$product_options = array();
 		if($options = $this->db->getAllDataByFieldInArray($this->library_model->table('_article_options'), $article->id, 'article'))
 			foreach ($options as $option) {

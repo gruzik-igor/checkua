@@ -467,9 +467,15 @@ class library extends Controller {
 	{
 		if(!empty($_FILES[$name_field]['name']) && $_SESSION['option']->folder)
 		{
-			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$content;
+			$path = IMG_PATH;
             $path = substr($path, strlen(SITE_URL));
-
+            $path = substr($path, 0, -1);
+            if(!is_dir($path))
+            	mkdir($path, 0777);
+            $path .= '/'.$_SESSION['option']->folder;
+            if(!is_dir($path))
+            	mkdir($path, 0777);
+			$path .= '/'.$content;
             if(!is_dir($path))
             	mkdir($path, 0777);
             $path .= '/';

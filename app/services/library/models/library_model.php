@@ -182,6 +182,7 @@ class library_model {
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
             	$article->photo = null;
+            	// $article->video = $this->db->getAllDataByFieldInArray('wl_video', array('alias' => $_SESSION['alias']->id, 'content' => $article->id));
 
             	if($photo = $this->getArticlePhoto($article->id))
             	{

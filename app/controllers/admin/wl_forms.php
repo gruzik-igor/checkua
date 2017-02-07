@@ -278,7 +278,7 @@ class wl_forms extends Controller {
             {
                 $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
 
-                $tableInfo = $this->db->getQuery("SELECT * FROM `$form->table`", 'array');
+                $tableInfo = $this->db->getQuery("SELECT * FROM `$form->table` ORDER BY `id` DESC", 'array');
 
                 $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
             }

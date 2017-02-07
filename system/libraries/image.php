@@ -10,7 +10,8 @@
  * Версія 1.0.3+ (26.10.2013 - додано getExtension(), виправлено preview(), resize(), save())
  * Версія 1.0.4 (27.12.2013 - додано/виправлено у resize() правильне зменшення тільки по ширині зображення)
  * Версія 1.0.5 (27.11.2015 - виправлено помилку при додаванні фотографій за короткою адресою сайту)
- * Версія 1.1 (13.01.2016 - додано підтримку прозорості зображень при зміні розміру)
+ * Версія 1.1 (13.01.2017 - додано підтримку прозорості зображень при зміні розміру)
+ * Версія 1.2 (07.02.2017 - додано підтипи для змін розміру зображень, покращено заливку та збереження фото)
  */
 
 class Image {
@@ -31,7 +32,7 @@ class Image {
      * Примусове задання розширення зображення
 	 * Задавати перед upload(), uploadArray(), save(), перед/після loadImage()
      */
-	function setExtension($ext)
+	public function setExtension($ext)
 	{
 		if(in_array($ext, $this->allowed_ext))
 		{
@@ -44,7 +45,7 @@ class Image {
 	/*
 	 * Вертає поточне розширення зображення
 	 */
-	function getExtension()
+	public function getExtension()
 	{
 		if($this->image)
 			return $this->extension;
@@ -57,17 +58,19 @@ class Image {
 	 * $name - назва зображення (без розширення)
 	 * $extension - розширення зображення (по замовчуванню jpg)
      */
-    function loadImage($filepath, $name = '', $extension = 'jpg', $checkFilePath = true)
+    public function loadImage($filepath, $name = '', $extension = 'jpg')
     {
-		if(in_array($extension, $this->allowed_ext) == false)
-			return false;
-
-		if($checkFilePath && strlen($filepath) > strlen(SITE_URL))
-			$filepath = substr($filepath, strlen(SITE_URL));
         if($name != '')
-        	$fullpath = $filepath.$name.'.'.$extension;
+			$fullpath = $filepath.$name.'.'.$extension;
         else
-        	$fullpath = $filepath;
+        {
+        	$extension = explode('.', $filepath);
+        	$extension = end($extension);
+			$fullpath = $filepath;
+        }
+
+        if(in_array($extension, $this->allowed_ext) == false)
+			return false;
 		
 		// Функція потребує NULL_PATH (відносно index.php)
 		// !Важливо для роботи через піддомен
@@ -82,8 +85,8 @@ class Image {
             else
             {
                 $filepath = explode('/', $filepath);
-                $name = end($filepath);
-                $this->path = substr($this->path, 0, strlen($name)+1);
+                $name = array_pop($filepath);
+                $this->path = implode('/', $filepath);
                 $name = explode('.', $name);
                 $this->name = $name[0];
             }
@@ -118,7 +121,7 @@ class Image {
 	 * $img_out - адреса папки куди слід відвантажити зображення (шлях відносно кореня сайту)
 	 * $name - назва збереженого зображення. Якщо не задано, то оригінальна назва зображення
      */
-    function upload($img_in, $img_out, $name = '')
+    public function upload($img_in, $img_out, $name = '')
     {
 		if(is_uploaded_file($_FILES[$img_in]['tmp_name']))
 		{
@@ -137,7 +140,7 @@ class Image {
 							if($name == '') $name = stripslashes(substr($_FILES[$img_in]['name'], 0, $pos - 1));
                             $path = $img_out.$name.'.'.$ext;
                             move_uploaded_file($_FILES[$img_in]['tmp_name'], $path);
-                            $this->loadImage($img_out, $name, $ext, false);
+                            $this->loadImage($img_out, $name, $ext);
                         }
                         else
                         {
@@ -172,7 +175,7 @@ class Image {
 	 * $img_out - адреса папки куди слід відвантажити зображення (шлях відносно кореня сайту)
 	 * $name - назва збереженого зображення. Якщо не задано, то оригінальна назва зображення
      */
-	function uploadArray($img_in, $i, $img_out, $name = '')
+	public function uploadArray($img_in, $i, $img_out, $name = '')
 	{
         if(is_uploaded_file($_FILES[$img_in]['tmp_name'][$i])){
             $pos = strrpos($_FILES[$img_in]['name'][$i], '.');
@@ -191,7 +194,7 @@ class Image {
 							if($name == '') $name = stripslashes(substr($_FILES[$img_in]['name'], 0, $pos - 1));
                             $path = $img_out.$name.'.'.$ext;
                             move_uploaded_file($_FILES[$img_in]['tmp_name'][$i], $path);
-                            $this->loadImage($img_out, $name, $ext, false);
+                            $this->loadImage($img_out, $name, $ext);
                         }
                         else
                         {
@@ -222,7 +225,7 @@ class Image {
 	/*
 	 * Функція повертає розміри (розширення) зображення у px
 	 */ 
-	function wh_size()
+	public function wh_size()
 	{
 		if($this->image)
 		{
@@ -240,8 +243,9 @@ class Image {
      * Створення мініатюри зображення
 	 * Функція змінює розміри зображення до максимально можливого, опісля центрує та обрізає зображення. На виході мініатюра заданого розміру.
 	 * $quality - якість кінцевого зображення після обробки у відсотках
+	 * $type - режим роботи: 2 - центрувати, 21 - зберігає верхній лівий край, 22 - зберігає правий нижній край.
      */
-    function preview($width, $height, $quality = 100)
+    public function preview($width, $height, $quality = 100, $type = 2)
     {
 		if($this->image)
 		{
@@ -250,42 +254,53 @@ class Image {
 			$src_w = imagesx($this->image);
 			$src_h = imagesy($this->image);
 
-			// if($width < $src_w && $height < $src_h){
-				$w = $width;
-				$h = $height;
-				$ratio = $src_w / $src_h;
-				if($width / $ratio < $height)
-					$w = round($height * $ratio) + 1;
-				// elseif($height / $ratio > $width) $h = round($width / $ratio);
-				else
-					$h = round($width / $ratio) + 1;
-				
-				$this->resize($w, $h, $quality, true);
+			$w = $width;
+			$h = $height;
+			$ratio = $src_w / $src_h;
+			if($width / $ratio < $height)
+				$w = round($height * $ratio) + 1;
+			else
+				$h = round($width / $ratio) + 1;
+			
+			$this->resize($w, $h, $quality, 1, true);
 
-				$src = $this->image;
-				$w = imagesx($src);
-				$h = imagesy($src);
-				$this->image = imagecreatetruecolor($width, $height);
-				imagealphablending($this->image, false);
-				imagesavealpha($this->image, true);
-				
-				$src_x = 0; $src_y = 0;
-				if($w > ($width - 1) && $w <= ($width + 1)) $src_y = ($h - $height) / 2;
-				else $src_x = ($w - $width) / 2;
-				
-				imagecopy ($this->image, $src, 0, 0, $src_x, $src_y, $width, $height);
-				
-				imagedestroy($src);
-				return true;
-			// }
+			$src = $this->image;
+			$w = imagesx($src);
+			$h = imagesy($src);
+			$this->image = imagecreatetruecolor($width, $height);
+			imagealphablending($this->image, false);
+			imagesavealpha($this->image, true);
+			
+			$src_x = $src_y = 0;
+			if($type == 2)
+			{
+				if($w > ($width - 1) && $w <= ($width + 1))
+					$src_y = ($h - $height) / 2;
+				else
+					$src_x = ($w - $width) / 2;
+			}
+			if($type == 22)
+			{
+				if($w > ($width - 1) && $w <= ($width + 1))
+					$src_y = $h - $height;
+				else
+					$src_x = $w - $width;
+			}
+			
+			imagecopy ($this->image, $src, 0, 0, $src_x, $src_y, $width, $height);
+			
+			imagedestroy($src);
+			return true;
 		}
         return false;
     }
 
     /*
      * Зміна розмірів зображення
+     * $type - режим роботи: 1 - авто по довшій стороні; 11 - фіксована ширина, висота змінна; 12 - фіксована висота, ширина змінна
+	 	22 - залишає право низ.
      */
-    function resize($width, $max_height = 0, $quality = 100, $enlarge = false)
+    public function resize($width, $height = 0, $quality = 100, $type = 1, $enlarge = false)
     {
 		if($this->image)
 		{
@@ -294,15 +309,29 @@ class Image {
 			$src_w = imagesx($src);
 			$src_h = imagesy($src);
 
-			if($enlarge || ($width < $src_w && $max_height < $src_h)){
-				$ratio;
-				if($src_w < $src_h && $max_height > 0)
-					$ratio = $src_h / $max_height;
-				else $ratio = $src_w / $width;
+			if($enlarge || $width < $src_w || $height < $src_h)
+			{
+				$ratio = $src_w / $width;
+				if($src_w < $src_h && $height > 0)
+					$ratio = $src_h / $height;
 				$dest_w = round($src_w / $ratio);
 				$dest_h = round($src_h / $ratio);
-				$d_h = ($dest_h > $max_height && $max_height > 0) ? $max_height : $dest_h;
-				$this->image = imagecreatetruecolor($dest_w, $d_h);
+				if($dest_h > $height && $height > 0) 
+					$dest_h = $height;
+				if($type == 11)
+				{
+					$ratio = $src_w / $width;
+					$dest_w = $width;
+					$dest_h = round($src_h / $ratio);
+				}
+				if($type == 12 && $height > 0)
+				{
+					$ratio = $src_h / $height;
+					$dest_w = round($src_w / $ratio);
+					$dest_h = $height;
+				}
+
+				$this->image = imagecreatetruecolor($dest_w, $dest_h);
 				imagealphablending($this->image, false);
 				imagesavealpha($this->image, true);
 				imagecopyresampled($this->image, $src, 0, 0, 0, 0, $dest_w, $dest_h, $src_w, $src_h);
@@ -317,7 +346,7 @@ class Image {
 	 /*
      * Обрізання зображення
      */
-    function cut($width, $height, $red = 0, $green = 0, $blue = 0)
+    public function cut($width, $height, $red = 0, $green = 0, $blue = 0)
     {
 		if($this->image)
 		{
@@ -340,14 +369,14 @@ class Image {
     /*
      * Зберігання отриманого зображення
      */
-    function save($path = '', $prefix = '')
+    public function save($prefix = '', $path = '')
     {
 		if($this->image)
 		{
-			if($path != '' && strlen($path) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-            else $path = $this->path;
+			if($path == '')
+				$path = $this->path.'/';
 			$name = ($prefix != '') ? $prefix.'_'.$this->name.'.'.$this->extension : $this->name.'.'.$this->extension;
-			
+
 			if($this->extension == 'gif')
 			{
 				if(imagegif($this->image, $path.$name)){
@@ -378,7 +407,7 @@ class Image {
 	/*
      * Видалення зображення
      */
-	function delete($path = '')
+	public function delete($path = '')
 	{
 		$path = ($path != '') ? $path : $this->path;
 		if(file_exists($path))
@@ -392,7 +421,7 @@ class Image {
     /*
      * Отримує помилки
      */
-    function getErrors($open_tag = '<p>', $closed_tag = '</p>')
+    public function getErrors($open_tag = '<p>', $closed_tag = '</p>')
     {
         $errors = '';
         foreach ($this->errors as $error) {

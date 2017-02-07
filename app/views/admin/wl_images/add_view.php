@@ -20,7 +20,7 @@
                     <div class="form-group">
                         <label class="col-md-3 control-label">Префікс</label>
                         <div class="col-md-9">
-                            <input type="text" name="prefix" class="form-control" value="<?=(isset($_POST['prefix']))?$_POST['prefix']:''?>" required placeholder="Префікс мініатюри" />
+                            <input type="text" name="prefix" class="form-control" value="<?=(isset($_POST['prefix']))?$_POST['prefix']:''?>" placeholder="Префікс мініатюри" />
                         </div>
                     </div>
                     <div class="form-group">

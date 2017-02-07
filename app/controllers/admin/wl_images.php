@@ -87,9 +87,11 @@ class wl_images extends Controller {
             $photo['type'] = $this->data->post('type');
             $photo['width'] = $this->data->post('width');
             $photo['height'] = $this->data->post('height');
+            $photo['quality'] = 100;
 
             $this->db->insertRow('wl_images_sizes', $photo);
-            $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
+            $id = $this->db->getLastInsertedId();
+            $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name').'/'.$id);
         }
     }
 
@@ -103,9 +105,12 @@ class wl_images extends Controller {
             $data['type'] = $this->data->post('type');
             $data['width'] = $this->data->post('width');
             $data['height'] = $this->data->post('height');
+            $data['quality'] = $this->data->post('quality');
 
             $this->db->updateRow('wl_images_sizes', $data, $_POST['id']);
-            $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Дані успішно оновлено';
+            $this->load->redirect();
         }
     }
 
@@ -115,6 +120,22 @@ class wl_images extends Controller {
         {
             if($this->data->post('close_number') == $this->data->post('user_namber'))
             {
+                if($this->data->post('prefix') != '')
+                {
+                    if($folder = $this->db->getAllDataById('wl_options', array('alias' => $this->data->post('alias'), 'name' => 'folder')))
+                    {
+                        if($images = $this->db->getAllDataByFieldInArray('wl_images', $this->data->post('alias'), 'alias'))
+                        {
+                            $path = substr(IMG_PATH, strlen(SITE_URL));
+                            $path .= $folder->value.'/';
+                            foreach ($images as $image) {
+                                @unlink($path.$image->content.'/'.$this->data->post('prefix').'_'.$image->file_name);
+                            }
+                        }
+                        $_SESSION['notify'] = new stdClass();
+                        $_SESSION['notify']->success = 'Всі зображення з префіксом <strong>'.$this->data->post('prefix').'</strong> успішно видалено. Зміну розміру зображення видалено.';
+                    }
+                }
                 $this->db->deleteRow('wl_images_sizes', $this->data->post('id'));
                 $this->load->redirect('admin/wl_images/'.$this->data->post('alias_name'));
             }
@@ -132,8 +153,7 @@ class wl_images extends Controller {
         {
             if($this->data->post('close_number') == $this->data->post('user_namber'))
             {
-                $wl_image = $this->db->getAllDataById('wl_images_sizes', $this->data->post('id'));
-                if($wl_image)
+                if($wl_image = $this->db->getAllDataById('wl_images_sizes', $this->data->post('id')))
                 {
                     $photo = array();
                     $photo['alias'] = $this->data->post('alias');
@@ -143,16 +163,68 @@ class wl_images extends Controller {
                     $photo['type'] = $wl_image->type;
                     $photo['width'] = $wl_image->width;
                     $photo['height'] = $wl_image->height;
+                    $photo['quality'] = $wl_image->quality;
 
                     $this->db->insertRow('wl_images_sizes', $photo);
                     $id = $this->db->getLastInsertedId();
                     $alias = $this->db->getAllDataById('wl_aliases', $this->data->post('alias'));
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->success = 'Дані успішно скопійовано';
                     $this->load->redirect('admin/wl_images/'.$alias->alias.'/'.$id);
                 }
             }
             else
                 $_SESSION['notify_error_copy'] = 'Невірний номер! Введіть коректний номер зліва у вільне поле';
         }
+        $this->load->redirect();
+    }
+
+    public function deleteImages()
+    {
+        if($this->data->post('close_number') == $this->data->post('user_namber'))
+        {
+            if($this->data->post('alias') != 0 && $this->data->post('prefix') != '')
+            {
+                if($folder = $this->db->getAllDataById('wl_options', array('alias' => $this->data->post('alias'), 'name' => 'folder')))
+                {
+                    if($images = $this->db->getAllDataByFieldInArray('wl_images', $this->data->post('alias'), 'alias'))
+                    {
+                        $path = substr(IMG_PATH, strlen(SITE_URL));
+                        $path .= $folder->value.'/';
+                        foreach ($images as $image) {
+                            @unlink($path.$image->content.'/'.$this->data->post('prefix').'_'.$image->file_name);
+                        }
+                    }
+                    $_SESSION['notify'] = new stdClass();
+                    $_SESSION['notify']->success = 'Всі зображення з префіксом <strong>'.$this->data->post('prefix').'</strong> успішно видалено. Нові зображення необхідного розміру згенеруються автоматично за запитом.';
+                }
+                else
+                    $_SESSION['notify_error_deleteImages'] = 'Папку із зображеннями не задано в налаштуваннях аліасу';
+            }
+            elseif($this->data->post('alias') == 0 && $this->data->post('prefix') != '')
+            {
+                if($aliases = $this->db->getAllData('wl_aliases'))
+                {
+                    foreach ($aliases as $alias) {
+                        if($folder = $this->db->getAllDataById('wl_options', array('alias' => $alias->id, 'name' => 'folder')))
+                        {
+                            if($images = $this->db->getAllDataByFieldInArray('wl_images', $alias->id, 'alias'))
+                            {
+                                $path = substr(IMG_PATH, strlen(SITE_URL));
+                                $path .= $folder->value.'/';
+                                foreach ($images as $image) {
+                                    @unlink($path.$image->content.'/'.$this->data->post('prefix').'_'.$image->file_name);
+                                }
+                            }
+                        }
+                    }
+                }
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->success = 'Всі зображення з префіксом <strong>'.$this->data->post('prefix').'</strong> успішно видалено з цілого сайту. Нові зображення необхідного розміру згенеруються автоматично за запитом.';
+            }
+        }
+        else
+            $_SESSION['notify_error_deleteImages'] = 'Невірний номер! Введіть коректний номер зліва у вільне поле';
         $this->load->redirect();
     }
 

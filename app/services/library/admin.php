@@ -499,11 +499,18 @@ class library extends Controller {
 				if($sizes = $this->db->getAliasImageSizes())
 				{
 					foreach ($sizes as $resize) {
-						$this->image->loadImage($path, $name, $extension);
-						if($resize->type == 1) $this->image->resize($resize->width, $resize->height, 100);
-						if($resize->type == 2) $this->image->preview($resize->width, $resize->height, 100);
-						$this->image->save($path, $resize->prefix);
-					}
+                        if($resize->prefix == '')
+                        {
+                            if($this->image->loadImage($path, $name, $extension))
+                            {
+                                if(in_array($resize->type, array(1, 11, 12)))
+                                    $this->image->resize($resize->width, $resize->height, $resize->quality, $resize->type);
+                                if(in_array($resize->type, array(2, 21, 22)))
+                                    $this->image->preview($resize->width, $resize->height, $resize->quality, $resize->type);
+                                $this->image->save($resize->prefix);
+                            }
+                        }
+                    }
 				}
 				$name .= '.'.$extension;
                 $this->db->updateRow('wl_images', array('file_name' => $name), $photo_id);

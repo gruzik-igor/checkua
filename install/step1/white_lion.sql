@@ -183,6 +183,7 @@ CREATE TABLE IF NOT EXISTS `wl_images_sizes` (
   `type` tinyint(1) NOT NULL COMMENT '1 resize, 2 preview',
   `width` int(11) NOT NULL,
   `height` int(11) NOT NULL,
+  `quality` tinyint(2) NOT NULL DEFAULT '100',
   PRIMARY KEY (`id`),
   UNIQUE KEY `id` (`id`)
 ) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8;
@@ -191,10 +192,10 @@ CREATE TABLE IF NOT EXISTS `wl_images_sizes` (
 -- Дамп даних таблиці `wl_images_sizes`
 --
 
-INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `width`, `height`) VALUES
-(1, 0, 1, 'Значення по замовчуванню. Оригінал', NULL, 1, 1500, 1500),
-(2, 0, 1, 'Значення по замовчуванню. Панель керування', 'admin', 2, 150, 150),
-(3, 0, 1, 'Значення по замовчуванню. Header для соц. мереж', 'header', 2, 600, 315);
+INSERT INTO `wl_images_sizes` (`id`, `alias`, `active`, `name`, `prefix`, `type`, `width`, `height`, `quality`) VALUES
+(1, 0, 1, 'Значення по замовчуванню. Оригінал', NULL, 1, 1500, 1500, 100),
+(2, 0, 1, 'Значення по замовчуванню. Панель керування', 'admin', 2, 150, 150, 100),
+(3, 0, 1, 'Значення по замовчуванню. Header для соц. мереж', 'header', 2, 600, 315, 100);
 
 -- --------------------------------------------------------
 
@@ -437,7 +438,7 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   `alias` smallint(6) DEFAULT NULL,
   `content` int(11) DEFAULT NULL,
   `language` char(2) DEFAULT NULL,
-  `code` smallint(5) UNSIGNED DEFAULT NULL COMMENT '200 cache ok; 201 no cache, 301 redirect, 404',
+  `code` smallint(5) UNSIGNED DEFAULT NULL,
   `data` blob,
   `time` int(11) NOT NULL,
   `changefreq` enum('always','hourly','daily','weekly','monthly','yearly','never') NOT NULL DEFAULT 'daily',

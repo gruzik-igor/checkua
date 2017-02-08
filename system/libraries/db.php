@@ -66,7 +66,7 @@ class Db {
         $where = $this->makeWhere($key, $row_key);
         if($where != '')
         {
-            $update = "UPDATE ".$table." SET ";
+            $update = "UPDATE `".$table."` SET ";
             foreach ($changes as $key => $value) {
                 $value = $this->sanitizeString($value);
                 $update .= "`{$key}` = '{$value}',";
@@ -82,7 +82,7 @@ class Db {
 
     function insertRow($table, $changes)
     {
-        $update = "INSERT INTO ".$table." ( ";
+        $update = "INSERT INTO `".$table."` ( ";
         $values = '';
         foreach ($changes as $key => $value) {
             $value = $this->sanitizeString($value);
@@ -108,7 +108,7 @@ class Db {
         $where = $this->makeWhere($id, $row_key);
         if($where != '')
         {
-            $this->executeQuery("DELETE FROM {$table} WHERE {$where}");
+            $this->executeQuery("DELETE FROM `{$table}` WHERE {$where}");
             if($this->affectedRows() > 0)
                 return true;
         }
@@ -193,7 +193,7 @@ class Db {
         if($table)
         {
             if($order != '') $order = ' ORDER BY '.$order;
-            $this->executeQuery("SELECT * FROM {$table} {$order}");
+            $this->executeQuery("SELECT * FROM `{$table}` {$order}");
             if($this->numRows() > 0)
                 return $this->getRows('array');
         }
@@ -207,7 +207,7 @@ class Db {
             $where = $this->makeWhere($key, $row_key);
             if($where != '')
             {
-                $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
+                $this->executeQuery("SELECT * FROM `{$table}` WHERE {$where}");
                 if($this->numRows() == 1)
                     return $this->getRows();
             }
@@ -224,7 +224,7 @@ class Db {
             {
                 if(is_array($key) && $row_key != '') $where .= ' ORDER BY '.$row_key;
                 elseif($order != '') $where .= ' ORDER BY '.$order;
-                $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
+                $this->executeQuery("SELECT * FROM `{$table}` WHERE {$where}");
                 if($this->numRows() > 0)
                     return $this->getRows('array');
             }
@@ -238,7 +238,7 @@ class Db {
             $where = $this->makeWhere($key, $row_key);
             if($where != '')
                 $where = "WHERE {$where}";
-            $this->executeQuery("SELECT count(*) as count FROM {$table} {$where}");
+            $this->executeQuery("SELECT count(*) as count FROM `{$table}` {$where}");
             if($this->numRows() == 1)
             {
                 $count = $this->getRows();
@@ -448,7 +448,7 @@ class Db {
                     }
                 if($this->query_where != '')
                     $where .= 'WHERE '.$this->query_where;
-                $row = $this->getQuery("SELECT count(*) as count FROM {$this->query_table} {$where}");
+                $row = $this->getQuery("SELECT count(*) as count FROM `{$this->query_table}` {$where}");
                 if(is_object($row))
                     $data = $row->count;
             }

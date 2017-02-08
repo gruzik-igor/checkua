@@ -15,7 +15,7 @@
  * Версія 2.1 (22.09.2016) - updateRow(), deleteRow() адаптовано через makeWhere(); у makeWhere() виправлено роботу з нульовими значеннями; до getRows() додати перевірку на тип single
  * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
  * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
- * Версія 2.2.1 (26.01.2017) - додано екран до назв таблиць
+ * Версія 2.2.1 (08.02.2017) - додано "chaining methods";
  */
 
 class Db {
@@ -66,7 +66,7 @@ class Db {
         $where = $this->makeWhere($key, $row_key);
         if($where != '')
         {
-            $update = "UPDATE `".$table."` SET ";
+            $update = "UPDATE ".$table." SET ";
             foreach ($changes as $key => $value) {
                 $value = $this->sanitizeString($value);
                 $update .= "`{$key}` = '{$value}',";
@@ -82,7 +82,7 @@ class Db {
 
     function insertRow($table, $changes)
     {
-        $update = "INSERT INTO `".$table."` ( ";
+        $update = "INSERT INTO ".$table." ( ";
         $values = '';
         foreach ($changes as $key => $value) {
             $value = $this->sanitizeString($value);
@@ -108,7 +108,7 @@ class Db {
         $where = $this->makeWhere($id, $row_key);
         if($where != '')
         {
-            $this->executeQuery("DELETE FROM `{$table}` WHERE {$where}");
+            $this->executeQuery("DELETE FROM {$table} WHERE {$where}");
             if($this->affectedRows() > 0)
                 return true;
         }
@@ -193,7 +193,7 @@ class Db {
         if($table)
         {
             if($order != '') $order = ' ORDER BY '.$order;
-            $this->executeQuery("SELECT * FROM `{$table}` {$order}");
+            $this->executeQuery("SELECT * FROM {$table} {$order}");
             if($this->numRows() > 0)
                 return $this->getRows('array');
         }
@@ -207,7 +207,7 @@ class Db {
             $where = $this->makeWhere($key, $row_key);
             if($where != '')
             {
-                $this->executeQuery("SELECT * FROM `{$table}` WHERE {$where}");
+                $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
                 if($this->numRows() == 1)
                     return $this->getRows();
             }
@@ -224,7 +224,7 @@ class Db {
             {
                 if(is_array($key) && $row_key != '') $where .= ' ORDER BY '.$row_key;
                 elseif($order != '') $where .= ' ORDER BY '.$order;
-                $this->executeQuery("SELECT * FROM `{$table}` WHERE {$where}");
+                $this->executeQuery("SELECT * FROM {$table} WHERE {$where}");
                 if($this->numRows() > 0)
                     return $this->getRows('array');
             }
@@ -238,7 +238,7 @@ class Db {
             $where = $this->makeWhere($key, $row_key);
             if($where != '')
                 $where = "WHERE {$where}";
-            $this->executeQuery("SELECT count(*) as count FROM `{$table}` {$where}");
+            $this->executeQuery("SELECT count(*) as count FROM {$table} {$where}");
             if($this->numRows() == 1)
             {
                 $count = $this->getRows();
@@ -380,6 +380,7 @@ class Db {
         if($this->query_prefix == false)
             $this->query_prefix = $table[0];
         $this->query_where = $this->makeWhere($key, $row_key, $this->query_prefix);
+        return $this;
     }
 
     public function join($table, $fields, $key = '', $row_key = 'id', $type = 'LEFT')
@@ -396,12 +397,14 @@ class Db {
         $join->where = $this->makeWhere($key, $row_key, $prefix);
         $join->type = $type;
         $this->query_join[] = $join;
+        return $this;
     }
 
     public function order($order, $prefix = false)
     {
         $this->query_order_prefix = $prefix;
         $this->query_order = $order;
+        return $this;
     }
 
     public function limit($limit, $offset = 0)
@@ -409,6 +412,7 @@ class Db {
         $this->query_limit = 'LIMIT '.$limit;
         if($offset > 0)
             $this->query_limit .= ', '.$offset;
+        return $this;
     }
 
     /**
@@ -444,7 +448,7 @@ class Db {
                     }
                 if($this->query_where != '')
                     $where .= 'WHERE '.$this->query_where;
-                $row = $this->getQuery("SELECT count(*) as count FROM `{$this->query_table}` {$where}");
+                $row = $this->getQuery("SELECT count(*) as count FROM {$this->query_table} {$where}");
                 if(is_object($row))
                     $data = $row->count;
             }

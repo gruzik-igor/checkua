@@ -378,11 +378,12 @@ class shop_model {
 					$where_ntkd['content'] = "#-pg.group";
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					$product->group = $this->db->get('array');
-
-		            foreach ($product->group as $g) {
-		            	if($g->parent > 0)
-		            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
-		            }
+					if($product->group){
+			            foreach ($product->group as $g) {
+			            	if($g->parent > 0)
+			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
+			            }
+			        }
 				}
 			}
 			if($all_info)

@@ -95,9 +95,12 @@ class Loader {
 	{
 		unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 		if($data)
+		{
+			$this->wl_alias_model->setContentRobot($data);
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
+		}
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		if($_SESSION['alias']->service && $view_file)
 		{

@@ -108,11 +108,6 @@ class wl_alias_model
 			$_SESSION['alias']->text = htmlspecialchars_decode($data->text);
 			$_SESSION['alias']->list = $data->list;
 			$_SESSION['alias']->meta = $data->meta;
-
-			if($_SESSION['alias']->title == '')
-				$_SESSION['alias']->title = $_SESSION['alias']->name;
-			if($_SESSION['alias']->description == '')
-				$_SESSION['alias']->description = $this->getShortText($_SESSION['alias']->list);
 		}
 		if($content == 0)
 		{
@@ -168,19 +163,82 @@ class wl_alias_model
 		return true;
     }
 
+    public function setContentRobot($data)
+    {
+    	$ntkd = array();
+    	$keys = array('title', 'description', 'keywords', 'text', 'list', 'meta');
+    	$where = array('alias' => 0, 'content' => 0);
+    	if($_SESSION['language'])
+    		$where['language'] = $_SESSION['language'];
+    	if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
+    	{
+    		foreach ($all as $key => $value) {
+    			if(in_array($key, $keys) && $value != '')
+    				$ntkd[$key] = htmlspecialchars_decode($value);
+    		}
+    	}
+    	if($_SESSION['alias']->id > 0)
+    	{
+    		$where['alias'] = $_SESSION['alias']->id;
+    		if($_SESSION['alias']->content > 0)
+    			$where['content'] = 1;
+    		else
+    			$where['content'] = -1;
+    		if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
+	    	{
+	    		foreach ($all as $key => $value) {
+	    			if(in_array($key, $keys) && $value != '')
+	    				$ntkd[$key] = htmlspecialchars_decode($value);
+	    		}
+	    	}
+    	}
+    	if(!empty($ntkd))
+    	{
+	    	$keys = array();
+	    	if(!empty($data))
+	    		foreach ($data as $key => $value) {
+	    			$name = '{';
+	    			if(is_object($value))
+	    			{
+	    				$name .= $key.'.';
+	    				foreach ($value as $keyO => $valueO) {
+	    					if(!is_object($valueO) && !is_array($valueO))
+	    						$keys[$name.$keyO.'}'] = $valueO;
+	    				}
+	    			}
+	    		}
+	    	$keys['{name}'] = $_SESSION['alias']->name;
+	    	$keys['{SITE_URL}'] = SITE_URL;
+	    	$keys['{IMG_PATH}'] = IMG_PATH;
+	    	foreach ($ntkd as $key => $value) {
+	    		if($_SESSION['alias']->$key == '')
+	    		{
+	    			foreach ($keys as $keyR => $valueR) {
+	    				$value = str_replace($keyR, $valueR, $value);
+	    			}
+	    			$_SESSION['alias']->$key = $value;
+	    		}
+	    	}
+	    }
+	    if($_SESSION['alias']->title == '')
+			$_SESSION['alias']->title = $_SESSION['alias']->name;
+		if($_SESSION['alias']->description == '')
+			$_SESSION['alias']->description = $this->getShortText($_SESSION['alias']->list);
+    }
+
     private function getShortText($text, $len = 155)
     {
         $text = strip_tags(html_entity_decode($text));
         if(mb_strlen($text, 'UTF-8') > $len)
         {
             $pos = mb_strpos($text, ' ', $len, 'UTF-8');
-			if($pos){
+			if($pos)
 				return mb_substr($text, 0, $pos, 'UTF-8');
-			} else {
+			else
+			{
 				$pos = mb_strpos($text, ' ', $len - 10, 'UTF-8');
-				if($pos){
+				if($pos)
 					return mb_substr($text, 0, $pos, 'UTF-8');
-				}
 			}
         }
         return $text;

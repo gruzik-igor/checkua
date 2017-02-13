@@ -50,7 +50,7 @@
                                                 <div class="form-group">
                                                     <label class="col-md-2 control-label">Description</label>
                                                     <div class="col-md-10">
-                                                        <textarea onChange="save('description', this, 1, '<?=$lang?>'" class="form-control"><?=nl2br($tab['description'])?></textarea>
+                                                        <textarea onChange="save('description', this, 1, '<?=$lang?>')" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -111,7 +111,7 @@
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Description</label>
                                         <div class="col-md-10">
-                                            <textarea onChange="save('description', this, 1" class="form-control"><?=nl2br($tab['description'])?></textarea>
+                                            <textarea onChange="save('description', this, 1)" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">
@@ -181,7 +181,7 @@
                                                 <div class="form-group">
                                                     <label class="col-md-2 control-label">Description</label>
                                                     <div class="col-md-10">
-                                                        <textarea onChange="save('description', this, -1, '<?=$lang?>'" class="form-control"><?=nl2br($tab['description'])?></textarea>
+                                                        <textarea onChange="save('description', this, -1, '<?=$lang?>')" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                                     </div>
                                                 </div>
                                                 <div class="form-group">
@@ -242,7 +242,7 @@
                                     <div class="form-group">
                                         <label class="col-md-2 control-label">Description</label>
                                         <div class="col-md-10">
-                                            <textarea onChange="save('description', this, -1" class="form-control"><?=nl2br($tab['description'])?></textarea>
+                                            <textarea onChange="save('description', this, -1)" class="form-control"><?=nl2br($tab['description'])?></textarea>
                                         </div>
                                     </div>
                                     <div class="form-group">

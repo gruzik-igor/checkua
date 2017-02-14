@@ -163,7 +163,7 @@ class wl_alias_model
 		return true;
     }
 
-    public function setContentRobot($data)
+    public function setContentRobot($data = array())
     {
     	$ntkd = array();
     	$keys = array('title', 'description', 'keywords', 'text', 'list', 'meta');

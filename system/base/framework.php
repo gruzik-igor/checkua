@@ -12,6 +12,7 @@ if(empty($_SESSION['user']))
 }
 $_SESSION['option'] = null;
 
+$protocol = ($https) ? 'https://' : 'http://';
 $request = (empty($_GET['request'])) ? '' : $_GET['request'];
 $request = trim($request, '/\\');
 
@@ -66,7 +67,7 @@ else
 			if(isset($REQUEST_URI[1]) && in_array($REQUEST_URI[1], $_SESSION['all_languages']) && $REQUEST_URI[1] != $_SESSION['all_languages'][0])
 			{
 				$_SESSION['language'] = $REQUEST_URI[1];
-				define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+				define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
 				$request = explode('/', $request);
 				if($request[0] == $REQUEST_URI[1])
 				{
@@ -81,7 +82,7 @@ else
 				$request = '/';
 				if(isset($_GET['request'])) $request .= $_GET['request'];
 				header ('HTTP/1.1 301 Moved Permanently');
-				header ('Location: http://'. $uri . $request);
+				header ('Location: '. $protocol . $uri . $request);
 				exit();
 			}
 			elseif($useWWW && $uri[0] != 'www')
@@ -90,21 +91,24 @@ else
 				$request = '/';
 				if(isset($_GET['request'])) $request .= $_GET['request'];
 				header ('HTTP/1.1 301 Moved Permanently');
-				header ('Location: http://www'. $uri . $request);
+				header ('Location: '. $protocol . $uri . $request);
 				exit();
 			}
 			else
 			{
 				$_SESSION['language'] = $_SESSION['all_languages'][0];
-				define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+				define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 			}
 
 			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].'/'.$request);
+				if($https)
+					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'https://'.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].'/'.$request);
+				else
+					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].'/'.$request);
 			}
 
 			define('SITE_NAME', $_SERVER["SERVER_NAME"]);
-			define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+			define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 		}
 		elseif($multilanguage_type != '')
 		{
@@ -114,14 +118,14 @@ else
 				if(in_array($uri[0], $_SESSION['all_languages']) && $uri[0] != $_SESSION['all_languages'][0])
 				{
 					$_SESSION['language'] = $uri[0];
-					define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 					array_shift($uri);
 					$uri = implode(".", $uri);
-					define('SERVER_URL', 'http://'.$uri.'/');
+					define('SERVER_URL', $protocol.$uri.'/');
 					define('SITE_NAME', $uri);
 
 					for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-						define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SESSION['all_languages'][$i].'.'.SITE_NAME.'/'.$request);
+						define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SESSION['all_languages'][$i].'.'.SITE_NAME.'/'.$request);
 					}
 				}
 				elseif($uri[0] == $_SESSION['all_languages'][0] || (!$useWWW && $uri[0] == 'www'))
@@ -131,7 +135,7 @@ else
 					$request = '/';
 					if(isset($_GET['request'])) $request .= $_GET['request'];
 					header ('HTTP/1.1 301 Moved Permanently');
-					header ('Location: http://'. $uri . $request);
+					header ('Location: '. $protocol . $uri . $request);
 					exit();
 				}
 				elseif($useWWW && $uri[0] != 'www')
@@ -141,14 +145,14 @@ else
 					$request = '/';
 					if(isset($_GET['request'])) $request .= $_GET['request'];
 					header ('HTTP/1.1 301 Moved Permanently');
-					header ('Location: http://'. $uri . $request);
+					header ('Location: '. $protocol . $uri . $request);
 					exit();
 				}
 				elseif($uri[0] == $multilanguage_type[1])
 				{
 					$_SESSION['language'] = $_SESSION['all_languages'][0];
-					define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
-					define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 					define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 				}
 				else
@@ -163,12 +167,12 @@ else
 			}
 		}
 
-		define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), 'http://'.SITE_NAME.'/'.$request);
+		define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.'/'.$request);
 	}
 	else
 	{
-		define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
-		define('SERVER_URL', 'http://'.$_SERVER["SERVER_NAME"].'/');
+		define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+		define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 		define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 		$_SESSION['language'] = false;
 	}

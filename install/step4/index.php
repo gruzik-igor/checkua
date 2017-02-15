@@ -2,6 +2,17 @@
 
 //--- CMS White Lion 1.0 ---//
 
+$https = false;
+if($https && (empty($_SERVER['HTTPS']) || $_SERVER['HTTPS'] == "off"))
+{
+	$request = '/';
+	if(isset($_SERVER['REQUEST_URI'])) $request = $_SERVER['REQUEST_URI'];
+    $redirect = 'https://' . $_SERVER['HTTP_HOST'] . $request;
+    header('HTTP/1.1 301 Moved Permanently');
+    header('Location: ' . $redirect);
+    exit();
+}
+
 $time_start = microtime(true);
 $mem_start = memory_get_usage();
 

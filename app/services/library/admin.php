@@ -525,6 +525,47 @@ class library extends Controller {
     	$this->load->smodel('library_search_model');
     	return $this->library_search_model->getByContent($content, true);
     }
+
+    public function __getRobotKeyWords($content = 0)
+    {
+    	$words = array();
+    	$this->load->smodel('library_model');
+    	if($content > 0)
+    	{
+    		$this->db->select($this->library_model->table('_articles'), 'id', $_SESSION['alias']->id, 'wl_alias');
+    		$this->db->limit(1);
+    		if($article = $this->db->get())
+    		{
+	    		if($article = $this->library_model->getArticle($article->id, 'id'))
+	    		{
+	    			foreach ($article as $key => $value) {
+	    				if(!is_object($value) && !is_array($value))
+		    				$words[] = '{article.'.$key.'}';
+	    			}
+	    		}
+	    	}
+    		else
+    			$words = array('{article.id}', '{article.name}', '{article.wl_alias}', '{article.alias}', '{article.group}', '{article.active}', '{article.position}', '{article.author_add}', '{article.date_add}', '{article.author_edit}', '{article.date_edit}', '{article.author_add_name}', '{article.author_edit_name}');
+    	}
+    	elseif($content < 0)
+    	{
+    		$this->db->select($this->library_model->table('_groups'), 'alias', $_SESSION['alias']->id, 'wl_alias');
+    		$this->db->limit(1);
+    		if($group = $this->db->get())
+    		{
+	    		if($group = $this->library_model->getGroupByAlias($group->alias))
+	    		{
+	    			foreach ($group as $key => $value) {
+	    				if(!is_object($value) && !is_array($value))
+		    				$words[] = '{group.'.$key.'}';
+	    			}
+	    		}
+	    	}
+    		else
+    			$words = array('{group.id}', '{group.name}', '{group.wl_alias}', '{group.parent}', '{group.alias}', '{group.active}', '{group.position}', '{group.author_add}', '{group.date_add}', '{group.author_edit}', '{group.date_edit}', '{group.user_name}');
+    	}
+    	return $words;
+    }
 	
 }
 

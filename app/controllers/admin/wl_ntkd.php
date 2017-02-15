@@ -295,6 +295,13 @@ class wl_ntkd extends Controller {
         exit;
     }
 
+    public function getRobotKeyWords()
+    {
+        if($alias = $this->data->post('alias'))
+            if($content = $this->data->post('content'))
+                $this->load->json($this->load->function_in_alias($alias, '__getRobotKeyWords', $content, true));
+    }
+
     private function access()
     {
         if(isset($_POST['alias']) && is_numeric($_POST['alias']))

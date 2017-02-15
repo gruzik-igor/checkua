@@ -15,12 +15,12 @@
                 <div class="col-md-9">
                     <ul class="nav nav-tabs">
                         <?php if(isset($alias)) { ?>
-                            <li class="active"><a href="#article" data-toggle="tab" aria-expanded="true">Стаття / товар детально</a></li>
+                            <li class="active"><a href="#article" data-toggle="tab" aria-expanded="true" onclick="getRobotKeyWords(1)">Стаття / товар детально</a></li>
                         <?php } else { ?>
                             <li class="active"><a href="#main" data-toggle="tab" aria-expanded="true">Всі сторінки</a></li>
                             <li><a href="#article" data-toggle="tab" aria-expanded="true">Стаття / товар детально</a></li>
                         <?php } ?>
-                        <li><a href="#groups" data-toggle="tab" aria-expanded="true">Група статтей / товарів </a></li>
+                        <li><a href="#groups" data-toggle="tab" aria-expanded="true" onclick="getRobotKeyWords(-1)">Група статтей / товарів </a></li>
                     </ul>
                     <div class="tab-content">
                         <?php if(!isset($alias)) { ?>
@@ -428,11 +428,18 @@
                             <h4 class="panel-title">Слова</h4>
                         </div>
                         <div class="panel-body" id="words">
-                            <button type="button" class="btn btn-default">{SITE_URL}</button>
-                            <button type="button" class="btn btn-default">{IMG_PATH}</button>
-                            <button type="button" class="btn btn-default">{page}</button>
-                            <button type="button" class="btn btn-default">{name}</button>
-                            <button type="button" class="btn btn-default">{test}</button>
+                            <button type="button" class="btn btn-default" title="назва сторінки">{name}</button>
+                            <button type="button" class="btn btn-default" title="Базова адреса сайту: <?=SITE_URL?>">{SITE_URL}</button>
+                            <button type="button" class="btn btn-default" title="Базова адреса зображень: <?=IMG_PATH?>">{IMG_PATH}</button>
+                            <hr>
+                            <div id="pageKeyWords">
+                                <?php if(isset($alias)) {
+                                    if($words = $this->load->function_in_alias($alias->id, '__getRobotKeyWords', 1, true))
+                                        foreach ($words as $word) {
+                                            echo '<button type="button" class="btn btn-default m-b-5 m-r-5">'.$word.'</button>';
+                                        }
+                                } ?>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -446,14 +453,16 @@
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
     <?php if($_SESSION['language']) 
-        foreach($_SESSION['all_languages'] as $lng) { 
-            echo "CKEDITOR.replace( 'editor0-{$lng}' ); ";
+        foreach($_SESSION['all_languages'] as $lng) {
+            if(empty($alias))
+                echo "CKEDITOR.replace( 'editor0-{$lng}' ); ";
             echo "CKEDITOR.replace( 'editor1-{$lng}' ); ";
             echo "CKEDITOR.replace( 'editor-1-{$lng}' ); ";
         }
         else
         {
-            echo "CKEDITOR.replace( 'editor0' ); ";
+            if(empty($alias))
+                echo "CKEDITOR.replace( 'editor0' ); ";
             echo "CKEDITOR.replace( 'editor1' ); ";
             echo "CKEDITOR.replace( 'editor-1' );"; 
         } ?>
@@ -525,6 +534,40 @@
                     language = '';
                     if(lang) language = lang;
                     $.gritter.add({title:field+' '+language,text:"Дані успішно збережено!"});
+                }
+                $('#saveing').css("display", "none");
+            },
+            error: function(){
+                $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
+                $('#saveing').css("display", "none");
+            },
+            timeout: function(){
+                $.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
+                $('#saveing').css("display", "none");
+            }
+        });
+    }
+    function getRobotKeyWords (content) {
+        $('#saveing').css("display", "block");
+        $('#pageKeyWords').html('');
+
+        $.ajax({
+            url: SITE_URL + "admin/wl_ntkd/getRobotKeyWords",
+            type: 'POST',
+            data: {
+                alias: <?=(isset($alias)) ? $alias->id : 0 ?>,
+                content: content,
+                json: true
+            },
+            success: function(res){
+                if(res['result'] == false) {
+                    $.gritter.add({title:"Помилка!",text:res['error']});
+                } else if(res) {
+                    var buttons = '';
+                    res.forEach(function(item, i, res) {
+                      buttons += '<button type="button" class="btn btn-default m-b-5 m-r-5">'+item+'</button> ';
+                    });
+                    $('#pageKeyWords').html(buttons);
                 }
                 $('#saveing').css("display", "none");
             },

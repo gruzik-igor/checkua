@@ -612,6 +612,47 @@ class shopshowcase extends Controller {
     	$this->load->smodel('shop_search_model');
     	return $this->shop_search_model->getByContent($content, true);
     }
+
+    public function __getRobotKeyWords($content = 0)
+    {
+    	$words = array();
+    	$this->load->smodel('shop_model');
+    	if($content > 0)
+    	{
+    		$this->db->select($this->shop_model->table('_products'), 'id', $_SESSION['alias']->id, 'wl_alias');
+    		$this->db->limit(1);
+    		if($product = $this->db->get())
+    		{
+	    		if($product = $this->shop_model->getProduct($product->id, 'id'))
+	    		{
+	    			foreach ($product as $key => $value) {
+	    				if(!is_object($value) && !is_array($value))
+		    				$words[] = '{product.'.$key.'}';
+	    			}
+	    		}
+	    	}
+    		else
+    			$words = array('{product.id}', '{product.name}', '{product.wl_alias}', '{product.article}', '{product.alias}', '{product.group}', '{product.price}', '{product.currency}', '{product.availability}', '{product.active}', '{product.position}', '{product.author_add}', '{product.date_add}', '{product.author_edit}', '{product.date_edit}', '{product.author_add_name}', '{product.author_edit_name}');
+    	}
+    	elseif($content < 0)
+    	{
+    		$this->db->select($this->shop_model->table('_groups'), 'alias', $_SESSION['alias']->id, 'wl_alias');
+    		$this->db->limit(1);
+    		if($group = $this->db->get())
+    		{
+	    		if($group = $this->shop_model->getGroupByAlias($group->alias))
+	    		{
+	    			foreach ($group as $key => $value) {
+	    				if(!is_object($value) && !is_array($value))
+		    				$words[] = '{group.'.$key.'}';
+	    			}
+	    		}
+	    	}
+    		else
+    			$words = array('{group.id}', '{group.name}', '{group.wl_alias}', '{group.parent}', '{group.alias}', '{group.active}', '{group.position}', '{group.author_add}', '{group.date_add}', '{group.author_edit}', '{group.date_edit}', '{group.user_name}');
+    	}
+    	return $words;
+    }
 	
 }
 

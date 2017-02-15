@@ -22,6 +22,9 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr>
+                                <td colspan="6"><center><a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот на <?=$alias->alias?></a></center></td>
+                            </tr>
                         <?php if($articles) foreach ($articles as $a) { ?>
 							<tr>
 								<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias.'/'.$a->content?>"><?=$a->content?></a></td>

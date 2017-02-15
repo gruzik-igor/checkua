@@ -1,5 +1,5 @@
 <?php
-    $this->db->select('wl_aliases as a', 'alias, admin_ico');
+    $this->db->select('wl_aliases as a', 'alias, admin_ico, service');
     $where = array('alias' => '#a.id', 'content' => 0);
     if($_SESSION['language']) $where['language'] = $_SESSION['language'];
     $this->db->join('wl_ntkd', 'name', $where);
@@ -14,7 +14,7 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                     <a href="<?=SITE_URL?>admin/wl_ntkd/global_metatags" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> Загальні Meta-теги</a>
-                    <a href="<?=SITE_URL?>admin/wl_ntkd/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот</a>
+                    <a href="<?=SITE_URL?>admin/wl_ntkd/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> Загальний SEO робот</a>
                 </div>
                 <h4 class="panel-title">Наявні адреси:</h4>
             </div>
@@ -31,9 +31,17 @@
                             </tr>
                         </thead>
                         <tbody>
+                            <tr>
+                                <td colspan="5"><center><a href="<?=SITE_URL?>admin/wl_ntkd/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> Загальний SEO робот на всі сторінки</a></center></td>
+                            </tr>
                         <?php if($wl_aliases) foreach ($wl_aliases as $alias) { ?>
 							<tr>
-								<td><a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></a></td>
+								<td>
+                                    <a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></a>
+                                    <?php if($alias->service > 0) { ?>
+                                        <a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот</a>
+                                    <?php } ?>
+                                </td>
                                 <td><?=$alias->name?></td>
                                 <td><?=($alias->time)?date('d.m.Y H:i', $alias->time):'Не індексовано'?></td>
                                 <?php if($alias->priority < 0) echo('<td colspan="2">Сторінка не індексується</td>'); else { ?>

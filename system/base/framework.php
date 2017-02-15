@@ -174,12 +174,15 @@ else
 	}
 }
 
-$last = substr($_GET['request'], -1, 1);
-if($last == '/')
+if(isset($_GET['request']))
 {
-	header ('HTTP/1.1 301 Moved Permanently');
-	header ('Location: '. SITE_URL . $request);
-	exit();
+	$last = substr($_GET['request'], -1, 1);
+	if($last == '/')
+	{
+		header ('HTTP/1.1 301 Moved Permanently');
+		header ('Location: '. SITE_URL . $request);
+		exit();
+	}
 }
 
 define('IMG_PATH', SERVER_URL.$images_folder.'/');

@@ -64,9 +64,13 @@ class Image {
 			$fullpath = $filepath.$name.'.'.$extension;
         else
         {
-        	$extension = explode('.', $filepath);
-        	$extension = end($extension);
-			$fullpath = $filepath;
+        	$fullpath = $filepath;
+        	$filepath = explode('/', $filepath);
+            $name = array_pop($filepath);
+            $filepath = implode('/', $filepath);
+        	$name = explode('.', $name);
+        	$extension = array_pop($name);
+			$name = implode('.', $name);
         }
 
         if(in_array($extension, $this->allowed_ext) == false)
@@ -80,16 +84,7 @@ class Image {
 		{
 			$this->type = $info[2];
 			$this->path = $filepath;
-			if($name != '')
-				$this->name = $name;
-            else
-            {
-                $filepath = explode('/', $filepath);
-                $name = array_pop($filepath);
-                $this->path = implode('/', $filepath);
-                $name = explode('.', $name);
-                $this->name = $name[0];
-            }
+			$this->name = $name;
 			
 			switch ($this->type){
 				case '1' :

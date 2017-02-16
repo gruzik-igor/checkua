@@ -46,7 +46,7 @@
 						<input type="text" class="form-control" name="value[]">
 						<input type="text" class="form-control" name="value[]">
 						<?php } ?>
-						<button class="btn btn-sm btn-warning" onclick="addAnotherValue()"> Додати поле</button>
+						<button class="btn btn-sm btn-warning" onclick="addAnotherValue(event)"> Додати поле</button>
 					</div>
 				</div>
 				<div class="form-group">
@@ -91,7 +91,7 @@
 		}
 	}
 
-	function addAnotherValue () {
+	function addAnotherValue (event) {
 		event.preventDefault();
 		$("#hiddenValue button").before('<input type="text" class="form-control" name="value[]">')
 	}

@@ -38,6 +38,7 @@
                     $main = true;
             ?>
                 <tr id="photo-<?=$photo->id?>" class="template-download fade in">
+                    <td class="move sortablehandle"><i class="fa fa-sort"></i></td>
                     <td class="preview">
                         <a href="<?=IMG_PATH.$photo->path?>">
                             <img src="<?=IMG_PATH.$photo->admin_path?>">
@@ -166,6 +167,10 @@ $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js
 <script src="http://blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
 
 <style type="text/css">
+    td.move {
+        width: 30px;
+        cursor: move;
+    }
     .fileupload-progress .progress-extended {
         margin-top: 5px;
     }

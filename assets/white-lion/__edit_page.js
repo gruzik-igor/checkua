@@ -89,6 +89,11 @@ if(ALIAS_FOLDER) {
         });
     });
 
+    $( "#PHOTOS tbody.files" ).sortable({
+          handle: ".sortablehandle"
+        });
+    $( "#PHOTOS tbody.files" ).disableSelection();
+
     document.getElementById('PHOTOS').onclick = function (event) {
         event = event || window.event;
         var target = event.target || event.srcElement;

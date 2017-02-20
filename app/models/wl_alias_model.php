@@ -67,9 +67,9 @@ class wl_alias_model
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $content;
 
-		$this->db->select('wl_images', '*', $where);
+		$this->db->select('wl_images as i', '*', $where);
 		if($_SESSION['language'])
-			$this->db->join('wl_media_text', 'text as title', array('type' => 'photo', 'content' => '#id'));
+			$this->db->join('wl_media_text', 'text as title', array('type' => 'photo', 'content' => '#i.id', 'language' => $_SESSION['language']));
 		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('position ASC');
 		$_SESSION['alias']->images = $this->db->get('array');

@@ -333,12 +333,13 @@ CREATE TABLE IF NOT EXISTS `wl_mail_templats_data` (
 
 DROP TABLE IF EXISTS `wl_media_text`;
 CREATE TABLE IF NOT EXISTS `wl_media_text` (
-  `id` int(11) NOT NULL,
+  `id` int(11) NOT NULL AUTO_INCREMENT,
   `type` enum('photo','video') NOT NULL,
   `content` int(11) NOT NULL,
   `language` varchar(2) NOT NULL,
   `text` text NOT NULL,
-  PRIMARY KEY (`id`)
+  PRIMARY KEY (`id`),
+  KEY `content` (`type`,`content`,`language`) USING BTREE
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 
 -- --------------------------------------------------------

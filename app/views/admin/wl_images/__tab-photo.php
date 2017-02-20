@@ -129,7 +129,15 @@
             {% if (file.error) { %}
                 <div><span class="label label-danger">Error</span> {%=file.error%}</div>
             {% } else { %}
-                <textarea name="title" onChange="savePhoto({%=file.id%}, this)"><?=$_SESSION['alias']->name?></textarea>
+                <?php if($_SESSION['language']) {
+                    foreach ($_SESSION['all_languages'] as $language) { ?>
+                        <div class="input-group">
+                            <span class="input-group-addon"><?=$language?></span>
+                            <input name="title-<?=$language?>" type="text" value="" class="form-control" placeholder="<?=$_SESSION['alias']->name?>" onChange="savePhoto({%=file.id%}, this)">
+                        </div>
+                <?php } } else { ?>
+                    <textarea name="title" onChange="savePhoto({%=file.id%}, this)" placeholder="<?=$_SESSION['alias']->name?>"></textarea>
+                <?php } ?>
             {% } %}
         </td>
         <td class="navigation">

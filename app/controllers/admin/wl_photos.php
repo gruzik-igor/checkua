@@ -146,17 +146,20 @@ class wl_photos extends Controller {
                             $name = explode('-', $_POST['name']);
                             if($name[0] == 'title' && in_array($name[1], $_SESSION['all_languages']))
                             {
-                                $data[] = array();
+                                $data = array();
                                 $data['type'] = 'photo';
                                 $data['content'] = $photo->id;
                                 $data['language'] = $name[1];
                                 if($text = $this->db->getAllDataById('wl_media_text', $data))
-                                    $this->db->updateRow('wl_media_text', array('text' => $this->data->post($_POST['name'])), $text->id);
+                                    $this->db->updateRow('wl_media_text', array('text' => $this->data->post('title')), $text->id);
                                 else
                                 {
-                                    $data['text'] = $this->data->post($_POST['name']);
+                                    $data['text'] = $this->data->post('title');
                                     $this->db->insertRow('wl_media_text', $data);
                                 }
+                                $res['result'] = true;
+                                $res['error'] = '';
+                                $this->db->cache_clear($photo->content, false, $photo->alias);
                             }
                         }
                         break;

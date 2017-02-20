@@ -6,4 +6,8 @@
         <p><?=html_entity_decode($_SESSION['alias']->text)?></p>
     </div>
     <!-- end row -->
+
+    <pre>
+    	<?php print_r($_SESSION['alias']) ?>
+    </pre>
 </div>

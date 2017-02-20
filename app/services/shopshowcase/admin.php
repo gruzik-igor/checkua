@@ -546,7 +546,8 @@ class shopshowcase extends Controller {
             $data['file_name'] = '';
             $data['title'] = $title;
             $data['author'] = $_SESSION['user']->id;
-            $data['date_add'] = $data['main'] = time();
+            $data['date_add'] = time();
+            $data['position'] = 1;
             $this->db->insertRow('wl_images', $data);
             $photo_id = $this->db->getLastInsertedId();
             $name .= '-' . $photo_id;

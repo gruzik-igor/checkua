@@ -404,7 +404,7 @@ class shop_model {
 		$where['content'] = $product;
 		$this->db->select('wl_images', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#author');
-		$this->db->order('main DESC');
+		$this->db->order('position ASC');
 		if(!$all)
 			$this->db->limit(1);
 		return $this->db->get();

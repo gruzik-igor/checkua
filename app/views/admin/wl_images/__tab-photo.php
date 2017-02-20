@@ -30,13 +30,7 @@
 <table id="PHOTOS" class="table">
     <tbody class="files">
         <?php if(!empty($_SESSION['alias']->images)) {
-            foreach($_SESSION['alias']->images as $photo) { 
-                $main = false;
-                if(isset($photo->header_path) && $photo->header_path == $_SESSION['alias']->image)
-                    $main = true;
-                elseif($_SESSION['alias']->image == $photo->path)
-                    $main = true;
-            ?>
+            foreach($_SESSION['alias']->images as $photo) { ?>
                 <tr id="photo-<?=$photo->id?>" class="template-download fade in">
                     <td class="move sortablehandle"><i class="fa fa-sort"></i></td>
                     <td class="preview">
@@ -48,7 +42,7 @@
                         <textarea name="title" onChange="savePhoto(<?=$photo->id?>, this)"><?=$photo->title?></textarea>
                     </td>
                     <td class="navigation">
-    	                <button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto(<?=$photo->id?>, this)" <?= ($main) ? 'disabled="disabled"' : '' ?>>
+    	                <button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto(<?=$photo->id?>, this)" <?= ($photo->position == 1) ? 'disabled="disabled"' : '' ?>>
     					    <i class="glyphicon glyphicon-eye-open"></i>
     					    <span>Головне</span>
     					</button>

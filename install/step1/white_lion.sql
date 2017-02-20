@@ -161,7 +161,7 @@ CREATE TABLE IF NOT EXISTS `wl_images` (
   `title` text,
   `author` int(11) NOT NULL,
   `date_add` int(11) NOT NULL,
-  `main` int(11) NOT NULL,
+  `position` int(11),
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`),
   KEY `content` (`content`)

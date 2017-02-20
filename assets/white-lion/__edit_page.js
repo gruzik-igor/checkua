@@ -90,7 +90,35 @@ if(ALIAS_FOLDER) {
     });
 
     $( "#PHOTOS tbody.files" ).sortable({
-          handle: ".sortablehandle"
+          handle: ".sortablehandle",
+          update: function( event, ui ) {
+                $('#saveing').css("display", "block");
+                $.ajax({
+                    url: SITE_URL+"admin/wl_photos/change_position",
+                    type: 'POST',
+                    data: {
+                        alias: ALIAS_ID,
+                        content: CONTENT_ID,
+                        id: ui.item.attr('id'),
+                        position: ui.item.index(),
+                        json: true
+                    },
+                    success: function(res){
+                        if(res['result'] == false){
+                            alert(res['error']);
+                        }
+                        $('#saveing').css("display", "none");
+                    },
+                    error: function(){
+                        alert("Помилка! Спробуйте ще раз!");
+                        $('#saveing').css("display", "none");
+                    },
+                    timeout: function(){
+                        alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
+                        $('#saveing').css("display", "none");
+                    }
+                });
+            }
         });
     $( "#PHOTOS tbody.files" ).disableSelection();
 

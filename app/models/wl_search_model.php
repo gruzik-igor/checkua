@@ -35,7 +35,7 @@ class wl_search_model {
 		$where['alias'] = $alias;
 		$where['content'] = $content;
 		$this->db->select('wl_images', '*', $where);
-		$this->db->order('main DESC');
+		$this->db->order('position ASC');
 		$this->db->limit(1);
 		if($image = $this->db->get())
 			return $folder.'/'.$content.'/admin_'.$image->file_name;

@@ -61,7 +61,7 @@ class wl_photos extends Controller {
                 $length = count($_FILES[$name_field]['name']);
                 for($i = 0; $i < $length; $i++) {
                     $data['alias'] = $this->data->post('ALIAS_ID');
-                    $data['content'] = $data['main'] = $id;
+                    $data['content'] = $id;
                     $data['file_name'] = '';
                     $data['title'] = $this->data->post('PHOTO_TITLE');
                     $data['author'] = $_SESSION['user']->id;
@@ -73,7 +73,8 @@ class wl_photos extends Controller {
                     if($extension = $this->savephoto($name_field, $path, $photo_name, true, $i))
                     {
                         $photo_name .= '.'.$extension;
-                        $this->db->updateRow('wl_images', array('file_name' => $photo_name), $photo_id);
+                        $position = $this->db->getCount('wl_images', array('alias' => $this->data->post('ALIAS_ID'), 'content' => $id));
+                        $this->db->updateRow('wl_images', array('file_name' => $photo_name, 'position' => $position), $photo_id);
 
                         $this->updateAdditionall();
 
@@ -127,7 +128,11 @@ class wl_photos extends Controller {
                         break;
                     
                     case 'main':
-                        if($this->db->updateRow('wl_images', array('main' => time()), $photo->id))
+                        $this->load->model('wl_position_model');
+                        $this->wl_position_model->table = 'wl_images';
+                        $this->wl_position_model->where = "alias = {$photo->alias} AND content = ".$photo->content;
+
+                        if($this->wl_position_model->change($photo->id, 1))
                         {
                             $res['result'] = true;
                             $res['error'] = '';
@@ -164,6 +169,7 @@ class wl_photos extends Controller {
                         @unlink ($filename);
                     }
 
+                    $this->db->executeQuery("UPDATE `wl_images` SET `position` = `position` - 1 WHERE `alias` = '{$photo->alias}' AND `content` = '{$photo->content}' AND `position` > '{$photo->position}'");
                     $this->updateAdditionall();
                     $this->db->cache_clear($photo->content, false, $photo->alias);
 
@@ -241,6 +247,28 @@ class wl_photos extends Controller {
                 $this->db->updateRow($this->data->post('additional_table'), $data, $this->data->post('additional_table_id'), $additional_table_key);
             }
         }
+    }
+
+    public function change_position(){
+        $res = array('result' => false, 'error' => 'Доступ заборонено! Тільки автор або адміністрація!');
+
+        if(isset($_POST['alias']) && is_numeric($_POST['alias']) && isset($_POST['content']) && is_numeric($_POST['content']) && $_POST['alias'] > 0 && isset($_POST['id']) && is_numeric($_POST['position'])){
+            $id = explode('-', $_POST['id']);
+            if($id[0] == 'photo' && isset($id[1]) && is_numeric($id[1]) && $id[1] > 0){
+                $id = $id[1];
+                $position = $_POST['position'] + 1;
+
+                $this->load->model('wl_position_model');
+                $this->wl_position_model->table = 'wl_images';
+                $this->wl_position_model->where = "alias = {$_POST['alias']} AND content = ".$_POST['content'];
+
+                if($this->wl_position_model->change($id, $position)){
+                    $res['result'] = true;
+                    $res['error'] = '';
+                }
+            }
+        }
+        $this->load->json($res);
     }
 
 }

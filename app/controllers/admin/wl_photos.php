@@ -62,8 +62,7 @@ class wl_photos extends Controller {
                 for($i = 0; $i < $length; $i++) {
                     $data['alias'] = $this->data->post('ALIAS_ID');
                     $data['content'] = $id;
-                    $data['file_name'] = '';
-                    $data['title'] = $this->data->post('PHOTO_TITLE');
+                    $data['file_name'] = $data['title'] = '';
                     $data['author'] = $_SESSION['user']->id;
                     $data['date_add'] = time();
                     $this->db->insertRow('wl_images', $data);
@@ -140,6 +139,27 @@ class wl_photos extends Controller {
                         }
                         $this->updateAdditionall();
                         break;
+
+                    default:
+                        if($_SESSION['language'])
+                        {
+                            $name = explode('-', $_POST['name']);
+                            if($name[0] == 'title' && in_array($name[1], $_SESSION['all_languages']))
+                            {
+                                $data[] = array();
+                                $data['type'] = 'photo';
+                                $data['content'] = $photo->id;
+                                $data['language'] = $name[1];
+                                if($text = $this->db->getAllDataById('wl_media_text', $data))
+                                    $this->db->updateRow('wl_media_text', array('text' => $this->data->post($_POST['name'])), $text->id);
+                                else
+                                {
+                                    $data['text'] = $this->data->post($_POST['name']);
+                                    $this->db->insertRow('wl_media_text', $data);
+                                }
+                            }
+                        }
+                        break;
                 }
             }
             else
@@ -169,6 +189,8 @@ class wl_photos extends Controller {
                         @unlink ($filename);
                     }
 
+                    if($_SESSION['language'])
+                        $this->db->deleteRow('wl_media_text', array('type' => 'photo', 'content' => $photo->id));
                     $this->db->executeQuery("UPDATE `wl_images` SET `position` = `position` - 1 WHERE `alias` = '{$photo->alias}' AND `content` = '{$photo->content}' AND `position` > '{$photo->position}'");
                     $this->updateAdditionall();
                     $this->db->cache_clear($photo->content, false, $photo->alias);

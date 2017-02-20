@@ -328,6 +328,22 @@ CREATE TABLE IF NOT EXISTS `wl_mail_templats_data` (
 -- --------------------------------------------------------
 
 --
+-- Структура таблиці `wl_media_text`
+--
+
+DROP TABLE IF EXISTS `wl_media_text`;
+CREATE TABLE IF NOT EXISTS `wl_media_text` (
+  `id` int(11) NOT NULL,
+  `type` enum('photo','video') NOT NULL,
+  `content` int(11) NOT NULL,
+  `language` varchar(2) NOT NULL,
+  `text` text NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+-- --------------------------------------------------------
+
+--
 -- Структура таблиці `wl_ntkd`
 --
 

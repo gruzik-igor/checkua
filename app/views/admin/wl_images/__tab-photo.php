@@ -39,7 +39,20 @@
                         </a>
                     </td>
                     <td>
-                        <textarea name="title" onChange="savePhoto(<?=$photo->id?>, this)"><?=$photo->title?></textarea>
+                        <?php if($_SESSION['language']) {
+                            $texts = array();
+                            if($gettexts = $this->db->getAllDataByFieldInArray('wl_media_text', $photo->id, 'content'))
+                                foreach ($gettexts as $text) {
+                                    $texts[$text->language] = $text->text;
+                                }
+                            foreach ($_SESSION['all_languages'] as $language) { ?>
+                                <div class="input-group">
+                                    <span class="input-group-addon"><?=$language?></span>
+                                    <input name="title-<?=$language?>" type="text" value="<?=(isset($texts[$language])) ? $texts[$language] : ''?>" class="form-control" placeholder="<?=$_SESSION['alias']->name?>" onChange="savePhoto(<?=$photo->id?>, this)">
+                                </div>
+                        <?php } } else { ?>
+                            <textarea name="title" onChange="savePhoto(<?=$photo->id?>, this)" placeholder="<?=$_SESSION['alias']->name?>"><?=($photo->title != $_SESSION['alias']->name) ? $photo->title : ''?></textarea>
+                        <?php } ?>
                     </td>
                     <td class="navigation">
     	                <button name="main" class="btn btn-warning PHOTO_MAIN" onClick="savePhoto(<?=$photo->id?>, this)" <?= ($photo->position == 1) ? 'disabled="disabled"' : '' ?>>

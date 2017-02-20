@@ -68,6 +68,8 @@ class wl_alias_model
 		$where['content'] = $content;
 
 		$this->db->select('wl_images', '*', $where);
+		if($_SESSION['language'])
+			$this->db->join('wl_media_text', 'text as title', array('type' => 'photo', 'content' => '#id'));
 		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('position ASC');
 		$_SESSION['alias']->images = $this->db->get('array');
@@ -108,6 +110,12 @@ class wl_alias_model
 			$_SESSION['alias']->text = htmlspecialchars_decode($data->text);
 			$_SESSION['alias']->list = $data->list;
 			$_SESSION['alias']->meta = $data->meta;
+
+			if($_SESSION['alias']->images)
+				foreach ($_SESSION['alias']->images as $photo) {
+					if($photo->title == '')
+						$photo->title = $data->name;
+				}
 		}
 		if($content == 0)
 		{

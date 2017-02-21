@@ -117,6 +117,8 @@ class products_model {
 			            	if($g->parent > 0) {
 			            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
 			            	}
+			            	else
+			            		$g->link = $g->alias;
 			            }
 					}
 				}

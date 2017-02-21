@@ -109,7 +109,7 @@ class shop_model {
 					if($option)
 					{
 						$list_where['option'] = $option->id;
-						if(!empty($where['id'])) $list_where['product'] = clone $where['id'];
+						if(!empty($where['id'])) $list_where['product'] = $where['id'];
 						$where['id'] = array();
 						foreach ($_GET[$key] as $value) if(is_numeric($value)) {
 							if($option->type == 8) //checkbox
@@ -624,6 +624,8 @@ class shop_model {
 			{
 				$to_delete_options = array();
 		        foreach ($options as $i => $option) {
+		        	unset($where['product'], $where['value']);
+		        	$where = array('option' => '#o.id', 'language' => $_SESSION['language']);
 		        	$this->db->select($this->table('_options').' as o', 'id', -$option->id, 'group');
 		        	$this->db->join($this->table('_options_name'), 'name', $where);
 		        	$option->values = $this->db->get('array');

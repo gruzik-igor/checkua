@@ -463,16 +463,11 @@ CREATE TABLE IF NOT EXISTS `wl_sitemap` (
   PRIMARY KEY (`id`),
   KEY `alias` (`alias`,`content`,`language`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+-- --------------------------------------------------------
 
 --
--- Індекси збережених таблиць
+-- Структура таблиці `wl_sitemap_from`
 --
-
---
--- Індекси таблиці `wl_sitemap`
---
-ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
-
 
 DROP TABLE IF EXISTS `wl_sitemap_from`;
 CREATE TABLE IF NOT EXISTS `wl_sitemap_from` (

@@ -133,6 +133,7 @@ class wl_services extends Controller {
                                     $this->db->deleteRow('wl_images_sizes', $alias->id, 'alias');
                                     $this->db->deleteRow('wl_language_words', $alias->id, 'alias');
                                     $this->db->deleteRow('wl_ntkd', $alias->id, 'alias');
+                                    $this->db->deleteRow('wl_ntkd_robot', $alias->id, 'alias');
                                     $this->db->deleteRow('wl_sitemap', $alias->id, 'alias');
                                     $this->db->deleteRow('wl_statistic_pages', $alias->id, 'alias');
                                     $this->db->deleteRow('wl_video', $alias->id, 'alias');

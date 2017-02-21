@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.3.3"
+ 	Service "Shop Showcase 2.3.4"
 	for WhiteLion 1.0
 
 */
@@ -54,14 +54,12 @@ class shopshowcase extends Controller {
 				}
 				$this->wl_alias_model->setContent(($group->id * -1));
 
-				$list = $this->shop_model->getGroups($group->id, false);
-				if (empty($list) || $_SESSION['option']->ProductMultiGroup == 1)
-				{
-					$list = $this->shop_model->getProducts($group->id, 0, false);
-					$this->load->admin_view('products/list_view', array('group' => $group, 'products' => $list));
-				}
+				$groups = $this->shop_model->getGroups($group->id, false);
+				$products = $this->shop_model->getProducts($group->id, 0, false);
+				if (empty($groups))
+					$this->load->admin_view('products/list_view', array('group' => $group, 'products' => $products));
 				else
-					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $list));
+					$this->load->admin_view('index_view', array('group' => $group, 'groups' => $groups, 'products' => $products));
 			}
 
 			$this->load->page_404();
@@ -69,22 +67,17 @@ class shopshowcase extends Controller {
 		else
 		{
 			$this->wl_alias_model->setContent();
+			$products = $this->shop_model->getProducts(-1, 0, false);
 			if($_SESSION['option']->useGroups)
 			{
-				$list = $this->shop_model->getGroups(0, false);
-				if (empty($list) || $_SESSION['option']->ProductMultiGroup == 1)
-				{
-					$list = $this->shop_model->getProducts(-1, 0, false);
-					$this->load->admin_view('products/list_view', array('products' => $list));
-				}
+				$groups = $this->shop_model->getGroups(0, false);
+				if (empty($groups))
+					$this->load->admin_view('products/list_view', array('products' => $products));
 				else
-					$this->load->admin_view('index_view', array('groups' => $list));
+					$this->load->admin_view('index_view', array('groups' => $groups, 'products' => $products));
 			}
 			else
-			{
-				$products = $this->shop_model->getProducts(-1, 0, false);
 				$this->load->admin_view('products/list_view', array('products' => $products));
-			}
 		}
     }
 
@@ -165,11 +158,11 @@ class shopshowcase extends Controller {
 			$this->load->smodel('products_model');
 			if($_POST['id'] == 0)
 			{
-				$link = $name = '';
-				if($id = $this->products_model->add($link, $name))
+				$link = '';
+				if($id = $this->products_model->add($link))
 				{
 					if(!empty($_FILES['photo']['name']))
-						$this->savephoto('photo', $id, $this->data->latterUAtoEN($name), $name);
+						$this->savephoto('photo', $id, $this->data->latterUAtoEN($name));
 					$this->redirect("admin/{$_SESSION['alias']->alias}/{$link}");
 				}
 				$this->redirect();
@@ -217,8 +210,9 @@ class shopshowcase extends Controller {
 		}
 	}
 	
-	public function changeposition()
+	public function change_position()
 	{
+		$res = array('result' => false);
 		if(isset($_POST['id']) && is_numeric($_POST['id']) && is_numeric($_POST['position']))
 		{
 			$this->load->smodel('products_model');
@@ -227,18 +221,31 @@ class shopshowcase extends Controller {
 			$this->wl_position_model->table = $this->products_model->table();
 			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
 			
-			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
+			if($_SESSION['option']->useGroups > 0)
 			{
-				$product = $this->db->getAllDataById($this->products_model->table(), $_POST['id']);
-				if($product) {
-					$this->wl_position_model->where .= " AND `group` = '{$product->group}'";
+				if($_SESSION['option']->ProductMultiGroup)
+				{
+					if($position = $this->db->getAllDataById($this->products_model->table('_product_group'), $_POST['id']))
+					{
+						$this->wl_position_model->table = $this->products_model->table('_product_group');
+						$this->wl_position_model->where = "`group` = '{$position->group}'";
+					}
+					else
+						$this->wl_position_model->table = '';
+				}
+				else
+				{
+					if($product = $this->db->getAllDataById($this->products_model->table(), $_POST['id']))
+						$this->wl_position_model->where .= " AND `group` = '{$product->group}'";
+					else
+						$this->wl_position_model->table = '';
 				}
 			}
 			
-			if($this->wl_position_model->change($_POST['id'], $_POST['position'])) {
-				$this->redirect();
-			}
+			if($this->wl_position_model->change($_POST['id'], ($_POST['position'] + 1)))
+				$res['result'] = true;
 		}
+		$this->load->json($res);
 	}
 
 	public function changeAvailability()
@@ -299,11 +306,11 @@ class shopshowcase extends Controller {
 
 			if($_POST['id'] == 0)
 			{
-				$alias = $title = false;
-				if($id = $this->groups_model->add($alias, $title))
+				$alias = '';
+				if($id = $this->groups_model->add($alias))
 				{
 					if(!empty($_FILES['photo']['name']) && $alias)
-						$this->savephoto('photo', -$id, $alias, $title);
+						$this->savephoto('photo', -$id, $alias);
 					$_SESSION['notify']->success = 'Групу успішно додано! Продовжіть наповнення сторінки.';
 					$this->redirect('admin/'.$_SESSION['alias']->alias.'/groups/'.$id);
 				}
@@ -524,7 +531,7 @@ class shopshowcase extends Controller {
 		}
 	}
 
-	private function savephoto($name_field, $content, $name, $title = '')
+	private function savephoto($name_field, $content, $name)
 	{
 		if(!empty($_FILES[$name_field]['name']) && $_SESSION['option']->folder)
 		{
@@ -543,8 +550,7 @@ class shopshowcase extends Controller {
 
             $data['alias'] = $_SESSION['alias']->id;
             $data['content'] = $content;
-            $data['file_name'] = '';
-            $data['title'] = $title;
+            $data['file_name'] = $data['title'] = '';
             $data['author'] = $_SESSION['user']->id;
             $data['date_add'] = time();
             $data['position'] = 1;

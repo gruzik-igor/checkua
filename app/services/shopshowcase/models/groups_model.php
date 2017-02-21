@@ -71,11 +71,11 @@ class groups_model {
 		return $this->db->get('single');
 	}
 
-	public function add(&$alias, &$name)
+	public function add(&$alias = '')
 	{
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
-		$parent = $data['parent'] = 0;
+		$parent = $data['parent'] = $data['position'] = 0;
 		if(isset($_POST['parent']) && is_numeric($_POST['parent']) && $_POST['parent'] > 0)
 			$parent = $data['parent'] = $_POST['parent'];
 		$data['active'] = 1;
@@ -83,13 +83,13 @@ class groups_model {
 		$data['date_add'] = time();
 		$data['author_edit'] = $_SESSION['user']->id;
 		$data['date_edit'] = time();
-		if($this->db->insertRow($this->table(), $data)){
+		if($this->db->insertRow($this->table(), $data))
+		{
 			$id = $this->db->getLastInsertedId();
-
-			$position = 1 + $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $data['parent']));
 
 			$data = array();
 			$data['alias'] = '';
+			$data['position'] = $this->db->getCount($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'parent' => $parent));
 
 			$ntkd['alias'] = $_SESSION['alias']->id;
 			$ntkd['content'] = $id;
@@ -100,10 +100,7 @@ class groups_model {
 					$ntkd['language'] = $lang;
 					$ntkd['name'] = $this->data->post('name_'.$lang);
 					if($lang == $_SESSION['language'])
-					{
 						$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
-						$name = $ntkd['name'];
-					}
 					$this->db->insertRow('wl_ntkd', $ntkd);
 				}
 			}
@@ -112,7 +109,6 @@ class groups_model {
 				$ntkd['name'] = $this->data->post('name');
 				$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 				$this->db->insertRow('wl_ntkd', $ntkd);
-				$name = $ntkd['name'];
 			}
 
 			$data['alias'] = $this->makeLink($data['alias'], $parent);

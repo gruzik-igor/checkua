@@ -85,6 +85,8 @@
   <!-- ================== BEGIN BASE JS ================== -->
   <script type="text/javascript">
     var SITE_URL = '<?=SITE_URL?>';
+    var ALIAS_URL = '<?=SITE_URL.$_SESSION['alias']->alias.'/'?>';
+    var ALIAS_ADMIN_URL = '<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'?>';
   </script>
   <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
   <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>

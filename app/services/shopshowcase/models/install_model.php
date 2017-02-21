@@ -65,8 +65,11 @@ class install
 			if($this->options['ProductMultiGroup'] > 0)
 			{
 				$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_group` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
 						  `product` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
+						  `position` int(11) NULL,
+						  PRIMARY KEY (`id`),
 						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 				$this->db->executeQuery($query);
@@ -190,8 +193,11 @@ class install
 		if($option == 'ProductMultiGroup' AND $value > 0)
 		{
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_product_group` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
 						  `product` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
+						  `position` int(11) NULL,
+						  PRIMARY KEY (`id`),
 						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 			$this->db->executeQuery($query);

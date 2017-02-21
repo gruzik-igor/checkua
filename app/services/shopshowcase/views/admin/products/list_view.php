@@ -48,6 +48,7 @@
 	                    <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
 	                        <thead>
 	                            <tr>
+	                            	<?php if(!isset($search)) echo "<th></th>"; ?>
 	                                <th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'Id'?></th>
 									<th>Назва</th>
 									<th>Ціна (у.о.)</th>
@@ -65,60 +66,52 @@
 									<th>Автор</th>
 									<th>Редаговано</th>
 									<th>Стан</th>
-									<?php if(!isset($search)) { ?>
-										<th>Змінити порядок</th>
-									<?php } ?>
 	                            </tr>
 	                        </thead>
 	                        <tbody>
-	                        	<?php $max = count($products); 
-	                        		foreach($products as $a) { ?>
-										<tr>
-											<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
+	                        	<?php foreach($products as $a) { ?>
+									<tr id="<?=($_SESSION['option']->ProductMultiGroup) ? $a->position_id : $a->id?>">
+										<?php if(!isset($search)) { ?>
+											<td class="move sortablehandle"><i class="fa fa-sort"></i></td>
+										<?php } ?>
+										<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
+										<td>
+											<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
+											<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
+										</td>
+										<td><?=$a->price?></td>
+										<?php if($_SESSION['option']->useAvailability == 1) { ?>
 											<td>
-												<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
-												<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
+												<select onchange="changeAvailability(this, <?=$a->id?>)" class="form-control">
+													<?php if(!empty($availability)) foreach ($availability as $c) {
+														echo('<option value="'.$c->id.'"');
+														if($c->id == $a->availability) echo(' selected');
+														echo('>'.$c->name.'</option>');
+													} ?>
+												</select>
 											</td>
-											<td><?=$a->price?></td>
-											<?php if($_SESSION['option']->useAvailability == 1) { ?>
-												<td>
-													<select onchange="changeAvailability(this, <?=$a->id?>)" class="form-control">
-														<?php if(!empty($availability)) foreach ($availability as $c) {
-															echo('<option value="'.$c->id.'"');
-															if($c->id == $a->availability) echo(' selected');
-															echo('>'.$c->name.'</option>');
-														} ?>
-													</select>
-												</td>
-											<?php }
-											if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
-												echo("<td>");
-												if(!empty($a->group) && is_array($a->group)) {
-	                                                foreach ($a->group as $group) {
-	                                                    echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
-	                                                }
-	                                            } else {
-	                                                echo("Не визначено");
-	                                            }
-	                                            echo("</td>");
-	                                        	}
-	                                        ?>
-											<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
-											<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-											<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
-											<?php if(!isset($search)) { ?>
-												<td>
-													<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeposition">
-														<input type="hidden" name="id" value="<?=$a->id?>">
-														<input type="number" name="position" min="1" max="<?=$max?>" value="<?=$a->position?>" onchange="this.form.submit();" autocomplete="off" class="form-control">
-													</form>
-												</td>
-											<?php } ?>
-										</tr>
+										<?php }
+										if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
+											echo("<td>");
+											if(!empty($a->group) && is_array($a->group)) {
+                                                foreach ($a->group as $group) {
+                                                    echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
+                                                }
+                                            } else {
+                                                echo("Не визначено");
+                                            }
+                                            echo("</td>");
+                                        	}
+                                        ?>
+										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
+										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
+										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
+									</tr>
 								<?php } ?>
 	                        </tbody>
 	                    </table>
 	                </div>
+	                <div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong></div>
 	                <?php
 	                $this->load->library('paginator');
 	                echo $this->paginator->get();
@@ -139,26 +132,7 @@
     </div>
 </div>
 
-<?php if($_SESSION['option']->useAvailability == 1) { ?>
-	<script type="text/javascript">
-		function changeAvailability(e, id) {
-			$.ajax({
-				url: "<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeAvailability",
-				type: 'POST',
-				data: {
-					availability :  e.value,
-					id :  id,
-					json : true
-				},
-				success: function(res){
-					if(res['result'] == false){
-						alert('Помилка! Спробуйте щераз');
-					}
-				}
-			});
-		}
-	</script>
-<?php } ?>
+<?php $_SESSION['alias']->js_load[] = "app/services/shopshowcase/views/admin/products/list.js"; ?>
 
 <style type="text/css">
 	input[type="number"]{
@@ -167,7 +141,10 @@
 	select {
 		max-width: 200px;
 	}
-
+	td.move {
+        width: 30px;
+        cursor: move;
+    }
 	.search-row {
 	    max-width: 800px;
 	    margin-left: auto;

@@ -178,13 +178,21 @@ class shop_model {
 			$this->db->join($_SESSION['service']->table.'_availability_name', 'name as availability_name', $where_availability_name);
 		}
 
-		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0)
+		if($_SESSION['option']->useGroups > 0)
 		{
-			$where_gn['alias'] = $_SESSION['alias']->id;
-			$where_gn['content'] = "#-p.group";
-			if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
-			$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
-			$this->db->join($this->table('_groups').' as g', 'active as group_active', '#p.group');
+			if($_SESSION['option']->ProductMultiGroup)
+			{
+				if(!is_array($Group) && $Group >= 0)
+					$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position', array('group' => $Group, 'product' => '#p.id'));
+			}
+			else
+			{
+				$where_gn['alias'] = $_SESSION['alias']->id;
+				$where_gn['content'] = "#-p.group";
+				if($_SESSION['language']) $where_gn['language'] = $_SESSION['language'];
+				$this->db->join('wl_ntkd as gn', 'name as group_name', $where_gn);
+				$this->db->join($this->table('_groups').' as g', 'active as group_active', '#p.group');
+			}
 		}
 
 		$where_ntkd['alias'] = $_SESSION['alias']->id;
@@ -210,7 +218,10 @@ class shop_model {
 			}
 		}
 		else
-			$this->db->order($_SESSION['option']->productOrder);
+		{
+			$prefix = ($_SESSION['option']->ProductMultiGroup) ? 'pg' : 'p';
+			$this->db->order($_SESSION['option']->productOrder, $prefix);
+		}
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{

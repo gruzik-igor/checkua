@@ -204,7 +204,7 @@ class products_model {
 		return null;
 	}
 	
-	public function add(&$link = '', &$name = '')
+	public function add(&$link = '')
 	{
 		if($_SESSION['option']->ProductUseArticle && $_POST['article'] != '')
 		{

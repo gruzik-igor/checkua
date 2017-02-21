@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.3.3"
+ 	Service "Shop Showcase 2.3.4"
 	for WhiteLion 1.0
 
 */

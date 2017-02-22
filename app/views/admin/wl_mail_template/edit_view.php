@@ -181,13 +181,13 @@ document.onreadystatechange = function () {
     if (document.readyState == "complete") {
     	$('#mailTemplate  textarea').on('click',function (e) {
             $('#mailTemplate').find('#wordTarget').removeAttr('id');
-            var $target = $(event.target).attr('id', 'wordTarget');
+            var $target = $(e.target).attr('id', 'wordTarget');
         })
 
 		$('.words').on('click', function (e) {
 	        var $wordTarget = $('#wordTarget');
 	        if($wordTarget.length){
-	            var buttonText = event.target.textContent;
+	            var buttonText = e.target.textContent;
 	            var wordTargetValue = $wordTarget.val();
 	            var cursorPos = $('#wordTarget').prop('selectionStart');
 

@@ -123,6 +123,8 @@ class Mail {
                 break;
 
             default:
+                if(substr($mail, 0, 1) == '{' && substr($mail, -1) == '}')
+                    $mail = substr($mail, 1, -1);
                 if(!isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $mail))
                     return $mail;
                 elseif(isset($data[$mail]) && preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data[$mail]))

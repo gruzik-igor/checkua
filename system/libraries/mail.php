@@ -121,6 +121,9 @@ class Mail {
             case 'SITE_EMAIL':
                 return SITE_EMAIL;
                 break;
+            case '{SITE_EMAIL}':
+                return SITE_EMAIL;
+                break;
 
             default:
                 if(substr($mail, 0, 1) == '{' && substr($mail, -1) == '}')

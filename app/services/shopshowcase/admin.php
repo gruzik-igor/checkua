@@ -67,17 +67,26 @@ class shopshowcase extends Controller {
 		else
 		{
 			$this->wl_alias_model->setContent();
-			$products = $this->shop_model->getProducts(-1, 0, false);
+			
 			if($_SESSION['option']->useGroups)
 			{
 				$groups = $this->shop_model->getGroups(0, false);
 				if (empty($groups))
+				{
+					$products = $this->shop_model->getProducts(-1, 0, false);
 					$this->load->admin_view('products/list_view', array('products' => $products));
+				}
 				else
+				{
+					$products = $this->shop_model->getProducts(0, 0, false);
 					$this->load->admin_view('index_view', array('groups' => $groups, 'products' => $products));
+				}
 			}
 			else
+			{
+				$products = $this->shop_model->getProducts(-1, 0, false);
 				$this->load->admin_view('products/list_view', array('products' => $products));
+			}
 		}
     }
 
@@ -139,11 +148,18 @@ class shopshowcase extends Controller {
 			$groups = $this->shop_model->getGroups(-1);
 			if($_SESSION['option']->ProductMultiGroup)
 			{
-				$activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product->id, 'product');
 				$product->group = array();
-				if($activeGroups)
+				if($activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product->id, 'product'))
 					foreach ($activeGroups as $ag) {
 						$product->group[] = $ag->group;
+						foreach ($groups as $group) {
+							if($group->id == $ag->group)
+							{
+								$group->product_position = $ag->position;
+								$group->product_position_max = $this->db->getCount($this->shop_model->table('_product_group'), $group->id, 'group');
+								break;
+							}
+						}
 					}
 			}
 		}
@@ -171,6 +187,28 @@ class shopshowcase extends Controller {
 			{
 				$link = $this->products_model->save($_POST['id']);
 				$this->products_model->saveProductOptios($_POST['id']);
+				if($_SESSION['option']->ProductMultiGroup == 0)
+				{
+					$position = explode(' ', $_SESSION['option']->productOrder);
+					if($position[0] == 'position' && $_POST['position_old'] != $this->data->post('position') && $_POST['group'] == $_POST['group_old'])
+					{
+						$this->load->model('wl_position_model');
+						$this->wl_position_model->table = $this->products_model->table();
+						$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
+						if($_SESSION['option']->useGroups > 0)
+							$this->wl_position_model->where .= " AND `group` = '{$_POST['group']}'";
+						$this->wl_position_model->change($_POST['id'], $_POST['position']);
+					}
+				}
+				elseif(!empty($this->products_model->multigroup_new_position))
+				{
+					$this->load->model('wl_position_model');
+					$this->wl_position_model->table = $this->products_model->table('_product_group');
+					foreach ($this->products_model->multigroup_new_position as $key) {
+						$this->wl_position_model->where = "`group` = '{$key->group}'";
+						$this->wl_position_model->change($key->id, $key->position);
+					}
+				}
 
 				if(isset($_POST['to']) && $_POST['to'] == 'new')
 					$this->redirect("admin/{$_SESSION['alias']->alias}/add");
@@ -220,6 +258,11 @@ class shopshowcase extends Controller {
 
 			$this->wl_position_model->table = $this->products_model->table();
 			$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id;
+			$newposition = $_POST['position'] + 1;
+
+			$order = 'ASC';
+			if($_SESSION['option']->productOrder == 'position DESC')
+				$order = 'DESC';
 			
 			if($_SESSION['option']->useGroups > 0)
 			{
@@ -229,6 +272,12 @@ class shopshowcase extends Controller {
 					{
 						$this->wl_position_model->table = $this->products_model->table('_product_group');
 						$this->wl_position_model->where = "`group` = '{$position->group}'";
+						if($order == 'DESC')
+						{
+							$all = $this->db->getCount($this->products_model->table('_product_group'), $position->group, 'group');
+							if($all > 0)
+								$newposition = $all + 1 - $newposition;
+						}
 					}
 					else
 						$this->wl_position_model->table = '';
@@ -236,13 +285,21 @@ class shopshowcase extends Controller {
 				else
 				{
 					if($product = $this->db->getAllDataById($this->products_model->table(), $_POST['id']))
+					{
 						$this->wl_position_model->where .= " AND `group` = '{$product->group}'";
+						if($order == 'DESC')
+						{
+							$all = $this->db->getCount($this->products_model->table(), $product->group, 'group');
+							if($all > 0)
+								$newposition = $all + 1 - $newposition;
+						}
+					}
 					else
 						$this->wl_position_model->table = '';
 				}
 			}
 			
-			if($this->wl_position_model->change($_POST['id'], ($_POST['position'] + 1)))
+			if($this->wl_position_model->change($_POST['id'], $newposition))
 				$res['result'] = true;
 		}
 		$this->load->json($res);

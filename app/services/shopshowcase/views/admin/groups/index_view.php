@@ -61,7 +61,7 @@
 										foreach ($list as $g) if($g->parent == $parent) { ?>
 											<tr>
 												<td style="padding-left: <?=$pl?>px"><?=$g->id?></td>
-												<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=$g->name?></a></td>
+												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
 												<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$g->link?>">/<?=$_SESSION['alias']->alias.'/'.$g->link?></a></td>
 												<td><?=date("d.m.Y H:i", $g->date_edit)?></td>
 												<td><a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>

@@ -69,6 +69,14 @@
 						</tbody>
 					</table>
 				</div>
+
+				<?php if(!empty($products))
+				{
+					echo '<h4 title="Перенесіть товари в кінцеву групу">Увага! Товари не в кінцевій групі!</h4>';
+					$search = true;
+					require_once 'products/__products-list.php';
+				}
+				?>
 			</div>
 		</div>
 	</div>

@@ -78,7 +78,7 @@ class shop_model {
 			}
 			elseif($Group >= 0)
 			{
-				if($_SESSION['option']->ProductMultiGroup == 0 || $Group == 0)
+				if($_SESSION['option']->ProductMultiGroup == 0)
 					$where['group'] = $Group;
 				else
 				{
@@ -200,6 +200,12 @@ class shop_model {
 		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
 
+		$prefix = 'p';
+		$_SESSION['option']->productOrder = trim($_SESSION['option']->productOrder);
+		$order = explode(' ', $_SESSION['option']->productOrder);
+        if(((count($order) == 2 && $order[0] == 'position' && in_array($order[1], array('asc', 'ASC', 'desc', 'DESC'))) || (count($order) == 1 && $order[0] == 'position')) && $_SESSION['option']->ProductMultiGroup && !is_array($Group) && $Group >= 0)
+        	$prefix = 'pg';
+
 		if(isset($_GET['sort']))
 		{
 			switch ($this->data->get('sort')) {
@@ -213,15 +219,12 @@ class shop_model {
 					$this->db->order('article ASC');
 					break;
 				default:
-					$this->db->order($_SESSION['option']->productOrder);
+					$this->db->order($_SESSION['option']->productOrder, $prefix);
 					break;
 			}
 		}
 		else
-		{
-			$prefix = ($_SESSION['option']->ProductMultiGroup) ? 'pg' : 'p';
 			$this->db->order($_SESSION['option']->productOrder, $prefix);
-		}
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
@@ -289,11 +292,14 @@ class shop_model {
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$product->group = $this->db->get('array');
 
-			            foreach ($product->group as $g) {
-			            	if($g->parent > 0) {
-			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
-			            	}
-			            }
+						if($product->group)
+				            foreach ($product->group as $g) {
+				            	if($g->parent > 0) {
+				            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
+				            	}
+				            	else
+				            		$g->link = $_SESSION['alias']->alias . '/' . $g->alias;
+				            }
 					}
 				}
             }

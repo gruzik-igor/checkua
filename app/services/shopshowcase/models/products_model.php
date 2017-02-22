@@ -2,6 +2,8 @@
 
 class products_model {
 
+	public $multigroup_new_position = array();
+
 	public function table($sufix = '_products', $useAliasTable = false)
 	{
 		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
@@ -113,13 +115,13 @@ class products_model {
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$product->group = $this->db->get('array');
 
-			            foreach ($product->group as $g) {
-			            	if($g->parent > 0) {
-			            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
-			            	}
-			            	else
-			            		$g->link = $g->alias;
-			            }
+						if($product->group)
+				            foreach ($product->group as $g) {
+				            	if($g->parent > 0)
+				            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
+				            	else
+				            		$g->link = $g->alias;
+				            }
 					}
 				}
             }
@@ -192,11 +194,13 @@ class products_model {
 					$where_ntkd['content'] = "#-pg.group";
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					$product->group = $this->db->get('array');
-
-		            foreach ($product->group as $g) {
-		            	if($g->parent > 0)
-		            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
-		            }
+					if($product->group)
+			            foreach ($product->group as $g) {
+			            	if($g->parent > 0)
+			            		$g->link = $this->makeLink($list, $g->parent, $g->alias);
+			            	else
+			            		$g->link = $g->alias;
+			            }
 				}
 			}
             return $product;
@@ -223,7 +227,7 @@ class products_model {
 		$data['wl_alias'] = $_SESSION['alias']->id;
 		if(isset($_POST['article'])) $data['article'] = trim($this->data->post('article'));
 		$data['active'] = $data['availability'] = 1;
-		$data['price'] = $data['group'] = 0;
+		$data['price'] = $data['group'] = $data['position'] = 0;
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] > 0) $data['price'] = $_POST['price'];
 		$data['author_add'] = $data['author_edit'] = $_SESSION['user']->id;
 		$data['date_add'] = $data['date_edit'] = time();
@@ -270,9 +274,9 @@ class products_model {
 				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group']))
 				{
 					foreach ($_POST['group'] as $group) {
-						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
+						$all = 1 + $this->db->getCount($this->table('_product_group'), $group, 'group');
+						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all));
 					}
-					$data['position'] = $this->db->getCount($this->table('_products'), $_SESSION['alias']->id, 'wl_alias');
 				}
 				else
 				{
@@ -339,13 +343,16 @@ class products_model {
 			if($_SESSION['option']->ProductMultiGroup)
 			{
 				$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$data['alias']);
-				$use = array();
+				$use = $activegroups_position = array();
 				$activegroups = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $id, 'product');
 				if($activegroups)
 				{
 					$temp = array();
 					foreach ($activegroups as $ac) {
 						$temp[] = $ac->group;
+						$activegroups_position[$ac->group] = new stdClass();
+						$activegroups_position[$ac->group]->position = $ac->position;
+						$activegroups_position[$ac->group]->id = $ac->id;
 						$this->db->cache_clear(-$ac->group);
 					}
 					$activegroups = $temp;
@@ -356,8 +363,21 @@ class products_model {
 				if(isset($_POST['group']) && is_array($_POST['group']))
 				{
 					foreach ($_POST['group'] as $group) {
-						if(!in_array($group, $activegroups)){
-							$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group));
+						if(!in_array($group, $activegroups))
+						{
+							$all = 1 + $this->db->getCount($this->table('_product_group'), $group, 'group');
+							$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all));
+						}
+						else
+						{
+							if(isset($_POST['position-group-'.$group]) && isset($activegroups_position[$group]) && $activegroups_position[$group]->position != $_POST['position-group-'.$group] && $_POST['position-group-'.$group] > 0)
+							{
+								$pg_new = new stdClass();
+								$pg_new->id = $activegroups_position[$group]->id;
+								$pg_new->group = $group;
+								$pg_new->position = $this->data->post('position-group-'.$group);
+								$this->multigroup_new_position[] = $pg_new;
+							}
 						}
 						$use[] = $group;
 					}
@@ -365,7 +385,10 @@ class products_model {
 				if($activegroups)
 					foreach ($activegroups as $ac) {
 						if(!in_array($ac, $use))
+						{
+							$this->db->executeQuery("UPDATE `{$this->table('_product_group')}` SET `position` = `position` - 1 WHERE `position` > '{$activegroups_position[$ac]->position}' AND `group` = '{$ac}'");
 							$this->db->executeQuery("DELETE FROM {$this->table('_product_group')} WHERE `product` = '{$id}' AND `group` = '{$ac}'");
+						}
 					}
 			}
 			elseif(isset($_POST['group']) && is_numeric($_POST['group']) && isset($_POST['group_old']))
@@ -397,6 +420,7 @@ class products_model {
 		}
 		else
 			$this->db->sitemap_update($id, 'link', $_SESSION['alias']->alias.'/'.$link);
+
 		$this->db->sitemap_index($id, $data['active']);
 		$this->db->cache_clear($id);
 		$this->db->updateRow($this->table(), $data, $id);

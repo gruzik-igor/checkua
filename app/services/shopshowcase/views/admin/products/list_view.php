@@ -43,78 +43,8 @@
 	            </div>
 	        <?php } ?>
             <div class="panel-body">
-            	<?php if(!empty($products)) { ?>
-	                <div class="table-responsive">
-	                    <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
-	                        <thead>
-	                            <tr>
-	                            	<?php if(!isset($search)) echo "<th></th>"; ?>
-	                                <th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'Id'?></th>
-									<th>Назва</th>
-									<th>Ціна (у.о.)</th>
-									<?php if($_SESSION['option']->useAvailability == 1) { 
-										$this->db->select($this->shop_model->table('_availability').' as a');
-										$name = array('availability' => '#a.id');
-										if($_SESSION['language']) $name['language'] = $_SESSION['language'];
-										$this->db->join($this->shop_model->table('_availability_name'), 'name', $name);
-										$availability = $this->db->get();
-										?>
-										<th>Наявність</th>
-									<?php } if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) { ?>
-										<th>Групи</th>
-									<?php } ?>
-									<th>Автор</th>
-									<th>Редаговано</th>
-									<th>Стан</th>
-	                            </tr>
-	                        </thead>
-	                        <tbody>
-	                        	<?php foreach($products as $a) { ?>
-									<tr id="<?=($_SESSION['option']->ProductMultiGroup) ? $a->position_id : $a->id?>">
-										<?php if(!isset($search)) { ?>
-											<td class="move sortablehandle"><i class="fa fa-sort"></i></td>
-										<?php } ?>
-										<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
-										<td>
-											<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
-											<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
-										</td>
-										<td><?=$a->price?></td>
-										<?php if($_SESSION['option']->useAvailability == 1) { ?>
-											<td>
-												<select onchange="changeAvailability(this, <?=$a->id?>)" class="form-control">
-													<?php if(!empty($availability)) foreach ($availability as $c) {
-														echo('<option value="'.$c->id.'"');
-														if($c->id == $a->availability) echo(' selected');
-														echo('>'.$c->name.'</option>');
-													} ?>
-												</select>
-											</td>
-										<?php }
-										if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
-											echo("<td>");
-											if(!empty($a->group) && is_array($a->group)) {
-                                                foreach ($a->group as $group) {
-                                                    echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
-                                                }
-                                            } else {
-                                                echo("Не визначено");
-                                            }
-                                            echo("</td>");
-                                        	}
-                                        ?>
-										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
-										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
-									</tr>
-								<?php } ?>
-	                        </tbody>
-	                    </table>
-	                </div>
-	                <div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong></div>
-	                <?php
-	                $this->load->library('paginator');
-	                echo $this->paginator->get();
+            	<?php if(!empty($products)) { 
+            		require_once '__products-list.php';
                 } elseif(!isset($search)) { ?>
 					<div class="note note-info">
                         <h4>Увага! За даним пошуковим запитом <?=$_SESSION['admin_options']['word:products']?> відсутні. Уточніть запит</h4>

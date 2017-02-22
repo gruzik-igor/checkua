@@ -36,25 +36,37 @@
 			echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
 			if($_SESSION['option']->ProductMultiGroup && !empty($list))
 			{
+				$_SESSION['option']->productOrder = trim($_SESSION['option']->productOrder);
 				function showList($product_group, $all, $list, $parent = 0, $level = 0, $parents = array())
 				{
 					$ml = 15 * $level;
 					foreach ($list as $g) if($g->parent == $parent) {
 						$class = '';
-						if($g->parent > 0 && !empty($parents)){
+						if($g->parent > 0 && !empty($parents))
+						{
 							$class = 'class="';
 							foreach ($parents as $p) {
 								$class .= ' parent-'.$p;
 							}
 							$class .= '"';
 						}
-						if(empty($g->child)){
+						if(empty($g->child))
+						{
 							$checked = '';
-							if(in_array($g->id, $product_group)) $checked = 'checked';
+							if(in_array($g->id, $product_group))
+								$checked = 'checked';
 							echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
-							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
+							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label> ');
+
+							$order = explode(' ', $_SESSION['option']->productOrder);
+							if(in_array($g->id, $product_group) && $order[0] == 'position' && isset($g->product_position))
+							{
+								echo 'Позиція в групі: <input type="number" name="position-group-'.$g->id.'" title="Обережно при зміні" value="'.$g->product_position.'" min="1" max="'.$g->product_position_max.'" required> (Режим: <i>'.$_SESSION['option']->productOrder.'</i>)';
+							}
 							echo ('<br>');
-						} else {
+						}
+						else
+						{
 							echo ('<input type="checkbox" id="group-'.$g->id.'" '.$class.' onChange="setChilds('.$g->id.')">');
 							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
 							$l = $level + 1;
@@ -78,7 +90,6 @@
 			else
 			{
 				echo('<input type="hidden" name="group_old" value="'.$product->group.'">');
-				echo('<input type="hidden" name="position_old" value="'.$product->position.'">');
 				echo('<select name="group" class="form-control">');
 				echo ('<option value="0">Немає</option>');
 				if(!empty($list))
@@ -137,7 +148,19 @@
 				
 			}
 			array_unshift($options_parents, 0);
-		} ?>
+		}
+		if($_SESSION['option']->ProductMultiGroup == 0) { ?>
+			<tr>
+				<th>Позиція в групі</th>
+				<td>
+					<input type="hidden" name="position_old" value="<?=$product->position?>">
+					<div class="input-group">
+						<input type="number" name="position" title="Обережно при зміні" value="<?=$product->position?>" min="1" required class="form-control"> 
+						<span class="input-group-addon">Режим: <i><?=$_SESSION['option']->productOrder?></i></span>
+					</div>
+				</td>
+			</tr>
+		<?php } ?>
 		<tr>
 			<th style="width:25%">Власна адреса посилання</th>
 			<td>

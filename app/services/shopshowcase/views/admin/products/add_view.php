@@ -74,6 +74,7 @@ require APP_PATH.'views/admin/notify_view.php';
 												if(empty($g->child)){
 													$checked = '';
 													if(isset($_GET['group']) && $_GET['group'] == $g->id) $checked = 'checked';
+													if(isset($_SESSION['_POST']['group']) && in_array($g->id, $_SESSION['_POST']['group'])) $checked = 'checked';
 													echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
 													echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
 													echo ('<br>');

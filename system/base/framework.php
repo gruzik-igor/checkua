@@ -30,27 +30,30 @@ if($_SERVER["SERVER_NAME"] == 'localhost')
 			{
 				$_SESSION['language'] = $REQUEST_URI[2];
 				define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/'.$REQUEST_URI[2].'/');
+				define('SITE_URL_MAIN', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/'.$REQUEST_URI[2]);
 				$request = explode('/', $request);
 				if($request[0] == $REQUEST_URI[2])
-				{
 					array_shift($request);
-				}
 				$request = implode('/', $request);
 			}
 			else
 			{
 				$_SESSION['language'] = $_SESSION['all_languages'][0];
 				define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+				define('SITE_URL_MAIN', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1]);
 			}
 			
+			if($request != '')
+				$request = '/'.$request;
 			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/'.$_SESSION['all_languages'][$i].'/'.$request);
+				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/'.$_SESSION['all_languages'][$i].$request);
 			}
-			define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/'.$request);
+			define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].$request);
 		}
 		else
 		{
 			define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+			define('SITE_URL_MAIN', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
 			$_SESSION['language'] = false;
 		}
 	}
@@ -68,11 +71,10 @@ else
 			{
 				$_SESSION['language'] = $REQUEST_URI[1];
 				define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+				define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1]);
 				$request = explode('/', $request);
 				if($request[0] == $REQUEST_URI[1])
-				{
 					array_shift($request);
-				}
 				$request = implode('/', $request);
 			}
 			elseif(!$useWWW && $uri[0] == 'www')
@@ -98,13 +100,13 @@ else
 			{
 				$_SESSION['language'] = $_SESSION['all_languages'][0];
 				define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+				define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/');
 			}
 
+			if($request != '')
+				$request = '/'.$request;
 			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-				if($https)
-					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'https://'.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].'/'.$request);
-				else
-					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), 'http://'.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].'/'.$request);
+				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].$request);
 			}
 
 			define('SITE_NAME', $_SERVER["SERVER_NAME"]);
@@ -119,6 +121,7 @@ else
 				{
 					$_SESSION['language'] = $uri[0];
 					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/');
 					array_shift($uri);
 					$uri = implode(".", $uri);
 					define('SERVER_URL', $protocol.$uri.'/');
@@ -152,19 +155,15 @@ else
 				{
 					$_SESSION['language'] = $_SESSION['all_languages'][0];
 					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/');
 					define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 					define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 				}
 				else
-				{
-					header('HTTP/1.0 404 Not Found');
-					exit(file_get_contents('404.html'));
-				}
+					$request = 'wlLoadPage404';
 			}
 			else
-			{
 				exit("Невірне налаштування мультимовності 'multilanguage_type' у index.php");
-			}
 		}
 
 		define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.'/'.$request);
@@ -191,6 +190,8 @@ if(isset($_GET['request']))
 
 define('IMG_PATH', SERVER_URL.$images_folder.'/');
 $request = ($request == '') ? 'main' : $request;
+if($request[0] == '/')
+	$request = substr($request, 1);
 start_route($request);
 
 function start_route($request)
@@ -200,7 +201,6 @@ function start_route($request)
 	require 'controller.php';
 	require 'router.php';
 	
-	$request = ($request == '') ? 'main' : $request;
 	$route = new Router($request);
 }
 

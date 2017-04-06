@@ -33,7 +33,9 @@ class Router extends Loader {
 		$path = APP_PATH.'controllers'.DIRSEP;
 		$admin = false;
 
-		if($parts[0] == 'admin')
+		if($this->request == 'wlLoadPage404')
+			new Page404();
+		elseif($parts[0] == 'admin')
 		{
 			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
 			{

@@ -29,7 +29,7 @@ class wl_search_model {
 		return $this->db->get('array');
 	}
 
-	public function getImage($alias, $content, $folder = '')
+	public function getImage($alias, $content, $folder = '', $prefix = 'admin_')
 	{
 		$where = array();
 		$where['alias'] = $alias;
@@ -38,7 +38,7 @@ class wl_search_model {
 		$this->db->order('position ASC');
 		$this->db->limit(1);
 		if($image = $this->db->get())
-			return $folder.'/'.$content.'/admin_'.$image->file_name;
+			return $folder.'/'.$content.'/'.$prefix.$image->file_name;
 		return false;
 	}
 

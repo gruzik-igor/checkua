@@ -33,12 +33,12 @@ class Search extends Controller {
 							if($current >= $start && $current < ($start + $_SESSION['option']->paginator_per_page))
 							{
 								if(isset($result->folder) && $result->folder)
-									$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder);
+									$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder, 'm_');
 								array_push($data, $result);
 							}
 						} else {
 							if($result->folder)
-								$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder);
+								$result->image = $this->wl_search_model->getImage($search->alias_id, $search->content, $result->folder, 'm_');
 							array_push($data, $result);
 						}
 					}
@@ -48,6 +48,12 @@ class Search extends Controller {
 			@$_SESSION['notify']->errors = $this->validator->getErrors();
 		}
 		@$_SESSION['option']->paginator_total = $current;
+
+		if(count($data) == 1)
+			header("Location:".SITE_URL.$data[0]->link);
+
+		$_SESSION['alias']->breadcrumbs = '';
+
 		$this->load->page_view('search_view', array('data' => $data));
 	}
 

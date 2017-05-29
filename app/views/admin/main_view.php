@@ -12,7 +12,7 @@
             </div>
 
             <?php
-            $PHOTO_FILE_NAME = $_SESSION['alias']->name;
+            $PHOTO_FILE_NAME = $_SESSION['alias']->alias;
             require '__edit_page.php'; ?>
         </div>
     </div>

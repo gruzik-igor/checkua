@@ -7,9 +7,10 @@
             $url = $this->data->url();
             array_shift($url);
             $url = implode('/', $url);
+            if(isset($_SESSION['admin_options']['word:article_to'])) {
           ?>
-          <a href="<?=SITE_URL.$url?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:article_to']?></a>
-          <?php
+            <a href="<?=SITE_URL.$url?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:article_to']?></a>
+          <?php }
             $url = $this->data->url();
             array_shift($url);
             array_pop ($url);

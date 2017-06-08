@@ -31,6 +31,18 @@ class static_pages extends Controller {
         $this->load->smodel('static_pages_search_model');
         return $this->static_pages_search_model->getByContent($content);
     }
+
+    public function __get_Text($include_list = false)
+    {
+        $this->wl_alias_model->setContent();
+        $this->load->library('video');
+        $this->video->makeVideosInText();
+
+        if($include_list)
+            return array('list' => $_SESSION['alias']->list, 'text' => $_SESSION['alias']->text);
+        else
+            return $_SESSION['alias']->text;
+    }
 	
 }
 

@@ -8,6 +8,16 @@
 			else
 				$count_colums = 3;
 			foreach ($aliases as $alias) {
+				$go = false;
+				foreach ($words as $word) {
+					if($word->alias == $alias->id)
+					{
+						$go = true;
+						break;
+					}
+				}
+				if(!$go)
+					continue;
 		?>
 			<div class="panel panel-inverse">
 	            <div class="panel-heading">

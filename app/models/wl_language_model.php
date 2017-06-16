@@ -24,6 +24,7 @@ class wl_language_model
 
 	public function add($word, $alias = -1)
 	{
+		$this->words[$word] = $word;
 		$data['word'] = $word;
 		$data['alias'] = $_SESSION['alias']->id;
 		$data['type'] = 1;

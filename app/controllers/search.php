@@ -4,6 +4,7 @@ class Search extends Controller {
 
 	public function index()
 	{
+		$this->wl_alias_model->setContent();
 		$data = array();
 		$current = 0;
 		$this->load->library('validator');

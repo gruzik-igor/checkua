@@ -10,6 +10,7 @@
                 	<?php if($tableExist) { ?>
                 		<a href="<?= SITE_URL.'admin/wl_forms/info/'.$form->name?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> Дивитися дані форми</a>
                 	<?php } ?>
+                	<a href="javascript:;" class="btn btn-danger btn-xs" onclick="deleteForm(<?= $tableExist ? true : false ?>)"><i class="fa fa-trash-o"></i> Видалити форму</a>
                 </div>
                 <h4 class="panel-title">Наявні поля:</h4>
             </div>
@@ -269,11 +270,13 @@
 </div>
 
 <script>
-	function toggle(el) {
+	function toggle(el) 
+	{
 		el.style.display = (el.style.display == 'none') ? '' : 'none'
 	}
 
-	function show (el, name) {
+	function show (el, name) 
+	{
 		if($(el).is(":checked")){
 			$('#'+name).show();
 			$("input[name="+name+"]").removeAttr("disabled");
@@ -283,7 +286,8 @@
 		}
 	}
 
-	function doAfter () {
+	function doAfter () 
+	{
 		$("#doAfterValue, #notifyText").hide().attr("disabled", "disabled");
 
 		if($("#after").val() == 2){
@@ -295,7 +299,8 @@
 
 	}
 
-	function changeInputType (t) {
+	function changeInputType (t) 
+	{
 		if(t.value == 8 || t.value == 9 || t.value == 10){
 			$("#hiddenValue").show();
 			$("div #hiddenValue input[type='text']").removeAttr("disabled");
@@ -312,7 +317,8 @@
 	}
 
 	<?php if($names) { ?>
-	function checkName () {
+	function checkName () 
+	{
 		var name = $("#name").val();
 		var names = ["<?= $names?>"]
 		for(var n in names){
@@ -326,5 +332,32 @@
 		}
 	}
 	<?php } ?>
+
+	function deleteForm(tableExist) 
+	{
+		var go = deleteTable = false;
+
+		if(confirm('Видалити форму?'))
+			go = true;
+
+		if(go && tableExist && confirm('Видалити таблицю і дані з бази даних?'))
+			deleteTable = true;
+
+		if(go)
+		{
+			$.ajax({
+				url : '<?= SITE_URL?>admin/wl_forms/deleteForm',
+				method : 'POST',
+				data : {
+					form : <?= $form->id?>,
+					deleteTable : deleteTable,
+					tableName : '<?= $form->table?>'
+				},
+				success : function (res) {
+					window.location.href = '<?= SITE_URL?>admin/wl_forms';
+				}
+			})
+		}
+	}
 
 </script>

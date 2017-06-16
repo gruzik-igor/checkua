@@ -3,6 +3,7 @@
         <div class="panel-heading">
         	<div class="panel-heading-btn">
                 <a href="<?=SITE_URL.'admin/wl_forms/'.$form->name?>" class="btn btn-info btn-xs">До форми</a>
+                <a href="javascript:;" class="btn btn-danger btn-xs" onclick="deleteField()"><i class="fa fa-trash-o"></i> Видалити поле</a>
             </div>
             <h4 class="panel-title">Редагувати поле:</h4>
         </div>
@@ -104,6 +105,24 @@
 		else{
 			$("#hiddenValue").hide();
 			$("div").filter(":hidden").children("input[type='text']").attr("disabled", "disabled");
+		}
+	}
+
+	function deleteField() 
+	{
+		if(confirm('Видалити поле?')){
+			$.ajax({
+				url : '<?= SITE_URL?>admin/wl_forms/deleteField',
+				method : 'POST',
+				data : {
+					field : <?= $field_name->id?>,
+					fieldName : '<?= $field_name->name?>',
+					tableName : '<?= $form->table?>'
+				},
+				success : function (res) {
+					window.location.href = '<?= SITE_URL?>admin/wl_forms/<?= $form->name?>';
+				}
+			})
 		}
 	}
 

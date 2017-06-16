@@ -311,6 +311,32 @@ class wl_forms extends Controller {
             $this->redirect();
         }
     }
+
+    public function deleteForm()
+    {
+        $form = $this->data->post('form');
+        $deleteTable = $this->data->post('deleteTable');
+        $tableName = $this->data->post('tableName');
+
+        $this->db->deleteRow('wl_forms', $form);
+        $this->db->deleteRow('wl_fields', $form, 'form');
+
+        if($deleteTable){
+            $this->db->executeQuery("DROP TABLE {$tableName}");
+        }
+    }
+
+    public function deleteField()
+    {
+        $field = $this->data->post('field');
+        $fieldName = $this->data->post('fieldName');
+        $tableName = $this->data->post('tableName');
+
+        $this->db->deleteRow('wl_fields', $field);
+
+        if($this->db->getQuery("SHOW TABLES LIKE '{$tableName}'"))
+            $this->db->executeQuery("ALTER TABLE `{$tableName}` DROP `{$fieldName}`");
+    }
 }
 
 ?>

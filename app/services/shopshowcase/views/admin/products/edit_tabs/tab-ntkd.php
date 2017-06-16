@@ -1,7 +1,10 @@
 <?php if($_SESSION['language'] && $lang) { ?>
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
-	    <?php if($_SESSION['option']->ProductUseArticle) { $ntkd[$lang]->name = substr($ntkd[$lang]->name, 0, (strlen($product->article) + 1) * -1); ?>
+	    <?php if($_SESSION['option']->ProductUseArticle) {
+	    	$ntkd[$lang]->name = substr($ntkd[$lang]->name, 0, (strlen($product->article) + 1) * -1);
+	    	$pageNames[$lang] = $ntkd[$lang]->name;
+	    ?>
 	    <input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="saveNameWithArticle(this, '<?=$lang?>')">
 	    <?php } else { ?>
 	    	<input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="save('name', this, '<?=$lang?>')">

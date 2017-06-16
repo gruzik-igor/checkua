@@ -42,7 +42,13 @@ class Data {
 			foreach ($_POST as $key => $value) {
 				if(is_array($value))
 					foreach ($value as $key2 => $value2) {
-						$_SESSION['_POST'][$key][$key2] = $this->xss_clean($value2);
+						if(is_array($value2)){
+							foreach ($value2 as $key3 => $value3) {
+								$_SESSION['_POST'][$key][$key2][$key3] = $this->xss_clean($value3);
+							}
+						}
+						else
+							$_SESSION['_POST'][$key][$key2] = $this->xss_clean($value2);
 					}
 				else
 					$_SESSION['_POST'][$key] = $this->post($key);

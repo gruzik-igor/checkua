@@ -341,6 +341,15 @@ class install
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_products_similar` (
+			  `id` int(11) NOT NULL AUTO_INCREMENT,
+			  `product` int(11) NOT NULL,
+			  `group` int(11) NOT NULL,
+			  PRIMARY KEY (`id`),
+			  KEY `product` (`product`, `group`)
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;"
+		$this->db->executeQuery($query);
+
 		return true;
 	}
 

@@ -26,6 +26,7 @@ class shop_search_model
 				$search->author = $product->author_edit;
 				$search->author_name = $product->author_name;
 				$search->additional = false;
+				$search->price = $product->price;
 				$search->folder = false;
 				if(isset($_SESSION['option']->folder))
 					$search->folder = $_SESSION['option']->folder;

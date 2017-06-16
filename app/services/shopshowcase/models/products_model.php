@@ -338,6 +338,8 @@ class products_model {
 			$data['availability'] = $_POST['availability'];
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] >= 0)
 			$data['price'] = $_POST['price'];
+		if(isset($_POST['old_price']) && is_numeric($_POST['old_price']) && $_POST['old_price'] >= 0)
+			$data['old_price'] = $_POST['old_price'];
 		if($_SESSION['option']->useGroups)
 		{
 			if($_SESSION['option']->ProductMultiGroup)
@@ -442,6 +444,7 @@ class products_model {
 			$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
+			$this->db->executeQuery("DELETE FROM s_shopshowcase_products_similar WHERE product = '{$product->id}'");
 			
 			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$product->id;
 			$path = substr($path, strlen(SITE_URL));

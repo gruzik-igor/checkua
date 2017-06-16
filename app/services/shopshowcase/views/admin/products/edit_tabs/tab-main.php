@@ -1,6 +1,10 @@
 <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
 	<input type="hidden" name="id" value="<?=$product->id?>">
 	<table class="table table-striped table-bordered">
+		<tr>
+			<th>Id на сайті</th>
+			<td><?=$product->id?></td>
+		</tr>
 		<?php if($_SESSION['option']->ProductUseArticle) { ?>
     		<tr>
 				<th>Артикул</th>

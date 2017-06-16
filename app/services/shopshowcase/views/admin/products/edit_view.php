@@ -139,11 +139,52 @@
   var ADDITIONAL_TABLE = '<?=$ADDITIONAL_TABLE?>';
   var ADDITIONAL_TABLE_ID = <?=$ADDITIONAL_TABLE_ID?>;
   var ADDITIONAL_FIELDS = '<?=$ADDITIONAL_FIELDS?>';
+
   <?php
   $_SESSION['alias']->js_load[] = 'assets/ckeditor/ckeditor.js';
   $_SESSION['alias']->js_load[] = 'assets/ckfinder/ckfinder.js';
   $_SESSION['alias']->js_load[] = 'assets/white-lion/__edit_page.js';
+
+  if($_SESSION['option']->ProductUseArticle) {
   ?>
+    function saveNameWithArticle (e, lang) {
+      $('#saveing').css("display", "block");
+
+      $.ajax({
+          url: "<?=SITE_URL?>admin/wl_ntkd/save",
+          type: 'POST',
+          data: {
+              alias: ALIAS_ID,
+              content: CONTENT_ID,
+              field: 'name',
+              data: e.value + ' <?=$product->article?>',
+              language: lang,
+              additional_table : ADDITIONAL_TABLE,
+              additional_table_id : ADDITIONAL_TABLE_ID,
+              additional_fields : ADDITIONAL_FIELDS,
+              json: true
+          },
+          success: function(res){
+              if(res['result'] == false) {
+                  $.gritter.add({title:"Помилка!",text:res['error']});
+              } else {
+                  language = '';
+                  if(lang) language = lang;
+                  $.gritter.add({title:'Назва '+language,text:"Дані успішно збережено!"});
+              }
+              $('#saveing').css("display", "none");
+          },
+          error: function(){
+              $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
+              $('#saveing').css("display", "none");
+          },
+          timeout: function(){
+              $.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
+              $('#saveing').css("display", "none");
+          }
+      });
+    }
+  <?php } ?>
 
   function saveOption (e, label) {
     $('#saveing').css("display", "block");

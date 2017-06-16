@@ -15,9 +15,9 @@ class install
 	public $admin_ico = 'fa-qrcode';
 	public $version = "2.4";
 
-	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
-	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');
-	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'searchHistory' => 'Зберігати історію пошуку користувачів', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
+	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'useMarkUp' => 0, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
+	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'useMarkUp' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');
+	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'searchHistory' => 'Зберігати історію пошуку користувачів', 'useMarkUp' => 'Використовувати націнку', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',
@@ -124,6 +124,19 @@ class install
 						) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
 			$this->db->executeQuery($query);
 		}
+
+		if($this->options['useMarkUp'] > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_markup` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `from` float NOT NULL DEFAULT '0',
+						  `to` float NOT NULL DEFAULT '0',
+						  `value` float NOT NULL DEFAULT '0',
+						  PRIMARY KEY (`id`)
+						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+			$this->db->executeQuery($query);
+		}
+
 
 		return true;
 	}
@@ -271,6 +284,18 @@ class install
 						) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
 			$this->db->executeQuery($query);
 		}
+
+		if($option == 'useMarkUp' AND $value > 0)
+		{
+			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_markup` (
+						  `id` int(11) NOT NULL AUTO_INCREMENT,
+						  `from` float NOT NULL DEFAULT '0',
+						  `to` float NOT NULL DEFAULT '0',
+						  `value` float NOT NULL DEFAULT '0',
+						  PRIMARY KEY (`id`)
+						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=1 ;";
+			$this->db->executeQuery($query);
+		}
 	}
 
 	public function install_go()
@@ -282,6 +307,7 @@ class install
 					  `alias` text NULL,
 					  `group` int(11) NULL,
 					  `price` float unsigned NULL,
+					  `old_price` float unsigned NULL,
 					  `currency` tinyint(2) NULL,
 					  `availability` tinyint(1) NULL,
 					  `active` tinyint(1) NULL,
@@ -347,7 +373,7 @@ class install
 			  `group` int(11) NOT NULL,
 			  PRIMARY KEY (`id`),
 			  KEY `product` (`product`, `group`)
-			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;"
+			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
 		return true;
@@ -367,6 +393,7 @@ class install
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_availability_name");
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_search_history");
+			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_markup");
 		}
 	}
 	

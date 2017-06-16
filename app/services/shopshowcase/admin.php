@@ -245,7 +245,7 @@ class shopshowcase extends Controller {
 
 	public function markup()
 	{
-		$markups = $this->db->getAllData('markup');
+		$markups = $this->db->getAllData('s_shopshowcase_markup');
 		$this->load->admin_view('products/markup_view', array('markups' => $markups));
 	}
 
@@ -257,7 +257,7 @@ class shopshowcase extends Controller {
 				$data['from'] = $value['from'];
 				$data['to'] = $value['to'];
 				$data['value'] = $value['value'];
-				$this->db->updateRow('markup', $data, $key);
+				$this->db->updateRow('s_shopshowcase_markup', $data, $key);
 			}
 		}
 
@@ -272,7 +272,7 @@ class shopshowcase extends Controller {
 			$data['from'] = $this->data->post('from');
 			$data['to'] = $this->data->post('to');
 			$data['value'] = $this->data->post('value');
-			$this->db->insertRow('markup', $data);
+			$this->db->insertRow('s_shopshowcase_markup', $data);
 
 			$this->redirect('admin/'.$_SESSION['alias']->alias.'/markup');
 		}
@@ -286,7 +286,7 @@ class shopshowcase extends Controller {
 
 		$id = $this->data->post('id');
 
-		if($this->db->deleteRow('markup', $id))
+		if($this->db->deleteRow('s_shopshowcase_markup', $id))
 			$res['result'] = true;
 
 		$this->json($res);

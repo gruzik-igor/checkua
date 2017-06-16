@@ -3,12 +3,12 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-                	<a href="<?=SITE_URL?>admin/shop/markup" class="btn btn-info btn-xs"><i class="fa fa-list-ul"></i> До всіх націнок</a>
+                	<a href="<?=SITE_URL?>admin/<?= $_SESSION['alias']->alias?>/markup" class="btn btn-info btn-xs"><i class="fa fa-list-ul"></i> До всіх націнок</a>
                 </div>
                 <h4 class="panel-title">Націнка:</h4>
             </div>
             <div class="panel-body">
-                <form action="<?= SITE_URL?>admin/shop/markup_add" method="POST" >
+                <form action="<?= SITE_URL?>admin/<?= $_SESSION['alias']->alias?>/markup_add" method="POST" >
                     <div class="col-md-12">
                         <div class="col-md-4">
                             <div class="form-group">
@@ -24,7 +24,7 @@
                         </div>
                         <div class="col-md-4">
                             <div class="form-group">
-                                <label>Націнка</label>
+                                <label>Націнка (коефіціент)</label>
                                 <input type="text" class="form-control" name="value" value="">
                             </div>
                         </div>

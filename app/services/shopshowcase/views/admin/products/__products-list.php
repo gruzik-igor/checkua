@@ -39,7 +39,9 @@ if(isset($_SESSION['option']->productOrder))
 					<?php } ?>
 					<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
 					<td>
+						<?php if(isset($a->admin_photo)) {?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" alt=""></a>
+						<?php } ?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
 						<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
 					</td>

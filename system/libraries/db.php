@@ -286,12 +286,12 @@ class Db {
                             if($value[1] == '=')
                             {
                                 $value = substr($value, 2);
-                                $where .= " >= '{$value}' AND ";
+                                $where .= " >= {$value} AND ";
                             }
                             else
                             {
                                 $value = substr($value, 1);
-                                $where .= " > '{$value}' AND ";
+                                $where .= " > {$value} AND ";
                             }
                         }
                         elseif($value[0] == '<')
@@ -299,12 +299,12 @@ class Db {
                             if($value[1] == '=')
                             {
                                 $value = substr($value, 2);
-                                $where .= " <= '{$value}' AND ";
+                                $where .= " <= {$value} AND ";
                             }
                             else
                             {
                                 $value = substr($value, 1);
-                                $where .= " < '{$value}' AND ";
+                                $where .= " < {$value} AND ";
                             }
                         }
                         else

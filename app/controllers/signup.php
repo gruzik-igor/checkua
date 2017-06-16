@@ -147,42 +147,52 @@ class Signup extends Controller {
 	public function facebook()
 	{
 		$this->load->library('facebook');
-		// Get User ID
-		$user = $this->facebook->getUser();
-		
-		// We may or may not have this data based on whether the user is logged in.
-		//
-		// If we have a $user id here, it means we know the user is logged into
-		// Facebook, but we don't know if the access token is valid. An access
-		// token is invalid if the user logged out of Facebook.
-		
-		if ($user)
+
+		$accessToken = $this->data->post('accessToken');
+		$user_profile = null;
+
+		if ($accessToken)
 		{
+			$this->facebook->setAccessToken($accessToken);
+
 			try {
-				// Proceed knowing you have a logged in user who's authenticated.
 				$user_profile = $this->facebook->api('/me?fields=email,id,name,link');
 			} catch (FacebookApiException $e) {
 				error_log($e);
-				$user = null;
+				$user_profile = null;
 			}
 		}
 
-		// Login or logout url will be needed depending on current user state.
-		if ($user)
+		if ($user_profile)
 		{
-			$this->load->model('wl_user_model');
-			$info['email'] = $user_profile['email'];
-		    $info['name'] = $user_profile['name'];
-		    $info['password'] = 'facebook';
-		    $info['photo'] = '';
-		    $additionall['facebook'] = $user_profile['id'];
-		    $additionall['facebook_link'] = $user_profile['link'];
-			if($user = $this->wl_user_model->add($info, $additionall, $this->new_user_type, false, 'by facebook'))
-			{
-				$this->wl_user_model->setSession($user);
-				header('Location: '.SITE_URL.$user->load);
-				exit;
-			}
+			if(isset($user_profile['email'])){
+				$this->load->model('wl_user_model');
+
+				$res = array('result' => false);
+
+				$info['email'] = $user_profile['email'];
+			    $info['name'] = $_SESSION['facebook_name'] = $user_profile['name'];
+			    $info['password'] = 'facebook';
+			    $info['photo'] = '';
+			    $additionall['facebook'] = $user_profile['id'];
+			    $additionall['facebook_link'] = $user_profile['link'];
+				if($user = $this->wl_user_model->add($info, $additionall, $this->new_user_type, false, 'by facebook'))
+				{
+					$this->wl_user_model->setSession($user);
+
+					if(!isset($_POST['ajax']))
+					{	
+						$this->redirect($user->load);
+						exit;
+					} 
+					else 
+					{
+						$res['result'] = true;
+						$this->load->json($res);
+					}
+				}
+			} 
+
 			$this->redirect('login/facebook');
 		}
 		else

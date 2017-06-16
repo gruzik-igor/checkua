@@ -10,7 +10,7 @@
     <meta content="" name="description" />
     <meta content="" name="author" />
     <link rel="shortcut icon" href="<?=IMG_PATH?>ico.jpg">
-    
+
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
     <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
@@ -21,7 +21,7 @@
     <link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
     <link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
     <!-- ================== END BASE CSS STYLE ================== -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
     <!-- ================== END BASE JS ================== -->
@@ -30,32 +30,15 @@
     <!-- begin #page-loader -->
     <div id="page-loader" class="fade in"><span class="spinner"></span></div>
     <!-- end #page-loader -->
-    
-    <script>
-        function signUp()
-        {
-            FB.getLoginStatus(function(response) {
-                if (response.status === 'connected') {
-                    window.location.replace('<?=SITE_URL?>signup/facebook');
-                }
-                else {
-                    FB.login();
-                }
-            });
-        };
 
+    <script>
         window.fbAsyncInit = function() {
+            <?php $this->load->library('facebook'); ?>
             FB.init({
               appId      : '<?=$this->facebook->getAppId()?>',
               cookie     : true,
               xfbml      : true,
               version    : 'v2.6'
-            });
-
-            FB.Event.subscribe('auth.login', function(response) {
-                if (response.status === 'connected') {
-                  window.location.replace('<?=SITE_URL?>signup/facebook');
-                }
             });
         };
 
@@ -66,8 +49,49 @@
             js.src = "//connect.facebook.net/en_US/sdk.js";
             fjs.parentNode.insertBefore(js, fjs);
         }(document, 'script', 'facebook-jssdk'));
+
+        function facebookSignUp() {
+            FB.login(function(response) {
+                if (response.authResponse) {
+                    $("#divLoading").addClass('show');
+                    var accessToken = response.authResponse.accessToken;
+                    FB.api('/me?fields=email', function(response) {
+                        if (response.email && accessToken) {
+                            $('#authAlert').addClass('collapse');
+                            $.ajax({
+                                url: '<?=SITE_URL?>signup/facebook',
+                                type: 'POST',
+                                data: {
+                                    accessToken: accessToken,
+                                    ajax: true
+                                },
+                                complete: function() {
+                                    $("div#divLoading").removeClass('show');
+                                },
+                                success: function(res) {
+                                    if (res['result'] == true) {
+                                        window.location.href = '<?=SITE_URL?>profile/orders';
+                                    } else {
+                                        $('#authAlert').removeClass('collapse');
+                                        $("#authAlertText").text(res['message']);
+                                    }
+                                }
+                            })
+                        } else {
+                            $("div#divLoading").removeClass('show');
+                            $("#clientError").text('Для авторизації потрібен e-mail');
+                            setTimeout(function(){$("#clientError").text('')}, 5000);
+                            FB.api("/me/permissions", "DELETE");
+                        }
+                    });
+                } else {
+                    $("div#divLoading").removeClass('show');
+                }
+
+            }, { scope: 'email' });
+        }
     </script>
-    
+
     <div class="login-cover">
         <div class="login-cover-image"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" data-id="login-cover-image" alt="" /></div>
         <div class="login-cover-bg"></div>
@@ -80,7 +104,6 @@
             <div class="login-header">
                 <div class="brand">
                     <span class="logo"></span> <?=SITE_NAME?>
-                    <small>Практична стрільба для кожного</small>
                 </div>
                 <div class="icon">
                     <i class="fa fa-sign-in"></i>
@@ -88,20 +111,20 @@
             </div>
             <!-- end brand -->
             <div class="login-content">
-                <h2 style="color:#fff">Профіль стрільця</h2>
+                <h2 style="color:#fff; text-align: center"><?=$this->text('Реєстрація')?></h2>
                 <div class="m-t-20 text-center">
-                    <button type="button" onClick="signUp();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg m-b-20"><i class="fa fa-facebook"></i> Швидка реєстрація facebook</button>
-                    <big>АБО</big>
-                    <a href="<?=SITE_URL?>signup/email" class='btn btn-warning btn-block btn-lg m-t-20'><i class="fa fa-envelope"></i> Реєстрація через email</a>
+                    <button type="button" onclick="facebookSignUp()" class="btn btn-success btn-block btn-lg m-b-20"><i class="fa fa-facebook"></i> <?=$this->text('Швидка реєстрація')?> facebook</button>
+                    <big><?=$this->text('АБО')?></big>
+                    <a href="<?=SITE_URL?>signup/email" class='btn btn-warning btn-block btn-lg m-t-20'><i class="fa fa-envelope"></i> <?=$this->text('Реєстрація через email')?></a>
                 </div>
                 <div class="m-t-20">
-                    Вже зареєстровані? <a href="<?=SITE_URL?>reset">Увійти</a>. <br>
-                    Повернутися на <a href="<?=SITE_URL?>">головну сторінку</a>.
+                    <?=$this->text('Вже зареєстровані')?>? <a href="<?=SITE_URL?>login"><?=$this->text('Увійти')?></a>. <br>
+                    <?=$this->text('Повернутися на')?> <a href="<?=SITE_URL?>"><?=$this->text('головну сторінку')?></a>.
                 </div>
             </div>
         </div>
         <!-- end login -->
-        
+
         <ul class="login-bg-list">
             <li class="active"><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" alt="" /></a></li>
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-2.jpg" alt="" /></a></li>
@@ -111,7 +134,7 @@
         </ul>
     </div>
     <!-- end page container -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
@@ -125,7 +148,7 @@
     <script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
     <!-- ================== END BASE JS ================== -->
-    
+
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src="<?=SITE_URL?>assets/color-admin/login-v2.min.js"></script>
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>

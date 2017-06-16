@@ -9,7 +9,7 @@
 	<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
 	<meta content="" name="description" />
 	<meta content="" name="author" />
-	
+
 	<!-- ================== BEGIN BASE CSS STYLE ================== -->
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,700,300,600,400&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
 	<link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
@@ -20,7 +20,7 @@
 	<link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
 	<link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
 	<!-- ================== END BASE CSS STYLE ================== -->
-	
+
 	<!-- ================== BEGIN BASE JS ================== -->
 	<script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
 	<!-- ================== END BASE JS ================== -->
@@ -29,7 +29,7 @@
 	<!-- begin #page-loader -->
 	<div id="page-loader" class="fade in"><span class="spinner"></span></div>
 	<!-- end #page-loader -->
-	
+
 	<!-- begin #page-container -->
 	<div id="page-container" class="fade">
 	    <!-- begin login -->
@@ -50,8 +50,8 @@
                 <!-- begin login-header -->
                 <div class="login-header">
                     <div class="brand">
-                        <span class="logo"></span> Відновлення паролю
-                        <small> Панель керування сайтом </small>
+                        <span class="logo"></span> <?=$this->text('Відновлення паролю')?>
+                        <small> <?=$this->text('Панель керування сайтом')?> </small>
                     </div>
                     <div class="icon">
                         <i class="fa fa-sign-in"></i>
@@ -70,8 +70,8 @@
 					<?php endif; ?>
 
 					<div class="alert alert-success fade in m-b-15">
-						<strong>Інформація!</strong>
-						Ключ відновлення вірний! Введіть новий пароль:
+						<strong><?=$this->text('Інформація')?>!</strong>
+						<?=$this->text('Ключ відновлення вірний! Введіть новий пароль:')?>
 						<span class="close" data-dismiss="alert">&times;</span>
 					</div>
 
@@ -79,9 +79,9 @@
                     	<input type="hidden" name="id" value="<?=$user->id?>">
                     	<input type="hidden" name="secret_key" value="<?=$user->reset_key?>">
                     	<div class="form-group m-b-15">ID: <?=$user->id?></div>
-                    	<div class="form-group m-b-15">Ім'я: <b><?=$user->name?></b></div>
-                    	<div class="form-group m-b-15">Поштова скринька: <b><?=$user->email?></b></div>
-                    	<div class="form-group m-b-15">Код діє до: <b><?=date("Y.n.d H:i:s", $user->reset_expires)?></b></div>
+                    	<div class="form-group m-b-15"><?=$this->text('Ім\'я')?>: <b><?=$user->name?></b></div>
+                    	<div class="form-group m-b-15"><?=$this->text('Поштова скринька')?>: <b><?=$user->email?></b></div>
+                    	<div class="form-group m-b-15"><?=$this->text('Код діє до')?>: <b><?=date("Y.n.d H:i:s", $user->reset_expires)?></b></div>
                         <div class="form-group m-b-15">
                             <input type="password" name="password" class="form-control input-lg" placeholder="Новий пароль" required />
                         </div>
@@ -89,10 +89,10 @@
                             <input type="password" name="re-password" class="form-control input-lg" placeholder="Повтор паролю" required />
                         </div>
                         <div class="m-t-10 m-b-20">
-                            Ваш унікальний пароль, який використовується для входу на сайт. Повинно містити літери від а-я, a-z та числа. Довжина поля від 5 до 20 символів.
+                            <?=$this->text('Ваш унікальний пароль, який використовується для входу на сайт. Повинно містити літери від а-я, a-z та числа. Довжина поля від 5 до 20 символів')?>.
                         </div>
                         <div class="login-buttons">
-                            <button type="submit" class="btn btn-success btn-block btn-lg">Встановити новий пароль</button>
+                            <button type="submit" class="btn btn-success btn-block btn-lg"><?=$this->text('Встановити новий пароль')?></button>
                         </div>
                         <hr />
                         <p class="text-center text-inverse">
@@ -110,7 +110,7 @@
         <!-- end login -->
 	</div>
 	<!-- end page container -->
-	
+
 	<!-- ================== BEGIN BASE JS ================== -->
 	<script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
 	<script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
@@ -124,7 +124,7 @@
 	<script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
 	<script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
 	<!-- ================== END BASE JS ================== -->
-	
+
 	<!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
 	<!-- ================== END PAGE LEVEL JS ================== -->

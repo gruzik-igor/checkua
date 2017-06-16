@@ -97,6 +97,7 @@ class wl_user_model {
 	    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
     		$data['registered'] = $user->registered = time();
             $data['last_login'] = $user->last_login = 0;
+
 	    	if($this->db->insertRow('wl_users', $data))
 	    	{
 	    		$user->id = $this->db->getLastInsertedId();
@@ -105,6 +106,11 @@ class wl_user_model {
                 {
                     $password = $this->getPassword($user->id, $user->email, $info['password']);
                     $this->db->updateRow('wl_users', array('password' => $password), $user->id);
+                }
+
+                if($comment == 'by facebook' && $additionall['facebook'])
+                {
+                     $this->uploadFacebookPhoto($additionall['facebook'], $user->id);
                 }
 
 	    		$this->db->register('signup', $comment, $user->id);
@@ -205,9 +211,13 @@ class wl_user_model {
 		{
             $where = array('field' => $key, 'value' => $password);
 			$this->db->select('wl_user_info as ui', 'value as password', $where);
-			$this->db->join('wl_users', 'id, email, name, type, status', '#ui.user');
+			$this->db->join('wl_users', '*', '#ui.user');
 			$user = $this->db->get('single');
+
+            if($user)
+                $password = $this->getPassword($user->id, $user->email, $this->data->post('password'), $sequred);
 		}
+        
 		if($user && $password != '')
 		{
             $status = $this->db->getAllDataById('wl_user_status', $user->status);
@@ -333,6 +343,19 @@ class wl_user_model {
 
         return true;
 	}
+
+    public function uploadFacebookPhoto($facebookId, $userId)
+    {
+        $facebookPhoto = 'https://graph.facebook.com/'.$facebookId.'/picture?width=9999';
+
+        $path = IMG_PATH.'profile/';
+        if(strlen($path) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
+        $photoName = $userId.'.jpg';
+
+        file_put_contents($path.$photoName, file_get_contents($facebookPhoto));
+
+        $this->db->updateRow('wl_users', array('photo' => $photoName), $userId); 
+    }
 	
 }
 

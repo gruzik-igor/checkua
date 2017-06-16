@@ -9,7 +9,7 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <meta content="" name="description" />
     <meta content="" name="author" />
-    
+
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
     <link href='http://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,700,300,600,400&subset=latin,cyrillic' rel='stylesheet' type='text/css'>
     <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
@@ -20,7 +20,7 @@
     <link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
     <link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
     <!-- ================== END BASE CSS STYLE ================== -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
     <!-- ================== END BASE JS ================== -->
@@ -29,7 +29,7 @@
     <!-- begin #page-loader -->
     <div id="page-loader" class="fade in"><span class="spinner"></span></div>
     <!-- end #page-loader -->
-    
+
     <!-- begin #page-container -->
     <div id="page-container" class="fade">
         <!-- begin login -->
@@ -50,8 +50,8 @@
                 <!-- begin login-header -->
                 <div class="login-header">
                     <div class="brand">
-                        <span class="logo"></span> Відновлення паролю
-                        <small> Відновити доступ до кабінету користувача. </small>
+                        <span class="logo"></span> <?=$this->text('Відновлення паролю')?>
+                        <small> <?=$this->text('Відновити доступ до кабінету користувача')?>. </small>
                     </div>
                     <div class="icon">
                         <i class="fa fa-sign-in"></i>
@@ -75,22 +75,22 @@
                             <p><?=$_SESSION['notify']->success?></p>
                         </div>
                     <?php endif; unset($_SESSION['notify']); ?>
-                    
+
                     <form action="<?=SITE_URL?>reset/process" method="POST" class="margin-bottom-0">
                         <div class="form-group m-b-15">
                             <input type="email" name="email" class="form-control input-lg" placeholder="Email Address" value="<?=$this->data->re_post('email')?>" required />
                         </div>
                         <div class="form-group m-b-15">
-                            <?php 
+                            <?php
                                 $this->load->library('recaptcha');
                                 $this->recaptcha->form();
                             ?>
                         </div>
                         <div class="login-buttons">
-                            <button type="submit" class="btn btn-success btn-block btn-lg">Продовжити відновлення</button>
+                            <button type="submit" class="btn btn-success btn-block btn-lg"><?=$this->text('Продовжити відновлення')?></button>
                         </div>
                         <div class="m-t-20 m-b-40 p-b-40">
-                            Якщо пам'ятаєте Ваш пароль перейдіть на сторінку <a href="<?=SITE_URL?>login" class="text-success">увійти в систему</a>.
+                            <?=$this->text('Якщо пам\'ятаєте Ваш пароль перейдіть на сторінку')?> <a href="<?=SITE_URL?>login" class="text-success"><?=$this->text('увійти в систему')?></a>.
                         </div>
                         <hr />
                         <p class="text-center text-inverse">
@@ -108,7 +108,7 @@
         <!-- end login -->
     </div>
     <!-- end page container -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
@@ -122,7 +122,7 @@
     <script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
     <!-- ================== END BASE JS ================== -->
-    
+
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src='https://www.google.com/recaptcha/api.js?hl=uk'></script>
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>

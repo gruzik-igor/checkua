@@ -1,9 +1,9 @@
-<h2 class="heading-md">Загальні дані мого аккаунту</h2>
+<h2 class="heading-md"><?=$this->text('Загальні дані мого аккаунту')?></h2>
 <br>
 <form action="<?= SITE_URL?>profile/saveUserInfo" method="POST" class="sky-form">
     <dl class="dl-horizontal">
         <dt>
-            <strong>Моє ім'я</strong>
+            <strong><?=$this->text('Моє ім\'я')?></strong>
         </dt>
         <dd>
             <span id="name"><?=$_SESSION['user']->name?></span>
@@ -16,7 +16,7 @@
         <hr>
 
         <dt>
-            <strong>Мій email </strong>
+            <strong><?=$this->text('Мій')?> email </strong>
         </dt>
         <dd>
             <?=$_SESSION['user']->email?>
@@ -30,13 +30,13 @@
             <?php if ($_SESSION['user']->admin == 1){ ?>
                 Адміністратор
             <?php }else{ ?>
-                Користувач
+                <?=$this->text('Користувач')?>
             <?php } ?>
         </dd>
         <hr>
 
         <dt>
-            <strong>Останній вхід </strong>
+            <strong><?=$this->text('Останній вхід')?> </strong>
         </dt>
         <dd>
             <?= date("d.m.Y H:i", $user->last_login); ?>
@@ -44,7 +44,7 @@
         <hr>
 
         <dt>
-            <strong>Дата реєстрації</strong>
+            <strong><?=$this->text('Дата реєстрації')?></strong>
         </dt>
         <dd>
             <?= date("d.m.Y H:i", $user->registered); ?>
@@ -65,6 +65,6 @@
             </dd>
             <hr>
         <?php } }?>
-        <button class="btn-u hidden" type="submit" id="saveInfo" >Зберегти зміни</button>
+        <button class="btn-u hidden" type="submit" id="saveInfo"><?=$this->text('Зберегти зміни')?></button>
     </dl>
 </form>

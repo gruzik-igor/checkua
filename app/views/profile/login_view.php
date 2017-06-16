@@ -9,8 +9,8 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <meta content="" name="description" />
     <meta content="" name="author" />
-    <link rel="shortcut icon" href="<?=IMG_PATH?>ico.jpg">
-    
+    <link rel="shortcut icon" href="<?=IMG_PATH?>favicon.ico">
+
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
     <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
@@ -21,7 +21,7 @@
     <link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
     <link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
     <!-- ================== END BASE CSS STYLE ================== -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
     <!-- ================== END BASE JS ================== -->
@@ -33,35 +33,14 @@
 
     <?php if($_SESSION['option']->facebook_initialise) { ?>
         <script>
-            // This is called with the results from from FB.getLoginStatus().
-            function statusChangeCallback(response) {
-                // The response object is returned with a status field that lets the
-                // app know the current login status of the person.
-                // Full docs on the response object can be found in the documentation
-                // for FB.getLoginStatus().
-                if (response.status === 'connected') {
-                  // Logged into your app and Facebook.
-                  window.location.replace('<?=SITE_URL?>login/facebook');
-                }
-            }
-
             window.fbAsyncInit = function() {
+                <?php $this->load->library('facebook'); ?>
                 FB.init({
                   appId      : '<?=$this->facebook->getAppId()?>',
                   cookie     : true,
                   xfbml      : true,
                   version    : 'v2.6'
                 });
-
-                FB.Event.subscribe('auth.login', function(response) {
-                    statusChangeCallback(response);
-                });
-
-                <?php if(!isset($_SESSION['facebook'])) { ?>
-                FB.getLoginStatus(function(response) {
-                    statusChangeCallback(response);
-                });
-                <?php } ?>
             };
 
             (function(d, s, id){
@@ -71,9 +50,50 @@
                 js.src = "//connect.facebook.net/en_US/sdk.js";
                 fjs.parentNode.insertBefore(js, fjs);
             }(document, 'script', 'facebook-jssdk'));
+
+            function facebookSignUp() {
+                FB.login(function(response) {
+                    if (response.authResponse) {
+                        $("#divLoading").addClass('show');
+                        var accessToken = response.authResponse.accessToken;
+                        FB.api('/me?fields=email', function(response) {
+                            if (response.email && accessToken) {
+                                $('#authAlert').addClass('collapse');
+                                $.ajax({
+                                    url: '<?=SITE_URL?>signup/facebook',
+                                    type: 'POST',
+                                    data: {
+                                        accessToken: accessToken,
+                                        ajax: true
+                                    },
+                                    complete: function() {
+                                        $("div#divLoading").removeClass('show');
+                                    },
+                                    success: function(res) {
+                                        if (res['result'] == true) {
+                                            window.location.href = '<?=SITE_URL?>profile/orders';
+                                        } else {
+                                            $('#authAlert').removeClass('collapse');
+                                            $("#authAlertText").text(res['message']);
+                                        }
+                                    }
+                                })
+                            } else {
+                                $("div#divLoading").removeClass('show');
+                                $("#clientError").text('Для авторизації потрібен e-mail');
+                                setTimeout(function(){$("#clientError").text('')}, 5000);
+                                FB.api("/me/permissions", "DELETE");
+                            }
+                        });
+                    } else {
+                        $("div#divLoading").removeClass('show');
+                    }
+
+                }, { scope: 'email' });
+            }
         </script>
     <?php } ?>
-    
+
     <div class="login-cover">
         <div class="login-cover-image"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" data-id="login-cover-image" alt="" /></div>
         <div class="login-cover-bg"></div>
@@ -109,43 +129,45 @@
                     </div>
                 <?php endif; unset($_SESSION['notify']); ?>
 
+                <div class="col-md-12 text-center" id="clientError"></div>
                 <form action="<?=SITE_URL?>login/process" method="POST" class="margin-bottom-0">
                     <div class="form-group m-b-20">
-                        <input type="email" name="email" value="<?=$this->data->re_post('email')?>" class="form-control input-lg" placeholder="Ваша Email адреса" required />
+                        <input type="email" name="email" value="<?=$this->data->re_post('email')?>" class="form-control input-lg" placeholder="Email" required />
                     </div>
                     <div class="form-group m-b-20">
                         <input type="password" name="password" class="form-control input-lg" placeholder="Пароль" required />
                     </div>
                     <div class="login-buttons">
-                        <button type="submit" class="btn btn-success btn-block btn-lg">Увійти</button>
+                        <button type="submit" class="btn btn-success btn-block btn-lg"><?=$this->text('Увійти')?></button>
                     </div>
                     <?php if($_SESSION['option']->facebook_initialise) { ?>
                         <div class="m-t-20 text-center">
                             <big>АБО</big>
                             <div class="login-buttons m-t-10">
                                 <?php if(!isset($_SESSION['facebook'])) { ?>
-                                    <button type="button" onClick="FB.login();" data-scope="public_profile,email" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> Увійти через facebook</button>
+                                    <button type="button" onclick="facebookSignUp()" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> <?=$this->text('Увійти через ')?>facebook</button>
                                 <?php } elseif($_SESSION['facebook'] != false) { ?>
-                                    <p>Користувач за email <b><?=$this->data->re_post('email')?></b> вже зареєстрований на сайті</p>
+                                    <p>Користувач за email <b><?=$this->data->re_post('email')?></b> <?=$this->text('вже зареєстрований на сайті')?></p>
                                     <button type="submit" name="facebook" value="<?=$_SESSION['facebook']?>" class="btn btn-warning btn-block btn-lg"><i class="fa fa-facebook"></i> Синхронізувати профілі</button>
                                 <?php } else { ?>
-                                    <a href="<?=SITE_URL?>signup/facebook" class='btn btn-warning btn-block btn-lg'><i class="fa fa-facebook"></i> Швидка реєстрація facebook</a>
+                                    <button type="button" onclick="facebookSignUp()" class='btn btn-warning btn-block btn-lg'><i class="fa fa-facebook"></i> <?=$this->text('Швидка реєстрація')?> facebook</button>
                                 <?php } unset($_SESSION['facebook']); ?>
                             </div>
                         </div>
                     <?php } ?>
                     <div class="m-t-20">
                         <?php if($_SESSION['option']->userSignUp) { ?>
-                            Ще не зареєстровані? <a href="<?=SITE_URL?>signup">Зареєструватися</a>. <br>
+                            <?=$this->text('Ще не зареєстровані')?>? <a href="<?=SITE_URL?>signup"><?=$this->text('Зареєструватися')?></a>. <br>
                         <?php } ?>
-                        Не можете ввійти? <a href="<?=SITE_URL?>reset">Забув пароль</a>. <br>
-                        Повернутися на <a href="<?=SITE_URL?>">головну сторінку</a>.
+                        <?=$this->text('Не можете ввійти')?>? <a href="<?=SITE_URL?>reset"><?=$this->text('Забув пароль')?></a>. <br>
+                        <?=$this->text('Повернутися на')?> <a href="<?=SITE_URL?>"><?=$this->text('головну сторінку')?></a>.
                     </div>
                 </form>
             </div>
+            <div id="divLoading"></div>
         </div>
         <!-- end login -->
-        
+
         <ul class="login-bg-list">
             <li class="active"><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" alt="" /></a></li>
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-2.jpg" alt="" /></a></li>
@@ -155,7 +177,7 @@
         </ul>
     </div>
     <!-- end page container -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
@@ -169,7 +191,7 @@
     <script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
     <!-- ================== END BASE JS ================== -->
-    
+
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src="<?=SITE_URL?>assets/color-admin/login-v2.min.js"></script>
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>

@@ -17,7 +17,7 @@ class Search extends Controller {
 				$per_page = 0;
 				$start = 1;
 				if($this->data->get('page') > 1 && isset($_SESSION['option']->paginator_per_page)) {
-					$start = $this->data->get('page') * $_SESSION['option']->paginator_per_page;
+					$start = ($this->data->get('page') - 1) * $_SESSION['option']->paginator_per_page + 1;
 				}
 
 				foreach ($search_data as $search) {

@@ -10,7 +10,7 @@
     <meta content="" name="description" />
     <meta content="" name="author" />
     <link rel="shortcut icon" href="<?=IMG_PATH?>ico.jpg">
-    
+
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
     <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
     <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
@@ -21,7 +21,7 @@
     <link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
     <link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
     <!-- ================== END BASE CSS STYLE ================== -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
     <!-- ================== END BASE JS ================== -->
@@ -30,7 +30,7 @@
     <!-- begin #page-loader -->
     <div id="page-loader" class="fade in"><span class="spinner"></span></div>
     <!-- end #page-loader -->
-    
+
     <div class="login-cover">
         <div class="login-cover-image"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" data-id="login-cover-image" alt="" /></div>
         <div class="login-cover-bg"></div>
@@ -43,7 +43,6 @@
             <div class="login-header">
                 <div class="brand">
                     <span class="logo"></span> <?=SITE_NAME?>
-                    <small>Практична стрільба для кожного</small>
                 </div>
                 <div class="icon">
                     <i class="fa fa-sign-in"></i>
@@ -68,22 +67,22 @@
 
                 <form action="<?=SITE_URL?>signup/confirmed" method="POST" class="margin-bottom-0">
                     <div class="form-group m-b-20">
-                        <input type="text" name="code" value="<?=$this->data->re_post('code')?>" class="form-control input-lg" placeholder="Код підтвердження профілю" required />
+                        <input type="text" name="code" value="<?=$this->data->re_post('code')?>" class="form-control input-lg" placeholder="<?=$this->text('Код підтвердження профілю')?>" required />
                     </div>
                     <div class="login-buttons">
-                        <button type="submit" class="btn btn-success btn-block btn-lg">Перевірити</button>
+                        <button type="submit" class="btn btn-success btn-block btn-lg"><?=$this->text('Перевірити')?></button>
                     </div>
                     <div class="m-t-20">
-                        Якщо лист із кодом підтвердження не надійшов: <br>
-                        1. зачекайте 5 хв, можливі затримки мережі <br>
-                        2. перевірте папку "Спам", ймовірно фільтри безпеки невірно розпізнали лист <br>
-                        3. <a href="<?=SITE_URL?>login/emailSend">надіслати лист із кодом підтрвердження заново</a>
+                        <?=$this->text('Якщо лист із кодом підтвердження не надійшов')?>: <br>
+                        1. <?=$this->text('зачекайте 5 хв, можливі затримки мережі')?> <br>
+                        2. <?=$this->text('перевірте папку "Спам", ймовірно фільтри безпеки невірно розпізнали лист')?> <br>
+                        3. <a href="<?=SITE_URL?>login/emailSend"><?=$this->text('надіслати лист із кодом підтрвердження заново')?></a>
                     </div>
                 </form>
             </div>
         </div>
         <!-- end login -->
-        
+
         <ul class="login-bg-list">
             <li class="active"><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-1.jpg" alt="" /></a></li>
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-2.jpg" alt="" /></a></li>
@@ -93,7 +92,7 @@
         </ul>
     </div>
     <!-- end page container -->
-    
+
     <!-- ================== BEGIN BASE JS ================== -->
     <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
@@ -107,7 +106,7 @@
     <script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
     <script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
     <!-- ================== END BASE JS ================== -->
-    
+
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
     <script src="<?=SITE_URL?>assets/color-admin/login-v2.min.js"></script>
     <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>

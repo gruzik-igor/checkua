@@ -16,7 +16,7 @@ class groups_model {
 		$this->db->select($this->table() .' as c', '*', $where);
 		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
 		$this->db->order($_SESSION['option']->groupOrder);
-		
+
 		$categories = $this->db->get('array');
 		if($categories)
 		{
@@ -126,7 +126,7 @@ class groups_model {
 	            $link = $this->getLink($list, $parent, $alias);
 	            $this->db->sitemap_add(-$id, $_SESSION['alias']->alias.'/'.$link, 200, 6);
 			}
-			
+
 			if($this->db->updateRow($this->table(), $data, $id))
 				return $id;
 		}
@@ -166,7 +166,7 @@ class groups_model {
 	            $this->db->sitemap_update(-$id, 'link', $_SESSION['alias']->alias.'/'.$link);
 	            $this->db->cache_clear(0);
 			}
-			
+
 			$this->db->cache_clear(-$id);
 			if($this->db->updateRow($this->table(), $data, $id))
 			{
@@ -417,7 +417,7 @@ class groups_model {
 			}
 		return true;
 	}
-	
+
 }
 
 ?>

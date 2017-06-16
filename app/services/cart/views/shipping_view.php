@@ -1,9 +1,9 @@
 <div class="alert alert-danger alert-dismissible " hidden role="alert" id="deliveryError">
-	<strong>Помилка!</strong> Виберіть доставку
+	<strong><?=$this->text('Помилка')?>!</strong> <?=$this->text('Заповніть доставку')?>
 </div>
 <div class="row" id="shipping">
 	<div class="col-md-6 md-margin-bottom-50">
-		<h2 class="title-type">Оберіть службу та вкажіть адресу доставки товару</h2>
+		<h2 class="title-type"><?=$this->text('Оберіть службу та вкажіть адресу доставки товару')?></h2>
 			<?php 
 				$cooperation_where['alias1'] = $_SESSION['alias']->id;
 				$cooperation_where['type'] = 'delivery';

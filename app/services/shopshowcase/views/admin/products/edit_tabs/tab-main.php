@@ -97,7 +97,7 @@
 					function showList($product_group, $all, $list, $parent = 0, $level = 0)
 					{
 						$prefix = '';
-						for ($i=0; $i < $level; $i++) { 
+						for ($i=0; $i < $level; $i++) {
 							$prefix .= '- ';
 						}
 						foreach ($list as $g) if($g->parent == $parent) {
@@ -145,7 +145,7 @@
 						$parent = $list[$parent]->parent;
 					}
 				}
-				
+
 			}
 			array_unshift($options_parents, 0);
 		}
@@ -155,7 +155,7 @@
 				<td>
 					<input type="hidden" name="position_old" value="<?=$product->position?>">
 					<div class="input-group">
-						<input type="number" name="position" title="Обережно при зміні" value="<?=$product->position?>" min="1" required class="form-control"> 
+						<input type="number" name="position" title="Обережно при зміні" value="<?=$product->position?>" min="1" required class="form-control">
 						<span class="input-group-addon">Режим: <i><?=$_SESSION['option']->productOrder?></i></span>
 					</div>
 				</td>
@@ -212,6 +212,15 @@
                 </div>
 			</td>
 		</tr>
+		<tr>
+			<th>Стара ціна (y.o.)</th>
+			<td>
+				<div class="input-group">
+                    <input type="number" name="old_price" value="<?=$product->old_price?>" min="0" step="0.01" class="form-control">
+                    <span class="input-group-addon">y.o.</span>
+                </div>
+			</td>
+		</tr>
 		<?php if(!empty($options_parents)) {
 				$showh3 = true;
 			 $this->load->smodel('options_model');
@@ -224,7 +233,7 @@
 							echo "<tr><td colspan=\"2\"><h3>Властивості {$_SESSION['admin_options']['word:products']}</h3></td></tr>";
 							$showh3 = false;
 						}
-						foreach ($options as $option) 
+						foreach ($options as $option)
 						if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea'))
 						{
 							$value = '';
@@ -241,7 +250,7 @@
 								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
 								if($this->db->numRows() > 0)
 				                    $option_values = $this->db->getRows('array');
-				                
+
 								if(!empty($option_values))
 								{
 									$value = explode(',', $value);

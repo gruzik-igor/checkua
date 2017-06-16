@@ -83,6 +83,7 @@
           <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
           <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
           <li><a href="#tab-statistic" data-toggle="tab" aria-expanded="true">Статистика</a></li>
+          <li><a href="#tab-similar" data-toggle="tab" aria-expanded="true">Подібні</a></li>
         </ul>
         <div class="tab-content">
           <?php if(!empty($storages)) { ?>
@@ -118,6 +119,9 @@
           </div>
           <div class="tab-pane fade" id="tab-statistic">
             <?php require_once APP_PATH.'views/admin/wl_statistic/__statistic.php'; ?>
+          </div>
+          <div class="tab-pane fade" id="tab-similar">
+            <?php require 'edit_tabs/tab-similar.php'; ?>
           </div>
         </div>
 

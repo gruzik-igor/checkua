@@ -23,7 +23,7 @@
         } ?>
 
 		<div class="panel-body">
-        	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_option" method="POST" class="form-horizontal">
+        	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_option" method="POST" enctype="multipart/form-data" class="form-horizontal">
 				<input type="hidden" name="id" value="<?=$option->id?>">
 
 				<div class="form-group">
@@ -43,7 +43,9 @@
 				<div class="form-group">
                     <label class="col-md-3 control-label">Власна адреса</label>
                     <div class="col-md-9">
-                    	<?php $option->alias = explode('-', $option->alias); array_shift($option->alias); $option->alias = implode('-', $option->alias); ?>
+                    	<?php
+                    	 $option->originalAlias = $option->alias;
+                    	 $option->alias = explode('-', $option->alias); array_shift($option->alias); $option->alias = implode('-', $option->alias); ?>
 						<div class="input-group">
                             <span class="input-group-addon"><?=$option->id?>-</span>
 							<input type="text" name="alias" value="<?=$option->alias?>" placeholder="alias" required class="form-control">
@@ -197,14 +199,14 @@
 					<?php
 						echo('<table id="options" class="table table-striped table-bordered nowrap col-md-12"><tbody>');
 						echo('<tr><th colspan="');
-						$colspan = 2;
+						$colspan = 3;
 						if($_SESSION['language']) $colspan += count($_SESSION['all_languages']);
 						else $colspan++;
 						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4> <button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning">Додати властивість</button></th></tr>');
 						$options = array();
 						if($_SESSION['language']){
 							$options = $this->db->getAllDataByFieldInArray($this->options_model->table(), ($option->id * -1), 'group');
-							echo("<tr><td></td>");
+							echo("<tr><td></td><td>Фото</td>");
 							foreach ($_SESSION['all_languages'] as $lang) {
 								echo("<td>{$lang}</td>");
 							}
@@ -229,6 +231,15 @@
 									}
 									echo('<tr id="option_'.$opt->id.'">');
 									echo("<td>#{$i}</td>");
+
+									if($opt->photo == 0)
+										echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
+									else {
+										$photoPath = $_SESSION["alias"]->alias."/options/".$option->originalAlias."/".$opt->photo; 
+										echo('<td><img style="width: 100px; height: auto; display: inline-block;" src='.IMG_PATH.$photoPath.' >');
+										echo(' <button class="btn btn-danger" onClick="deletePropertyPhoto('.$opt->id.',\''.$photoPath.'\')">-</button></td>');
+									}
+
 									foreach ($_SESSION['all_languages'] as $lang) {
 										$value = '';
 										$value_id = 0;
@@ -296,7 +307,7 @@
 		var countRows = $('#options tr').length;
 		<?php if($_SESSION['language']){ ?>
 			countRows = countRows - 1;
-			var appendText = '<tr><td>#' + countRows + '</td>';
+			var appendText = '<tr><td>#' + countRows + '</td><td></td>';
 			<?php foreach ($_SESSION['all_languages'] as $lang) { ?>
 				appendText += '<td><input type="text" name="option_0_<?=$lang?>[]" class="form-control"></td>';
 		<?php } } else { ?>
@@ -327,6 +338,21 @@
 		}
 	}
 
+	function deletePropertyPhoto(id, path) {
+		$.ajax({
+			url: "<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/deletePropertyPhoto",
+			type: 'POST',
+			data: {
+				id :  id,
+				path :  path,
+				json : true
+			},
+			success: function(res){
+				document.location.reload();
+			}
+		});
+	}
+
 	function showUninstalForm () {
 		if($('#uninstall-form').is(":hidden")){
 			$('#uninstall-form').slideDown("slow");
@@ -334,4 +360,9 @@
 			$('#uninstall-form').slideUp("fast");
 		}
 	}
+
+	function uploadPhoto(event) {
+		$(event).next().text('OK');
+	}
+
 </script>

@@ -23,7 +23,6 @@
 								<th>Загальна сума</th>
 								<th>Дата заявки</th>
 								<th>Дата обробки</th>
-								<th>1С синхронізація</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -54,9 +53,6 @@
 							<td>$<?= $cart->total?></td>
 							<td><?= date('d.m.Y H:i', $cart->date_add)?></td>
 							<td><?= $cart->date_edit > 0 ? date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
-							<td><?php if($cart->s1c > 0) echo(date('d.m.Y H:i', $cart->s1c));
-										elseif($cart->status == 6) echo('Очікуємо');
-										else echo('Не синхронізуємося'); ?></td>
 						</tr>
 						<?php } } ?>
 						</tbody>

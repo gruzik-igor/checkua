@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.3.4"
+ 	Service "Shop Showcase 2.4"
 	for WhiteLion 1.0
 
 */
@@ -164,7 +164,22 @@ class shopshowcase extends Controller {
 			}
 		}
 
-		$this->load->admin_view('products/edit_view', array('product' => $product, 'groups' => $groups));
+		$similarProducts = null;
+		$similars = $this->db->getAllDataByFieldInArray($this->shop_model->table('_products_similar'), array('product' => $product->id));
+
+		if($similars)
+		{
+			foreach ($similars as $similar) {
+				$where_ntkd['alias'] = $_SESSION['alias']->id;
+				$where_ntkd['content'] = '#p.id';
+				if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+				$this->db->select('s_shopshowcase_products as p', 'id, alias, article, price', $similar->similar_product);
+				$this->db->join('wl_ntkd', 'name as product_name', $where_ntkd);
+				$similarProducts['products'][] = $this->db->get();
+			}
+		}
+
+		$this->load->admin_view('products/edit_view', array('product' => $product, 'groups' => $groups, 'similarProducts' => $similarProducts));
 	}
 	
 	public function save()
@@ -226,6 +241,55 @@ class shopshowcase extends Controller {
 				$this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$link.'#tab-main');
 			}
 		}
+	}
+
+	public function markup()
+	{
+		$markups = $this->db->getAllData('markup');
+		$this->load->admin_view('products/markup_view', array('markups' => $markups));
+	}
+
+	public function markup_save()
+	{
+		if($_POST){
+			foreach ($_POST as $key => $value) {
+				$data = array();
+				$data['from'] = $value['from'];
+				$data['to'] = $value['to'];
+				$data['value'] = $value['value'];
+				$this->db->updateRow('markup', $data, $key);
+			}
+		}
+
+		$this->redirect();
+	}
+
+	public function markup_add()
+	{
+		if($_POST)
+		{
+			$data = array();
+			$data['from'] = $this->data->post('from');
+			$data['to'] = $this->data->post('to');
+			$data['value'] = $this->data->post('value');
+			$this->db->insertRow('markup', $data);
+
+			$this->redirect('admin/'.$_SESSION['alias']->alias.'/markup');
+		}
+		else 
+			$this->load->admin_view('products/markup_add_view');
+	}
+
+	public function markup_delete()
+	{
+		$res = array('result' => false);
+
+		$id = $this->data->post('id');
+
+		if($this->db->deleteRow('markup', $id))
+			$res['result'] = true;
+
+		$this->json($res);
 	}
 
 	public function saveOption()
@@ -529,6 +593,36 @@ class shopshowcase extends Controller {
 			} else {
 				if($this->options_model->saveOption($_POST['id'])){
 					$_SESSION['notify']->success = 'Властивість успішно оновлено!';
+
+					if(!empty($_FILES['photo']['name']))
+					{
+						foreach ($_FILES['photo']['name'] as $key => $value) {
+							if(!empty($value))
+							{
+								$path = IMG_PATH;
+					            $path = substr($path, strlen(SITE_URL));
+					            $path = substr($path, 0, -1);
+					            if(!is_dir($path))
+					            	mkdir($path, 0777);
+					            $path .= '/'.$_SESSION['option']->folder.'/options';
+					            if(!is_dir($path))
+					            	mkdir($path, 0777);
+								$path .= '/'.$this->data->post('id').'-'.$this->data->post('alias');
+					            if(!is_dir($path))
+					            	mkdir($path, 0777);
+					            $path .= '/';
+
+					            $fileName = $this->db->select('s_shopshowcase_options', 'alias', $key)->get();
+
+					            $this->load->library('image');
+								$this->image->uploadArray('photo', $key, $path, $key.'_'.$fileName->alias);
+								$fileName = $key.'_'.$fileName->alias.'.'.$this->image->getExtension();
+
+								$this->db->updateRow('s_shopshowcase_options', array('photo' => $fileName), $key);
+				        	}
+						}
+					}
+
 					$this->redirect();
 				}
 			}
@@ -585,6 +679,23 @@ class shopshowcase extends Controller {
 					$this->redirect();
 				}
 			}
+		}
+	}
+
+	public function deletePropertyPhoto()
+	{
+		if(isset($_POST['id']) && is_numeric($_POST['id']))
+		{
+			$id = $this->data->post('id');
+			$path = $this->data->post('path');
+
+			$path = IMG_PATH.$path;
+            $path = substr($path, strlen(SITE_URL));
+
+            
+
+			@unlink($path);
+			$this->db->updateRow('s_shopshowcase_options', array('photo' => 0), $id);
 		}
 	}
 
@@ -677,7 +788,60 @@ class shopshowcase extends Controller {
     	return $this->shop_search_model->getByContent($content, true);
     }
 
-    public function __getRobotKeyWords($content = 0)
+    public function addSimilarProduct()
+    {
+        $articleId = $this->data->post('article');
+        $productId = $this->data->post('product');
+
+        $articleInfo =  $this->db->select('s_shopshowcase_products', 'id', array('article' => $articleId))->get();
+
+        if($articleInfo && $productId != $articleInfo->id)
+        {
+        	$this->db->executeQuery("INSERT INTO s_shopshowcase_products_similar(id,product, similar_product)VALUES(NULL,'{$productId}', '{$articleInfo->id}') ON DUPLICATE KEY UPDATE product = VALUES (product),similar_product = VALUES(similar_product)");
+        	$this->db->executeQuery("INSERT INTO s_shopshowcase_products_similar(id,product, similar_product)VALUES(NULL,'{$articleInfo->id}', '{$productId}') ON DUPLICATE KEY UPDATE product = VALUES (product),similar_product = VALUES(similar_product)");
+        }
+
+        $this->redirect("#tab-similar");
+    }
+	
+	public function deleteSimilarProduct()
+	{
+		$productId = $this->data->post('productId');
+		$similarProduct = $this->data->post('similarProduct');
+
+		$this->db->executeQuery("DELETE FROM `s_shopshowcase_products_similar` WHERE (product, similar_product)  IN(('{$similarProduct}','{$productId}'),('{$productId}','{$similarProduct}'))");
+	}
+
+	public function saveSimilarText()
+	{
+		$group = $this->data->post('group');
+
+		if($group != 0)
+		{
+			$text = htmlentities($_POST['text'], ENT_QUOTES, 'utf-8');
+
+			$products = $this->db->select('s_shopshowcase_products', 'id, wl_alias', array('group' => $group))->get('array');
+
+			if($products)
+			{
+				foreach($products as $product)
+				{
+					$where_ntkd = array();
+					$where_ntkd['alias'] = $product->wl_alias; 
+					$where_ntkd['content'] = $product->id; 
+					if($_SESSION['language'] && $_POST['language']) $where_ntkd['language'] = $this->data->post('language');
+					if(!isset($_POST['all'])) $where_ntkd['text'] = '';
+					$this->db->updateRow("wl_ntkd", array('text' => $text), $where_ntkd);
+				}
+				
+			}
+			
+		}
+		
+		$this->redirect();
+	}
+
+	public function __getRobotKeyWords($content = 0)
     {
     	$words = array();
     	$this->load->smodel('shop_model');
@@ -717,7 +881,6 @@ class shopshowcase extends Controller {
     	}
     	return $words;
     }
-	
 }
 
 ?>

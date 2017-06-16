@@ -7,7 +7,7 @@
 			</tr>
     		<tr>
 				<th>Покупець</th>
-				<td><?= $cartInfo->user_name?></td>
+				<td><a href="<?=SITE_URL?>admin/wl_users/<?= $cartInfo->user_email?>" class="btn btn-success btn-xs"><?= $cartInfo->user_name?></a></td>
 			</tr>
     		<tr>
 				<th>Тип покупця</th>
@@ -19,7 +19,7 @@
 			</tr>
     		<tr>
 				<th>Телефон</th>
-				<td><?= $cartInfo->user_phone .' '. $cartInfo->user_phone2 ?></td>
+				<td><?= $cartInfo->user_phone?></td>
 			</tr>
     		<tr>
 				<th>Статус</th>
@@ -27,21 +27,19 @@
 			</tr>
     		<tr>
 				<th>Загальна сума</th>
-				<td id="totalPrice"><?= $cartInfo->total?> $</td>
+				<td><span id="totalPrice"><?= $cartInfo->total?> </span> грн</td>
 			</tr>
     		<tr>
 				<th>Дата заявки</th>
 				<td><?= date('d.m.Y H:i', $cartInfo->date_add) ?></td>
 			</tr>
     		<tr>
-				<th>Дата обробки</th>
+				<th>Дата останньої операції (обробки)</th>
 				<td><?= $cartInfo->date_edit > 0 ? date('d.m.Y H:i', $cartInfo->date_edit) : '' ?></td>
 			</tr>
 			<tr>
-				<th>1С синхронізація</th>
-				<td><?php if($cartInfo->s1c > 0) echo(date('d.m.Y H:i', $cartInfo->s1c));
-										elseif($cartInfo->status == 6) echo('Очікуємо');
-										else echo('Не синхронізуємося'); ?></td>
+				<th>Поточний статус заявки</th>
+				<td><?= $cartInfo->status_name ?></td>
 			</tr>
     	</tbody>
     </table>

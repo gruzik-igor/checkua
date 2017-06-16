@@ -13,7 +13,7 @@ class install
 	public $multi_alias = 1;
 	public $order_alias = 100;
 	public $admin_ico = 'fa-qrcode';
-	public $version = "2.3";
+	public $version = "2.4";
 
 	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
 	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');

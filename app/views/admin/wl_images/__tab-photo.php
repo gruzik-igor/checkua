@@ -48,7 +48,7 @@
                             foreach ($_SESSION['all_languages'] as $language) { ?>
                                 <div class="input-group">
                                     <span class="input-group-addon"><?=$language?></span>
-                                    <input name="title-<?=$language?>" type="text" value="<?=(isset($texts[$language])) ? $texts[$language] : ''?>" class="form-control" placeholder="<?=$_SESSION['alias']->name?>" onChange="savePhoto(<?=$photo->id?>, this)">
+                                    <input name="title-<?=$language?>" type="text" value="<?=(isset($texts[$language])) ? $texts[$language] : ''?>" class="form-control" placeholder="<?=$pageNames[$language]?>" onChange="savePhoto(<?=$photo->id?>, this)">
                                 </div>
                         <?php } } else { ?>
                             <textarea name="title" onChange="savePhoto(<?=$photo->id?>, this)" placeholder="<?=$_SESSION['alias']->name?>"><?=($photo->title != $_SESSION['alias']->name) ? $photo->title : ''?></textarea>
@@ -133,7 +133,7 @@
                     foreach ($_SESSION['all_languages'] as $language) { ?>
                         <div class="input-group">
                             <span class="input-group-addon"><?=$language?></span>
-                            <input name="title-<?=$language?>" type="text" value="" class="form-control" placeholder="<?=$_SESSION['alias']->name?>" onChange="savePhoto({%=file.id%}, this)">
+                            <input name="title-<?=$language?>" type="text" value="" class="form-control" placeholder="<?=$pageNames[$language]?>" onChange="savePhoto({%=file.id%}, this)">
                         </div>
                 <?php } } else { ?>
                     <textarea name="title" onChange="savePhoto({%=file.id%}, this)" placeholder="<?=$_SESSION['alias']->name?>"></textarea>
@@ -175,11 +175,11 @@ $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js
 
 
 <!-- The Templates plugin is included to render the upload/download listings -->
-<script src="http://blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
+<script src="https://blueimp.github.io/JavaScript-Templates/js/tmpl.min.js"></script>
 <!-- The Load Image plugin is included for the preview images and image resizing functionality -->
-<script src="http://blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
+<script src="https://blueimp.github.io/JavaScript-Load-Image/js/load-image.all.min.js"></script>
 <!-- The Canvas to Blob plugin is included for image resizing functionality -->
-<script src="http://blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
+<script src="https://blueimp.github.io/JavaScript-Canvas-to-Blob/js/canvas-to-blob.min.js"></script>
 
 <style type="text/css">
     td.move {
@@ -234,7 +234,7 @@ $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js
 </style>
 
 <!-- blueimp Gallery styles -->
-<link rel="stylesheet" href="http://blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
+<link rel="stylesheet" href="https://blueimp.github.io/Gallery/css/blueimp-gallery.min.css">
 <!-- CSS to style the file input field as button and adjust the Bootstrap progress bars -->
 <link rel="stylesheet" href="<?=SITE_URL?>assets/blueimp/css/jquery.fileupload.css">
 <link rel="stylesheet" href="<?=SITE_URL?>assets/blueimp/css/jquery.fileupload-ui.css">

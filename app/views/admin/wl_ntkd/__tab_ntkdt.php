@@ -9,9 +9,10 @@ if(!$_SESSION['language'] || $_SESSION['language'] == $language)
 	$ntkd->text = $_SESSION['alias']->text;
 	$ntkd->list = $_SESSION['alias']->list;
 	$ntkd->meta = $_SESSION['alias']->meta;
-
+	
 	if($_SESSION['language'])
 	{
+		$pageNames[$language] = $ntkd->name;
 		$language_attr = ", '{$language}'";
 		$language_block = "-{$language}";
 		$language_block_name = "'{$language}'";
@@ -34,6 +35,7 @@ else
 		$where['language'] = $language;
 	$ntkd = $this->db->getAllDataById('wl_ntkd', $where);
 
+	$pageNames[$language] = $ntkd->name;
 	$language_attr = ", '{$language}'";
 	$language_block = "-{$language}";
 	$language_block_name = "'{$language}'";

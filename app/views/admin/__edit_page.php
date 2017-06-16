@@ -57,6 +57,7 @@
                 echo('</div>');
             }
         }
+        $pageNames = array();
         if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $language) { ?>
             <div class="tab-pane fade <?=(!isset($PRE_TAB_NAME) && $_SESSION['language'] == $language) ? 'active in' : ''?>" id="tab-<?=$language?>">
                 <?php require 'wl_ntkd/__tab_ntkdt.php'; ?>

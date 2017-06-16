@@ -247,7 +247,7 @@ class products_model {
 					$name = trim($this->data->post('name_'.$lang));
 					$ntkd['name'] = $name;
 					if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
-						$ntkd['name'] = trim($this->data->post('article')) .' '.$name;
+						$ntkd['name'] =  $name.' '.trim($this->data->post('article'));
 					if($lang == $_SESSION['language'])
 						$data['alias'] = $this->data->latterUAtoEN($name);
 					$this->db->insertRow('wl_ntkd', $ntkd);
@@ -258,7 +258,7 @@ class products_model {
 				$name = trim($this->data->post('name'));
 				$ntkd['name'] = $name;
 				if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
-					$ntkd['name'] = trim($this->data->post('article')) .' '.$name;
+					$ntkd['name'] = $name.' '.trim($this->data->post('article'));
 				$data['alias'] = $this->data->latterUAtoEN($name);
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
@@ -320,9 +320,10 @@ class products_model {
 			{
 				foreach ($names as $row) {
 					$name = explode(' ', $row->name);
-					if($name[0] == $this->data->post('article_old'))
+					$last = count($name) - 1;
+					if($name[$last] == $this->data->post('article_old'))
 					{
-						$name[0] = $data['article'];
+						$name[$last] = $data['article'];
 						$name = implode(' ', $name);
 						$this->db->updateRow('wl_ntkd', array('name' => $name), $row->id);
 					}

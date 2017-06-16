@@ -1,15 +1,17 @@
 <?php if($_SESSION['language'] && $lang) { ?>
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
-	    <input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="save('name', this, '<?=$lang?>')">
+	    <?php if($_SESSION['option']->ProductUseArticle) { $ntkd[$lang]->name = substr($ntkd[$lang]->name, 0, (strlen($product->article) + 1) * -1); ?>
+	    <input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="saveNameWithArticle(this, '<?=$lang?>')">
+	    <?php } else { ?>
+	    	<input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="save('name', this, '<?=$lang?>')">
+	    <?php } ?>
 	</div>
 	<small onClick="showEditTKD('<?=$lang?>')" class="badge badge-info">Редагувати title, keywords, description</small>
 	<div id="tkd-<?=$lang?>" class="tkd">
 		<div class="input-group">
 		    <span class="input-group-addon">title</span>
-		    <?php $placeholder = $ntkd[$lang]->name;
-		    if($_SESSION['option']->ProductUseArticle) $placeholder = $product->article . ' ' . $ntkd[$lang]->name; ?>
-		    <input type="text" value="<?=$ntkd[$lang]->title?>" class="form-control" placeholder="<?=$placeholder?>" onChange="save('title', this, '<?=$lang?>')">
+		    <input type="text" value="<?=$ntkd[$lang]->title?>" class="form-control" placeholder="<?=$ntkd[$lang]->name?>" onChange="save('title', this, '<?=$lang?>')">
 		</div>
 		<div class="input-group">
 		    <span class="input-group-addon">keywords</span>
@@ -70,15 +72,17 @@
 <?php } else { ?>
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
-	    <input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="save('name', this)">
+	    <?php if($_SESSION['option']->ProductUseArticle) { $ntkd->name = substr($ntkd->name, 0, (strlen($product->article) + 1) * -1); ?>
+	    	<input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="saveNameWithArticle(this)">
+	    <?php } else { ?>
+	    	<input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="save('name', this)">
+	    <?php } ?>
 	</div>
 	<small onClick="showEditTKD('block')" class="badge badge-info">Редагувати title, keywords, description</small>
 	<div id="tkd-block" class="tkd">
 		<div class="input-group">
 		    <span class="input-group-addon">title</span>
-		    <?php $placeholder = $ntkd->name;
-		    if($_SESSION['option']->ProductUseArticle) $placeholder = $product->article . ' ' . $ntkd->name; ?>
-		    <input type="text" value="<?=$ntkd->title?>" class="form-control" placeholder="<?=$placeholder?>" onChange="save('title', this)">
+		    <input type="text" value="<?=$ntkd->title?>" class="form-control" placeholder="<?=$ntkd->name?>" onChange="save('title', this)">
 		</div>
 		<div class="input-group">
 		    <span class="input-group-addon">keywords</span>

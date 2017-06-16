@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.4"
+ 	Service "Shop Showcase 2.4.1"
 	for WhiteLion 1.0
 
 */
@@ -33,6 +33,8 @@ class shopshowcase extends Controller {
 				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
+				if($_SESSION['option']->ProductUseArticle)
+					$_SESSION['alias']->name = substr($_SESSION['alias']->name, 0, (strlen($product->article) + 1) * -1);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');

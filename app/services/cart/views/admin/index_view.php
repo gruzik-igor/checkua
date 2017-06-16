@@ -34,7 +34,6 @@
 								<th>Загальна сума</th>
 								<th>Дата заявки</th>
 								<th>Дата обробки</th>
-								<th>1С синхронізація</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -60,14 +59,11 @@
 							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>"><?=$cart->id?></a></td>
 							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">Детальніше</a></td>
 							<td><?= $cart->user_name?></td>
-							<td><?= $cart->user_phone .' '. $cart->user_phone2 ?></td>
+							<td><?= $cart->user_phone?></td>
 							<td><?= $cart->status_name?></td>
-							<td>$<?= $cart->total?></td>
+							<td><?= $cart->total?> грн</td>
 							<td><?= date('d.m.Y H:i', $cart->date_add)?></td>
 							<td><?= $cart->date_edit > 0 ? date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
-							<td><?php if($cart->s1c > 0) echo(date('d.m.Y H:i', $cart->s1c));
-										elseif($cart->status == 6) echo('Очікуємо');
-										else echo('Не синхронізуємося'); ?></td>
 						</tr>
 						<?php } } ?>
 						</tbody>

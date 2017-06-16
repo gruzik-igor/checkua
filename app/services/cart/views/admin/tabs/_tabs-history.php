@@ -1,6 +1,6 @@
 <div class="clearfix">
     <h4 class="left">Поточний статус: <?= $cartInfo->status_name?></h4>
-    <h4 class="right">Загальна сума: <?= $cartInfo->total?> $</h4>
+    <h4 class="right">Загальна сума: <?= $cartInfo->total?> грн</h4>
 </div>
 <div class="table-responsive">
     <table class="table table-striped table-bordered nowrap" width="100%">
@@ -15,7 +15,7 @@
         <tbody>
             <tr>
                 <td><?= date('d.m.Y H:i',$cartInfo->date_add)?></td>
-                <td>Нова</td>
+                <td>Не опрацьовано, не оплачено</td>
                 <td></td>
                 <td><?= $cartInfo->user_name?></td>
             </tr>
@@ -38,11 +38,17 @@
     </table>
     
     <?php if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0) {?>
-    <legend>Доставка</legend>
-    <b>Служба доставки:</b> <?= $cartInfo->shipping->method_name ?> <br>
-    <b>Сайт:</b> <?= $cartInfo->shipping->method_site ?> <br>
-    <b>Адреса:</b> <?= $cartInfo->shipping->address ?><br><br>
-    <?php } ?>
+        <legend>Доставка</legend>
+        <b>Служба доставки:</b> <?= $cartInfo->shipping->method_name ?> <br>
+        <?php if($cartInfo->shipping->method_site != '') { ?>
+            <b>Сайт:</b> <?= $cartInfo->shipping->method_site ?> <br>
+        <?php } if($cartInfo->shipping->address != '') { ?>
+            <b>Адреса:</b> <?= $cartInfo->shipping->address ?><br>
+        <?php } if($cartInfo->shipping->receiver != '') { ?>
+            <b>Отримувач:</b> <?= $cartInfo->shipping->receiver ?><br>
+        <?php } if($cartInfo->shipping->phone != '') { ?>
+            <b>Контактний телефон:</b> <?= $cartInfo->shipping->phone ?><br><br>
+    <?php } } ?>
 
 
     <?php if($cartStatuses){ ?>

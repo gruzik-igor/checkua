@@ -184,9 +184,18 @@ class cart extends Controller {
             $date = time();
 
             $invoice = $this->load->function_in_alias($this->data->post('storageId'), '__get_Invoice', $this->data->post('invoiceId'));
-            $quantity = $invoice->amount_free >= $this->data->post('quantity') ? $this->data->post('quantity') : $invoice->amount_free;
+            if($invoiceId)
+            {
+                $quantity = $invoice->amount_free >= $this->data->post('quantity') ? $this->data->post('quantity') : $invoice->amount_free;
+            }
+            else
+            {
+                $quantity = $this->data->post('quantity');
+            }
 
-            if($this->db->updateRow("s_cart_products", array('quantity' => $quantity), $id)){
+
+            if($this->db->updateRow("s_cart_products", array('quantity' => $quantity), $id))
+            {
                 $total = $this->db->getQuery("SELECT SUM(quantity * price) as totalPrice FROM `s_cart_products` WHERE `cart` = $cartId")->totalPrice;
 
                 $this->db->executeQuery("UPDATE `s_cart` SET `total` = {$total}, `date_edit` = $date WHERE `id` = $cartId");
@@ -221,18 +230,20 @@ class cart extends Controller {
         if(!isset($cartId)) return false;
         if($this->db->insertRow('s_cart_history', $data)){
             if($this->db->updateRow('s_cart', $cartUpdate, $data['cart'])){
+                $where = array('field' => "phone", 'user' => "#c.user");
                 $this->db->select('s_cart as c', '*', $cartId);
                 $this->db->join('wl_users', 'name as user_name, email as user_email', '#c.user');
-                $this->db->join('wl_user_info', 'phone1 as user_phone', '#c.user', 'user');
+                $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
                 $this->db->join('s_cart_status', 'name as status_name, weight', '#c.status');
                 $orderInfo = $this->db->get();
                 $orderInfo->products = $this->getCartProducts($cartId, false);
 
-                if($orderInfo->weight >= 15 && $orderInfo->currency == 0)
-                {
-                    $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'USD');
-                    $this->db->updateRow('s_cart', array('currency' => $currency_USD), $data['cart']);
-                }
+
+                // if($orderInfo->weight >= 15 && $orderInfo->currency == 0)
+                // {
+                //     $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'UAH');
+                //     $this->db->updateRow('s_cart', array('currency' => $currency_USD), $data['cart']);
+                // }
 
                 $info['id'] = $orderInfo->id;
                 $info['status'] = $orderInfo->status;
@@ -246,11 +257,13 @@ class cart extends Controller {
                 $info['pay_link'] = SITE_URL.$_SESSION['alias']->alias.'/pay/'.$orderInfo->id;
                 $info['products'] = $orderInfo->products;
                 $info['productTotalPrice'] = $orderInfo->total;
+                // $info['shipping_price'] = $orderInfo->shipping_price;
+                // $info['currency'] = $orderInfo->currency;
                 $info['shipping'] = '';
 
                 if($_SESSION['option']->useShipping)
                 {
-                    $shipping = $this->load->function_in_alias($orderInfo->shipping_alias, '__get_delivery_info', $orderInfo->shipping_id);
+                    $shipping = $this->load->function_in_alias($orderInfo->shipping_alias, '__get_delivery_info', $orderInfo->shipping_id);                
                     if($shipping)
                         $info['shipping'] = '<h2><b>Доставка</b></h2>
                                             <b>Служба доставки:</b> '.$shipping->method_name.' <br>
@@ -265,9 +278,9 @@ class cart extends Controller {
                     $info['table'] .=  '<tr>
                                     <td>'. $product->product_article .'</td>
                                     <td>'. $product->product_name .'</td>
-                                    <td>$'. $product->price .'</td>
+                                    <td>'. $product->price .' грн</td>
                                     <td>'. $product->quantity .'</td>
-                                    <td>$'. $product->price * $product->quantity .'</td>
+                                    <td>'. $product->price * $product->quantity .' грн</td>
                                 </tr>';
 
                     if($_SESSION['option']->useStorage)
@@ -302,7 +315,7 @@ class cart extends Controller {
                     }
                 }
 
-                $info['table'] .= '<tr><td colspan="5" align="right">Сума: $'.$info['productTotalPrice'].'</td></tr></tbody></table>';
+                $info['table'] .= '<tr><td colspan="5" align="right">Сума: '.$info['productTotalPrice'].' грн<br>'.$info['productTotalPrice'].' грн</b></td></tr></tbody></table>';
 
 
                 $this->load->library('mail');
@@ -347,7 +360,7 @@ class cart extends Controller {
     private function getProduct($key, $id, $userType, $userId, $cartId)
     {
         $cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias2');
-        $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'USD');
+        $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'UAH');
 
         if($cooperation)
         {
@@ -374,6 +387,7 @@ class cart extends Controller {
 
                                 $invoice_where = array('id' => $product->id, 'user_type' => $userType);
                                 $invoices = $this->getInvoicesByProduct($product->wl_alias, $invoice_where);
+
                                 if($invoices)
                                 {
                                     foreach ($invoices as $invoice) {
@@ -411,6 +425,29 @@ class cart extends Controller {
                                             $count_products++;
                                         }
                                     }
+                                }
+                                else
+                                {
+                                    if($showStorages)
+                                    {
+                                        echo("<h3>Товари</h3>");
+                                        echo('<div class="table-responsive"><table class="table table-condensed table-bordered">');
+                                        echo("<tr>");
+                                        echo("<td>Артикул</td>");
+                                        echo("<td>Опис</td>");
+                                        echo("<td>Ціна</td>");
+                                        echo("<td></td>");
+                                        echo("</tr>");
+                                        $showStorages = false;
+                                    }
+
+                                    echo("<tr>");
+                                    echo("<td>{$product->article}</td>");
+                                    echo "<td>".html_entity_decode($product->name)."</td>";
+                                    echo("<td>{$product->price} грн</td>");
+                                    echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId'><input type='hidden' name='cartId' value='{$cartId}'><input type='hidden' name='productId' value='{$product->id}'><input type='hidden' name='price' value='{$product->price}'><button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
+                                    echo("</tr>");
+                                    $count_products++;
                                 }
                             }
                             if(!$showStorages)
@@ -506,7 +543,7 @@ class cart extends Controller {
         $data['product'] = $this->data->post('productId');
         $data['quantity'] = 1;
         $data['price'] = $this->data->post('price');
-        $data['price_in'] = $this->data->post('price_in');
+        $data['price_in'] = $this->data->post('price_in') ? $this->data->post('price_in') : 0;
         $data['alias'] = $this->db->getQuery("SELECT wl_alias FROM `s_shopshowcase_products` WHERE `id` = {$data['product']} ")->wl_alias;
         $data['user'] = $this->data->post('userId') === 'false' ? $_SESSION['user']->id : $this->data->post('userId');
         $data['date'] = time();
@@ -550,20 +587,20 @@ class cart extends Controller {
     public function saveNewUser()
     {
         $res = array('result' => false, 'message' => '');
-        if(trim($this->data->post('name')) != '' && ($this->data->post('email') || $this->data->post('phone'))){
+        if(trim($this->data->post('name')) != '' && $this->data->post('password') && ($this->data->post('email') || $this->data->post('phone')))
+        {
             $data = array();
 
             $data['name'] = $name = $this->data->post('name');
-            $email = $this->data->post('email');
-            $password = $this->data->post('password');
-            $data['type'] = $_SESSION['option']->newUserType;
-            $data['status'] = 1;
-            $data['registered'] = time();
+            $data['email'] = $email = $this->data->post('email');
+            $data['password'] = $this->data->post('password');
             $data['photo'] = 0;
-            $phone = $this->data->post('phone');
+            $userInfo['phone'] = $phone = $this->data->post('phone');
 
-            if($email || $phone){
-                if($email){
+            if($email || $phone)
+            {
+                if($email)
+                {
                     $this->db->executeQuery("SELECT * FROM wl_users WHERE email = '{$email}'");
 
                     if($this->db->numRows() > 0){
@@ -572,10 +609,12 @@ class cart extends Controller {
                         $res['result'] = true;
                     }
                 }
-                if($phone && $res['message'] == ''){
-                    $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `phone1` = '{$phone}' OR  `phone2` = '{$phone}'");
+                if($phone && $res['message'] == '')
+                {
+                    $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `field` = 'phone' AND `value` = '{$phone}' OR  `field` = 'phone2' AND `value` = '{$phone}'");
 
-                    if($this->db->numRows() > 0){
+                    if($this->db->numRows() > 0)
+                    {
                         $res['message'] = 'Користувач з таким телефоном вже є';
                         $res['result'] = false;
                     }
@@ -584,27 +623,26 @@ class cart extends Controller {
             }
 
 
-            if($res['result'] == true){
-                if($email) $data['email'] = $email;
-                if($phone) $userInfo['phone1'] = $phone;
-
-                if($this->db->insertRow('wl_users', $data)){
-                    $id = $res['id'] = $this->db->getLastInsertedId();
-
-                    if(isset($userInfo)){
-                        $userInfo['user'] = $id;
-                        $this->db->insertRow('wl_user_info', $userInfo);
-                    }
-
-                    $register['date'] = $data['registered'];
-                    $register['do'] = 1;
-                    $register['user'] = $id;
-                    $this->db->insertRow('wl_user_register', $register);
+            if($res['result'] == true)
+            {
+                $this->load->model('wl_user_model');
+                if($user = $this->wl_user_model->add($data, $userInfo))
+                {
+                    $res['id'] = $user->id;
+                }
+                else {
+                    $res['message'] = 'Помилка при створені користувача';
+                    $res['result'] = false;
                 }
             }
         }
 
         $this->json($res);
+    }
+
+    public function saveCurrency()
+    {
+        print_r($_POST);exit;
     }
 }
 

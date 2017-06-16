@@ -21,7 +21,9 @@
 	    	<?php if($cartProducts) foreach($cartProducts as $product) {?>
 	    	<tr id="productId-<?= $product->id ?>">
 	    		<td><a href="<?=SITE_URL.'admin/'.$product->alias_name.'/search?id='.$product->product?>" target="_blank"><?= $product->product_article ?></a></td>
-	    		<td><?= $product->product_name?></td>
+	    		<td>
+	    			<?= $product->product_name .' ( '. $product->additional .' )'?>
+	    		</td>
 	    		<?php if($_SESSION['option']->useStorage) {?>
 	    		<td width="20%">
 	    			<?php if(isset($product->invoice)) {
@@ -40,7 +42,7 @@
 	    			<?php } else echo "Товару немає на складі" ?>
 	    		</td>
 	    		<?php } ?>
-	    		<td id="productPrice-<?= $product->id ?>">$<?= $product->price?></td>
+	    		<td id="productPrice-<?= $product->id ?>"><?= $product->price?> грн</td>
 	    		<td width="15%" >
 	    			<?php if($cartInfo->status_weight == 0){ ?>
 	    			<form action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/changeProductQuantity'?>" method="POST">
@@ -57,19 +59,16 @@
 	    			</form>
 	    			<?php } else echo $product->quantity; ?>
 	    		</td>
-	    		<td id="productTotalPrice-<?= $product->id ?>">$<?= $product->price * $product->quantity?></td>
+	    		<td id="productTotalPrice-<?= $product->id ?>"><?= $product->price * $product->quantity?> грн</td>
 	    		<?php if($cartInfo->status_weight == 0){ ?>
 	    		<td><button onclick="removeProduct(<?= $product->id?>, <?= $product->cart?>, <?= $product->price * $product->quantity?>)"><i class='fa fa-remove'></i></button></td>
 	    		<?php } ?>
 	    	</tr>
 	    	<?php } ?>
 	    	<tr>
-	    		<td colspan="6" class="text-right" id="totalPrice2">$<?= $cartInfo->total ?></td>
-	    	</tr>
-	    	<tr>
-	    		<?php $currency_USD = $cartInfo->currency == 0 ? $this->load->function_in_alias('currency', '__get_Currency', 'USD') : $cartInfo->currency; ?>
-	    		<td colspan="6" class="text-right" id="totalPrice3"><?= $cartInfo->total * $currency_USD?> грн (1 USD = <?=$currency_USD?> UAH)</td>
-	    		<?php if($cartInfo->status_weight == 0){ ?><td></td><?php } ?>
+	    		<td colspan="6" class="text-right" >
+	    			<span id="totalPrice2"><?= $cartInfo->total ?></span><span> грн</span>
+	    		</td>
 	    	</tr>
 	    </tbody>
     </table>
@@ -77,9 +76,7 @@
 <?php require_once '_tabs-add_product.php'; ?>
 
 
-
 <script>
-
 	function removeProduct(id, cartId, totalPrice) {
 		if(confirm('Ви впевнені, що хочете видалити цей товар?')){
 			$.ajax({
@@ -91,7 +88,7 @@
 					"totalPrice":totalPrice
 				},
 				success:function (res) {
-					$("#totalPrice, #totalPrice2").text('$' + (parseFloat($("#totalPrice").text()) - totalPrice));
+					$("#totalPrice, #totalPrice2").text(parseFloat($("#totalPrice").text() - totalPrice));
 					$("#productId-"+id).remove();
 				}
 			})
@@ -138,9 +135,9 @@
 				if(res){
 					if(res['totalPrice']){
 						var price = value.split('/')[2];
-						$("#productPrice-"+id).text('$' + price);
-						$("#productTotalPrice-"+id).text('$' + price * $("#productQuantity-"+id).val());
-						$("#totalPrice, #totalPrice2").text('$' + res['totalPrice']);
+						$("#productPrice-"+id).text(price + ' грн');
+						$("#productTotalPrice-"+id).text(price * $("#productQuantity-"+id).val() + ' грн');
+						$("#totalPrice, #totalPrice2").text(res['totalPrice'] + ' грн');
 					}
 					var text = $(el).parent().find(':selected').text();
 					$(el).parent().empty().html(text+"<button onclick='showProductInvoices(this, "+alias+', '+product+', '+id+")' class='right'><i class='fa fa-exchange'></i></button>");

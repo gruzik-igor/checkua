@@ -26,6 +26,9 @@ class install
 				);
 	public $sub_menu = array("add" => "Додати покупку", "all" => "До всіх заявок");
 
+	public $cooperation_index = 2;
+	public $cooperation_types = array('cart' => 'Корзина');
+
 	public $seo_name = "Корзина";
 	public $seo_title = "Корзина";
 	public $seo_description = "";

@@ -45,7 +45,7 @@ class Router extends Loader {
     				$admin = true;
     			if($admin)
     			{
-    				if($_SESSION['language'] != $_SESSION['all_languages'][0])
+    				if($_SESSION['language'] && $_SESSION['language'] != $_SESSION['all_languages'][0])
     					parent::redirect(SERVER_URL.$this->request, false);
 					if(count($parts) == 1)
 					{

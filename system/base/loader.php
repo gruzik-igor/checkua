@@ -248,8 +248,8 @@ class Loader {
 
 		if(is_object($alias))
 		{
-			if($admin && !$this->userCan($alias->alias))
-				return false;
+			// if($admin && !$this->userCan($alias->alias))
+			// 	return false;
 
 			if(!isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
 			{

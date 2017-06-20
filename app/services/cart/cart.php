@@ -529,6 +529,7 @@ class cart extends Controller {
             {
                 if($cart = $this->db->getAllDataById('s_cart', $_SESSION['cart']->id))
                 {
+                    unset($_SESSION['cart']);
                     $cart->return_url = $_SESSION['alias']->alias.'/'.$cart->id;
                     $cart->wl_alias = $_SESSION['alias']->id;
 

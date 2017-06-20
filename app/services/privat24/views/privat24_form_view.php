@@ -7,7 +7,7 @@
 * @copyright 01.02.2015
 */
 
-if(isset($pay) && $pay->amount > 0 && isset($_SESSION['option']->merchant) && isset($_SESSION['option']->password)) {
+if(isset($pay) && $pay->amount > 0 && !empty($_SESSION['option']->merchant) && !empty($_SESSION['option']->password)) {
 	$payament = "amt={$pay->amount}&ccy=UAH&details={$pay->details}&ext_details=&pay_way=privat24&order={$pay->id}&merchant={$_SESSION['option']->merchant}";
 	$signature = sha1(md5($payament.$_SESSION['option']->password));
 ?>

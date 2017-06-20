@@ -30,12 +30,8 @@ class privat24 extends Controller {
         if(is_numeric($id) && $id > 0)
         {
             $this->load->smodel('privat24_model');
-            $pay = $this->privat24_model->validate($id);
-            if($pay)
-            {
+            if($pay = $this->privat24_model->validate($id))
                 $this->load->function_in_alias($pay->cart_alias, '__set_Payment', $pay, true);
-                $this->_addtionall($pay);
-            }
         }
         else $this->load->page_404();
     }
@@ -55,33 +51,6 @@ class privat24 extends Controller {
         $pay->return_url = $cart->return_url;
         $this->load->page_view('privat24_form_view', array('pay' => $pay));
     	return true;
-    }
-
-    private function _addtionall($pay)
-    {
-        $this->db->select('s_cart as c', 'id, user, total, currency', $pay->cart_id);
-        $this->db->join('wl_users', 'ballance', '#c.user');
-        $cart = $this->db->get();
-
-        $ballance = round($pay->amount * 0.99 / $cart->currency, 2);
-        $this->db->executeQuery("UPDATE `notification` SET `show` = 0 WHERE `user` = {$cart->user} AND `cart` = {$cart->id}");
-
-        if(($cart->total - $cart->ballance) <= $ballance && $cart->status < 3)
-        {
-            $this->db->executeQuery("UPDATE `wl_users` SET `ballance` = 0 WHERE `id` = {$cart->user}");
-
-            $payments['cart'] = $pay->cart_id;
-            $payments['user'] = $cart->user;
-            $payments['amount_wont'] = $payments['amount_do'] = $pay->amount;
-            $payments['currency'] = $cart->currency;
-            $payments['manager'] = 0;
-            $payments['credit'] = $cart->total;
-            $payments['ballance'] = 0;
-            $payments['status'] = 2;
-            $payments['info'] = 'Оплата '.$pay->comment;
-            $payments['date_add'] = $payments['date_edit'] = $pay->date_edit;
-            $this->db->insertRow('payments', $payments);
-        }
     }
 
 }

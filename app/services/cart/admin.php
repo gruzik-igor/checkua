@@ -218,7 +218,6 @@ class cart extends Controller {
             $cartUpdate['payment_id'] = $pay->id;
             $data['comment'] = $pay->comment;
             $data['user'] = 0;
-            unset($_SESSION['cart']);
         } else if(isset($_POST['cart'])) {
             $cartId = $data['cart'] = $this->data->post('cart');
             $data['status'] = $cartUpdate['status'] = $this->data->post('status') ? $this->data->post('status') : 1;
@@ -257,8 +256,6 @@ class cart extends Controller {
                 $info['pay_link'] = SITE_URL.$_SESSION['alias']->alias.'/pay/'.$orderInfo->id;
                 $info['products'] = $orderInfo->products;
                 $info['productTotalPrice'] = $orderInfo->total;
-                // $info['shipping_price'] = $orderInfo->shipping_price;
-                // $info['currency'] = $orderInfo->currency;
                 $info['shipping'] = '';
 
                 if($_SESSION['option']->useShipping)

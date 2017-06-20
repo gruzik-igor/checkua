@@ -39,7 +39,7 @@ class install
 
         if($cart_service = $this->db->getAllDataById('wl_services', 'cart', 'name'))
         {
-        	if($carts = $this->db->getAllDataByFieldInArray('wl_services', $cart_service->id, 'service'))
+        	if($carts = $this->db->getAllDataByFieldInArray('wl_aliases', $cart_service->id, 'service'))
         		foreach ($carts as $cart) {
         			$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cart->id, 'alias2' => $alias, 'type' => 'payment'));
         		}

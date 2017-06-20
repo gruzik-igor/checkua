@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Privat24 1.0"
+ 	Service "Privat24 1.1"
 	for WhiteLion 1.0
 
 */

@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 1;
 	public $admin_ico = 'fa-paypal';
-	public $version = "1.0";
+	public $version = "1.1";
 
 	public $options = array('merchant' => '', 'password' => '', 'useMarkUp' => 0, 'markUp' => 0);
 	public $options_type = array('merchant' => 'text', 'password' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number');
@@ -22,15 +22,28 @@ class install
 
 	public $cooperation_index = 2;
 	public $cooperation_types = array('payment' => 'privat24');
+	public $cooperation_service = array('payment' => 'cart');
 
 	public $seo_name = "Privat24";
 	public $seo_title = "";
 	public $seo_description = "";
 	public $seo_keywords = "";
 
-	function alias($alias = 0, $table = '')
+	public function alias($alias = 0, $table = '')
 	{
-		if($alias == 0) return false;
+		if($alias == 0)
+			return false;
+
+		$where = array('alias' => $alias, 'content' => 0);
+        $this->db->updateRow('wl_ntkd', array('list' => '<img src="/app/services/privat24/views/logo_privat24.png" alt="Privat24" title="Privat24">'), $where);
+
+        if($cart_service = $this->db->getAllDataById('wl_services', 'cart', 'name'))
+        {
+        	if($carts = $this->db->getAllDataByFieldInArray('wl_services', $cart_service->id, 'service'))
+        		foreach ($carts as $cart) {
+        			$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cart->id, 'alias2' => $alias, 'type' => 'payment'));
+        		}
+        }
 
 		return true;
 	}

@@ -1,7 +1,8 @@
-Service "Privat24 1.0"
+Service "Privat24 1.1"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 1.1   : 20.06.2017
 Date 1.0   : 01.04.2016
 
 Description: Сервіс оплати через Privat24
@@ -23,3 +24,5 @@ Private links (admin access):
 
 Versions:
 	1.0 	Основа сервісу
+	1.1 	Оновлено інсталяційну модель (автопідключення до корзини)
+			Змінено режим підключення до корзини

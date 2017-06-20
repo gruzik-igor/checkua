@@ -21,6 +21,7 @@ class privat24_model
 		$pay['status'] = 'new';
 		$pay['details'] = "Оплата замовлення #{$cart->id}";
 		$pay['date_add'] = $pay['date_edit'] = time();
+		$pay['comment'] = $pay['signature'] = '';
 		$this->db->insertRow($_SESSION['service']->table, $pay);
 		$id = $this->db->getLastInsertedId();
 		return $this->db->getAllDataById($_SESSION['service']->table, $id);

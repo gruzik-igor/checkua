@@ -1,0 +1,94 @@
+<?php
+
+class install
+{
+	public $service = null;
+	
+	public $name = "liqpay";
+	public $title = "liqpay";
+	public $description = "Сервіс оплати Visa/Mastercard через LiqPay PrivatBank";
+	public $group = "shop";
+	public $table_service = "s_liqpay";
+	public $multi_alias = 0;
+	public $order_alias = 1;
+	public $admin_ico = 'fa-cc-visa';
+	public $version = "1.0";
+
+	public $options = array('public_key' => '', 'private_key' => '', 'useMarkUp' => 0, 'markUp' => 2.75, 'testPay' => 1);
+	public $options_type = array('public_key' => 'text', 'private_key' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number', 'testPay' => 'bool');
+	public $options_title = array('public_key' => 'Публічний ключ', 'private_key' => 'Приватний ключ', 'useMarkUp' => 'Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)', 'markUp' => 'Націнка у %', 'testPay' => 'Тестовий платіж');
+	public $options_admin = array ();
+	public $sub_menu = array();
+
+	public $cooperation_index = 2;
+	public $cooperation_types = array('payment' => 'liqpay');
+	public $cooperation_service = array('payment' => 'cart');
+
+	public $seo_name = "liqpay";
+	public $seo_title = "";
+	public $seo_description = "";
+	public $seo_keywords = "";
+
+	public function alias($alias = 0, $table = '')
+	{
+		if($alias == 0)
+			return false;
+
+		$where = array('alias' => $alias, 'content' => 0);
+        $this->db->updateRow('wl_ntkd', array('list' => '<i class="fa fa-cc-visa"></i> Visa/Mastercard через LiqPay PrivatBank'), $where);
+
+        if($cart_service = $this->db->getAllDataById('wl_services', 'cart', 'name'))
+        {
+        	if($carts = $this->db->getAllDataByFieldInArray('wl_aliases', $cart_service->id, 'service'))
+        		foreach ($carts as $cart) {
+        			$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cart->id, 'alias2' => $alias, 'type' => 'payment'));
+        		}
+        }
+
+		return true;
+	}
+
+	public function alias_delete($alias = 0, $table = '')
+	{
+		return true;
+	}
+
+	public function setOption($option, $value, $alias, $table = '')
+	{
+		$this->options[$option] = $value;
+
+		return true;
+	}
+
+	public function install_go()
+	{
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `alias` tinyint(4) NOT NULL,
+					  `cart_alias` tinyint(4) NOT NULL,
+					  `cart_id` int(11) NOT NULL,
+					  `amount` float NOT NULL,
+					  `murkup` float NOT NULL,
+					  `currency` int(11) NOT NULL,
+					  `status` text NOT NULL,
+					  `details` text NOT NULL,
+					  `comment` text NOT NULL,
+					  `date_add` int(11) NOT NULL,
+					  `date_edit` int(11) NOT NULL,
+					  `signature` text NOT NULL,
+					  PRIMARY KEY (`id`),
+					  KEY `method` (`alias`,`cart_id`,`cart_alias`)
+					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
+		$this->db->executeQuery($query);
+
+		return true;
+	}
+
+	public function uninstall($service = 0)
+	{
+		return true;
+	}
+	
+}
+
+?>

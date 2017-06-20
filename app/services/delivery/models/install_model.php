@@ -54,8 +54,7 @@ class install
 					  `user` int(11) NOT NULL,
 					  `method` tinyint(2) NOT NULL,
 					  `address` text NOT NULL,
-					  `invoice` text NOT NULL,
-					  `comment` text NOT NULL,
+					  `comment` text NULL,
 					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 		$this->db->executeQuery($query);

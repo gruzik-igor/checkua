@@ -256,7 +256,7 @@ class wl_aliases extends Controller {
                                     $option['alias'] = $alias;
 
                                     foreach ($install->options as $key => $value) {
-                                        if(isset($_POST[$key]) && $_POST[$key] != $value)
+                                        if(isset($_POST[$key]) && ($_POST[$key] != $value || $key == 'folder'))
                                         {
                                             $option['name'] = $key;
                                             $option['value'] = $_POST[$key];
@@ -302,6 +302,26 @@ class wl_aliases extends Controller {
                                             $this->db->insertRow('wl_options', $option);
                                         }
                                     }
+                                }
+
+                                if(!empty($install->cooperation_service) && is_array($install->cooperation_service) && !empty($install->cooperation_index) && is_array($install->cooperation_index))
+                                {
+                                    foreach ($install->cooperation_service as $type => $search) {
+                                        if(isset($install->cooperation_index[$type]))
+                                        {
+                                            if($service = $this->db->getAllDataById('wl_services', $search, 'name'))
+                                            {
+                                                if($aliases = $this->db->getAllDataByFieldInArray('wl_aliases', $service->id, 'service'))
+                                                    foreach ($aliases as $cooperation_alias) {
+                                                        if($install->cooperation_index[$type] == 1)
+                                                            $this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias, 'alias2' => $cooperation_alias->id, 'type' => $type));
+                                                        else
+                                                             $this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cooperation_alias->id, 'alias2' => $alias, 'type' => $type));
+                                                    }
+                                            }
+                                        }
+                                    }
+                                    
                                 }
 
                                 $install->alias($alias, $update['table']);

@@ -62,10 +62,6 @@
 										<label>Телефон</label>
 										<input type="text" id="userPhone" class="form-control">
 									</div>
-									<div class="form-group">
-										<label>Пароль</label>
-										<input type="password" id="password" class="form-control">
-									</div>
 									<div class="form-group text-center">
 										<button class="btn btn-success" type="button" onclick="saveNewUser()">Зберегти</button>
 									</div>
@@ -148,18 +144,16 @@
 	function saveNewUser() {
 		$("#newUserError").hide();
 		var name = $("#userName").val(),
-			password = $("#password").val(),
 			email = $("#userEmail").val(),
 			phone = $("#userPhone").val()
 
-		if(name && password && (email || phone))
+		if(name && (email || phone))
 		{
 			$.ajax({
 				url: "<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/saveNewUser'?>",
 				type:"POST",
 				data:{
 					"name":name,
-					"password":password,
 					"email":email,
 					"phone":phone
 				},

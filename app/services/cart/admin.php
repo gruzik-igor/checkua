@@ -559,7 +559,7 @@ class cart extends Controller {
         $data['date'] = time();
 
         if(!isset($data['cart'])){
-            $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => 0, 'status' => 1, 'date_add' => $data['date']));
+            $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => 0, 'status' => 1, 'date_add' => $data['date'], 'date_edit' => $data['date']));
             $data['cart'] = $this->db->getLastInsertedId();
         }
 

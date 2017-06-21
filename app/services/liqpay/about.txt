@@ -1,14 +1,13 @@
-Service "Privat24 1.1"
+Service "LiqPay 1.0"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
-Date 1.1   : 20.06.2017
-Date 1.0   : 01.04.2016
+Date 1.0   : 20.06.2017
 
-Description: Сервіс оплати через Privat24
+Description: Сервіс оплати Visa/Mastercard через LiqPay PrivatBank
 Options:
-	merchant	(text)		ID мерчанта у Privat24
-	password	(text)		Пароль мерчанта у Privat24
+	merchant	(text)		ID мерчанта у LiqPay
+	password	(text)		Пароль мерчанта у LiqPay
 	useMarkUp	(bool)		Використовувати націнку. Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)
 	markUp		(number)	Націнка у %
 
@@ -23,6 +22,4 @@ Private links (admin access):
 	/index/id 	перегляд квитанції детально
 
 Versions:
-	1.0 	Основа сервісу
-	1.1 	Оновлено інсталяційну модель (автопідключення до корзини)
-			Змінено режим підключення до корзини
+	1.0 	На основі сервісу Privat24 1.1

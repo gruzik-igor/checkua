@@ -1,5 +1,5 @@
 <?php
-  $ntkd = array();
+  $ntkd = $pageNames = array();
   $where_ntkd['alias'] = $_SESSION['alias']->id;
   $where_ntkd['content'] = $product->id;
   $wl = $this->db->getAllDataByFieldInArray('wl_ntkd', $where_ntkd);
@@ -7,7 +7,8 @@
   {
   	if($_SESSION['language'])
   		foreach ($wl as $nt) {
-	      $ntkd[$nt->language] = $nt;
+        $ntkd[$nt->language] = $nt;
+	      $pageNames[$nt->language] = $nt->name;
 	    }
     else
   		$ntkd = $wl[0];

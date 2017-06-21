@@ -183,7 +183,10 @@ class wl_aliases extends Controller {
                         $go++;
                 }
                 if($go > 0)
+                {
+                    $_SESSION['notify'] = new stdClass();
                     $_SESSION['notify']->errors = 'Поле "Адреса посилання" має бути унікальним!';
+                }
             }
                 
             $text = '';
@@ -221,6 +224,15 @@ class wl_aliases extends Controller {
                     $alias = $this->db->getLastInsertedId();
                     $this->db->register('alias_add', $data['alias'].' ('.$alias.')');
                     $this->db->sitemap_add(0, $data['alias'], 200, 7, 'daily', $alias);
+
+                    $ntkd = array('alias' => $alias, 'content' => 0, 'language' => NULL, 'name' => $this->data->post('name'));
+                    if($_SESSION['language'])
+                        foreach ($_SESSION['all_languages'] as $language) {
+                            $ntkd['language'] = $language;
+                            $this->db->insertRow('wl_ntkd', $ntkd);
+                        }
+                    else
+                        $this->db->insertRow('wl_ntkd', $ntkd);
                     
                     if($data['service'] > 0)
                     {
@@ -297,15 +309,6 @@ class wl_aliases extends Controller {
                             $this->db->updateRow('wl_aliases', $update, $alias);
                         }
                     }
-
-                    $ntkd = array('alias' => $alias, 'content' => 0, 'language' => NULL, 'name' => $this->data->post('name'));
-                    if($_SESSION['language'])
-                        foreach ($_SESSION['all_languages'] as $language) {
-                            $ntkd['language'] = $language;
-                            $this->db->insertRow('wl_ntkd', $ntkd);
-                        }
-                    else
-                        $this->db->insertRow('wl_ntkd', $ntkd);
 
                     $this->load->redirect('admin/wl_aliases/'.$data['alias']);
                 }

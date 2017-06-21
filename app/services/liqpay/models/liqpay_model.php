@@ -1,6 +1,6 @@
 <?php 
 
-class privat24_model
+class liqpay_model
 {
 
 	public function create($cart)
@@ -27,30 +27,30 @@ class privat24_model
 		return $this->db->getAllDataById($_SESSION['service']->table, $id);
 	}
 
-    public function validate($id)
-    {
-    	if(isset($_POST['payment']) && $_POST['payment'] != '')
+	public function validate($id)
+	{
+    	if(isset($_POST['data']) && $_POST['data'] != '')
     	{
-			$signature = sha1(md5($_POST['payment'].$_SESSION['option']->password));
+			$signature = base64_encode( sha1( $_SESSION['option']->private_key . $_POST['data'] . $_SESSION['option']->private_key , 1 ) );
 			if($_POST['signature'] == $signature)
 			{
-				parse_str($_POST['payment'], $output);
-				if($output['state'] == 'test' || $output['state'] == 'ok')
+				$data = json_decode ( base64_decode ($_POST['data']) );
+				if($data->version == 3 && ($data->status == 'success' || $data->status == 'sandbox'))
 				{
 					$pay = $this->db->getAllDataById($_SESSION['service']->table, $id);
-					if($pay && $pay->id == $output['order'])
+					if($pay && $pay->id == $data->order_id)
 					{
-						$amount = floatval($output['amt']);
 						$pay->amount = floatval($pay->amount);
+						$data->amount = floatval($data->amount);
 
 						$sender_phone = '';
-						if(isset($output['sender_phone'])) $sender_phone = ' '.$output['sender_phone'];
-						$transaction = 'Privat24 Transaction ID: '.$output['ref'].$sender_phone;
+						if(isset($data->sender_phone)) $sender_phone = ' '.$data->sender_phone;
+						$transaction = 'LiqPay Transaction ID: '.$data->transaction_id.$sender_phone;
 
-						if($amount == $pay->amount)
+						if($data->amount == $pay->amount)
 						{
 							$update = array();
-							$pay->status = $update['status'] = $output['state'];
+							$pay->status = $update['status'] = $data->status;
 							$pay->comment = $update['comment'] = $transaction;
 							$pay->date_edit = $update['date_edit'] = time();
 							$update['signature'] = $this->signature($pay);
@@ -58,6 +58,23 @@ class privat24_model
 
 							return $pay;
 						}
+					}
+				}
+				else if($data->status == 'processing')
+				{
+					$pay = $this->db->getAllDataById($_SESSION['service']->table, $id);
+					if($pay && $pay->id == $data->order_id)
+					{
+						$sender_phone = '';
+						if(isset($data->sender_phone)) $sender_phone = ' '.$data->sender_phone;
+						$transaction = 'LiqPay Transaction ID: processing'.$sender_phone;
+
+						$update = array();
+						$pay->status = $update['status'] = $data->status;
+						$pay->comment = $update['comment'] = $transaction;
+						$pay->date_edit = $update['date_edit'] = time();
+						$update['signature'] = $this->signature($pay);
+						$this->db->updateRow($_SESSION['service']->table, $update, $pay->id);
 					}
 				}
 			}
@@ -85,7 +102,7 @@ class privat24_model
 
 	private function signature($pay)
 	{
-		return sha1($pay->id.'Privat24pay'.$pay->alias.$pay->cart_alias.$pay->amount.$pay->currency.$pay->comment.$pay->status.$pay->details.$pay->cart_id.$pay->date_add.$pay->murkup.md5($pay->date_edit.SYS_PASSWORD));
+		return sha1($pay->id.'LiQpaY'.$pay->alias.$pay->cart_alias.$pay->amount.$pay->currency.$pay->comment.$pay->status.$pay->details.$pay->cart_id.$pay->date_add.$pay->murkup.md5($pay->date_edit.SYS_PASSWORD));
 	}
 
 }

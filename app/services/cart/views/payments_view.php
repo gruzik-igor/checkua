@@ -1,43 +1,31 @@
 <div class="row">
 	<div class="col-md-6 md-margin-bottom-50">
 		<h2 class="title-type"><?=$this->text('Оберіть платіжний механізм')?></h2>
-		<!-- Accordion -->
-		<div class="accordion-v2">
-			<div class="panel-group" id="accordion">
-				<?php
-				$cart = $this->db->getAllDataById('s_cart', $_SESSION['cart']->id);
-				if($cart)
-				{
-					$cart->return_url = $_SESSION['alias']->alias.'/order/'.$cart->id;
-					$cart->wl_alias = $_SESSION['alias']->id;
-					$cooperation_where['alias1'] = $_SESSION['alias']->id;
-					$cooperation_where['type'] = 'payment';
-					$cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
-			        if($cooperation)
-			        {
-			            foreach ($cooperation as $storage) {
-			                $this->load->function_in_alias($storage->alias2, '__get_Payment', $cart);
-			            }
-			        }
-				}
-				?>
-				<div class="panel panel-default ">
-					<div class="panel-heading">
-						<h4 class="panel-title">
-							<a data-toggle="collapse" data-parent="#accordion" href="#collapseTwo">
-								<i class="fa fa-money"></i>
-								<?=$this->text('Готівка')?>
-							</a>
-						</h4>
+
+		<form action="<?= SERVER_URL?>cart/pay" method="POST">
+			<input type="hidden" name="cart" value="<?=$_SESSION['cart']->id?>">
+
+			<?php
+			$cooperation_where['alias1'] = $_SESSION['alias']->id;
+			$cooperation_where['type'] = 'payment';
+			$ntkd = array('alias' => '#c.alias2', 'content' => 0);
+			if($_SESSION['language'])
+				$ntkd['language'] = $_SESSION['language'];
+			$cooperation = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
+									->join('wl_ntkd', 'list', $ntkd)
+									->get('array');
+	        if($cooperation)
+	        {
+	            foreach ($cooperation as $payment) { ?>
+	                <div class="form-group">
+					    <button type="submit" name="method" value="<?=$payment->id?>" class="btn btn-success"><?=htmlspecialchars_decode($payment->list)?></button>
 					</div>
-					<div id="collapseTwo" class="panel-collapse collapse in">
-						<div class="panel-body">
-							<a class="btn-u btn-u-sea-shop" href="<?= SERVER_URL?>cart/payCash"><?=$this->text('Оплатити готівкою')?></a>
-						</div>
-					</div>
-				</div>
+	            <?php }
+	        }
+			?>
+			<div class="form-group">
+		      	<button type="submit" name="method" value="0" class="btn btn-success"><i class="fa fa-money"></i> <?=$this->text('Готівкою при отриманні')?></button>
 			</div>
-		</div>
-		<!-- End Accordion -->
+		</form>
 	</div>
 </div>

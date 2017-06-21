@@ -2,12 +2,12 @@
 
 /*
 
- 	Service "Privat24 1.1"
+ 	Service "LiqPay 1.0"
 	for WhiteLion 1.0
 
 */
 
-class privat24 extends Controller {
+class liqpay extends Controller {
 				
     function _remap($method, $data = array())
     {
@@ -22,10 +22,10 @@ class privat24 extends Controller {
 
     public function index($uri)
     {
-    	$this->load->smodel('privat24_model');
+    	$this->load->smodel('liqpay_model');
     	if(is_numeric($uri))
     	{
-    		$payment = $this->privat24_model->getPayment($uri);
+    		$payment = $this->liqpay_model->getPayment($uri);
     		if($payment)
     		{
     			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Оплата #'.$uri => '');
@@ -38,7 +38,7 @@ class privat24 extends Controller {
     	else
     	{
             $_SESSION['option']->paginator_per_page = 50;
-	    	$this->load->admin_view('list_view', array('payments' => $this->privat24_model->getPayments()));
+	    	$this->load->admin_view('list_view', array('payments' => $this->liqpay_model->getPayments()));
     	}
     }
 	

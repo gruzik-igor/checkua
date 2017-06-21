@@ -515,31 +515,27 @@ class cart extends Controller {
         }
     }
 
-    public function payCash()
-    {
-        $cartId = $_SESSION['cart']->id;
-        unset($_SESSION['cart']);
-        $this->redirect('cart/'.$cartId);
-    }
-
     public function pay()
     {
-        $orderId = $this->data->uri(2);
-
-        if(isset($orderId) && is_numeric($orderId) > 0 ){
-            $where = array('field' => "phone", 'user' => "#u.id");
-            $this->db->select('s_cart as c', '*', $orderId);
-            $this->db->join('s_cart_status', 'name as status_name', '#c.status');
-            $this->db->join('wl_users as u', 'name as user_name, email as user_email, ballance as user_ballance', '#c.user');
-            $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-            $this->db->join('wl_user_types', 'title as user_type_name', '#u.type');
-            $cartInfo = $this->db->get();
-
-            if(isset($cartInfo->user) && $cartInfo->user == $_SESSION['user']->id || $this->userCan())
+        if(isset($_POST['method']) && is_numeric($_POST['method']))
+        {
+            if($_POST['method'] == 0)
             {
-                $this->load->page_view('pay_order_view', array('cartInfo' => $cartInfo));
-                exit;
-            } else $this->load->notify_view(array('errors' => 'Немає прав для перегляду даного замовлення.'));
+                $cartId = $_SESSION['cart']->id;
+                unset($_SESSION['cart']);
+                $this->redirect('cart/'.$cartId);
+            }
+            elseif($_POST['method'] > 0)
+            {
+                if($cart = $this->db->getAllDataById('s_cart', $_SESSION['cart']->id))
+                {
+                    unset($_SESSION['cart']);
+                    $cart->return_url = $_SESSION['alias']->alias.'/'.$cart->id;
+                    $cart->wl_alias = $_SESSION['alias']->id;
+
+                    $this->load->function_in_alias($this->data->post('method'), '__get_Payment', $cart);
+                } 
+            }
         }
     }
 

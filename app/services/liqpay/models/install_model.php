@@ -4,27 +4,27 @@ class install
 {
 	public $service = null;
 	
-	public $name = "privat24";
-	public $title = "Privat24";
-	public $description = "Сервіс оплати через Privat24";
+	public $name = "liqpay";
+	public $title = "liqpay";
+	public $description = "Сервіс оплати Visa/Mastercard через LiqPay PrivatBank";
 	public $group = "shop";
-	public $table_service = "s_privat24";
+	public $table_service = "s_liqpay";
 	public $multi_alias = 0;
 	public $order_alias = 1;
-	public $admin_ico = 'fa-paypal';
-	public $version = "1.1";
+	public $admin_ico = 'fa-cc-visa';
+	public $version = "1.0";
 
-	public $options = array('merchant' => '', 'password' => '', 'useMarkUp' => 0, 'markUp' => 0);
-	public $options_type = array('merchant' => 'text', 'password' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number');
-	public $options_title = array('merchant' => 'Merchant id', 'password' => 'Пароль мерчанта', 'useMarkUp' => 'Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)', 'markUp' => 'Націнка у %');
+	public $options = array('public_key' => '', 'private_key' => '', 'useMarkUp' => 0, 'markUp' => 2.75, 'testPay' => 1);
+	public $options_type = array('public_key' => 'text', 'private_key' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number', 'testPay' => 'bool');
+	public $options_title = array('public_key' => 'Публічний ключ', 'private_key' => 'Приватний ключ', 'useMarkUp' => 'Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)', 'markUp' => 'Націнка у %', 'testPay' => 'Тестовий платіж');
 	public $options_admin = array ();
 	public $sub_menu = array();
 
 	public $cooperation_index = 2;
-	public $cooperation_types = array('payment' => 'privat24');
+	public $cooperation_types = array('payment' => 'liqpay');
 	public $cooperation_service = array('payment' => 'cart');
 
-	public $seo_name = "Privat24";
+	public $seo_name = "liqpay";
 	public $seo_title = "";
 	public $seo_description = "";
 	public $seo_keywords = "";
@@ -35,7 +35,7 @@ class install
 			return false;
 
 		$where = array('alias' => $alias, 'content' => 0);
-        $this->db->updateRow('wl_ntkd', array('list' => '<img src="/app/services/privat24/views/logo_privat24.png" alt="Privat24" title="Privat24">'), $where);
+        $this->db->updateRow('wl_ntkd', array('list' => '<i class="fa fa-cc-visa"></i> Visa/Mastercard через LiqPay PrivatBank'), $where);
 
         if($cart_service = $this->db->getAllDataById('wl_services', 'cart', 'name'))
         {

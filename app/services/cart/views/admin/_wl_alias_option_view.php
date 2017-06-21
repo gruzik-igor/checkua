@@ -8,7 +8,7 @@
 			$cooperation_where['alias1'] = $alias->id;
 			$cooperation_where['type'] = 'currency';
 			$cooperation = $this->db->getAllDataById('wl_aliases_cooperation', $cooperation_where);
-			if($cooperation) { $currencies = $this->load->function_in_alias($cooperation->alias2, '__get_All_Currencies'); if($currencies) { ?>
+			if($cooperation && false) { $currencies = $this->load->function_in_alias($cooperation->alias2, '__get_All_Currencies'); if($currencies) { ?>
 			<form action="<?= SERVER_URL?>admin/<?= $alias->alias?>/saveCurrency">
 				<?php foreach($currencies as $currency) {?>
 

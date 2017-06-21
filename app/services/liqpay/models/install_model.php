@@ -20,30 +20,14 @@ class install
 	public $options_admin = array ();
 	public $sub_menu = array();
 
-	public $cooperation_index = 2;
+	public $cooperation_index = array('cart' => 2);
 	public $cooperation_types = array('payment' => 'liqpay');
-	public $cooperation_service = array('payment' => 'cart');
-
-	public $seo_name = "liqpay";
-	public $seo_title = "";
-	public $seo_description = "";
-	public $seo_keywords = "";
+	public $cooperation_service = array('cart' => 'payment');
 
 	public function alias($alias = 0, $table = '')
 	{
 		if($alias == 0)
 			return false;
-
-		$where = array('alias' => $alias, 'content' => 0);
-        $this->db->updateRow('wl_ntkd', array('list' => '<i class="fa fa-cc-visa"></i> Visa/Mastercard через LiqPay PrivatBank'), $where);
-
-        if($cart_service = $this->db->getAllDataById('wl_services', 'cart', 'name'))
-        {
-        	if($carts = $this->db->getAllDataByFieldInArray('wl_aliases', $cart_service->id, 'service'))
-        		foreach ($carts as $cart) {
-        			$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cart->id, 'alias2' => $alias, 'type' => 'payment'));
-        		}
-        }
 
 		return true;
 	}

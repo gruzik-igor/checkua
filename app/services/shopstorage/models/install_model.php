@@ -23,15 +23,11 @@ class install
 				);
 	public $sub_menu = array("add" => "Додати карточку товару", "options" => "Властивості");
 
-	public $cooperation_index = 2;
+	public $cooperation_index = array('shopshowcase' => 2);
 	public $cooperation_types = array('storage' => 'Склад');
+	public $cooperation_service = array('shopshowcase' => 'storage');
 
-	public $seo_name = "Склад";
-	public $seo_title = "Склад";
-	public $seo_description = "";
-	public $seo_keywords = "";
-
-	function alias($alias = 0, $table = '')
+	public function alias($alias = 0, $table = '')
 	{
 		if($alias == 0) return false;
 

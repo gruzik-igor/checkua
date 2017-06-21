@@ -20,17 +20,15 @@ class install
 	public $options_admin = array ();
 	public $sub_menu = array();
 
-	public $cooperation_index = 2;
+	public $cooperation_index = array('cart' => 2);
 	public $cooperation_types = array('delivery' => 'Доставка');
+	public $cooperation_service = array('cart' => 'delivery');
 
-	public $seo_name = "Доставка";
-	public $seo_title = "";
-	public $seo_description = "";
-	public $seo_keywords = "";
 
-	function alias($alias = 0, $table = '')
+	public function alias($alias = 0, $table = '')
 	{
-		if($alias == 0) return false;
+		if($alias == 0)
+			return false;
 
 		return true;
 	}

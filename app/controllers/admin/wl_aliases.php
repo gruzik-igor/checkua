@@ -306,14 +306,14 @@ class wl_aliases extends Controller {
 
                                 if(!empty($install->cooperation_service) && is_array($install->cooperation_service) && !empty($install->cooperation_index) && is_array($install->cooperation_index))
                                 {
-                                    foreach ($install->cooperation_service as $type => $search) {
-                                        if(isset($install->cooperation_index[$type]))
+                                    foreach ($install->cooperation_service as $search => $type) {
+                                        if(isset($install->cooperation_index[$search]))
                                         {
                                             if($service = $this->db->getAllDataById('wl_services', $search, 'name'))
                                             {
                                                 if($aliases = $this->db->getAllDataByFieldInArray('wl_aliases', $service->id, 'service'))
                                                     foreach ($aliases as $cooperation_alias) {
-                                                        if($install->cooperation_index[$type] == 1)
+                                                        if($install->cooperation_index[$search] == 1)
                                                             $this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias, 'alias2' => $cooperation_alias->id, 'type' => $type));
                                                         else
                                                              $this->db->insertRow('wl_aliases_cooperation', array('alias1' => $cooperation_alias->id, 'alias2' => $alias, 'type' => $type));

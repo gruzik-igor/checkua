@@ -19,12 +19,7 @@ class install{
 	public $options_admin = array ();
 	public $sub_menu = array("add" => "Додати питання", "all" => "До всіх питань", "groups" => "Групи");
 
-	public $seo_name = "FAQ";
-	public $seo_title = "FAQ";
-	public $seo_description = "";
-	public $seo_keywords = "";
-
-	function alias($alias = 0, $table = '')
+	public function alias($alias = 0, $table = '')
 	{
 		if($alias == 0) return false;
 

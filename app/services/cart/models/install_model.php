@@ -14,9 +14,9 @@ class install
 	public $admin_ico = 'fa-shopping-cart';
 	public $version = "1.0";
 
-	public $options = array('useShipping' => 0, 'usePayments' => 0, 'usePassword' => 1, 'useStorage' => 0, 'newUserType' => 4);
-	public $options_type = array('useShipping' => 'bool', 'usePayments' => 'bool', 'usePassword' => 'bool', 'useStorage' => 'bool', 'newUserType' => 'number');
-	public $options_title = array('useShipping' => 'Використовувати доставку', 'usePayments' => 'Використовувати оплату', 'usePassword' => 'Пароль обов"язковий при ідентифікації', 'useStorage' => 'Використовувати склади', 'newUserType' => 'ID типу нового користувача');
+	public $options = array('usePassword' => 1, 'newUserType' => 4);
+	public $options_type = array('usePassword' => 'bool', 'newUserType' => 'number');
+	public $options_title = array('usePassword' => 'Пароль обов"язковий при ідентифікації', 'newUserType' => 'ID типу нового користувача');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',
@@ -24,19 +24,16 @@ class install
 					'word:product' => 'товар',
 					'word:products' => 'товари'
 				);
-	public $sub_menu = array("add" => "Додати покупку", "all" => "До всіх заявок");
+	public $sub_menu = array();
 
-	public $cooperation_index = 2;
+	public $cooperation_index = array('shopshowcase' => 2);
 	public $cooperation_types = array('cart' => 'Корзина');
+	public $cooperation_service = array('shopshowcase' => 'cart');
 
-	public $seo_name = "Корзина";
-	public $seo_title = "Корзина";
-	public $seo_description = "";
-	public $seo_keywords = "";
-
-	function alias($alias = 0, $table = '')
+	public function alias($alias = 0, $table = '')
 	{
-		if($alias == 0) return false;
+		if($alias == 0)
+			return false;
 
 		return true;
 	}

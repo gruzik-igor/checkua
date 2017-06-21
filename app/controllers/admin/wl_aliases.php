@@ -677,6 +677,13 @@ class wl_aliases extends Controller {
         }
     }
 
+    public function deleteCooperation()
+    {
+        if($id = $this->data->get('id'))
+            $this->db->deleteRow('wl_aliases_cooperation', $id);
+        $this->redirect();
+    }
+
 }
 
 ?>

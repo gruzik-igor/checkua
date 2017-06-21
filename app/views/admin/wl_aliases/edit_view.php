@@ -201,6 +201,7 @@
 										<td><a href="<?=SITE_URL.'admin/wl_aliases/'.$row->alias1_name?>"><?=$row->alias1.' '.$row->alias1_name?></a></td>
 										<td><a href="<?=SITE_URL.'admin/wl_aliases/'.$row->alias2_name?>"><?=$row->alias2.' '.$row->alias2_name?></a></td>
 										<td><?=$row->type?></td>
+										<td><a href="<?=SITE_URL?>admin/wl_aliases/deleteCooperation?id=<?=$row->id?>">Скасувати</a></td>
 									</tr>
 								<?php } ?>
 							</tbody>

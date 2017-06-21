@@ -23,7 +23,7 @@
 	    		<td><a href="<?=SITE_URL.'admin/'.$product->alias_name.'/search?id='.$product->product?>" target="_blank"><?= $product->product_article ?></a></td>
 	    		<td>
 	    			<img src="<?= $product->photo?>" width="90" alt="">
-	    			<?= $product->product_name .' ( '. $product->additional .' )'?>
+	    			<?= $product->product_name . ( $product->additional ? ' ( '. $product->additional .' )' : '') ?>
 	    		</td>
 	    		<?php if($_SESSION['option']->useStorage) {?>
 	    		<td width="20%">

@@ -659,20 +659,21 @@ class wl_aliases extends Controller {
         if(isset($_POST['alias_id']))
         {
             $cooperation['type'] = $this->data->post('type');
-            if ($_POST['alias_index'] == 2)
+            $alias = explode('-', $this->data->post('alias'));
+            if(count($alias) == 2 && is_numeric($alias[0]) && is_numeric($alias[1]))
             {
-                $cooperation['alias1'] = $this->data->post('alias');
-                $cooperation['alias2'] = $this->data->post('alias_id');
-            }
-            else
-            {
-                $cooperation['alias1'] = $this->data->post('alias_id');
-                $cooperation['alias2'] = $this->data->post('alias');
-            }
-            if($this->db->insertRow('wl_aliases_cooperation', $cooperation))
-            {
-                header('Location: '.SITE_URL.'admin/wl_aliases/'.$this->data->post('alias_link'));
-                exit();
+                if ($alias[1] == 2)
+                {
+                    $cooperation['alias1'] = $alias[0];
+                    $cooperation['alias2'] = $this->data->post('alias_id');
+                }
+                else
+                {
+                    $cooperation['alias1'] = $this->data->post('alias_id');
+                    $cooperation['alias2'] = $alias[0];
+                }
+                if($this->db->insertRow('wl_aliases_cooperation', $cooperation))
+                    $this->redirect('admin/wl_aliases/'.$this->data->post('alias_link'));
             }
         }
     }

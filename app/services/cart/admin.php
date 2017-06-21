@@ -563,13 +563,13 @@ class cart extends Controller {
         if($this->data->post('userInfo')){
             $info = $this->data->post('userInfo');
 
-            $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `name` LIKE '%{$info}%' OR `email` = '{$info}'", 'array');
+            $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `name` LIKE '%{$info}%' OR `email` LIKE '%{$info}%'", 'array');
             if(!$user)
             {
-                $this->db->executeQuery("SELECT id FROM `wl_user_info` WHERE `phone1` LIKE '%{$info}%' OR `phone2` LIKE '%{$info}%'");
+              $this->db->executeQuery("SELECT user FROM `wl_user_info` WHERE `field` = 'phone' AND `value` LIKE '%{$info}%'");
                 if($this->db->numRows() == 1){
                     $userId = $this->db->getRows();
-                    $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `id` = $userId->id", 'array');
+                    $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `id` = $userId->user", 'array');
                     $res['result'] = true;
                     $res['user'] = $user;
                 }
@@ -584,13 +584,12 @@ class cart extends Controller {
     public function saveNewUser()
     {
         $res = array('result' => false, 'message' => '');
-        if(trim($this->data->post('name')) != '' && $this->data->post('password') && ($this->data->post('email') || $this->data->post('phone')))
+        if(trim($this->data->post('name')) != '' && ($this->data->post('email') || $this->data->post('phone')))
         {
             $data = array();
 
             $data['name'] = $name = $this->data->post('name');
             $data['email'] = $email = $this->data->post('email');
-            $data['password'] = $this->data->post('password');
             $data['photo'] = 0;
             $userInfo['phone'] = $phone = $this->data->post('phone');
 
@@ -608,7 +607,7 @@ class cart extends Controller {
                 }
                 if($phone && $res['message'] == '')
                 {
-                    $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `field` = 'phone' AND `value` = '{$phone}' OR  `field` = 'phone2' AND `value` = '{$phone}'");
+                    $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `field` = 'phone' AND `value` = '{$phone}'");
 
                     if($this->db->numRows() > 0)
                     {
@@ -622,9 +621,24 @@ class cart extends Controller {
 
             if($res['result'] == true)
             {
+                $data['password'] = substr(hash('sha512',rand()),0,5);
+                $sendTemplate = true;
+
+                if(empty($data['email']))
+                {
+                    $data['email'] = $userInfo['phone'];
+                    $sendTemplate = false;
+                }
+
                 $this->load->model('wl_user_model');
                 if($user = $this->wl_user_model->add($data, $userInfo))
                 {
+                    if($sendTemplate)
+                    {
+                        $this->load->library('mail');
+                        $this->mail->sendTemplate('password_generate', $data['email'], array('password' => $data['password']));
+                    }
+
                     $res['id'] = $user->id;
                 }
                 else {
@@ -635,11 +649,6 @@ class cart extends Controller {
         }
 
         $this->json($res);
-    }
-
-    public function saveCurrency()
-    {
-        print_r($_POST);exit;
     }
 }
 

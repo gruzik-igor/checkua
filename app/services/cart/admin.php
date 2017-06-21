@@ -70,6 +70,18 @@ class cart extends Controller {
 
         if($showInvoice && $cartProducts){
             foreach ($cartProducts as $product) {
+                $product->photo = false;
+                $photo = $this->db->select('wl_images', 'file_name', array('alias' => $product->alias, 'content' => $product->product))
+                                  ->join('wl_options', 'value as folder', array('alias' => $product->alias, 'name' => 'folder'))
+                                  ->limit(1)
+                                  ->order('position')
+                                  ->get('single');
+                
+                if($photo)
+                {
+                    $product->photo = IMG_PATH.$photo->folder.'/'.$product->product.'/admin_'.$photo->file_name;
+                }
+
                 if($_SESSION['option']->useStorage){
                     if($product->storage_invoice > 0 && $product->storage_alias > 0)
                     {
@@ -440,7 +452,7 @@ class cart extends Controller {
 
                                     echo("<tr>");
                                     echo("<td>{$product->article}</td>");
-                                    echo "<td>".html_entity_decode($product->name)."</td>";
+                                    echo "<td><img src=".IMG_PATH. $product->admin_photo." width='90' alt=''> ".html_entity_decode($product->name)."</td>";
                                     echo("<td>{$product->price} грн</td>");
                                     echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId'><input type='hidden' name='cartId' value='{$cartId}'><input type='hidden' name='productId' value='{$product->id}'><input type='hidden' name='price' value='{$product->price}'><button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
                                     echo("</tr>");
@@ -543,10 +555,11 @@ class cart extends Controller {
         $data['price_in'] = $this->data->post('price_in') ? $this->data->post('price_in') : 0;
         $data['alias'] = $this->db->getQuery("SELECT wl_alias FROM `s_shopshowcase_products` WHERE `id` = {$data['product']} ")->wl_alias;
         $data['user'] = $this->data->post('userId') === 'false' ? $_SESSION['user']->id : $this->data->post('userId');
+        $data['additional'] = '';
         $data['date'] = time();
 
         if(!isset($data['cart'])){
-            $this->db->insertRow('s_cart', array('user' => $data['user'], 'status' => 1, 'date_add' => $data['date']));
+            $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => 0, 'status' => 1, 'date_add' => $data['date']));
             $data['cart'] = $this->db->getLastInsertedId();
         }
 

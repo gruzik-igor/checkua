@@ -2,12 +2,29 @@
 
 /*
 
- 	Service "Shop cart 1.0"
+ 	Service "Shop cart 1.1"
 	for WhiteLion 1.0
 
 */
 
 class cart extends Controller {
+
+    function __construct()
+    {
+        parent::__construct();
+        $_SESSION['option']->useShipping = 0;
+        $_SESSION['option']->usePayments = 0;
+        $_SESSION['option']->useStorage = 0;
+        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+            foreach ($cooperation as $row) {
+                if($row->type == 'delivery')
+                    $_SESSION['option']->useShipping = 1;
+                elseif($row->type == 'payment')
+                    $_SESSION['option']->usePayments = 1;
+                elseif($row->type == 'storage')
+                    $_SESSION['option']->useStorage = 1;
+            }
+    }
 
     function _remap($method, $data = array())
     {

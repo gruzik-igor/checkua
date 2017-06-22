@@ -1,0 +1,594 @@
+/*Shopping Cart
+------------------------------------*/
+/*Coupon Code*/
+
+.shopping-cart .coupon-code {
+    margin-top: 35px;
+    padding-top: 35px;
+    border-top: 1px solid #eee;
+}
+
+.shopping-cart .coupon-code h3 {
+    margin: 0;
+    color: #687074;
+    font-size: 18px;
+}
+
+.shopping-cart .coupon-code input {
+    width: 60%;
+    margin-right: 10px;
+    display: inline-block;
+}
+
+/*Total Result*/
+.shopping-cart .total-result li {
+    display: block;
+}
+
+.shopping-cart .total-result li:after,
+.shopping-cart .total-result li:before {
+    content: " ";
+    display: table;
+}
+
+.shopping-cart .total-result li:after {
+    clear: both;
+}
+
+.shopping-cart .total-result li.divider {
+    height: 1px;
+    margin: 9px 0;
+    overflow: hidden;
+    background: #eee;
+}
+
+.shopping-cart .total-result h4 {
+    float: left;
+    margin-right: 15px;
+}
+
+.shopping-cart .total-result-in {
+    overflow: hidden;
+    text-align: right;
+}
+
+.shopping-cart .total-result-in h4,
+.shopping-cart .total-result-in span {
+    color: #687074;
+    font-size: 18px;
+}
+
+.shopping-cart .total-result .total-price h4,
+.shopping-cart .total-result .total-price span {
+    font-weight: 600;
+}
+
+.shopping-cart .total-result .total-price h4 {
+    margin: 0 auto;
+}
+
+.shopping-cart .total-result .total-price span {
+    color: #c9253c;
+}
+
+/*Table*/
+.shopping-cart .table > thead > tr > th,
+.shopping-cart .table > tbody > tr > th,
+.shopping-cart .table > tfoot > tr > th,
+.shopping-cart .table > thead > tr > td,
+.shopping-cart .table > tbody > tr > td,
+.shopping-cart .table > tfoot > tr > td {
+    border: none;
+    vertical-align: middle;
+}
+
+.shopping-cart .table > thead > tr > th,
+.shopping-cart .table > tbody > tr > td {
+    padding: 15px;
+    text-align: center;
+}
+
+.shopping-cart .table > thead > tr > th {
+    color: #687074;
+    font-size: 16px;
+    font-weight: 400;
+    padding-bottom: 20px;
+    text-transform: uppercase;
+}
+
+.shopping-cart .table > tbody > tr > td {
+    color: #888;
+}
+
+.shopping-cart .table > tbody > tr > td.shop-red {
+    color: #c9253c;
+}
+
+/*Product In Table*/
+.shopping-cart .product-in-table {
+    text-align: left !important;
+}
+
+.shopping-cart .product-it-in {
+    overflow: hidden;
+}
+
+@media (min-width: 991px) {
+    .shopping-cart .product-it-in {
+        margin-top: 40px;
+    }
+}
+
+@media (max-width: 992px) {
+    .shopping-cart .product-it-in {
+        clear: both;
+    }
+}
+
+.shopping-cart .product-in-table img {
+    float: left;
+    width: 120px;
+    height: auto;
+    padding: 10px;
+    background: #fff;
+    margin-right: 15px;
+    border: 1px solid #eee;
+}
+
+.shopping-cart .product-in-table h3 {
+    font-size: 16px;
+    margin-bottom: 5px;
+}
+
+/*Quantity Field Form*/
+.shopping-cart .quantity-button {
+    color: #888;
+    width: 45px;
+    height: 40px;
+    padding: 5px;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    font-size: 18px;
+    background: #eee;
+    text-align: center;
+    font-weight: normal;
+    white-space: nowrap;
+    display: inline-block;
+    background-image: none;
+}
+
+.shopping-cart .quantity-field {
+    width: 45px;
+    height: 40px;
+    outline: none;
+    margin: 0 -4px;
+    font-size: 18px;
+    text-align: center;
+    display: inline-block;
+    border: 1px solid #eee;
+}
+
+/*Close*/
+.shopping-cart .close {
+    opacity: 1;
+    color: #888;
+    font-size: 18px;
+    padding-right: 10px;
+}
+
+.shopping-cart .close:hover {
+    color: #555;
+}
+
+/*Billing Info*/
+.shopping-cart h2.title-type {
+    font-size: 16px;
+    margin-left: 20px;
+    text-transform: uppercase;
+}
+
+.shopping-cart .billing-info-inputs {
+    padding: 20px;
+    background: #f8f8f8;
+    border: 1px solid #eee;
+}
+
+.shopping-cart .billing-info-inputs label {
+    color: #555;
+    margin-bottom: 0;
+    vertical-align: middle;
+    padding-right: 0;
+}
+
+.shopping-cart .billing-info-inputs input {
+    min-height: 40px;
+    border-color: #eee;
+    margin-bottom: 10px;
+}
+.shopping-cart .billing-info-inputs input[type="radio"]{
+    min-height: 0;
+}
+
+.shopping-cart .billing-info-inputs .form-control {
+    color: #888;
+    box-shadow: none;
+}
+
+.shopping-cart .billing-info-inputs .form-control::-moz-placeholder {
+    color: #888;
+}
+.shopping-cart .billing-info-inputs .form-control:-ms-input-placeholder {
+    color: #888;
+}
+.shopping-cart .billing-info-inputs .form-control::-webkit-input-placeholder {
+    color: #888;
+}
+
+#newClientError, #clientError {
+    color:#D12E39;
+}
+
+    /*Wizard Jquery Steps
+------------------------------------*/
+/*Common*/
+.wizard {
+    width: 100%;
+    display: block;
+    overflow: hidden;
+}
+
+.wizard ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+.wizard ul > li {
+    padding: 0;
+    display: inline-block;
+}
+
+/* Accessibility */
+.wizard > .steps .current-info,
+.wizard > .content > .title {
+    left: -999em;
+    position: absolute;
+}
+
+/*Wizard Steps*/
+.wizard > .steps {
+    width: 100%;
+    display: block;
+    position: relative;
+}
+
+.wizard > .steps .number {
+    float: left;
+    font-size: 36px;
+    margin-right: 15px;
+    line-height: 35px;
+}
+
+.wizard > .steps > ul > li {
+    width: 31.2%;
+    margin-left: 30px;
+    position: relative;
+}
+
+.wizard > .steps > ul > li:first-child {
+    margin-left: 0;
+}
+
+.wizard > .steps > ul > li,
+.wizard > .actions > ul > li {
+    float: left;
+}
+
+.wizard > .steps a,
+.wizard > .steps a:hover,
+.wizard > .steps a:active {
+    width: auto;
+    padding: 15px;
+    display: block;
+    text-decoration: none;
+}
+
+.wizard > .steps h2 {
+    font-size: 22px;
+    margin: 0 0 5px;
+    color: #687074;
+}
+
+.wizard > .steps p {
+    opacity: 0.6;
+    font-size: 15px;
+    color: #888;
+    text-align:center;
+}
+
+.wizard > .steps i {
+    top: 15px;
+    right: 10px;
+    width: 40px;
+    height: 40px;
+    padding: 8px;
+    color: #c4c4c4;
+    font-size: 20px;
+    text-align: center;
+    position: absolute;
+    display: inline-block;
+    border: 2px dashed #e0e0e0;
+}
+
+/*Disabled*/
+.wizard > .steps .disabled a,
+.wizard > .steps .disabled a:hover,
+.wizard > .steps .disabled a:active {
+    color: #fff;
+    cursor: default;
+    background: inherit;
+    border: 1px solid #eee;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .steps .disabled .number {
+    color: #E21683;
+}
+
+/*Current*/
+.wizard > .steps .current a,
+.wizard > .steps .current a:hover,
+.wizard > .steps .current a:active {
+    color: #fff;
+    background: #E21683;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .steps .current .number,
+.wizard > .steps .current h2,
+.wizard > .steps .current p,
+.wizard > .steps .current i {
+    color: #fff;
+}
+
+.wizard > .steps .current i {
+    border-color: #fff;
+}
+
+/*Done*/
+.wizard > .steps .done a,
+.wizard > .steps .done a:hover,
+.wizard > .steps .done a:active {
+    color: #fff;
+    background: #9F3C76;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .steps .done .number,
+.wizard > .steps .done p {
+    color: #fff;
+}
+
+.wizard > .steps .done h2 {
+    color: #fff;
+}
+
+.wizard > .steps .done i {
+    color: #fff;
+    border-color: #fff;
+}
+
+/*Error*/
+.wizard > .steps .error a,
+.wizard > .steps .error a:hover,
+.wizard > .steps .error a:active {
+    color: #fff;
+    background: #c9253c;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .content > .body em.invalid {
+    display: block;
+    color: #8a1f11;
+    font-weight: 400;
+    display: none !important;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .content > .body input.invalid {
+    color: #8a1f11;
+    font-weight: 400;
+    border: 1px solid #eec5c7 !important;
+    -webkit-transition: all 0.3s ease-in-out;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+
+.wizard > .content > .body input.invalid.form-control::-moz-placeholder {
+    color: #8a1f11;
+}
+
+.wizard > .content > .body input.invalid.form-control:-ms-input-placeholder {
+    color: #8a1f11;
+}
+
+.wizard > .content > .body input.invalid.form-control::-webkit-input-placeholder {
+    color: #8a1f11;
+}
+
+/*Small Input Field*/
+.wizard > .content > .body .input-small-field input {
+    width: 20%;
+    float: left;
+    margin-right: 10px;
+}
+
+.wizard > .content > .body .input-small-field input.invalid {
+    margin-right: 10px;
+}
+
+.wizard > .content > .body .input-small-field span.slash {
+    color: #888;
+    float: left;
+    font-size: 20px;
+    margin-right: 8px;
+}
+
+/*Content*/
+.wizard > .content {
+    overflow: hidden;
+    position: relative;
+}
+
+.wizard > .content {
+    margin-top: 15px;
+    padding-top: 35px;
+    border-top: 1px solid #eee;
+}
+
+.wizard > .content > .body {
+    padding: 0;
+    width: 100%;
+}
+
+/*Actions*/
+.wizard > .actions {
+    text-align: right;
+}
+
+.wizard > .actions > ul {
+    display: inline-block;
+}
+
+.wizard > .actions > ul > li {
+    margin-left: 10px;
+    margin-bottom: 5px;
+}
+
+.wizard > .actions > ul > li:first-child {
+    /*margin-left: 0;*/
+}
+
+.wizard > .actions a {
+    color: #fff;
+    display: block;
+    font-size: 16px;
+    min-width: 126px;
+    padding: 8px 10px;
+    text-align: center;
+    background: #E21683;
+    text-decoration: none;
+    text-transform: uppercase;
+}
+
+.wizard > .actions a:hover {
+    background: #9F3C76;
+}
+
+.wizard > .actions .disabled a,
+.wizard > .actions .disabled a:hover,
+.wizard > .actions .disabled a:active {
+    color: #fff;
+    background: rgba(226, 22, 131, 0.42);
+}
+
+.wizard .btn-shop {
+    background: #E21683 !important;
+    border-color: #E21683 !important;
+    color: #fff !important;
+}
+.wizard .btn-shop:hover {
+    border-color: #9f3c76 !important;
+    background: #9f3c76 !important;
+}
+
+#divLoading
+{
+    display : none;
+}
+
+#divLoading.show
+{
+    display : block;
+    position : fixed;
+    z-index: 1001;
+    background-image : url('../../images/ajax-loader.gif');
+    background-color:#f9f8eb;
+    opacity : 0.7;
+    background-repeat : no-repeat;
+    background-position : center;
+    left : 0;
+    bottom : 0;
+    right : 0;
+    top : 0;
+}
+
+.facebookSignUp {
+    width: 100%; 
+    background: #44619c;
+    color: white;
+    font-weight: 500;
+    font-size: 14px;margin: 0;
+    border: none;
+    border-radius: 3px;
+    padding: 14px;
+    text-align: left;
+    font: 700 16px Verdana;
+}
+
+@media(max-width:991px) {
+    .wizard>.steps>ul>li {
+        width: 50% !important;
+        margin-left: 0 !important;
+    }
+    .wizard>.steps a,
+    .wizard>.steps a:hover,
+    .wizard>.steps a:active {
+        margin: .5em;
+    }
+    .wizard.vertical>.steps,
+    .wizard.vertical>.actions {
+        display: block;
+        float: none;
+        width: 100%
+    }
+    .wizard.vertical>.content {
+        display: block;
+        float: none;
+        margin: 0 .5em .5em;
+        width: auto
+    }
+}
+
+@media(max-width:480px) {
+    .wizard>.steps>ul>li {
+        width: 100% !important;
+        margin-left: 0 !important;
+    }
+}
+.ui-autocomplete {
+    max-height: 200px;
+    overflow-y: auto;
+    /* prevent horizontal scrollbar */
+    overflow-x: hidden;
+}
+
+* html .ui-autocomplete {
+    height: 200px;
+}

@@ -1,5 +1,5 @@
 <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
-<link href="<?=SITE_URL?>style/css/custom-wizard-steps.css" rel="stylesheet" type="text/css"/>
+<link href="<?=SERVER_URL.'css/'.$_SESSION['alias']->alias?>/custom-wizard-steps.css" rel="stylesheet" type="text/css"/>
 
 <div class="container content">
 	<div class="shopping-cart" action="#">
@@ -236,10 +236,10 @@
 </script>
 
 <?php
-	$_SESSION['alias']->js_load[] = 'js/site.js?v=1.1';
-	$_SESSION['alias']->js_load[] = 'assets/jquery-steps/jquery.steps.js';
+	$_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/site.js';
+	$_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/jquery.steps.js';
 	$_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
-	$_SESSION['alias']->js_load[] = 'js/shopping-cart.js?v=1.1';
+	$_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/shopping-cart.js';
 	$width = !$this->userIs() ? 19.25 : 24.3;
 ?>
 

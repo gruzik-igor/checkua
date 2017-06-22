@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 200;
 	public $admin_ico = 'fa-shopping-cart';
-	public $version = "1.0";
+	public $version = "1.1";
 
 	public $options = array('usePassword' => 1, 'newUserType' => 4);
 	public $options_type = array('usePassword' => 'bool', 'newUserType' => 'number');

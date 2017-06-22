@@ -16,7 +16,7 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-                	<a href="<?= SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати товар</a>
+                	<a href="<?= SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати покупку</a>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>
                 </div>
@@ -66,7 +66,11 @@
 							<td><?= date('d.m.Y H:i', $cart->date_add)?></td>
 							<td><?= $cart->date_edit > 0 ? date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
 						</tr>
-						<?php } } ?>
+						<?php } } else { ?>
+							<tr>
+								<td colspan="8">Заявки відсутні</td>
+							</tr>
+						<?php } ?>
 						</tbody>
 					</table>
 				</div>

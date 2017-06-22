@@ -8,12 +8,14 @@ class cart_model
 		return $_SESSION['service']->table.$sufix;
 	}
 
-	public function getAllCarts($id = 0)
+	public function getAllCarts()
 	{
-		$where = array();
-		if($id > 0) $where['id'] = $id;
+    	$this->db->select($this->table().' as c');
+		$this->db->join($this->table('_status'), 'name as status_name', '#c.status');
+		$this->db->join('wl_users', 'name as user_name', '#c.user');
+		$this->db->join('wl_user_info', 'value as user_phone', array('field' => "phone", 'user' => "#c.user"));
+		$this->db->order('date_add DESC', 'c');
 
-		$this->db->select($this->table().' as c', '*', $where);
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
 			$start = 0;
@@ -24,11 +26,6 @@ class cart_model
 
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
-		$where = array('field' => "phone", 'user' => "#c.user");
-		$this->db->join($this->table('_status'), 'name as status_name', '#c.status');
-		$this->db->join('wl_users', 'name as user_name', '#c.user');
-		$this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-		$this->db->order('date_add DESC');
 
 		$carts =  $this->db->get('array', false);
 		$_SESSION['option']->paginator_total = $this->db->get('count');

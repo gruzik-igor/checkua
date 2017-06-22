@@ -2,8 +2,28 @@
 
 class cart extends Controller {
 
+    function __construct()
+    {
+        parent::__construct();
+        $_SESSION['option']->useShipping = 0;
+        $_SESSION['option']->usePayments = 0;
+        $_SESSION['option']->useStorage = 0;
+        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+            foreach ($cooperation as $row) {
+                if($row->type == 'delivery')
+                    $_SESSION['option']->useShipping = 1;
+                elseif($row->type == 'payment')
+                    $_SESSION['option']->usePayments = 1;
+                elseif($row->type == 'storage')
+                    $_SESSION['option']->useStorage = 1;
+            }
+    }
+
     function _remap($method, $data = array())
     {
+        $_SESSION['alias']->breadcrumb = array('Корзина' => '');
+        $_SESSION['alias']->name = 'Корзина';
+                
         if(isset($_SESSION['alias']->name))
             $_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
         if (method_exists($this, $method)) {
@@ -36,17 +56,26 @@ class cart extends Controller {
 
             $this->load->admin_view('detal_view', array('cartInfo' => $cartInfo, 'cartProducts' => $cartProducts, 'cartHistory' => $cartHistory, 'cartStatuses' => $cartStatuses));
         } else {
-            $_SESSION['option']->paginator_per_page = 25;
+            $carts = false;
+            if(!empty($_GET['id']))
+            {
+                if($cart = $this->db->getAllDataById($this->cart_model->table(), $this->data->get('id')))
+                    $this->load->redirect('admin/'.$_SESSION['alias']->alias.'/'.$cart->id);
+            }
+            else
+            {
+                $_SESSION['option']->paginator_per_page = 25;
 
-            $id = isset($_GET['id']) ? $_GET['id'] : 0;
-
-            $carts = $this->cart_model->getAllCarts($id);
+                $carts = $this->cart_model->getAllCarts();
+            }
             $this->load->admin_view('index_view', array('carts' => $carts));
         }
     }
 
     public function add()
     {
+        $_SESSION['alias']->breadcrumb = array('Корзина' => 'admin/'.$_SESSION['alias']->alias, 'Додати покупку' => '');
+        $_SESSION['alias']->name = 'Корзина. Додати покупку';
         $this->load->admin_view('add_view');
     }
 

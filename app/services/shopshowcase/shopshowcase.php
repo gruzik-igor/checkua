@@ -11,6 +11,20 @@ class shopshowcase extends Controller {
 
 	private $groups = array();
 
+    function __construct()
+    {
+        parent::__construct();
+        $_SESSION['option']->useCart = 0;
+        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+            foreach ($cooperation as $row) {
+                if($row->type == 'cart')
+                {
+                    $_SESSION['option']->useCart = 1;
+                    break;
+                }
+            }
+    }
+
     function _remap($method, $data = array())
     {
         if (method_exists($this, $method))

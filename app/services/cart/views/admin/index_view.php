@@ -59,7 +59,7 @@
 						<tr>
 							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>"><?=$cart->id?></a></td>
 							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">Детальніше</a></td>
-							<td><?= $cart->user_name?></td>
+							<td><?= ($cart->user_name != '') ? $cart->user_name : 'Гість'?></td>
 							<td><?= $cart->user_phone?></td>
 							<td><?= $cart->status_name?></td>
 							<td><?= $cart->total?> грн</td>

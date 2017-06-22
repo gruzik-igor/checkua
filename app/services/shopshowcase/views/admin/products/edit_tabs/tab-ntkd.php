@@ -2,7 +2,7 @@
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
 	    <?php if($_SESSION['option']->ProductUseArticle) {
-	    	$ntkd[$lang]->name = substr($ntkd[$lang]->name, 0, (strlen($product->article) + 1) * -1);
+	    	$ntkd[$lang]->name = mb_substr($ntkd[$lang]->name, 0, (mb_strlen($product->article, 'utf-8') + 1) * -1, 'utf-8');
 	    	$pageNames[$lang] = $ntkd[$lang]->name;
 	    ?>
 	    <input type="text" value="<?=$ntkd[$lang]->name?>" class="form-control" placeholder="Назва" onChange="saveNameWithArticle(this, '<?=$lang?>')">
@@ -75,7 +75,7 @@
 <?php } else { ?>
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
-	    <?php if($_SESSION['option']->ProductUseArticle) { $ntkd->name = substr($ntkd->name, 0, (strlen($product->article) + 1) * -1); ?>
+	    <?php if($_SESSION['option']->ProductUseArticle) { $ntkd->name = mb_substr($ntkd->name, 0, (mb_strlen($product->article, 'utf-8') + 1) * -1, 'utf-8'); ?>
 	    	<input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="saveNameWithArticle(this)">
 	    <?php } else { ?>
 	    	<input type="text" value="<?=$ntkd->name?>" class="form-control" placeholder="Username" onChange="save('name', this)">

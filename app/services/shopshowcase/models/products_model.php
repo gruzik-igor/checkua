@@ -312,20 +312,25 @@ class products_model {
 	public function save($id)
 	{
 		$data = array('active' => 0, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
-		if($_SESSION['option']->ProductUseArticle && $this->data->post('article_old'))
+		if($_SESSION['option']->ProductUseArticle)
 		{
 			$data['article'] = trim($this->data->post('article'));
-			$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
-			if($names = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => $id)))
+			if(empty($data['article']))
+				$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+			else
+				$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+			if($this->data->post('article') != $this->data->post('article_old'))
 			{
-				foreach ($names as $row) {
-					$name = explode(' ', $row->name);
-					$last = count($name) - 1;
-					if($name[$last] == $this->data->post('article_old'))
-					{
-						$name[$last] = $data['article'];
-						$name = implode(' ', $name);
-						$this->db->updateRow('wl_ntkd', array('name' => $name), $row->id);
+				if($names = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => $id)))
+				{
+					foreach ($names as $row) {
+						$name = mb_substr($row->name, 0, (mb_strlen($this->data->post('article_old'), 'utf-8') + 1) * -1, 'utf-8');
+						$article_old = mb_substr($row->name, mb_strlen($this->data->post('article_old'), 'utf-8') * -1, NULL, 'utf-8');
+						if($article_old == $this->data->post('article_old'))
+						{
+							$name .= ' '.$data['article'];
+							$this->db->updateRow('wl_ntkd', array('name' => $name), $row->id);
+						}
 					}
 				}
 			}

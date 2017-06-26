@@ -29,6 +29,12 @@ class Data {
 		$arr = (empty($_GET['request'])) ? '' : $_GET['request'];
 		$arr = trim($arr, '/\\');
 		$arr = explode('/', $arr);
+
+		if(end($arr) == 'amp')
+		{
+			$_SESSION['amp'] = true;
+			array_pop($arr);
+		}
 		$this->uri_data = $arr;
 
 		if($_SESSION['language'] && ($GLOBALS['multilanguage_type'] == 'main domain' || $_SERVER["SERVER_NAME"] == 'localhost'))
@@ -87,11 +93,6 @@ class Data {
 
 	public function url()
 	{
-		if(end($this->uri_data) == 'amp')
-		{
-			$_SESSION['amp'] = true;
-			array_pop($this->uri_data);
-		}
 		return $this->uri_data;
 	}
 

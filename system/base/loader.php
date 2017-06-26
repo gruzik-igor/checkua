@@ -73,14 +73,23 @@ class Loader {
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		$view_path = APP_PATH.'views'.DIRSEP.$view.'.php';
+		$view_path = APP_PATH.'views'.DIRSEP;
+		if($_SESSION['amp'])
+			$view_path .= 'amp'.DIRSEP;
 		if($_SESSION['alias']->service)
 		{
 			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign == 2)
-				$view_path = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view.'.php';
+				$view_path .= $_SESSION['alias']->alias.DIRSEP.$view.'.php';
 			else
-				$view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
+			{
+				if($_SESSION['amp'])
+					$view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'amp'.DIRSEP.$view.'.php';
+				else
+					$view_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view.'.php';
+			}
 		}
+		else
+			$view_path .= $view.'.php';
 		if(file_exists($view_path))
 			require $view_path;
 	}
@@ -100,12 +109,24 @@ class Loader {
 			}
 		$this->wl_alias_model->setContentRobot($data);
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
+		if($_SESSION['amp'])
+			$view_path = APP_PATH.'views'.DIRSEP.'amp'.DIRSEP.'page_view.php';
 		if($_SESSION['alias']->service && $view_file)
 		{
 			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign > 0 && $view_file)
-				$view_file = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
+			{
+				if($_SESSION['amp'])
+					$view_file = APP_PATH.'views'.DIRSEP.'amp'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
+				else
+					$view_file = APP_PATH.'views'.DIRSEP.$_SESSION['alias']->alias.DIRSEP.$view_file;
+			}
 			else
-				$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
+			{
+				if($_SESSION['amp'])
+					$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.'amp'.DIRSEP.$view_file;
+				else
+					$view_file = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$view_file;
+			}
 		}
 		if(file_exists($view_path))
 			require $view_path;

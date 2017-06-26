@@ -87,6 +87,11 @@ class Data {
 
 	public function url()
 	{
+		if(end($this->uri_data) == 'amp')
+		{
+			$_SESSION['amp'] = true;
+			array_pop($this->uri_data);
+		}
 		return $this->uri_data;
 	}
 

@@ -22,13 +22,20 @@ class save extends Controller {
             $form = $this->db->getAllDataById('wl_forms', $formName, 'name');
             if($form && $form->table != '' && $form->type > 0 && $form->type_data > 0)
             {
+                if($form->captcha)
+                {
+                    $this->load->library('recaptcha');
+                    if($this->recaptcha->check($this->data->post('g-recaptcha-response')) == false)
+                    {
+                        $this->errors[] = 'Заповніть каптчу (Я не робот)!';
+                    }
+                }
+
                 $this->db->select('wl_fields as f', '*', $form->id, 'form');
                 $this->db->join('wl_input_types', 'name as type_name', '#f.input_type');
-                // $fields = $this->db->getQuery("SELECT f.*, t.name as type_name FROM wl_fields as f LEFT JOIN wl_input_types as t ON t.id = f.input_type WHERE f.form = {$form->id}", 'array');
-
                 if($fields = $this->db->get('array'))
                 {
-                	$data = $data_id = $this->errors = array();
+                	$data = $data_id = array();
                 	foreach ($fields as $field) {
                 		$input_data = null;
 
@@ -66,8 +73,9 @@ class save extends Controller {
                 	}
                     else
                     {
-                        echo('<pre>');
+                        echo('<pre>Input data: <br>');
                         print_r($data);
+                        echo "<br>Errors:<br>";
                         print_r($this->errors);
                         exit();
                     }

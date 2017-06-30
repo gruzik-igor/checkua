@@ -3,7 +3,7 @@
 class install
 {
 	public $service = null;
-	
+
 	public $name = "delivery";
 	public $title = "Доставка";
 	public $description = "";
@@ -52,6 +52,8 @@ class install
 					  `user` int(11) NOT NULL,
 					  `method` tinyint(2) NOT NULL,
 					  `address` text NOT NULL,
+					  `receiver` text NOT NULL,
+					  `phone` text NOT NULL,
 					  `comment` text NULL,
 					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
@@ -62,6 +64,8 @@ class install
 					  `user` int(11) NOT NULL,
 					  `method` tinyint(2) NOT NULL,
 					  `address` text NOT NULL,
+					  `receiver` text NOT NULL,
+					  `phone` text NOT NULL,
 					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";
 		$this->db->executeQuery($query);
@@ -85,7 +89,7 @@ class install
 	{
 		return true;
 	}
-	
+
 }
 
 ?>

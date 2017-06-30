@@ -3,7 +3,7 @@
 class install
 {
 	public $service = null;
-	
+
 	public $name = "cart";
 	public $title = "Корзина";
 	public $description = "Корзина для shopshowcase";
@@ -77,6 +77,7 @@ class install
 					  `price` float UNSIGNED NOT NULL,
 					  `price_in` float UNSIGNED NULL,
 					  `currency` int(11) NULL,
+					  `additional` text NULL,
 					  `quantity` int(11) NOT NULL,
 					  `quantity_reserved` int(11) NULL,
 					  `quantity_returned` int(11) NULL,
@@ -106,7 +107,7 @@ class install
 											 ('Відправлено', 1, 20),
 											 ('Закрито', 1, 99),
 											 ('Скасовано', 1, 99);";
-		$this->db->executeQuery($query);									 
+		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (
 			  `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -132,7 +133,7 @@ class install
 			$this->db->executeQuery("DROP TABLE IF EXISTS {$this->table_service}_history");
 		}
 	}
-	
+
 }
 
 ?>

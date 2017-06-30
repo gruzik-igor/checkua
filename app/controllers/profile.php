@@ -314,5 +314,10 @@ class Profile extends Controller {
         $this->json($res);
     }
 
+    public function __get_Search($content = 0)
+    {
+        return false;
+    }
+
 }
 ?>

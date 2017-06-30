@@ -33,12 +33,12 @@
             <form action="<?=SITE_URL?>search">
                 <h2><?=$this->text('Повторити пошук')?></h2>
                 <?php if(isset($_SESSION['notify'])) require_once 'admin/notify_view.php'; ?>
-                            <div class="input-group sidebar-search">
-                                <input type="text" name="by" class="form-control" placeholder="<?=$this->text('Шукати', 0)?>" required>
-                                <span class="input-group-btn">
-                                    <button class="btn btn-inverse" type="submit"><i class="fa fa-search"></i></button>
-                                </span>
-                            </div>
+                <div class="input-group sidebar-search">
+                    <input type="text" name="by" value="<?=$this->data->re_get('by')?>" class="form-control" placeholder="<?=$this->text('Шукати', 0)?>" required>
+                    <span class="input-group-btn">
+                        <button class="btn btn-inverse" type="submit"><i class="fa fa-search"></i></button>
+                    </span>
+                </div>
                 <div class="input-group">
                     
                 </div>
@@ -79,11 +79,13 @@
                     } else {
                         echo($this->data->getShortText($search->text, 400));
                     }
+                    if($search->date > 0) {
                     ?>
-                    <ul class="list-inline down-ul">
-                        <li><?=date('d.m.Y', $search->date).' By '.$search->author_name?></li>
-                        <!-- <li>2,092,675 views</li> -->
-                    </ul>
+                        <ul class="list-inline down-ul">
+                            <li><?=date('d.m.Y', $search->date).' By '.$search->author_name?></li>
+                            <!-- <li>2,092,675 views</li> -->
+                        </ul>
+                    <?php } ?>
                 </div>       
             </div>    
         </div>

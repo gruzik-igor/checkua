@@ -79,6 +79,20 @@ class library_search_model
 				}
 			}
 		}
+		elseif($content == 0)
+		{
+			$search = new stdClass();
+			$search->id = $_SESSION['alias']->id;
+			$search->link = $_SESSION['alias']->alias;
+			$search->date = 0;
+			$search->author = 1;
+			$search->author_name = '';
+			$search->additional = false;
+			$search->folder = false;
+			if(isset($_SESSION['option']->folder))
+				$search->folder = $_SESSION['option']->folder;
+			return $search;
+		}
 		else
 		{
 			$content *= -1;

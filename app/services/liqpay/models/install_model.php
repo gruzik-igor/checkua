@@ -29,6 +29,9 @@ class install
 		if($alias == 0)
 			return false;
 
+		$where = array('alias' => $alias, 'content' => 0);
+        $this->db->updateRow('wl_ntkd', array('list' => '<i class="fa fa-cc-visa"></i> Visa/Mastercard через LiqPay PrivatBank'), $where);
+
 		return true;
 	}
 

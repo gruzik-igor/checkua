@@ -28,7 +28,26 @@ class css extends Controller {
                     $path .= implode(DIRSEP, $url);
                     if(file_exists($path))
                     {
-                        header("Content-Type: text/css");
+                        $ext = explode('.', $path);
+                        switch (end($ext)) {
+                            case 'jpg':
+                            case 'jpeg':
+                                header("Content-type: image/jpg");
+                                break;
+                            case 'png':
+                                header("Content-type: image/png");
+                                break;
+                            case 'gif':
+                                header("Content-type: image/gif");
+                                break;
+                            case 'css':
+                                header("Content-Type: text/css");
+                                break;
+                            default:
+                                $this->load->page_404();
+                                break;
+                        }
+
                         readfile($path);
                         exit();
                     }

@@ -48,6 +48,23 @@
                         <li <?=($this->data->get('code') == 404) ? 'class="active"':''?>><a href="<?=$this->data->get_link('code', 404)?>">404 Адреса недоступна</a></li>
                     </ul>
                 </div>
+                <?php if($_SESSION['language']) { ?>
+                <div class="dropdown pull-left">
+                    <a href="javascript:;" class="btn btn-white btn-white-without-border dropdown-toggle" data-toggle="dropdown">
+                        Мова <span class="caret m-l-5"></span>
+                    </a>
+                    <ul class="dropdown-menu" role="menu-alias">
+                        <li <?=($this->data->get('language') == '*') ? 'class="active"':''?>><a href="<?=$this->data->get_link('language', '*')?>">Всі</a></li>
+                        <?php foreach ($_SESSION['all_languages'] as $language) {
+                            if($_SESSION['language'] == $language) {
+                            ?>
+                            <li <?=(!$this->data->get('language')) ? 'class="active"':''?>><a href="<?=$this->data->get_link('language')?>"><?=$language?></a></li>
+                            <?php } else { ?>
+                            <li <?=($this->data->get('language') == $language) ? 'class="active"':''?>><a href="<?=$this->data->get_link('language', $language)?>"><?=$language?></a></li>
+                        <?php } } ?>
+                    </ul>
+                </div>
+                <?php } ?>
                 <div class="pull-right" style="width: 400px">
                     <form>
                         <div class="input-group">
@@ -121,79 +138,87 @@
                     $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
                     $_SESSION['alias']->js_load[] = 'assets/white-lion/sitemap.js';
                     ?>
+                    <div class="pull-right">
+                        Всіх записів згідно запиту: <strong><?=$_SESSION['option']->paginator_total?></strong>
+                    </div>
                 </div>
+                <hr>
                 <form action="<?=SITE_URL?>admin/wl_sitemap/multi_edit" class="form-bordered" method="POST" onSubmit="return multi_edit();">
                     <input type="hidden" id="sitemap-ids" name="sitemap-ids" required="required">
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <div class="col-md-6">
-                                <label class="control-label">Оновити <strong>Код відповіді</strong></label>
-                                <input type="checkbox" data-render="switchery" value="1" id="active-code" name="active-code" onChange="setActive(this, 'code')" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-6">
+                                    <label class="control-label">Оновити <strong>Код відповіді</strong></label>
+                                    <input type="checkbox" data-render="switchery" value="1" id="active-code" name="active-code" onChange="setActive(this, 'code')" />
+                                </div>
+                                <div class="col-md-6">
+                                    <select name="code" id="field-code" class="form-control" onChange="setCode()" disabled="disabled">
+                                        <option value="200">200 Cache активний</option>
+                                        <option value="201">200 Cache НЕ активний</option>
+                                        <option value="404">404 Адреса недоступна</option>
+                                    </select>
+                                </div>
+                                <div class="clear"></div>
                             </div>
-                            <div class="col-md-6">
-                                <select name="code" id="field-code" class="form-control" onChange="setCode()" disabled="disabled">
-                                    <option value="200">200 Cache активний</option>
-                                    <option value="201">200 Cache НЕ активний</option>
-                                    <option value="404">404 Адреса недоступна</option>
-                                </select>
+                            <div class="form-group">
+                                <div class="col-md-8">
+                                    <label class="control-label">Оновити <strong>Сторінка включена до індексації</strong></label>
+                                    <input type="checkbox" data-render="switchery" value="1" id="active-index" name="active-index" onChange="setActive(this, 'index')"/>
+                                </div>
+                                <div class="col-md-4">
+                                    <input type="checkbox" data-render="switchery" value="1" id="field-index" name="index" onChange="setIndex()" checked disabled="disabled"/>
+                                </div>
+                                <div class="clear"></div>
                             </div>
-                            <div class="clear"></div>
                         </div>
-                        <div class="form-group">
-                            <div class="col-md-8">
-                                <label class="control-label">Оновити <strong>Сторінка включена до індексації</strong></label>
-                                <input type="checkbox" data-render="switchery" value="1" id="active-index" name="active-index" onChange="setActive(this, 'index')"/>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <div class="col-md-7">
+                                    <label class="control-label">Оновити <strong>Частота оновлення</strong></label>
+                                    <input type="checkbox" data-render="switchery" value="1" id="active-changefreq" name="active-changefreq" onChange="setActive(this, 'changefreq')"/>
+                                </div>
+                                <div class="col-md-5">
+                                    <select name="changefreq" id="field-changefreq" class="form-control index" disabled="disabled">
+                                        <?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never');
+                                            foreach ($changefreq as $freq) {
+                                                echo('<option value="'.$freq.'">'.$freq.'</option>');
+                                            }
+                                            ?>
+                                    </select>
+                                </div>
+                                <div class="clear"></div>
                             </div>
-                            <div class="col-md-4">
-                                <input type="checkbox" data-render="switchery" value="1" id="field-index" name="index" onChange="setIndex()" checked disabled="disabled"/>
+                            <div class="form-group">
+                                <div class="col-md-7">
+                                    <label class="control-label">Оновити <strong>Пріорітетність</strong></label>
+                                    <input type="checkbox" data-render="switchery" value="1" name="active-priority" id="active-priority" onChange="setActive(this, 'priority')"/>
+                                </div>
+                                <div class="col-md-5">
+                                    <input type="number" name="priority" id="field-priority" value="0.5" placeholder="0.5" min="0" max="1" step="0.1" class="form-control index" disabled="disabled">
+                                </div>
+                                <div class="clear"></div>
                             </div>
-                            <div class="clear"></div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="form-group">
-                            <div class="col-md-7">
-                                <label class="control-label">Оновити <strong>Частота оновлення</strong></label>
-                                <input type="checkbox" data-render="switchery" value="1" id="active-changefreq" name="active-changefreq" onChange="setActive(this, 'changefreq')"/>
-                            </div>
-                            <div class="col-md-5">
-                                <select name="changefreq" id="field-changefreq" class="form-control index" disabled="disabled">
-                                    <?php $changefreq = array('always', 'hourly', 'daily', 'weekly', 'monthly', 'yearly', 'never');
-                                        foreach ($changefreq as $freq) {
-                                            echo('<option value="'.$freq.'">'.$freq.'</option>');
-                                        }
-                                        ?>
-                                </select>
-                            </div>
-                            <div class="clear"></div>
-                        </div>
-                        <div class="form-group">
-                            <div class="col-md-7">
-                                <label class="control-label">Оновити <strong>Пріорітетність</strong></label>
-                                <input type="checkbox" data-render="switchery" value="1" name="active-priority" id="active-priority" onChange="setActive(this, 'priority')"/>
-                            </div>
-                            <div class="col-md-5">
-                                <input type="number" name="priority" id="field-priority" value="0.5" placeholder="0.5" min="0" max="1" step="0.1" class="form-control index" disabled="disabled">
-                            </div>
-                            <div class="clear"></div>
                         </div>
                     </div>
                     <?php if($_SESSION['language']) { ?>
-                        <div class="form-group col-md-6">
-                            <label class="col-md-6 control-label">Застосувати до всіх мов</label>
-                            <div class="col-md-6">
-                                <input type="checkbox" data-render="switchery" checked value="1" name="all_languages" />
+                        <div class="row">
+                            <div class="form-group col-md-6">
+                                <label class="col-md-6 control-label">Застосувати до всіх мов</label>
+                                <div class="col-md-6">
+                                    <input type="checkbox" data-render="switchery" checked value="1" name="all_languages" />
+                                </div>
                             </div>
                         </div>
                     <?php } ?>
-                    <div class="form-group col-md-6">
-                        <label class="col-md-3 control-label"></label>
-                        <div class="col-md-9">
+                    <div>
+                        <div class="col-md-12">
                             <button name="do" value="save" type="submit" class="btn btn-sm btn-success">Зберегти</button>
                             <?php if($_SESSION['cache']) { ?>
                                 <button name="do" value="clearCache" type="submit" class="btn btn-sm btn-warning">Очистити Cache</button>
                             <?php } ?>
                             <button name="do" value="delete" type="submit" class="btn btn-sm btn-danger">Видалити</button>
+                            <button type="button" class="btn btn-sm btn-danger pull-right">Видалити всі <strong><?=$_SESSION['option']->paginator_total?></strong> записи/ів згідно запиту</button>
                         </div>
                     </div>
                 </form>
@@ -241,3 +266,9 @@
 
 <link rel="stylesheet" href="<?=SITE_URL?>assets/DataTables/css/data-table.css" />
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
+<style type="text/css">
+    ul.pagination
+    {
+        margin: 0;
+    }
+</style>

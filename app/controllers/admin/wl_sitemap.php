@@ -58,7 +58,19 @@ class wl_sitemap extends Controller {
             $_SESSION['option']->paginator_per_page = 50;
             
             if(count($_GET) == 1 || (count($_GET) == 2 && isset($_GET['page'])))
+            {
                 $where = '';
+                if($_SESSION['language'])
+                {
+                    if($language = $this->data->get('language'))
+                    {
+                        if(in_array($language, $_SESSION['all_languages']))
+                            $where['language'] = $language;
+                    }
+                    else
+                        $where['language'] = $_SESSION['language'];
+                }
+            }
             else
             {
                 $where = array();
@@ -70,6 +82,16 @@ class wl_sitemap extends Controller {
                     $where['code'] = $code;
                 if($link = $this->data->get('link'))
                     $where['link'] = '%'.$link;
+                if($_SESSION['language'])
+                {
+                    if($language = $this->data->get('language'))
+                    {
+                        if(in_array($language, $_SESSION['all_languages']))
+                            $where['language'] = $language;
+                    }
+                    else
+                        $where['language'] = $_SESSION['language'];
+                }
             }
             $this->db->select('wl_sitemap', 'id, link, alias, language, code, time, changefreq, priority', $where);
             if(isset($_GET['sort']) && $_GET['sort'] == 'down')

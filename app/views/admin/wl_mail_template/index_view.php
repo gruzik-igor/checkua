@@ -18,6 +18,7 @@
                                 <th>До</th>
                                 <th>Мульмимовність</th>
                                 <th>Зберегти в історію</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
@@ -29,6 +30,7 @@
                                 <td><?= $template->to ?></td>
                                 <td><?= $template->multilanguage ?></td>
                                 <td><?= $template->savetohistory ?></td>
+                                <td><button onclick="deleteTemplate(<?= $template->id ?>)" class="btn btn-xs btn-danger"> Видалити</button></td>
                             </tr>
                             <?php } ?>
                         </tbody>
@@ -38,3 +40,20 @@
         </div>
     </div>
 </div>
+
+<script>
+    function deleteTemplate(id) {
+        if(confirm('Видалити розсилку?')){
+            $.ajax({
+                url : '<?= SITE_URL?>admin/wl_mail_template/deleteTemplate',
+                method : 'POST',
+                data : {
+                    id: id
+                },
+                success : function (res) {
+                    window.location.href = '<?= SITE_URL?>admin/wl_mail_template';
+                }
+            })
+        }
+    }
+</script>

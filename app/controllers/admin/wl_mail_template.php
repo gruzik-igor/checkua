@@ -137,6 +137,19 @@ class wl_mail_template extends Controller {
         }
         $this->load->page_404(false);
     }
+
+    public function deleteTemplate()
+    {
+        $id = $this->data->post('id');
+
+        if($id)
+        {
+            $this->db->deleteRow('wl_mail_templates', $id);
+            $this->db->deleteRow('wl_mail_active', $id, 'template');
+            $this->db->deleteRow('wl_mail_templats_data', $id, 'template');
+            $this->db->deleteRow('wl_mail_history', $id, 'template');
+        }
+    }
 }
 
 ?>

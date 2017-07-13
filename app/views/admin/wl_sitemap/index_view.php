@@ -218,7 +218,7 @@
                                 <button name="do" value="clearCache" type="submit" class="btn btn-sm btn-warning">Очистити Cache</button>
                             <?php } ?>
                             <button name="do" value="delete" type="submit" class="btn btn-sm btn-danger">Видалити</button>
-                            <button type="button" class="btn btn-sm btn-danger pull-right">Видалити всі <strong><?=$_SESSION['option']->paginator_total?></strong> записи/ів згідно запиту</button>
+                            <a href="#modal-deleteAll" data-toggle="modal" class="btn btn-sm btn-danger pull-right">Видалити всі <strong><?=$_SESSION['option']->paginator_total?></strong> записи/ів згідно запиту</a>
                         </div>
                     </div>
                 </form>
@@ -241,6 +241,75 @@
             <div class="modal-footer">
                 <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Закрити</a>
             </div>
+        </div>
+    </div>
+</div>
+<div class="modal fade" id="modal-deleteAll">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?=SITE_URL?>admin/wl_sitemap/deleteAllByRequire" method="post">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h4 class="modal-title">Керування картою сайту SiteMap</h4>
+                </div>
+                <div class="modal-body">
+                    Увага! Будуть видалені <strong>всі адреси з карти сайту</strong> згідно наступного запиту:
+                    <div class="row">
+                        <div class="form-group">
+                            <label class="col-md-6 control-label">Стан</label>
+                            <div class="col-md-6">
+                                <select name="alias" class="form-control">
+                                    <option value="-1">Всі</option>
+                                    <option value="1" <?=($this->data->get('alias') == 'yes') ? 'selected':''?>>Розпізнані</option>
+                                    <option value="0" <?=($this->data->get('alias') == 'no') ? 'selected':''?>>НЕ розпізнані</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row m-t-5">
+                        <div class="form-group">
+                            <label class="col-md-6 control-label">Код відповіді</label>
+                            <div class="col-md-6">
+                                <select name="code" class="form-control">
+                                    <option value="0">Всі</option>
+                                    <option value="200" <?=($this->data->get('code') == '200') ? 'selected':''?>>200 Cache активний</option>
+                                    <option value="201" <?=($this->data->get('code') == '201') ? 'selected':''?>>200 Cache НЕ активний</option>
+                                    <option value="301" <?=($this->data->get('code') == '301') ? 'selected':''?>>301 Переадресація</option>
+                                    <option value="404" <?=($this->data->get('code') == '404') ? 'selected':''?>>404 Адреса недоступна</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <?php if($_SESSION['language']) { ?>
+                        <div class="row m-t-5">
+                            <div class="form-group">
+                                <label class="col-md-6 control-label">Мова</label>
+                                <div class="col-md-6">
+                                    <select name="language" class="form-control">
+                                        <option value="0">Всі</option>
+                                        <?php foreach ($_SESSION['all_languages'] as $language) { ?>
+                                            <option value="<?=$language?>" <?=($this->data->get('language') == $language) ? 'selected':''?>><?=$language?></option>
+                                        <?php } ?>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    <?php } $Cache = rand(0, 999); ?>
+                    <div class="row m-t-5">
+                        <input type="hidden" name="code_hidden" value="<?=$Cache?>">
+                        <div class="form-group">
+                            <label class="col-md-6 control-label">Код перевірки <strong><?=$Cache?></strong></label>
+                            <div class="col-md-6">
+                                <input type="number" name="code_open" placeholder="<?=$Cache?>" min="0" class="form-control" required>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <input type="submit" class="btn btn-sm btn-danger" value="Видалити">
+                    <a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Закрити</a>
+                </div>
+            </form>
         </div>
     </div>
 </div>

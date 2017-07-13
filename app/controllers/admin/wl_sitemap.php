@@ -258,6 +258,90 @@ class wl_sitemap extends Controller {
         $this->redirect();
     }
 
+    public function deleteAllByRequire()
+    {
+        if($_POST['code_hidden'] == $_POST['code_open'])
+        {
+            $language = ($_SESSION['language']) ? false : true;
+            if(isset($_POST['language']) && $_POST['language'] == '0')
+                $language = true;
+            if($_POST['alias'] == -1 && $_POST['code'] == 0 && $language)
+            {
+                $this->db->executeQuery("TRUNCATE wl_sitemap");
+                $this->db->executeQuery("TRUNCATE wl_sitemap_from");
+                $this->db->deleteRow('wl_statistic_pages', array('alias' => 0));
+            }
+            else
+            {
+                $where = array();
+                if($_POST['alias'] == 1)
+                    $where['alias'] = '>0';
+                elseif($_POST['alias'] == 0)
+                    $where['alias'] = 0;
+
+                if($code = $this->data->post('code'))
+                    $where['code'] = $code;
+
+                if($_SESSION['language'])
+                    if($language = $this->data->post('language'))
+                        $where['language'] = $language;
+
+                if(empty($where))
+                {
+                    $this->db->executeQuery("TRUNCATE wl_sitemap");
+                    $this->db->executeQuery("TRUNCATE wl_sitemap_from");
+                    $this->db->deleteRow('wl_statistic_pages', array('alias' => 0));
+                }
+                else
+                {
+                    $data = $this->db->select('wl_sitemap', 'id, alias, code', $where)->get('array');
+                    if($data)
+                    {
+                        $this->db->deleteRow('wl_sitemap', $where);
+                        if($_POST['code'] == 404 || $_POST['code'] == 0)
+                        {
+                            if($_POST['alias'] == -1 && $language)
+                                $this->db->executeQuery("TRUNCATE wl_sitemap_from");
+                            else
+                            {
+                                $ids = array();
+                                foreach ($data as $row) {
+                                    if($row->code == 404)
+                                        $ids[] = $row->id;
+                                }
+                                if(!empty($ids))
+                                    $this->db->deleteRow('wl_sitemap_from', array('sitemap' => $ids));
+                            }
+                        }
+                        if($_POST['alias'] < 1)
+                        {
+                            $where = array('alias' => 0);
+                            if($_SESSION['language'])
+                                if($language = $this->data->post('language'))
+                                    $where['language'] = $language;
+                            foreach ($data as $row) {
+                                if($row->alias == 0)
+                                {
+                                    $where['content'] = $row->id;
+                                    $this->db->deleteRow('wl_statistic_pages', $where);
+                                }
+                            }
+                            
+                        }
+                    }
+                }
+            }
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Записи успішно видалено!';
+        }
+        else
+        {
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->errors = 'Невірний код безпеки!';
+        }
+        $this->redirect();
+    }
+
     public function multi_edit()
     {
         if(!empty($_POST['sitemap-ids']) && !empty($_POST['do']))

@@ -4,7 +4,7 @@ class Signup extends Controller {
 
     private $errors = array();
     private $name = 'first_name, last_name'; // 'name'||'first_name, last_name' ім'я в одній змінній чи 2-х
-    private $additionall = array('phone'); // false додаткові поля при реєстрації. Згодом можна використовувати у ідентифікації, тощо
+    public $additionall = array('phone'); // false додаткові поля при реєстрації. Згодом можна використовувати у ідентифікації, тощо
     private $new_user_type = 4; // Ід типу новозареєстрованого користувача
 
     public function index()

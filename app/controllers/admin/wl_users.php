@@ -307,6 +307,105 @@ class wl_users extends Controller {
         exit();
     }
 
+    public function export()
+    {
+        if($_SESSION['user']->admin == 1)
+        {
+            $_SESSION['alias']->name = 'Експорт користувачів';
+            $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', 'Експорт' => '');
+
+            // require_once APP_PATH.'controllers/signup.php';
+            // $signup = new Signup();
+
+            // $this->load->admin_view('wl_users/export_view', array('fields_additionall' => $signup->additionall));
+            $this->load->admin_view('wl_users/export_view', array('fields_additionall' => false));
+        }
+    }
+
+    public function export_file()
+    {
+        if($_SESSION['user']->admin == 1 && !empty($_POST['types']) && !empty($_POST['fields']))
+        {
+            $this->db->select('wl_users as u', '*', array('type' => $_POST['types']))
+                        ->join('wl_user_types', 'title as type_name', '#u.type')
+                        ->join('wl_user_status', 'title as status_name', '#u.status');
+            if($users = $this->db->get('array'))
+            {
+                $goodfields = array('id' => 'ID', 'email' => 'email', 'name' => "Ім'я користувача", 'type' => 'Тип', 'type_name' => 'Тип', 'status' => 'Статус', 'status_name' => 'Статус', 'registered' => 'Дата реєстрації', 'last_login' => 'Останній вхід');
+                $a = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+        
+                $this->load->library('PHPExcel');
+
+                // Set document properties
+                $this->phpexcel->getProperties()->setCreator(SITE_NAME)
+                                             ->setLastModifiedBy(SITE_NAME)
+                                             ->setTitle("Users ".SITE_NAME);
+
+                $this->phpexcel->setActiveSheetIndex(0);
+                $this->phpexcel->getActiveSheet()->setTitle('Users');
+
+                $x = 0;
+                foreach ($_POST['fields'] as $field) {
+                    if(array_key_exists($field, $goodfields) && isset($users[0]->$field))
+                    {
+                        $y = 1;
+                        $xy = $a[$x] . $y++;
+                        $this->phpexcel->getActiveSheet()->setCellValue($xy, $goodfields[$field]);
+                        foreach ($users as $user) {
+                            $xy = $a[$x] . $y++;
+                            if($field == 'registered' || $field == 'last_login')
+                                $user->$field = date('d.m.Y H:i', $user->$field);
+                            $this->phpexcel->getActiveSheet()->setCellValue($xy, $user->$field);
+                        }
+                        $x++;
+                    }
+                }
+ 
+                // Set active sheet index to the first sheet, so Excel opens this as the first sheet
+                $this->phpexcel->setActiveSheetIndex(0);
+
+                header('Cache-Control: max-age=0');
+                // If you're serving to IE over SSL, then the following may be needed
+                header ('Expires: Mon, 26 Jul 1997 05:00:00 GMT'); // Date in the past
+                header ('Last-Modified: '.gmdate('D, d M Y H:i:s').' GMT'); // always modified
+                header ('Cache-Control: cache, must-revalidate'); // HTTP/1.1
+                header ('Pragma: public'); // HTTP/1.0
+
+                $date = date('dmY');
+                if($_POST['file'] == 'xlsx')
+                {
+                    // Redirect output to a client’s web browser (Excel2007)
+                    header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+                    header('Content-Disposition: attachment;filename="'.SITE_NAME.'-users-'.$date.'.xlsx"');
+
+                    $objWriter = PHPExcel_IOFactory::createWriter($this->phpexcel, 'Excel2007');
+                    $objWriter->save('php://output');
+                }
+                elseif($_POST['file'] == 'xls')
+                {
+                    // Redirect output to a client’s web browser (Excel5)
+                    header('Content-Type: application/vnd.ms-excel');
+                    header('Content-Disposition: attachment;filename="'.SITE_NAME.'-users-'.$date.'.xls"');
+
+                    $objWriter = PHPExcel_IOFactory::createWriter($this->phpexcel, 'Excel5');
+                    $objWriter->save('php://output');
+                }
+                elseif($_POST['file'] == 'csv')
+                {
+                    // Redirect output to a client’s web browser (Excel5)
+                    header('Content-Type: application/vnd.ms-excel');
+                    header('Content-Disposition: attachment;filename="'.SITE_NAME.'-users-'.$date.'.csv"');
+
+                    $objWriter = PHPExcel_IOFactory::createWriter($this->phpexcel, 'CSV')->setDelimiter(',')
+                                                                  ->setEnclosure('"')
+                                                                  ->setSheetIndex(0);
+                    $objWriter->save('php://output');
+                }
+            }
+        }
+        exit;
+    }
+
 }
 
 ?>

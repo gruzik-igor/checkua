@@ -314,11 +314,10 @@ class wl_users extends Controller {
             $_SESSION['alias']->name = 'Експорт користувачів';
             $_SESSION['alias']->breadcrumb = array('Користувачі' => 'admin/wl_users', 'Експорт' => '');
 
-            // require_once APP_PATH.'controllers/signup.php';
-            // $signup = new Signup();
+            require_once APP_PATH.'controllers/signup.php';
+            $signup = new Signup();
 
-            // $this->load->admin_view('wl_users/export_view', array('fields_additionall' => $signup->additionall));
-            $this->load->admin_view('wl_users/export_view', array('fields_additionall' => false));
+            $this->load->admin_view('wl_users/export_view', array('fields_additionall' => $signup->additionall));
         }
     }
 
@@ -331,8 +330,27 @@ class wl_users extends Controller {
                         ->join('wl_user_status', 'title as status_name', '#u.status');
             if($users = $this->db->get('array'))
             {
-                $goodfields = array('id' => 'ID', 'email' => 'email', 'name' => "Ім'я користувача", 'type' => 'Тип', 'type_name' => 'Тип', 'status' => 'Статус', 'status_name' => 'Статус', 'registered' => 'Дата реєстрації', 'last_login' => 'Останній вхід');
                 $a = array('A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z');
+                $goodfields = array('id' => 'ID', 'email' => 'email', 'name' => "Ім'я користувача", 'type' => 'Тип', 'type_name' => 'Тип', 'status' => 'Статус', 'status_name' => 'Статус', 'registered' => 'Дата реєстрації', 'last_login' => 'Останній вхід');
+                require_once APP_PATH.'controllers/signup.php';
+                $signup = new Signup();
+                if($signup->additionall)
+                {
+                    foreach ($_POST['fields'] as $field) {
+                        if(in_array($field, $signup->additionall))
+                        {
+                            $goodfields[$field] = $field;
+                            foreach ($users as $user) {
+                                $user->$field = '';
+                                $this->db->select('wl_user_info', 'value', array('user' => $user->id, 'field' => $field));
+                                $this->db->order('date DESC');
+                                $this->db->limit(1);
+                                if($info = $this->db->get('single'))
+                                    $user->$field = $info->value;
+                            }
+                        }
+                    }
+                }
         
                 $this->load->library('PHPExcel');
 
@@ -402,6 +420,22 @@ class wl_users extends Controller {
                     $objWriter->save('php://output');
                 }
             }
+        }
+        else
+        {
+            $_SESSION['notify'] = new stdClass();
+            if($_SESSION['user']->admin != 1)
+                $_SESSION['notify']->errors = 'Вигрузку користувачів може виконати тільки адміністратор';
+            if(empty($_POST['types']))
+                $_SESSION['notify']->errors = 'Увага! Вкажіть типи користувачів до вигрузки';
+            if(empty($_POST['fields']))
+            {
+                if(isset($_SESSION['notify']->errors))
+                    $_SESSION['notify']->errors .= '</p><p>Увага! Вкажіть поля вигрузки';
+                else
+                    $_SESSION['notify']->errors = 'Увага! Вкажіть поля вигрузки';
+            }
+            $this->redirect();
         }
         exit;
     }

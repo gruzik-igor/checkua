@@ -72,13 +72,7 @@ class save extends Controller {
                         }
                 	}
                     else
-                    {
-                        echo('<pre>Input data: <br>');
-                        print_r($data);
-                        echo "<br>Errors:<br>";
-                        print_r($this->errors);
-                        exit();
-                    }
+                        $this->load->notify_view(array('errors' => implode('</p><p>', $this->errors)));
                     $where['form'] = $form->id;
                     $where['active'] = 1;
 

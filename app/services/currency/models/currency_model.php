@@ -76,12 +76,17 @@ class currency_model
 
     public function get($code)
     {
-    	$currency = $this->db->getAllDataById($this->table(), $code, 'code');
-    	if($currency)
+    	if($currency = $this->db->getAllDataById($this->table(), $code, 'code'))
     	{
-    		$today = strtotime('today');
-    		if($currency->day != $today) return $this->updatePrivat24($code);
-    		else return $currency->currency;
+    		if($_SESSION['option']->autoUpdate)
+    		{
+	    		$today = strtotime('today');
+	    		if($currency->day != $today)
+	    			return $this->updatePrivat24($code);
+	    		else
+	    			return $currency->currency;
+	    	}
+    		return $currency->currency;
     	}
     	return false;
 	}

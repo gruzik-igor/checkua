@@ -5,6 +5,24 @@
 			<th>Id на сайті</th>
 			<td><?=$product->id?></td>
 		</tr>
+		<tr>
+			<th style="width:25%">Власна адреса посилання</th>
+			<td>
+				<div class="input-group">
+					<?php
+					if($_SESSION['option']->ProductUseArticle) {
+						$product->article = $this->data->latterUAtoEN($product->article);
+						$alias = substr($product->alias, strlen($product->article) + 1);
+						echo('<span class="input-group-addon">/'.$url.'/'.$product->article.'-</span>');
+					} else {
+						$alias = explode('-', $product->alias); array_shift($alias); $alias = implode('-', $alias);
+						echo('<span class="input-group-addon">/'.$url.'/'.$product->id.'-</span>');
+					}
+					?>
+                    <input type="text" name="alias" value="<?=$alias?>" required class="form-control">
+                </div>
+            </td>
+		</tr>
 		<?php if($_SESSION['option']->ProductUseArticle) { ?>
     		<tr>
 				<th>Артикул</th>
@@ -164,33 +182,14 @@
 					</div>
 				</td>
 			</tr>
-		<?php } ?>
-		<tr>
-			<th style="width:25%">Власна адреса посилання</th>
-			<td>
-				<div class="input-group">
-					<?php
-					if($_SESSION['option']->ProductUseArticle) {
-						$product->article = $this->data->latterUAtoEN($product->article);
-						$alias = substr($product->alias, strlen($product->article) + 1);
-						echo('<span class="input-group-addon">/'.$url.'/'.$product->article.'-</span>');
-					} else {
-						$alias = explode('-', $product->alias); array_shift($alias); $alias = implode('-', $alias);
-						echo('<span class="input-group-addon">/'.$url.'/'.$product->id.'-</span>');
-					}
-					?>
-                    <input type="text" name="alias" value="<?=$alias?>" required class="form-control">
-                </div>
-            </td>
-		</tr>
-		<tr>
-			<th>Стан</th>
-			<td>
-				<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Публікація активна</label>
-				<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
-			</td>
-		</tr>
-		<?php if($_SESSION['option']->useAvailability) { ?>
+			<tr>
+				<th>Стан</th>
+				<td>
+					<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Публікація активна</label>
+					<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
+				</td>
+			</tr>
+		<?php } if($_SESSION['option']->useAvailability) { ?>
 			<tr>
 				<th>Наявність</th>
 				<td>

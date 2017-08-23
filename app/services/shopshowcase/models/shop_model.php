@@ -11,7 +11,23 @@ class shop_model {
 
 	public function routeURL($url = array(), &$type = null, $admin = false)
 	{
-		if($product = $this->getProduct(end($url)))
+		if($_SESSION['alias']->content < 0)
+		{
+			if($group = $this->getGroupByAlias(-$_SESSION['alias']->content, 0, 'id'))
+			{
+				$type = 'group';
+				return $group;
+			}
+		}
+
+		$key = end($url);
+		$keyName = 'alias';
+		if($_SESSION['alias']->content > 0)
+		{
+			$key = $_SESSION['alias']->content;
+			$keyName = 'id';
+		}
+		if($product = $this->getProduct($key, $keyName))
 		{
 			$url = implode('/', $url);
 			if($url != $product->link)
@@ -57,7 +73,12 @@ class shop_model {
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active)
-			$where['active'] = 1;
+		{
+			if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1)
+				$where['#pg.active'] = 1;
+			else
+				$where['active'] = 1;
+		}
 
 		if($_SESSION['option']->ProductUseArticle > 0 && is_string($Group) && $Group[0] == '%')
 			$where['article'] = $Group;
@@ -186,7 +207,7 @@ class shop_model {
 			if($_SESSION['option']->ProductMultiGroup)
 			{
 				if(!is_array($Group) && $Group >= 0)
-					$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position', array('group' => $Group, 'product' => '#p.id'));
+					$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $Group, 'product' => '#p.id'));
 			}
 			else
 			{
@@ -620,12 +641,17 @@ class shop_model {
 		return $parents;
 	}
 
-	public function getGroupByAlias($alias, $parent = 0)
+	public function getGroupByAlias($alias, $parent = 0, $key = 'alias')
 	{
-		$where['wl_alias'] = $_SESSION['alias']->id;
-		$where['alias'] = $alias;
-		$where['parent'] = $parent;
-		$this->db->select($this->table('_groups') .' as c', '*', $where);
+		if($key == 'id')
+			$this->db->select($this->table('_groups') .' as c', '*', $alias);
+		else
+		{
+			$where['wl_alias'] = $_SESSION['alias']->id;
+			$where['alias'] = $alias;
+			$where['parent'] = $parent;
+			$this->db->select($this->table('_groups') .' as c', '*', $where);
+		}
 		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
 		$group = $this->db->get('single');
 		if($group)

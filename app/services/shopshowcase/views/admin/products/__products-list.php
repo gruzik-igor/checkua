@@ -1,3 +1,6 @@
+<?php $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js'; ?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
+
 <?php $productOrder = false;
 if(isset($_SESSION['option']->productOrder))
 {
@@ -39,10 +42,10 @@ if(isset($_SESSION['option']->productOrder))
 					<?php } ?>
 					<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
 					<td>
-						<?php if(isset($a->admin_photo)) {?>
-						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" alt=""></a>
+						<?php if(!empty($a->admin_photo)) {?>
+						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" class="pull-left" alt=""></a>
 						<?php } ?>
-						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a> 
+						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a>
 						<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
 					</td>
 					<td><?=$a->price?></td>
@@ -71,7 +74,7 @@ if(isset($_SESSION['option']->productOrder))
                     ?>
 					<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
 					<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-					<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
+					<td><input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" /></td>
 				</tr>
 			<?php } ?>
         </tbody>

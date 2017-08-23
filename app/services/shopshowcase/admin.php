@@ -380,6 +380,23 @@ class shopshowcase extends Controller {
 		$this->load->json($res);
 	}
 
+	public function changeActive()
+	{
+		$res = array('result' => false);
+		if(isset($_POST['active']) && is_numeric($_POST['active']) && isset($_POST['id']) && is_numeric($_POST['id']))
+		{
+			$table = $_SESSION['service']->table.'_products';
+			$where = array('id' => $_POST['id']);
+			if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1 && isset($_POST['group']) && is_numeric($_POST['group']) && $_POST['group'] > 0) {
+				$table = $_SESSION['service']->table.'_product_group';
+				$where = array('product' => $_POST['id'], 'group' => $_POST['group']);
+			}
+			if($this->db->updateRow($table, array('active' => $_POST['active']), $where))
+				$res['result'] = true;
+		}
+		$this->load->json($res);
+	}
+
 	public function groups()
 	{
 		$this->load->smodel('groups_model');

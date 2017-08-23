@@ -61,6 +61,7 @@ class wl_cache_model extends Loader
 		}
 		if($_SESSION['cache'])
 			ob_start();
+		$_SESSION['alias']->content = $this->page->content;
 	}
 
 	public function set()

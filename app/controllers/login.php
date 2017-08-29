@@ -39,6 +39,11 @@ class Login extends Controller {
             $this->load->model('wl_user_model');
             if($status = $this->wl_user_model->login('email', $_POST['password'], $this->data->post('sequred')))
             {
+            	if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => 0, 'type' => 'login')))
+					foreach ($actions as $action) {
+						$this->load->function_in_alias($action->alias2, '__user_login');
+					}
+
 				if($this->data->post('json')){
 					$res['result'] = true;
 					$this->load->json($res);

@@ -24,7 +24,7 @@ if(isset($pay) && $pay->amount > 0 && !empty($_SESSION['option']->public_key) &&
 	        $payment['currency'] = 'UAH';
 	        $payment['description'] = $pay->details;
 	        $payment['order_id'] = $pay->id;
-	        $payment['action'] = 'buy';
+	        $payment['action'] = 'pay';
 	        $payment['language'] = 'uk';
 	        if($_SESSION['option']->testPay)
 	        	$payment['sandbox'] = 1;

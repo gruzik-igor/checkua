@@ -30,7 +30,7 @@ class install
 			return false;
 
 		$where = array('alias' => $alias, 'content' => 0);
-        $this->db->updateRow('wl_ntkd', array('list' => '<img src="/css/privat24/logo_privat24.png" alt="Privat24" title="Privat24">'), $where);
+        $this->db->updateRow('wl_ntkd', array('list' => '<img src="/css/privat24/privat24.png" alt="Privat24" title="Privat24">'), $where);
 
 		return true;
 	}

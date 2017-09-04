@@ -117,6 +117,7 @@
                 <li <?=($_SESSION['alias']->alias == 'wl_aliases')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_aliases">Адреси</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_services')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_services">Сервіси</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_language_words')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_language_words">Мультимовність</a></li>
+                <li <?=($_SESSION['alias']->alias == 'wl_pagespeed')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_pagespeed">Google Page Speed</a></li>
                 <li <?=($_SESSION['alias']->alias == 'wl_register')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_register">Реєстр</a></li>
             </ul>
         </li>

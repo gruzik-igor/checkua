@@ -2,8 +2,6 @@
 
 class wl_pagespeed extends Controller {
 
-	private $manifest = false;
-
     public function _remap($method)
     {
         $_SESSION['alias']->name = 'Оптимізація на основі Google PageSpeed Insights';
@@ -16,12 +14,16 @@ class wl_pagespeed extends Controller {
 
 	public function index()
 	{
-		$res = array('UnZip' => false, 'manifest' => false);
-		if($res['UnZip'] = $this->UnZip())
-			if($this->manifest)
+		if($_SESSION['user']->admin)
+		{
+			$res = array('UnZip' => false, 'manifest' => false);
+			if($res['UnZip'] = $this->UnZip())
 				$res['manifest'] = $this->read_MANIFEST();
 
-		$this->load->admin_view('wl_optimize/pagespeed_view', $res);
+			$this->load->admin_view('wl_optimize/pagespeed_view', $res);
+		}
+		else
+			$this->redirect('admin');
 	}
 
 	private function UnZip($form_name = 'optimized_contents')
@@ -33,9 +35,7 @@ class wl_pagespeed extends Controller {
 			if(!is_dir($path))
             {
                 if(mkdir($path, 0777) == false)
-                {
                     exit('Error create dir ' . $path);
-                } 
             }
             $file = $path.'/optimized_contents.zip';
             move_uploaded_file($_FILES[$form_name]['tmp_name'], $file);
@@ -45,14 +45,13 @@ class wl_pagespeed extends Controller {
 			{
 			    $zip->extractTo($path.'/');
 			    $zip->close();
-			    $res = true;
-
+			    
 			    $file = $path.'/MANIFEST';
 				if(file_exists($file))
-					$this->manifest = fopen($file, "r");
+					return true;
 			}
 		}
-		return $res;
+		return false;
 	}
 
 	public function read_MANIFEST()
@@ -63,7 +62,10 @@ class wl_pagespeed extends Controller {
 		$accessFileTypes = array('css', 'js', 'jpg', 'jpeg', 'png');
 		$accessKey = array('css', 'js', 'image');
 		$i = 0;
-		while (($line = fgets($this->manifest)) !== false) {
+
+		$file = 'optimize/MANIFEST';
+		$manifest = fopen($file, "r");
+		while (($line = fgets($manifest)) !== false) {
 	        if($i == 0)
 	        {
 				if(substr($line, 0, 46) == 'This zip file contains optimized resources for')
@@ -81,6 +83,7 @@ class wl_pagespeed extends Controller {
 						if(in_array($folder[0], $accessFolder))
 						{
 							$file = array();
+							$file['part'] = $row[0];
 							$ext = explode('.', end($folder));
 							$ext = end($ext);
 							$ext = trim($ext);
@@ -89,7 +92,7 @@ class wl_pagespeed extends Controller {
 								$file['from'] = 'optimize/'.$row[0].'/'.$parts[0];
 								if(file_exists($file['from']))
 								{
-									$file['to'] = $parts[1];
+									$file['to'] = trim($parts[1]);
 									if(file_exists($file['to']))
 									{
 										$file['from_size'] = filesize($file['from']);
@@ -107,7 +110,7 @@ class wl_pagespeed extends Controller {
 									$file['from'] = 'optimize/'.$row[0].'/'.$parts[0];
 									if(file_exists($file['from']))
 									{
-										$file['to'] = substr($parts[1], 0, $sub);
+										$file['to'] = trim(substr($parts[1], 0, $sub));
 										if(file_exists($file['to']))
 										{
 											$file['from_size'] = filesize($file['from']);
@@ -123,6 +126,43 @@ class wl_pagespeed extends Controller {
 			}
 		}
 		return $files;
+	}
+
+	public function replace()
+	{
+		if($_SESSION['user']->admin)
+		{
+			$_SESSION['notify'] = new stdClass();
+			if(file_exists('optimize/MANIFEST'))
+			{
+				$moved = $renamed = 0;
+				$date_backup = date('_d.m.Y_H.i.');
+				$files = $this->read_MANIFEST();
+				foreach ($files as $file) {
+					if(in_array($file['to'], $_POST['replace']))
+					{
+						if(in_array($file['to'], $_POST['backup']))
+						{
+							$name = explode('.', $file['to']);
+							$ext = array_pop($name);
+							$name = implode('.', $name);
+							$name .= $date_backup . $ext;
+							if(rename($file['to'], $name))
+								$renamed++;
+						}
+						if(rename($file['from'], $file['to']))
+							$moved++;
+					}
+				}
+				$this->data->removeDirectory('optimize');
+				$_SESSION['notify']->success = "Успішно замінено <strong>{$moved}</strong> файлів. Резервні копії зроблено для <strong>{$renamed}</strong> файлів.";
+			}
+			else
+				$_SESSION['notify']->errors = 'Файл optimize/MANIFEST не знайдено. Повторіть процедуру';
+			$this->redirect();
+		}
+		else
+			$this->redirect('admin');
 	}
 
 }

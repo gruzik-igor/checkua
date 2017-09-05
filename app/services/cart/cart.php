@@ -63,7 +63,10 @@ class cart extends Controller {
                         if($cart->shipping_id)
                             $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
 
-                        $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
+                        if($this->data->uri(2) == 'print')
+                            $this->load->view('detal_view', array('cart' => $cart, 'controls' => false));
+                        else
+                            $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
                     }
                     else
                         $this->load->notify_view(array('errors' => $this->text('Немає прав для перегляду даного замовлення.')));
@@ -518,35 +521,6 @@ class cart extends Controller {
     {
         if($this->userIs() && isset($_SESSION['cart']->id)) {
             $this->load->view('payments_view');
-        }
-    }
-
-    public function order()
-    {
-        $orderId = $this->data->uri(2);
-
-         if(isset($orderId) && is_numeric($orderId) > 0 ){
-            $where = array('field' => "phone", 'user' => "#u.id");
-            $this->db->select('s_cart as c', '*', $orderId);
-            $this->db->join('s_cart_status', 'name as status_name', '#c.status');
-            $this->db->join('wl_users as u', 'name as user_name, email as user_email', '#c.user');
-            $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-            $this->db->join('wl_user_types', 'title as user_type_name', '#u.type');
-            $cartInfo = $this->db->get();
-
-            $cartHistory = $this->db->getQuery("SELECT h.*, s.name as status_name FROM `s_cart_history` as h LEFT JOIN `s_cart_status` as s ON h.status = s.id WHERE h.cart = $orderId ORDER BY h.date DESC", 'array');
-
-            if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0)
-            {
-                $cartInfo->shipping = $this->load->function_in_alias($cartInfo->shipping_alias, '__get_delivery_info', $cartInfo->shipping_id);
-            }
-
-            if(isset($cartInfo->user) && $cartInfo->user == $_SESSION['user']->id || $this->userCan()){
-                $orderProducts = $this->getOrderProducts($orderId);
-
-                $this->load->view('orderProducts', array('orderProducts' => $orderProducts, 'cartInfo' => $cartInfo, 'cartHistory' => $cartHistory));
-                exit;
-            } else $this->load->notify_view(array('errors' => 'Немає прав для перегляду даного замовлення.'));
         }
     }
 

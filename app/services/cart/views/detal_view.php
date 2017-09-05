@@ -1,20 +1,20 @@
-<?php if(isset($controls) && $controls) { ?>
-<div class="container content">
-	<div class="row">
-		<div class="col-md-12">
-			<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/my" class="btn btn-success btn-sm"><?=$this->text('До всіх замовлень')?></a>
-			<a href="<?=SITE_URL?>cart/print/<?= $cartInfo->id?>" class="btn btn-danger btn-sm pull-right" target="_blank"><?=$this->text('Друкувати')?></a>
-			<?php if($cartInfo->status == 2) { ?>
-				<!-- <a href="<?=SITE_URL?>cart/pay/<?= $cartInfo->id?>" class="btn btn-warning btn-sm pull-right" style="margin-right:5px">Оплатити</a>  -->
-			<?php } ?>
+<?php if($controls) { ?>
+	<div class="container content">
+		<div class="row">
+			<div class="col-md-12">
+				<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/my" class="btn btn-success btn-sm"><?=$this->text('До всіх замовлень')?></a>
+				<a href="<?=SITE_URL?>cart/<?= $cart->id?>/print" class="btn btn-danger btn-sm pull-right" target="_blank"><?=$this->text('Друкувати')?></a>
+				<?php if($cart->action == 'new') { ?>
+					<a href="<?=SITE_URL?>cart/pay/<?= $cart->id?>" class="btn btn-warning btn-sm pull-right" style="margin-right:5px">Оплатити</a>
+				<?php } ?>
+			</div>
 		</div>
 	</div>
-</div>
 <?php } else { ?>
 	<!DOCTYPE html>
 	<html lang="uk">
 		<head>
-			<title>Замовлення</title>
+			<title>.</title>
 		    <meta charset="utf-8">
 		    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
@@ -28,24 +28,24 @@
 		    <div class="row">
 		    	<div class="col-md-12">
 			    	<div style="clear:both">
-			    		<h1><?=$this->text('Замовлення')?> #<?= $cartInfo->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cartInfo->date_edit)?></h1>
+			    		<h1><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
 				    	<table class="cartUserinfo">
 							<tr>
 								<td>Покупець:</td>
-								<th><?= $cartInfo->shipping->receiver .", " . $cartInfo->shipping->phone ?></th>
+								<th><?= $cart->shipping->receiver .", " . $cart->shipping->phone ?></th>
 							</tr>
-							<?php if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0) { ?>
+							<?php if($_SESSION['option']->useShipping && $cart->shipping_id > 0) { ?>
 								<tr>
 									<td>Служба доставки: </td>
-									<th><?= $cartInfo->shipping->method_name ?><?= ($cartInfo->shipping->method_site) ? ', '. $cartInfo->shipping->method_site : '' ?></th>
+									<th><?= $cart->shipping->method_name ?><?= ($cart->shipping->method_site) ? ', '. $cart->shipping->method_site : '' ?></th>
 								</tr>
 								<tr>
 									<td>Адреса: </td>
-									<th><?= $cartInfo->shipping->address ?></th>
+									<th><?= $cart->shipping->address ?></th>
 								</tr>
 							<?php } ?>
 						</table>
-						<div style="float:right; text-align: right;"> Статус замовлення: <b><?= $cartInfo->status_name ?></b></div>
+						<div style="float:right; text-align: right;"> Статус замовлення: <b><?= $cart->status_name ?></b></div>
 			    	</div>
 			   		<div class="table-responsive" style="clear:both">
 			    		<table class="table table-striped table-bordered nowrap" width="100%">
@@ -67,14 +67,14 @@
 				    			</tr>
 								<?php } ?>
 								<tr>
-									<td></td><td></td><td></td><td class="text-right"><b><?= $cartInfo->total?> грн</b></td>
+									<td></td><td></td><td></td><td class="text-right"><b><?= $cart->total?> грн</b></td>
 								</tr>
 				    		</tbody>
 			    		</table>
 			    	</div>
 
 					<div class="pull-right text-right">
-                		<h3><?=$this->text('До оплати')?>: <b class="color-red"><?= $cartInfo->total ?> грн</b></h3>
+                		<h3><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart->total ?> грн</b></h3>
                 	</div>
 
 	                <?php if(isset($controls) && $controls) { ?>
@@ -97,7 +97,7 @@
 						        	</tr>
 						        	<?php } ?>
 						        	<tr>
-						                <td><?= date('d.m.Y H:i',$cartInfo->date_add)?></td>
+						                <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
 						                <td><?=$this->text('Нова, не оплачено')?></td>
 						                <td></td>
 						            </tr>

@@ -12,11 +12,11 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 200;
 	public $admin_ico = 'fa-shopping-cart';
-	public $version = "1.1";
+	public $version = "2.0";
 
-	public $options = array('usePassword' => 1, 'newUserType' => 4);
-	public $options_type = array('usePassword' => 'bool', 'newUserType' => 'number');
-	public $options_title = array('usePassword' => 'Пароль обов"язковий при ідентифікації', 'newUserType' => 'ID типу нового користувача');
+	public $options = array('useCheckBox' => 1, 'usePassword' => 1, 'newUserType' => 4);
+	public $options_type = array('useCheckBox' => 'bool', 'usePassword' => 'bool', 'newUserType' => 'number');
+	public $options_title = array('useCheckBox' => 'Використовувати галочки', 'usePassword' => 'Пароль обов"язковий при ідентифікації', 'newUserType' => 'ID типу нового користувача');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',
@@ -69,20 +69,18 @@ class install
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_products` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `cart` int(11) NOT NULL,
-					  `alias` int(11) NOT NULL,
+					  `cart` int(11) NULL,
+					  `user` int(11) NOT NULL,
+					  `product_alias` int(11) NOT NULL,
+					  `product_id` int(11) NOT NULL,
 					  `storage_alias` int(11) NULL,
 					  `storage_invoice` int(11) NULL,
-					  `product` int(11) NOT NULL,
 					  `price` float UNSIGNED NOT NULL,
 					  `price_in` float UNSIGNED NULL,
-					  `currency` int(11) NULL,
-					  `additional` text NULL,
 					  `quantity` int(11) NOT NULL,
-					  `quantity_reserved` int(11) NULL,
+					  `quantity_wont` int(11) NOT NULL,
 					  `quantity_returned` int(11) NULL,
 					  `discount` float UNSIGNED NULL,
-					  `user` int(11) NOT NULL,
 					  `date` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
@@ -92,6 +90,7 @@ class install
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_status` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `name` text NOT NULL,
+					  `color` text NULL,
 					  `active` tinyint(1) NOT NULL,
 					  `weight` tinyint(2) NOT NULL,
 					  PRIMARY KEY (`id`),
@@ -100,13 +99,13 @@ class install
 		$this->db->executeQuery($query);
 
 		$query = "INSERT INTO `{$this->table_service}_status` (`name`, `active`, `weight`) VALUES
-											 ('Нова', 1, 0),
-											 ('Підтверджено/очікує оплати', 1, 10),
-											 ('Оплачено', 1, 15),
-											 ('Нова,оплачено', 1, 15),
-											 ('Відправлено', 1, 20),
-											 ('Закрито', 1, 99),
-											 ('Скасовано', 1, 99);";
+											 ('Нове НЕ оплачено', 'warning', 1, 0),
+											 ('Підтверджено/очікує оплати', 'success', 0, 9),
+											 ('Нове оплачено', 'warning', 1, 10),
+											 ('Оплачено', 'danger', 1, 11),
+											 ('Відправлено', 'primary', 1, 20),
+											 ('Закрито', 'default', 1, 98),
+											 ('Скасовано', 'default', 1, 99);";
 		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (

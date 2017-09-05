@@ -2,8 +2,8 @@
 <div class="container content">
 	<div class="row">
 		<div class="col-md-12">
-			<a href="<?=SITE_URL?>profile" class="btn btn-success btn-sm"><?=$this->text('До всіх замовлень')?></a>
-			<a href="<?=SITE_URL?>cart/order/<?= $cartInfo->id?>" class="btn btn-danger btn-sm pull-right" target="_blank"><?=$this->text('Друкувати')?></a>
+			<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/my" class="btn btn-success btn-sm"><?=$this->text('До всіх замовлень')?></a>
+			<a href="<?=SITE_URL?>cart/print/<?= $cartInfo->id?>" class="btn btn-danger btn-sm pull-right" target="_blank"><?=$this->text('Друкувати')?></a>
 			<?php if($cartInfo->status == 2) { ?>
 				<!-- <a href="<?=SITE_URL?>cart/pay/<?= $cartInfo->id?>" class="btn btn-warning btn-sm pull-right" style="margin-right:5px">Оплатити</a>  -->
 			<?php } ?>

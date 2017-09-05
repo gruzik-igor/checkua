@@ -2,27 +2,28 @@
 
 /*
 
- 	Service "Shop cart 1.1"
+ 	Service "Shop cart 2.0"
 	for WhiteLion 1.0
 
 */
 
 class cart extends Controller {
 
+    private $useShipping = false;
+    private $usePayments = false;
+    private $useStorage = false;
+
     function __construct()
     {
         parent::__construct();
-        $_SESSION['option']->useShipping = 0;
-        $_SESSION['option']->usePayments = 0;
-        $_SESSION['option']->useStorage = 0;
         if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
             foreach ($cooperation as $row) {
                 if($row->type == 'delivery')
-                    $_SESSION['option']->useShipping = 1;
+                    $this->useShipping = true;
                 elseif($row->type == 'payment')
-                    $_SESSION['option']->usePayments = 1;
+                    $this->usePayments = true;
                 elseif($row->type == 'storage')
-                    $_SESSION['option']->useStorage = 1;
+                    $this->useStorage = true;
             }
     }
 
@@ -36,43 +37,60 @@ class cart extends Controller {
         }
     }
 
-    function index()
+    public function index()
     {
         $this->wl_alias_model->setContent();
-        $orderId = $this->data->uri(1);
+        $this->load->smodel('cart_model');
 
-        if(isset($orderId) && is_numeric($orderId) > 0 )
+        if($id = $this->data->uri(1))
         {
-            $where = array('field' => "phone", 'user' => "#u.id");
-            $this->db->select('s_cart as c', '*', $orderId);
-            $this->db->join('s_cart_status', 'name as status_name', '#c.status');
-            $this->db->join('wl_users as u', 'name as user_name, email as user_email', '#c.user');
-            $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-            $this->db->join('wl_user_types', 'title as user_type_name', '#u.type');
-            $cartInfo = $this->db->get();
-
-            if($cartInfo)
+            if(isset($_SESSION['user']->id))
             {
-                $_SESSION['alias']->name = 'Замовлення №'.$orderId;
-                $_SESSION['alias']->breadcrumbs = array('До всіх замовлень' => 'profile/orders', 'Замовлення №'.$orderId => '');
-
-                $cartHistory = $this->db->getQuery("SELECT h.*, s.name as status_name FROM `s_cart_history` as h LEFT JOIN `s_cart_status` as s ON h.status = s.id WHERE h.cart = $orderId ORDER BY h.date DESC", 'array');
-
-                if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0)
+                if($cart = $this->cart_model->getById($id))
                 {
-                    $cartInfo->shipping = $this->load->function_in_alias($cartInfo->shipping_alias, '__get_delivery_info', $cartInfo->shipping_id);
+                    $_SESSION['alias']->name = $this->text('Замовлення №').$id;
+                    if($cart->user == $_SESSION['user']->id || $this->userCan())
+                    {
+                        $_SESSION['alias']->breadcrumbs = array($this->text('До всіх замовлень') => $_SESSION['alias']->alias.'/my', $this->text('Замовлення №').$id => '');
+
+                        if($cart->products)
+                            foreach ($cart->products as $product) {
+                                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                                if($product->storage_invoice)
+                                    $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                            }
+
+                        if($cart->shipping_id)
+                            $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+
+                        $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
+                    }
+                    else
+                        $this->load->notify_view(array('errors' => $this->text('Немає прав для перегляду даного замовлення.')));
                 }
-
-                if(isset($cartInfo->user) && isset($_SESSION['user']->id) && $cartInfo->user == $_SESSION['user']->id || $this->userCan()){
-                    $orderProducts = $this->getOrderProducts($orderId);
-
-                    $this->load->page_view('orderProducts', array('orderProducts' => $orderProducts, 'cartInfo' => $cartInfo, 'cartHistory' => $cartHistory, 'controls' => true));
-                    exit;
-                } else $this->load->notify_view(array('errors' => 'Немає прав для перегляду даного замовлення.'));
+                else
+                    $this->load->page_404();
             }
+            else
+                $this->load->notify_view(array('errors' => $this->text('Для перегляду замовлення спершу <a href="'.SITE_URL.'login">увійдіть</a>')));
         }
 
-        $this->load->page_view('index_view');
+        $user_type = 0;
+        if(isset($_SESSION['user']->type))
+            $user_type = $_SESSION['user']->type;
+        $products = $this->cart_model->getProductsInCart();
+        if($products)
+            foreach ($cart->products as $product) {
+                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                if($product->storage_invoice)
+                    $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
+            }
+        $this->load->page_view('index_view', array('products' => $products));
+    }
+
+    public function my()
+    {
+        # code... list user carts/orders
     }
 
     function productAdd()

@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 1;
 	public $order_alias = 150;
 	public $admin_ico = 'fa-qrcode';
-	public $version = "1.0";
+	public $version = "1.1";
 
 	public $options = array('productUseArticle' => 0, 'deleteIfZero' => 0, 'markUpByUserTypes' => 0);
 	public $options_type = array('productUseArticle' => 'bool', 'deleteIfZero' => 'bool', 'markUpByUserTypes' => 'bool');
@@ -23,11 +23,15 @@ class install
 				);
 	public $sub_menu = array("add" => "Додати карточку товару", "options" => "Властивості");
 
-	public $cooperation_index = array('shopshowcase' => 2);
+	public $cooperation_index = 2;
 	public $cooperation_types = array('storage' => 'Склад');
-	public $cooperation_service = array('shopshowcase' => 'storage');
 
-	public function alias($alias = 0, $table = '')
+	public $seo_name = "Склад";
+	public $seo_title = "Склад";
+	public $seo_description = "";
+	public $seo_keywords = "";
+
+	function alias($alias = 0, $table = '')
 	{
 		if($alias == 0) return false;
 
@@ -87,6 +91,9 @@ class install
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `name` text NOT NULL,
+					  `currency` varchar(3) NOT NULL DEFAULT 'USD',
+					  `updateRows` TEXT NOT NULL,
+					  `updateCols` TEXT NOT NULL,
 					  `markup` int(11) NOT NULL,
 					  `date_add` int(11) NOT NULL,
 					  `user_add` int(11) NOT NULL,

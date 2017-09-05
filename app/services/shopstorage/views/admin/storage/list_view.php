@@ -20,7 +20,9 @@ require APP_PATH.'views/admin/notify_view.php';
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати накладну</a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-info btn-xs"><i class="fa fa-plus"></i> Додати наявність</a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/update" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Оновити прайс</a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування складу</a>
                 </div>
                 <h4 class="panel-title"><?=$_SESSION['alias']->name?>. Список всіх накладних</h4>
             </div>
@@ -30,6 +32,7 @@ require APP_PATH.'views/admin/notify_view.php';
                         <thead>
                             <tr>
                                 <th>Накладна №</th>
+                                <th>Виробник</th>
                                 <th><?=($_SESSION['option']->productUseArticle) ? 'Артикул' : 'ID'?></th>
 								<th>Назва</th>
 								<th>Загальна наявність / Доступно</th>
@@ -51,26 +54,41 @@ require APP_PATH.'views/admin/notify_view.php';
                         <tbody>
                         	<?php
                         	if(!empty($invoices)) { 
+                        		$markUps = array();
+						        if($mus = $this->db->getAllDataByFieldInArray('s_shopstorage_markup', $_SESSION['alias']->id, 'storage'))
+						            foreach ($mus as $mu) {
+						                $markUps[$mu->user_type] = $mu->markup;
+						            }
                         		foreach($invoices as $product) { ?>
 									<tr>
 										<td>#<?=$product->id?> <br>
 											<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$product->id?>" class="btn btn-info btn-xs">Детальніше</a>
 										</td>
+										<td><?=$product->info->manufacturer_name?></td>
 										<td><?=($_SESSION['option']->productUseArticle) ? $product->info->article : $product->id?></td>
 										<td><?=$product->info->name?></td>
 										<td><?=$product->amount?> / <b><?=$product->amount_free?></b></td>
-										<td><?=$product->amount_reserved?></td>
+										<td><?=($product->amount_reserved != '') ? $product->amount_reserved : 0?></td>
 										<?php if($_SESSION['option']->markUpByUserTypes == 1) {
-											$price_out = 0;
-											if(is_numeric($product->price_out)) $price_out = $product->price_out;
-											else $product->price_out = unserialize($product->price_out);
-											foreach($groups as $group) if($group->id > 2) { ?>
-												<td><?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?></td>
-										<?php } ?>
-										<td><?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?></td>
-									<?php } else {
+											$price_out = $product->price_in;
+											if($product->price_out != 0)
+												$product->price_out = unserialize($product->price_out);
+											foreach($groups as $group)
+												if($group->id > 2) {
+													if(is_array($product->price_out) && isset($product->price_out[$group->id]))
+														$price_out = $product->price_out[$group->id];
+													elseif(isset($markUps[$group->id]))
+														$price_out = round($product->price_in * ($markUps[$group->id] + 100) / 100, 2);
+													echo "<td>{$price_out}</td>";
+												}
+											if(is_array($product->price_out) && isset($product->price_out[0]))
+												$price_out = $product->price_out[0];
+											elseif(isset($markUps[0]))
+												$price_out = round($product->price_in * ($markUps[0] + 100) / 100, 2);
+											echo "<td>{$price_out}</td>";
+										}
+										else
 											echo("<td>{$product->price_out}</td>");
-                                        	}
                                         ?>
 										<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
 										<td><?=date("d.m.Y H:i", $product->date_edit)?></td>

@@ -7,9 +7,9 @@ require APP_PATH.'views/admin/notify_view.php';
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all" class="btn btn-info btn-xs">До всіх накладних</a>
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all" class="btn btn-info btn-xs">До всіх товарів складу</a>
             	</div>
-                <h4 class="panel-title">Додати накладну</h4>
+                <h4 class="panel-title">Додати накладну товару</h4>
             </div>
             <div class="panel-body">
             	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
@@ -98,7 +98,11 @@ require APP_PATH.'views/admin/notify_view.php';
             <div class="panel-body" id="product">
                 <div id="product-info" class="table-responsive" style="display:none">
                     <table class="table table-striped table-bordered nowrap" width="100%">
-                    	<?php if($_SESSION['option']->productUseArticle) { ?>
+	                	<tr>
+							<th>Виробник</th>
+							<td id="product-manufacturer"></td>
+						</tr>
+	                	<?php if($_SESSION['option']->productUseArticle) { ?>
                     		<tr>
 								<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
 								<td id="product-article"></td>
@@ -118,27 +122,27 @@ require APP_PATH.'views/admin/notify_view.php';
 							<td id="product-price"></td>
 						</tr>
 						<tr>
-							<th>Група</th>
-							<td id="product-group"></td>
+							<th>Оригінал</th>
+							<td id="product-orign"></td>
 						</tr>
 						<tr>
 							<th>Активність</th>
 							<td id="product-active"></td>
 						</tr>
-                    </table>
+	                </table>
                 </div>
 
                 <div id="product-array" class="table-responsive" style="display:none">
                     <table id="products" class="table table-striped table-bordered nowrap" width="100%">
                     	<tr>
+                    		<th>Виробник</th>
                     	<?php if($_SESSION['option']->productUseArticle) { ?>
 								<th>Артикул</th>
 						<?php } else { ?>
 								<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
 						<?php } ?>
 							<th>Назва</th>
-							<th>Виробник</th>
-							<th>Група</th>
+							<th>Оригінал</th>
 						</tr>
                     </table>
                 </div>
@@ -181,8 +185,11 @@ require APP_PATH.'views/admin/notify_view.php';
 		                	var td = res[i].id;
 		                <?php } ?>
 		                var vyrobnyk = '';
-		                if(typeof res[i].options['1-vyrobnyk'] != 'undefined') vyrobnyk = res[i].options['1-vyrobnyk'].value;
-	            		$('#products tr:last').after('<tr class="products-row"><td>'+td+' <button onClick="setProduct('+res[i].id+')">Обрати</button></td><td>'+res[i].name+'</td><td>'+vyrobnyk+'</td><td>'+res[i].group_name+'</td></tr>');
+		                var orign = 'Так';
+		                if(res[i].orign == 0)
+		                	orign = 'Ні';
+		                if(typeof res[i].manufacturer_name != 'undefined') vyrobnyk = res[i].manufacturer_name;
+	            		$('#products tr:last').after('<tr class="products-row"><td>'+vyrobnyk+'</td><td>'+td+' <button onClick="setProduct('+res[i].id+')">Обрати</button></td><td>'+res[i].name+'</td><td>'+orign+'</td></tr>');
 	            	}
 	            } else {
 	            	$('#product-alert').slideUp('fast');
@@ -194,9 +201,10 @@ require APP_PATH.'views/admin/notify_view.php';
 	                	$('#product-id').html(res.id);
 	                <?php } ?>
 	                $('#id').val(res.id);
+	                $('#product-manufacturer').html(res.manufacturer_name);
 	                $('#product-name').html(res.name);
 	                $('#product-price').html(res.price);
-	                $('#product-group').html(res.group_name);
+	                $('#product-orign').html(res.orign);
 	                $('#product-active').html(res.active);
 	                <?php if($_SESSION['option']->markUpByUserTypes && isset($storage->markup[0]) && $storage->markup[0] > 0) { ?>
 	                	$('#price_out-0').val(res.price);
@@ -241,9 +249,10 @@ require APP_PATH.'views/admin/notify_view.php';
 	                	$('#product-id').html(res.id);
 	                <?php } ?>
 	                $('#id').val(res.id);
+	                $('#product-manufacturer').html(res.manufacturer_name);
 	                $('#product-name').html(res.name);
 	                $('#product-price').html(res.price);
-	                $('#product-group').html(res.group_name);
+	                $('#product-orign').html(res.orign);
 	                $('#product-active').html(res.active);
 	                <?php if($_SESSION['option']->markUpByUserTypes && isset($storage->markup[0]) && $storage->markup[0] > 0) { ?>
 	                	$('#price_out-0').val(res.price);

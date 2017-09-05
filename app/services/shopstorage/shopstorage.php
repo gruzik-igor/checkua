@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Storage 1.0"
+ 	Service "Shop Storage 1.1"
 	for WhiteLion 1.0
 
 */
@@ -35,10 +35,24 @@ class shopstorage extends Controller {
 		$userType = 0;
 		if(is_array($id))
 		{
-			if(isset($id['id'])) $productId = $id['id'];
-			if(isset($id['user_type'])) $userType = $id['user_type'];
+			if(isset($id['id']))
+				$productId = $id['id'];
+			if(isset($id['user_type']))
+				$userType = $id['user_type'];
+			if(isset($id['autoAddInvoice']) && isset($_SESSION['option']->autoAddInvoice) && $_SESSION['option']->autoAddInvoice == 1)
+			{
+				$this->load->smodel('storage_model');
+				$storage = $this->storage_model->getStorage();
+				$invoice = new stdClass();
+				$invoice->id = $invoice->price_out = $invoice->price_in = $invoice->amount_free = 0;
+				$invoice->storage = $_SESSION['alias']->id;
+				$invoice->storage_name = $storage->name;
+				$invoice->storage_time = $storage->time;
+				return array($invoice);
+			}
 		}
-		else $productId = $id;
+		else
+			$productId = $id;
 		if($productId > 0)
 		{
 			$this->load->smodel('storage_model');
@@ -50,18 +64,20 @@ class shopstorage extends Controller {
 
 	public function __get_Invoice($id = 0)
 	{
-		$productId = 0;
-		$userType = 0;
+		$invoiceId = $userType = 0;
 		if(is_array($id))
 		{
-			if(isset($id['id'])) $productId = $id['id'];
-			if(isset($id['user_type'])) $userType = $id['user_type'];
+			if(isset($id['id']))
+				$invoiceId = $id['id'];
+			if(isset($id['user_type']))
+				$userType = $id['user_type'];
 		}
-		else $productId = $id;
-		if($productId > 0)
+		elseif(is_numeric($id))
+			$invoiceId = $id;
+		if($invoiceId > 0)
 		{
 			$this->load->smodel('storage_model');
-			return $this->storage_model->getProduct($productId, $userType);
+			return $this->storage_model->getInvoice($invoiceId, $userType);
 		}
 		return false;
 	}

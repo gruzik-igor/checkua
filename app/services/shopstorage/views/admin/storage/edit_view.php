@@ -27,15 +27,19 @@ require APP_PATH.'views/admin/notify_view.php';
 						<input type="hidden" name="id" value="<?=$product->id?>">
 		                <div class="table-responsive">
 		                    <table class="table table-striped table-bordered nowrap" width="100%">
+		                    	<tr>
+									<th>Виробник</th>
+									<th><?=$product->info->manufacturer_name?></th>
+								</tr>
 		                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 		                    		<tr>
 										<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
-										<td><?=$product->info->article?></td>
+										<th><?=$product->info->article?></th>
 									</tr>
 								<?php } else { ?>
 									<tr>
 										<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
-										<td><?=$product->info->id?></td>
+										<th><?=$product->info->id?></th>
 									</tr>
 								<?php } ?>
 								<tr>
@@ -54,26 +58,52 @@ require APP_PATH.'views/admin/notify_view.php';
 									<tr>
 										<th colspan="2"><center>Ціна вихідна</center></th>
 									</tr>
+									<tr>
+										<th>Режим націнки</th>
+										<td>
+											<input type="hidden" name="optionPrice_out_old" value="<?=(empty($product->price_out)) ? 0 : 1?>">
+											<label><input type="radio" name="optionPrice_out_new" value="0" <?=(empty($product->price_out)) ? 'checked' : ''?>> Загальний (автоматично)</label>
+											<label><input type="radio" name="optionPrice_out_new" value="1" <?=(empty($product->price_out)) ? '' : 'checked'?>> Індивідуальний</label>
+										</td>
+									</tr>
 									<?php
 									$groups = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
 									$price_out = 0;
-									if(is_numeric($product->price_out)) $price_out = $product->price_out;
-									else $product->price_out = unserialize($product->price_out);
-									foreach($groups as $group) if($group->id > 1) { ?>
+									if(empty($product->price_out))
+									{
+										echo('<imput type="hidden" name="price_out" value="0">');
+										$storage = $this->storage_model->getStorage();
+										$price_out = array();
+										foreach ($storage->markup as $user_type => $markup) {
+											$price_out[$user_type] = round($product->price_in * ($markup + 100) / 100, 2);
+										}
+										foreach($groups as $group) if($group->id > 1) { ?>
+											<tr>
+												<td><?=$group->title?> <?=(isset($storage->markup[$group->id])) ? '('.$storage->markup[$group->id].'%)' : ''?></td>
+												<td><?=(isset($price_out[$group->id])) ? $price_out[$group->id] : 0?></td>
+											</tr>
+										<?php }
+									}
+									else
+									{
+										if(is_numeric($product->price_out)) $price_out = $product->price_out;
+										else $product->price_out = unserialize($product->price_out);
+										foreach($groups as $group) if($group->id > 1) { ?>
+											<tr>
+												<td><?=$group->title?> (Націнка <?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?>%)</td>
+												<td>
+													<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="<?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?>" min="0" step="0.01" class="form-control price_out">
+												</td>
+											</tr>
+										<?php } ?>
 										<tr>
-											<td><?=$group->title?> (Націнка <?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?>%)</td>
+											<td>Неавторизований користувач / гість (Націнка <?=(isset($storage->markup[0]))?$storage->markup[0] : 0 ?>%)</td>
 											<td>
-												<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="<?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?>" min="0" step="0.01" class="form-control price_out">
+												<input type="number" name="price_out-0" id="price_out-0" value="<?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?>" min="0" step="0.01" class="form-control price_out">
 											</td>
 										</tr>
-									<?php } ?>
-									<tr>
-										<td>Неавторизований користувач / гість (Націнка <?=(isset($storage->markup[0]))?$storage->markup[0] : 0 ?>%)</td>
-										<td>
-											<input type="number" name="price_out-0" id="price_out-0" value="<?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?>" min="0" step="0.01" class="form-control price_out">
-										</td>
-									</tr>
-								<?php } else { ?>
+									<?php } 
+								} else { ?>
 									<tr>
 										<th>Ціна вихідна</th>
 										<td>
@@ -93,11 +123,11 @@ require APP_PATH.'views/admin/notify_view.php';
 								</tr>
 								<tr>
 									<th>Квитанцію додано</th>
-									<td><?=date('d.m.Y', $product->date_add)?> by <?=$product->manager_add_name?></td>
+									<td><?=date('d.m.Y H:i', $product->date_add)?> by <?=($product->manager_add)?$product->manager_add_name:'auto 1c'?></td>
 								</tr>
 								<tr>
 									<th>Квитанцію редаговано</th>
-									<td><?=date('d.m.Y', $product->date_edit)?> by <?=$product->manager_edit_name?></td>
+									<td><?=date('d.m.Y H:i', $product->date_edit)?> by <?=($product->manager_edit)?$product->manager_edit_name:'auto 1c'?></td>
 								</tr>
 								<tr>
 									<td>
@@ -110,7 +140,9 @@ require APP_PATH.'views/admin/notify_view.php';
 								</tr>
 								<tr>
 									<td></td>
-									<td><input id="submit" type="submit" class="btn btn-sm btn-success" value="Зберегти"></td>
+									<td>
+										<input id="submit" type="submit" class="btn btn-sm btn-success" value="Зберегти">
+									</td>
 								</tr>
 		                    </table>
 		                </div>
@@ -130,6 +162,10 @@ require APP_PATH.'views/admin/notify_view.php';
             <div class="panel-body" id="product">
 	                <div id="product-info" class="table-responsive">
 	                    <table class="table table-striped table-bordered nowrap" width="100%">
+	                    	<tr>
+								<th>Виробник</th>
+								<td><?=$product->info->manufacturer_name?></td>
+							</tr>
 	                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 	                    		<tr>
 									<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
@@ -146,10 +182,27 @@ require APP_PATH.'views/admin/notify_view.php';
 								<td><?=$product->info->name?></td>
 							</tr>
 							<tr>
+								<th>Приналежність</th>
+								<td><?=($product->info->orign) ? 'Оригінальна запчастина' : 'Замінник оригінальної запчастини'?></td>
+							</tr>
+							<tr>
 								<th>Стандартна ціна</th>
 								<td><?=$product->info->price?></td>
 							</tr>
-							<?php if(is_numeric($product->info->group)) { ?>
+							<tr>
+								<th>Аналоги</th>
+								<td>
+								<?php 
+								if($product->info->analogs == '')
+									echo "Не вказано";
+								else
+									foreach (explode(',', $product->info->analogs) as $analog) {
+										echo "<span class=\"label label-info\">{$analog}</span> ";
+									}
+								?>
+								</td>
+							</tr>
+							<?php if(!empty($product->info->group)) { ?>
 								<tr>
 									<th>Група</th>
 									<td><?=$product->info->group_name?></td>
@@ -166,11 +219,6 @@ require APP_PATH.'views/admin/notify_view.php';
 										echo(implode(', ', $groups));
 										?>
 									</td>
-								</tr>
-							<?php } if($product->info->availability) { ?>
-								<tr>
-									<th>Доступність</th>
-									<td><?=$product->info->availability_name?></td>
 								</tr>
 							<?php } if(!empty($product->info->options)) { foreach($product->info->options as $option) { ?>
 								<tr>

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Storage 1.0"
+ 	Service "Shop Storage 1.1"
 	for WhiteLion 1.0
 
 */
@@ -169,8 +169,8 @@ class shopstorage extends Controller {
 
 		$storage = $this->storage_model->getStorage();
 
-		$_SESSION['alias']->name = 'Керування властивостями ' . $storage->name;
-		$_SESSION['alias']->breadcrumb = array('Властивості' => '');
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Налаштування' => '');
+		$_SESSION['alias']->name = 'Керування ' . $storage->name;
 
 		$alias = $this->db->getAllDataById('wl_aliases', $_SESSION['alias']->id);
 		$options = null;
@@ -222,15 +222,41 @@ class shopstorage extends Controller {
             }
         }
 
-		$this->load->admin_view('options/index_view', array('storage' => $storage, 'options' => $options));	
+		$this->load->admin_view('options/index_view', array('storage' => $storage, 'options' => $options));
 	}
 
 	public function options_save()
 	{
 		$data = array();
+		$data['active'] = $this->data->post('active');
 		$data['name'] = $this->data->post('name');
-		$data['markup'] = $this->data->post('markup');
+		if(!empty($_POST['markup']))
+			$data['markup'] = $this->data->post('markup');
+		$data['currency'] = $this->data->post('currency');
 		$this->db->updateRow($_SESSION['service']->table, $data, $_SESSION['alias']->id);
+		
+		$storage = $this->db->getAllDataById('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => 0));
+		if($storage)
+		{
+			$data = array();
+			$data['name'] = $this->data->post('name');
+			$data['list'] = $this->data->post('time');
+			$this->db->updateRow('wl_ntkd', $data, $storage->id);
+		}
+
+		if($_POST['active'] != $_POST['active_old'])
+		{
+			if($storages = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias2' => $_SESSION['alias']->id)))
+			{
+				foreach ($storages as $storage) {
+					if($storage->type == 'storage' && $this->data->post('active') == 0)
+						$this->db->updateRow('wl_aliases_cooperation', array('type' => 'storage-0'), $storage->id);
+					elseif($storage->type == 'storage-0' && $this->data->post('active') == 1)
+						$this->db->updateRow('wl_aliases_cooperation', array('type' => 'storage'), $storage->id);
+				}
+			}
+		}
+
 		$_SESSION['notify'] = new stdClass();
 		$_SESSION['notify']->success = 'Інформацію успішно оновлено!';
 		$this->redirect();
@@ -266,64 +292,71 @@ class shopstorage extends Controller {
 
 	public function update()
 	{
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Оновити прайс' => '');
+		$_SESSION['alias']->name = 'Оновити прайс ' . $_SESSION['alias']->name;
+
+		$this->db->select('s_shopstorage_updates as s', '*', $_SESSION['alias']->id, 'storage');
+		$this->db->join('wl_users', 'name, email', '#s.manager');
+		$this->db->order('date DESC');
+		$this->db->limit(20);
+		$history = $this->db->get('array');
+
+		$this->load->admin_view('update/index_view', array('history' => $history));
+	}
+
+	public function updateStart()
+	{
 		$_SESSION['notify'] = new stdClass();
 		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
 		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
 
 		try
 		{
-			$ext = explode('.', $_FILES['price']['name']);
+			$ext = explode('.', $this->data->post('file'));
 			$ext = end($ext);
+			$from = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
 			$path = 'upload/'.$_SESSION['alias']->alias.'.'.$ext;
-			if(move_uploaded_file($_FILES['price']['tmp_name'], $path))
+			if(is_readable($path))
+				unlink($path);
+			if(rename ($from, $path))
 			{
-				$Spreadsheet = new SpreadsheetReader($path);
 				$BaseMem = memory_get_usage();
 				$Time = microtime(true);
+				$Spreadsheet = new SpreadsheetReader($path);
 
 				$this->load->smodel('import_model');
-				$function = $_SESSION['alias']->alias;
-				if(method_exists($this->import_model, $function))
+
+				if($this->import_model->checkRows($Spreadsheet, true))
 				{
-					if($this->import_model->$function($Spreadsheet))
+					$CurrentMem = memory_get_usage();
+					$_SESSION['notify']->success = 'Інформацію успішно імпортовано!';
+					$memoty = round(($CurrentMem - $BaseMem)/1024, 2);
+					if($memoty > 1024) $memoty = round($memoty / 1024, 2) . ' Мб';
+					else $memoty .= ' Кб';
+					$_SESSION['import'] = 'Використано пам\'яті: '.$memoty.' <br>';
+					$_SESSION['import'] .= 'Час: '.ceil(microtime(true) - $Time).' сек <br>';
+					$_SESSION['import'] .= 'Оновлено товарів на складі: '.$this->import_model->updated.' <br>';
+					$_SESSION['import'] .= 'Додано товарів на склад: '.$this->import_model->insertedStorage.' <br>';
+					$_SESSION['import'] .= 'Додано нових товарів: '.$this->import_model->inserted.' <br>';
+					$_SESSION['import'] .= 'Видалено: '.$this->import_model->deleted.' <br>';
+					$_SESSION['import'] .= 'Запитів до бази даних: '.$this->db->countQuery;
+					if(!empty($this->import_model->errors))
 					{
-						$CurrentMem = memory_get_usage();
-						$_SESSION['notify']->success = 'Інформацію успішно імпортовано!';
-						$memoty = round(($CurrentMem - $BaseMem)/1024, 2);
-						if($memoty > 1024) $memoty = round($memoty / 1024, 2) . ' Мб';
-						else $memoty .= ' Кб';
-						$_SESSION['import'] = 'Використано пам\'яті: '.$memoty.' <br>';
-						$_SESSION['import'] .= 'Час: '.ceil(microtime(true) - $Time).' сек <br>';
-						$_SESSION['import'] .= 'Оновлено товарів на складі: '.$this->import_model->updated.' <br>';
-						$_SESSION['import'] .= 'Додано товарів на склад: '.$this->import_model->insertedStorage.' <br>';
-						$_SESSION['import'] .= 'Додано нових товарів: '.$this->import_model->inserted.' <br>';
-						$_SESSION['import'] .= 'Видалено: '.$this->import_model->deleted;
-						if(!empty($this->import_model->errors))
-						{
-							$_SESSION['import'] .= '<hr>УВАГА! Проблемні номера: <br>';
-							$_SESSION['import'] .= implode(' <br>', $this->import_model->errors);
-						}
-					}
-					else
-					{
-						$_SESSION['notify']->errors = 'Перевірте коректність файлу! Ймовірно він з іншого складу або має помилку формату.';
+						$_SESSION['import'] .= '<hr>УВАГА! Проблемні номера: <br>';
+						$_SESSION['import'] .= implode(' <br>', $this->import_model->errors);
 					}
 				}
 				else
-				{
-					$_SESSION['notify']->errors = 'Імпорт файлів для даного складу не налаштовано! Зверніться до розробників.';
-				}
+					$_SESSION['notify']->errors = 'Перевірте коректність файлу! Ймовірно він з іншого складу або імпорт файлів для даного складу не налаштовано.';
 			}
 			else
-			{
-				$_SESSION['notify']->errors = 'Помилка копіювання прайсу! Зверніться до розробників.';
-			}
+				$_SESSION['notify']->errors = 'Помилка копіювання прайсу! Повторіть спробу. Якщо помилка не зникла, зверніться до розробників.';
 		}
 		catch (Exception $E)
 		{
 			$_SESSION['notify']->errors = $E -> getMessage();
 		}
-		$this->redirect();
+		$this->redirect('admin/'.$_SESSION['alias']->alias.'/update');
 	}
 
 	public function getProductByArticle()
@@ -353,6 +386,253 @@ class shopstorage extends Controller {
 			}
 		}
 		return false;
+	}
+
+	public function history()
+	{
+		$id = $this->data->uri(3);
+		if($update = $this->db->getAllDataById('s_shopstorage_updates', $id))
+		{
+			$this->db->select('products_update_history as h', '*', $id, 'update');
+			$this->db->join('s_shopparts_products as p', 'article, alias', '#h.product');
+			$this->db->join('s_shopparts_manufactures', 'name as manufacturer_name', '#p.manufacturer');
+			$products = $this->db->get('array');
+			$this->load->admin_view('update/history_view', array('products' => $products, 'update' => $update));
+		}
+		else
+			$this->load->page_404();
+	}
+
+	public function view_last_import()
+	{
+		$id = $this->data->uri(3);
+		if($update = $this->db->getAllDataByFieldInArray('s_shopstorage_updates', $_SESSION['alias']->id, 'storage', "id DESC LIMIT 1"))
+		{
+			$BaseMem = memory_get_usage();
+			$BaseTime = microtime(true);
+
+			if($update[0]->file)
+			{
+				$ext = explode('.', $update[0]->file);
+				$ext = end($ext);
+				$path = 'upload/'.$_SESSION['alias']->alias.'.'.$ext;
+				if(is_readable($path))
+				{
+					require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
+					require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
+
+					$Spreadsheet = new SpreadsheetReader($path);
+
+					$this->load->admin_view('update/last_import_view', array('Spreadsheet' => $Spreadsheet, 'update' => $update[0], 'path' => $path, 'BaseMem' => $BaseMem, 'BaseTime' => $BaseTime));
+				}
+				else
+					$this->load->notify_view(array('errors' => 'Файл архіву відсутній'));
+			}
+		}
+		else
+			$this->load->page_404();
+	}
+
+	public function view_before_import()
+	{
+		$_SESSION['notify'] = new stdClass();
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
+
+		try
+		{
+			$path = false;
+			if(isset($_POST['file']))
+			{
+				$ext = explode('.', $this->data->post('file'));
+				$ext = end($ext);
+				$file = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
+				if(is_readable($file))
+					$path = $file;
+			}
+			elseif(!empty($_FILES['price']['name']))
+			{
+				$ext = explode('.', $_FILES['price']['name']);
+				$ext = end($ext);
+				$path = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
+				move_uploaded_file($_FILES['price']['tmp_name'], $path);
+			}
+			if($path)
+			{
+				$BaseMem = memory_get_usage();
+				$BaseTime = microtime(true);
+				
+				$this->load->smodel('import_model');
+				$cols = $Spreadsheet = false;
+
+				$Spreadsheet = new SpreadsheetReader($path);
+				$cols = $this->import_model->checkRows($Spreadsheet);
+
+				$this->load->admin_view('update/before_import_view', array('Spreadsheet' => $Spreadsheet, 'cols' => $cols, 'BaseMem' => $BaseMem, 'BaseTime' => $BaseTime));
+			}
+		}
+		catch (Exception $E)
+		{
+			$_SESSION['notify']->errors = $E -> getMessage();
+		}
+		$this->redirect();
+	}
+
+	public function optionsImport()
+	{
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
+		require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
+
+		try
+		{
+			$BaseMem = memory_get_usage();
+			$BaseTime = microtime(true);
+
+			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Налаштування складу' => 'admin/'.$_SESSION['alias']->alias.'/options', 'Налаштування структури файлу імпорту' => '');
+			$_SESSION['alias']->name = 'Налаштування структури файлу імпорту для ' . $_SESSION['alias']->name;
+
+			if($storage = $this->db->getAllDataById($_SESSION['service']->table, $_SESSION['alias']->id))
+			{
+				$spreadsheet = false;
+				$fileName = '';
+				if($fileName = $this->data->get('file'))
+				{
+					$ext = explode('.', $this->data->get('file'));
+					$ext = end($ext);
+					$file = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
+					if(is_readable($file))
+						$spreadsheet = new SpreadsheetReader($file);
+				}
+				elseif(!empty($_FILES['price']))
+				{
+					$fileName = $_FILES['price']['name'];
+					$ext = explode('.', $_FILES['price']['name']);
+					$ext = end($ext);
+					$file = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
+					if(move_uploaded_file($_FILES['price']['tmp_name'], $file))
+						$spreadsheet = new SpreadsheetReader($file);
+				}
+
+				$this->load->admin_view('options/import_view', array('storage' => $storage, 'Spreadsheet' => $spreadsheet, 'file' => $fileName, 'BaseMem' => $BaseMem, 'BaseTime' => $BaseTime));
+				exit;
+			}
+			else
+				exit('Error config shopstorage!');
+		}
+		catch (Exception $E)
+		{
+			exit($E -> getMessage());
+		}
+		$this->redirect();
+	}
+
+	public function optionsImportSaveRows()
+	{
+		$_SESSION['notify'] = new stdClass();
+		if(isset($_POST['file']) && isset($_POST['newKeyRow']) && is_numeric($_POST['newKeyRow']))
+		{
+			$ext = explode('.', $this->data->post('file'));
+			$ext = end($ext);
+			$file = 'upload/'.$_SESSION['alias']->alias.'_prepare.'.$ext;
+			if(is_readable($file))
+			{
+				require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/php-excel-reader/excel_reader2.php');
+				require(SYS_PATH.'libraries'.DIRSEP.'spreadsheet-reader-master/SpreadsheetReader.php');
+
+				$row = array();
+				$spreadsheet = new SpreadsheetReader($file);
+				foreach ($spreadsheet as $Key => $Row)
+				if($Key == $this->data->post('newKeyRow'))
+				{
+					foreach ($Row as $newIndex => $newName) {
+						$row[$newIndex] = $newName;
+					}
+					break;
+				}
+				if(!empty($row))
+				{
+					$updateCols = '';
+					if($storage = $this->db->getAllDataById($_SESSION['service']->table, $_SESSION['alias']->id))
+					{
+						if(empty($storage->updateCols))
+						{
+							$updateCols = new stdClass();
+							$updateCols->in_id = 0; // інвентаризаційний номер поставщика (колонка коду ідентифікації у постачальника, якщо нема то артикул)
+							$updateCols->article = 0; // артикул
+							$updateCols->analogs = -1; // аналоги (менше нуля ігноряться)
+							$updateCols->analogs_delimiter = ''; // аналоги розділювач
+							$updateCols->manufacturer = 0; // виробник
+							$updateCols->name = 0;
+							$updateCols->count = 0;
+							$updateCols->price = 0;
+						}
+						else
+							$updateCols = unserialize($storage->updateCols);
+						$updateCols->file = $this->data->post('file');
+						$updateCols = serialize($updateCols);
+					}
+					$this->db->updateRow($_SESSION['service']->table, array('updateRows' => serialize($row), 'updateCols' => $updateCols), $_SESSION['alias']->id);
+					$_SESSION['notify']->success = 'Налаштування ключового рядка успішно оновлено! Перевірте налаштування відповідності колонок до вмісту даних у них (права панель)';
+				}
+			}
+		}
+		$this->redirect();
+	}
+
+	public function optionsImportSaveCols()
+	{
+		$_SESSION['notify'] = new stdClass();
+		if($storage = $this->db->getAllDataById($_SESSION['service']->table, $_SESSION['alias']->id))
+		{
+			if(!empty($storage->updateCols))
+				$updateCols = unserialize($storage->updateCols);
+			else
+				$updateCols = new stdClass();
+				
+			// $updateCols->in_id = $this->data->post('in_id');
+			$updateCols->in_id = -1;
+			$updateCols->article = $this->data->post('article');
+			$updateCols->analogs = $this->data->post('analogs');
+			if(isset($_POST['analogs_delimiter']))
+				$updateCols->analogs_delimiter = $this->data->post('analogs_delimiter');
+			$updateCols->manufacturer = $this->data->post('manufacturer');
+			$updateCols->name = $this->data->post('name');
+			$updateCols->count = $this->data->post('count');
+			$updateCols->price = $this->data->post('price');
+
+			$updateCols = serialize($updateCols);
+
+			$this->db->updateRow($_SESSION['service']->table, array('updateCols' => $updateCols), $_SESSION['alias']->id);
+			$_SESSION['notify']->success = 'Налаштування відповідності колонок до вмісту даних у них оновлено.';
+		}
+		
+		$this->redirect();
+	}
+
+	public function trancate()
+	{
+		$_SESSION['notify'] = new stdClass();
+
+		if($user = $this->db->getAllDataById('wl_users', $_SESSION['user']->id))
+		{
+			if($user->type == 1 && $user->status == 1)
+			{
+				$password = sha1($user->email . md5($_POST['password']) . SYS_PASSWORD . $user->id);
+				if($user->password == $password)
+				{
+					$this->db->deleteRow($_SESSION['service']->table.'_products', $_SESSION['alias']->id, 'storage');
+					$_SESSION['notify']->success = 'Склад очищено';
+				}
+				else
+					$_SESSION['notify']->errors = 'Невірний пароль адміністратора';
+			}
+			else
+				$_SESSION['notify']->errors = 'Акаунт немає прав на здійснення даної операції';
+		}
+		else
+			$_SESSION['notify']->errors = 'Помилка. Спробуйте ще раз';
+
+		$this->redirect();
 	}
 	
 }

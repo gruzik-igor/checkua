@@ -16,6 +16,7 @@
  * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
  * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
  * Версія 2.2.1 (08.02.2017) - додано "chaining methods";
+ * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId();
  */
 
 class Db {
@@ -94,7 +95,7 @@ class Db {
         $update .= ' ) VALUES ( ' . $values . ' ) ';
         $this->executeQuery($update);
         if($this->affectedRows() > 0)
-            return true;
+            return $this->getLastInsertedId();
         return false;
     }
 

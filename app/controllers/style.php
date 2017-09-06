@@ -1,6 +1,6 @@
 <?php
 
-class css extends Controller {
+class style extends Controller {
 
     function _remap($method, $data = array())
     {
@@ -21,7 +21,7 @@ class css extends Controller {
             if($alias = $this->db->get('single'))
                 if($alias->service > 0)
         		{
-                    $path = APP_PATH.'services'.DIRSEP.$alias->name.DIRSEP.'css'.DIRSEP;
+                    $path = APP_PATH.'services'.DIRSEP.$alias->name.DIRSEP.'style'.DIRSEP;
                     $url = $this->data->url();
                     array_shift($url);
                     array_shift($url);

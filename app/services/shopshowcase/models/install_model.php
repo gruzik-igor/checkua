@@ -85,7 +85,7 @@ class install
 						  `active` tinyint(1) NULL DEFAULT '1',
 						  `position` int(11) NULL,
 						  PRIMARY KEY (`id`)
-						) ENGINE=InnoDB  DEFAULT CHARSET=cp1251 AUTO_INCREMENT=4 ;";
+						) ENGINE=InnoDB  DEFAULT CHARSET=utf8 AUTO_INCREMENT=4 ;";
 			$this->db->executeQuery($query);
 
 			$query = " INSERT INTO `{$this->table_service}_availability` (`id`, `color`, `active`, `position`) VALUES
@@ -138,6 +138,15 @@ class install
 			$this->db->executeQuery($query);
 		}
 
+		$preview = array();
+		$preview['alias'] = $alias;
+		$preview['active'] = 1;
+		$preview['name'] = 'Відображення у корзині';
+		$preview['prefix'] = 'cart';
+		$preview['type'] = 2;
+		$preview['width'] = $preview['height'] = 200;
+		$preview['quality'] = 80;
+		$this->db->insertRow('wl_images_sizes', $preview);
 
 		return true;
 	}

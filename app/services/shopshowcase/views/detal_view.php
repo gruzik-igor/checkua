@@ -1,6 +1,3 @@
-<link rel="stylesheet" href="<?=SERVER_URL?>assets/owl-carousel/owl-carousel/owl.carousel.css">
-<link rel="stylesheet" href="<?=SERVER_URL?>assets/master-slider/masterslider/style/masterslider.css">
-<link rel='stylesheet' href="<?=SERVER_URL?>assets/master-slider/masterslider/skins/default/style.css">
 <link rel="stylesheet" href="<?=SERVER_URL?>assets/blueimp/css/blueimp-gallery.min.css">
 
 <div class="shop-product">
@@ -8,24 +5,21 @@
         <div class="row">
             <div class="col-md-6 md-margin-bottom-50">
             <?php if(!empty($_SESSION['alias']->images)) { ?>
-                <div id="PHOTOS" class="ms-showcase2-template">
-                    <div class="master-slider ms-skin-default" id="masterslider">
-                        <?php foreach ($_SESSION['alias']->images as $image) { ?>
-                            <div class="ms-slide">
-                                <img class="ms-brd" src="<?=SERVER_URL?>style/images/blank.gif" data-src="<?=IMG_PATH.$image->path?>" alt="<?=$product->article?> <?=$product->name?>">
-                                <img class="ms-thumb" src="<?=IMG_PATH.$image->path?>" alt="thumb">
-                                <a href="<?=IMG_PATH.$image->path?>" rel="prettyPhoto[gallery1]" class="ms-lightbox" lightbox></a>
-                            </div>
-                        <?php } ?>
-                    </div>
+                <div id="blueimp-gallery-items" class="blueimp-gallery">
+                    <?php foreach ($_SESSION['alias']->images as $image) { 
+                        $path = (isset($image->m_path)) ? $image->m_path : $image->path;
+                        ?>
+                        <a href="<?=IMG_PATH.$image->path?>">
+                            <img src="<?=IMG_PATH.$path?>" alt="<?=$image->title?>">
+                        </a>
+                    <?php } ?>
                 </div>
                 <?php } ?>
-                <div id="blueimp-gallery" class="blueimp-gallery blueimp-gallery-controls" data-filter=":even">
+                <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
                     <div class="slides"></div>
                     <h3 class="title"></h3>
                     <a class="prev">‹</a>
                     <a class="next">›</a>
-                    <a class="close">×</a>
                     <a class="play-pause"></a>
                     <ol class="indicator"></ol>
                 </div>
@@ -86,13 +80,16 @@
                     <strong><?=$this->text('Артикул')?>:</strong>
                     <p><?= $product->article ?> </p>
                 </div>
-                <div class="wishlist-category">
-                    <strong><?=$this->text('Категорія')?>:</strong>
-                    <p><a href="<?=SITE_URL.$product->group_link?>"><?= $product->group_name ?></a></p>
-                </div>
+                <?php if($product->group) { ?>
+                    <div class="wishlist-category">
+                        <strong><?=$this->text('Категорія')?>:</strong>
+                        <p><a href="<?=SITE_URL.$product->group_link?>"><?= $product->group_name ?></a></p>
+                    </div>
+                <?php } ?>
 
                 <div class="margin-bottom-20">
-                    <button type="button" class="btn-u btn-u-sea-shop btn-u-lg" onclick="cart.add(<?= $product->id.', '.$product->wl_alias?>)"><?=$this->text('Додати до корзини')?></button>  
+                    <?php $this->load->function_in_alias('cart', '__show_btn_add_product', $product); ?>
+                    
                     <div class="delivery-time"><?=$this->text('Орієнтований час')?><br><?=$this->text('доставки')?>: <br><strong>7-10 <?=$this->text('днів')?></strong></div>
                 </div>
 
@@ -154,36 +151,7 @@ if(!empty($otherProductsByGroup) && count($otherProductsByGroup) > 1) { ?>
 </div>
 <?php } ?>
 
-<div class="g-popup-wrapper">
-    <div class="g-popup g-popup--discount">
-        <p class="g-image margin-bottom-15 clear-both"></p>
-        <p class="g-name"></p>
-        <div class="clear-both">
-            <label class="input pull-left">
-                <button class="btn btn-default g-popup__close__button" type="button"><?=$this->text('Продовжити')?></button>
-            </label>
-            <label class="input pull-right">
-                <a href="<?=SERVER_URL?>cart" class="btn btn-default" type="button"><?=$this->text('До корзини')?></a>
-            </label>
-        </div>
-        
-
-        <a href="javascript:void(0);" class="g-popup__close g-popup--discount__close"><span class="icon-close" aria-hidden="true"></span></a>
-    </div>
-</div>
-
-<div class="container padding-top-40">
-<?php include APP_PATH."/views/@commons/info.php"; ?>
-</div>
-
 <?php
-$_SESSION['alias']->js_load[] = 'assets/owl-carousel/owl-carousel/owl.carousel.js';
-$_SESSION['alias']->js_load[] = 'assets/master-slider/masterslider/masterslider.min.js';
-$_SESSION['alias']->js_load[] = 'assets/master-slider/masterslider/jquery.easing.min.js';
-$_SESSION['alias']->js_load[] = 'js/plugins/owl-carousel.js';
-$_SESSION['alias']->js_load[] = 'js/plugins/master-slider.js';
-$_SESSION['alias']->js_init[] = 'App.initScrollBar();';
-$_SESSION['alias']->js_init[] = 'OwlCarousel.initOwlCarousel();';
-$_SESSION['alias']->js_init[] = 'MasterSliderShowcase2.initMasterSliderShowcase2();';
 $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js";
+$_SESSION['alias']->js_load[] = "assets/blueimp/js/blueimp-gallery.init.js";
 ?>

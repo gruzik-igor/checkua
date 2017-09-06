@@ -26,52 +26,42 @@
 <?php } ?>
 		<div class="container">
 		    <div class="row">
-		    	<div class="col-md-12">
-			    	<div style="clear:both">
-			    		<h1><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
-				    	<table class="cartUserinfo">
-							<tr>
-								<td>Покупець:</td>
-								<th><?= $cart->shipping->receiver .", " . $cart->shipping->phone ?></th>
-							</tr>
-							<?php if($_SESSION['option']->useShipping && $cart->shipping_id > 0) { ?>
-								<tr>
-									<td>Служба доставки: </td>
-									<th><?= $cart->shipping->method_name ?><?= ($cart->shipping->method_site) ? ', '. $cart->shipping->method_site : '' ?></th>
-								</tr>
-								<tr>
-									<td>Адреса: </td>
-									<th><?= $cart->shipping->address ?></th>
-								</tr>
-							<?php } ?>
-						</table>
-						<div style="float:right; text-align: right;"> Статус замовлення: <b><?= $cart->status_name ?></b></div>
-			    	</div>
-			   		<div class="table-responsive" style="clear:both">
-			    		<table class="table table-striped table-bordered nowrap" width="100%">
-			    			<thead>
-				    			<tr>
-				    				<th><?=$this->text('Артикул')?></th>
-				    				<th><?=$this->text('Назва')?></th>
-				    				<th><?=$this->text('Кількість')?></th>
-				    				<th class="text-right"><?=$this->text('Ціна за од.')?></th>
-				    			</tr>
-				    		</thead>
-				    		<tbody>
-								<?php if($orderProducts) foreach($orderProducts as $product) {?>
-				    			<tr>
-				    				<td><?= $product->info->article ?></td>
-				    				<td><?= str_replace($product->info->article, "", $product->info->name) ?></td>
-				    				<td><?= $product->quantity ?></td>
-				    				<td class="text-right"><?= $product->price ?> грн</td>
-				    			</tr>
-								<?php } ?>
-								<tr>
-									<td></td><td></td><td></td><td class="text-right"><b><?= $cart->total?> грн</b></td>
-								</tr>
-				    		</tbody>
-			    		</table>
-			    	</div>
+	    		<h1 class="col-md-12"><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
+    			<div class="col-md-6">
+    				<p><strong><?= $cart->user_name .", " . $cart->user_phone ?></strong></p>
+    				<?php if($cart->shipping_id) { ?>
+	    				<p><?= $cart->shipping->method_name ?><?= ($cart->shipping->method_site) ? ', '. $cart->shipping->method_site : '' ?></p>
+	    				<p><?= $cart->shipping->address ?></p>
+	    				<p><?= $cart->shipping->receiver .", " . $cart->shipping->phone ?></p>
+    				<?php } ?>
+    			</div>
+    			<div class="col-md-6 text-right">
+    				<p>Статус замовлення: <strong><?= $cart->status_name ?></strong></p>
+    			</div>
+			</div>
+			<?php if($cart->products) foreach($cart->products as $product) { ?>
+				<div class="row">
+					<?php if($product->info->photo) { ?>
+						<div class="col-md-2">
+							<a href="<?=SITE_URL.$product->info->link?>">
+								<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?= $product->info->name ?>" class="w-100">
+							</a>
+						</div>
+					<?php } ?>
+					<div class="col-md-<?=($product->info->photo) ? 6 : 8?>">
+						<a href="<?=SITE_URL.$product->info->link?>"><?= $product->info->name ?></a>
+						<?php if(!empty($product->options))
+						{
+							$product->options = unserialize($product->options);
+							foreach ($product->options as $key => $value) {
+								echo "<br>{$key}: <strong>{$value}</strong>";
+							}
+						} ?>
+					</div>
+					<div class="col-md-4 text-right"><?=$this->cart_model->priceFormat($product->price) ?> x <?= $product->quantity ?> = <strong><?=$this->cart_model->priceFormat($product->price * $product->quantity) ?></strong></div>
+				</div>
+			<?php } ?>
+
 
 					<div class="pull-right text-right">
                 		<h3><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart->total ?> грн</b></h3>
@@ -80,7 +70,7 @@
 	                <?php if(isset($controls) && $controls) { ?>
 				    	<div class="table-responsive" style="clear:both">
 				    		<h3><?=$this->text('Історія замовлення')?></h3>
-						    <table class="table table-striped table-bordered nowrap" width="100%">
+						    <table class="table table-striped table-bordered " width="100%">
 						        <thead>
 						        	<tr>
 						        		<th>Дата</th>
@@ -89,7 +79,7 @@
 						        	</tr>
 						        </thead>
 						        <tbody>
-						        	<?php if($cartHistory) foreach($cartHistory as $history) {?>
+						        	<?php if($cart->history) foreach($cart->history as $history) {?>
 						        	<tr>
 						                <td><?= date('d.m.Y H:i',$history->date)?></td>
 						                <td><?= $history->status_name?></td>
@@ -108,20 +98,7 @@
 				</div>
 		    </div>
 		</div>
-		<style>
-			h1
-			{
-			    margin: 40px 0 30px;
-			}
-			table th {
-				font-weight: bold;
-			}
-			table.cartUserinfo tr td
-			{
-				padding: 5px;
-			}
-		</style>
-<?php if(!isset($controls)|| !$controls) { ?>
+<?php if(!$controls) { ?>
 	</body>
 </html>
 <?php } ?>

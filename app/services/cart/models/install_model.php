@@ -73,6 +73,7 @@ class install
 					  `user` int(11) NOT NULL,
 					  `product_alias` int(11) NOT NULL,
 					  `product_id` int(11) NOT NULL,
+					  `product_options` text NULL,
 					  `storage_alias` int(11) NULL,
 					  `storage_invoice` int(11) NULL,
 					  `price` float UNSIGNED NOT NULL,
@@ -99,13 +100,13 @@ class install
 		$this->db->executeQuery($query);
 
 		$query = "INSERT INTO `{$this->table_service}_status` (`name`, `active`, `weight`) VALUES
-											 ('Нове НЕ оплачено', 'warning', 1, 0),
-											 ('Підтверджено/очікує оплати', 'success', 0, 9),
-											 ('Нове оплачено', 'warning', 1, 10),
-											 ('Оплачено', 'danger', 1, 11),
+											 ('Нове НЕ оплачене', 'warning', 1, 0),
+											 ('Підтверджене/очікує оплати', 'success', 0, 9),
+											 ('Нове оплачене', 'warning', 1, 10),
+											 ('Оплачене', 'danger', 1, 11),
 											 ('Відправлено', 'primary', 1, 20),
-											 ('Закрито', 'default', 1, 98),
-											 ('Скасовано', 'default', 1, 99);";
+											 ('Закрите', 'default', 1, 98),
+											 ('Скасоване', 'default', 1, 99);";
 		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (

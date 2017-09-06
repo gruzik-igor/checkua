@@ -25,6 +25,9 @@ class cart extends Controller {
                 elseif($row->type == 'storage')
                     $this->useStorage = true;
             }
+        if(empty($_SESSION['cart']))
+            $_SESSION['cart'] = new stdClass();
+        $_SESSION['cart']->initJsStyle = true;
     }
 
     function _remap($method, $data = array())
@@ -67,15 +70,19 @@ class cart extends Controller {
                             $this->load->view('detal_view', array('cart' => $cart, 'controls' => false));
                         else
                             $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
+                        exit;
                     }
                     else
                         $this->load->notify_view(array('errors' => $this->text('Немає прав для перегляду даного замовлення.')));
                 }
                 else
-                    $this->load->page_404();
+                    $this->load->page_404(false);
             }
             else
+            {
+                header('HTTP/1.0 401 Unauthorized');
                 $this->load->notify_view(array('errors' => $this->text('Для перегляду замовлення спершу <a href="'.SITE_URL.'login">увійдіть</a>')));
+            }
         }
 
         $user_type = 0;
@@ -83,123 +90,244 @@ class cart extends Controller {
             $user_type = $_SESSION['user']->type;
         $products = $this->cart_model->getProductsInCart();
         if($products)
-            foreach ($cart->products as $product) {
+            foreach ($products as $product) {
                 $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
                 if($product->storage_invoice)
-                    $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
+                    $product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
             }
         $this->load->page_view('index_view', array('products' => $products));
     }
 
     public function my()
     {
-        # code... list user carts/orders
-    }
+        if(isset($_SESSION['user']->id))
+        {
+            $_SESSION['alias']->name = $this->text('Мої замовлення');
 
-    function productAdd()
-    {
-        if($this->data->post('productId') && $this->data->post('quantity') != 0 && $this->data->post('alias') ){
-
-            if(!isset($_SESSION['cart'])){
-                $_SESSION['cart'] = new stdClass();
+            $user = $_SESSION['user']->id;
+            if($id = $this->data->uri(2))
+            {
+                if($this->userCan() && is_numeric($id))
+                    $user = $id;
+                else
+                    $this->load->page_404(false);
             }
 
-            $res = array('subTotal' => 0, 'productsCount' => 0);
-
-            $storageId = $this->data->post('storageId');
-            $invoiceId = $this->data->post('invoiceId');
-            $productId = $this->data->post('productId');
-            $size = $this->data->post('size') ? $this->data->post('size') : "";
-
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['invoiceId'] = $res['invoiceId'] = $invoiceId;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['storageId'] = $res['storageId'] = $storageId;
-
-            if($_SESSION['option']->useStorage && $this->data->post('invoiceId') && $this->data->post('storageId')){
-                $user_type = isset($_SESSION['user']->type) ? $_SESSION['user']->type : 0;
-                $invoice_where = array('id' => $this->data->post('invoiceId'), 'user_type' => $user_type);
-                $invoice = $this->load->function_in_alias($this->data->post('storageId'), '__get_Invoice', $invoice_where);
-                $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['invoiceId'] = $res['invoiceId'] = $invoiceId;
-                $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['storageId'] = $res['storageId'] = $storageId;
-            }
-
-            $productInfo = $this->load->function_in_alias($this->data->post('alias'), '__get_Product', $productId);
-
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['quantity'] = $res['quantity'] = isset($invoice) && $invoice->amount_free < $this->data->post('quantity') ? $invoice->amount_free : $this->data->post('quantity');
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['price'] = $res['price'] = isset($invoice) ? $invoice->price_out : $productInfo->price;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['price_in'] = isset($invoice) ? $invoice->price_in : $productInfo->price;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['name'] = $res['name'] = str_replace($productInfo->article, '', $productInfo->name);
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['m_photo'] = $res['m_photo'] = !empty($productInfo->m_photo) ? IMG_PATH.$productInfo->m_photo : false;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['productId'] = $res['productId'] = $productInfo->id;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['alias'] = $this->data->post('alias');
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['article'] = $res['article'] = $productInfo->article;
-            $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['additional']['Розмір'] = $size;
-
-
-            foreach ($_SESSION['cart']->products as $product) {
-               $_SESSION['cart']->subTotal = $res['subTotal'] += ($product['price'] * $product['quantity']);
-               $_SESSION['cart']->productsCount = $res['productsCount'] += $product['quantity'];
-            }
-
-            header('Content-type: application/json');
-            echo json_encode($res);
-            exit;
+            $this->load->smodel('cart_model');
+            $this->load->page_view('list_view', array('carts' => $this->cart_model->getCarts(array('user' => $user))));
         }
+        $this->redirect('login');
     }
 
-    function removeProduct()
+    public function addProduct()
     {
-        if($this->data->post('productId')){
-            $productId = $this->data->post('productId');
-            $storageId = $this->data->post('storageId') ? $this->data->post('storageId') : 0;
-            $invoiceId = $this->data->post('invoiceId') ? $this->data->post('invoiceId') : 0;
-            unset($_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]);
-
-            $res = array('subTotal' => 0, 'productsCount' => 0);
-
-            if(!empty($_SESSION['cart']->products)){
-                foreach ($_SESSION['cart']->products as $product) {
-                    $_SESSION['cart']->subTotal = $res['subTotal'] += ($product['price'] * $product['quantity']);
-                    $_SESSION['cart']->productsCount = $res['productsCount'] += $product['quantity'];
+        $res = array('result' => false, 'subTotal' => 0);
+        if($this->data->post('productKey') && $this->data->post('quantity') != 0)
+        {
+            $wl_alias = $id = $storage_alias = $storage_id = 0;
+            $key = explode('-', $this->data->post('productKey'));
+            if(count($key) >= 2 && is_numeric($key[0]) && is_numeric($key[1]))
+            {
+                $wl_alias = $key[0];
+                $id = $key[1];
+                if(isset($key[3]) && is_numeric($key[2]) && is_numeric($key[3]))
+                {
+                    $storage_alias = $key[2];
+                    $storage_id = $key[3];
                 }
-            } else {
-                $_SESSION['cart']->subTotal = $_SESSION['cart']->productsCount = 0;
             }
 
-            header('Content-type: application/json');
-            echo json_encode($res);
-            exit;
+            if($id)
+            {
+                if($product = $this->load->function_in_alias($wl_alias, '__get_Product', $id))
+                {
+                    $product->key = $this->data->post('productKey');
+                    $product->quantity = $this->data->post('quantity');
+                    $product->options = $this->data->post('options');
+                    $product->storage_alias = $product->storage_invoice = 0;
+                    if($storage_id)
+                    {
+                        if($invoice = $this->load->function_in_alias($storage_alias, '__get_Invoice', array('id' => $storage_id, 'user_type' => $_SESSION['user']->type)))
+                        {
+                            $product->storage_alias = $storage_alias;
+                            $product->storage_invoice = $storage_id;
+                            $product->price = $invoice->price_out;
+                            $product->price_in = $invoice->price_in;
+                            if($invoice->amount_free < $product->quantity)
+                                $product->quantity = $invoice->amount_free;
+                        }
+                    }
+                    if(isset($_SESSION['user']->id))
+                    {
+                        $this->load->smodel('cart_model');
+                        $product->key = $this->cart_model->addProduct($product);
+                    }
+                    else
+                        $_SESSION['cart']->products[$product->key] = $product;
+                    $res['product'] = $product;
+                    $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                    $res['result'] = true;
+                }
+            }
         }
+        $this->load->json($res);
     }
 
-    function updateProduct()
+    public function removeProduct()
     {
-        if($this->data->post('productId') && is_numeric($this->data->post('quantity')) && $this->data->post('quantity') >= 1){
-            $res = array('result' => false, 'subTotal' => 0, 'productsCount' => 0);
+        $res = array('result' => false, 'subTotal' => 0);
+        if($id = $this->data->post('id'))
+        {
+            $this->load->smodel('cart_model');
 
-            $productId = $this->data->post('productId');
-            $storageId = $this->data->post('storageId');
-            $invoiceId = $this->data->post('invoiceId');
-            $quantity = $this->data->post('quantity');
-
-            $user_type = isset($_SESSION['user']->type) ? $_SESSION['user']->type : 0;
-            $invoice_where = array('id' => $invoiceId, 'user_type' => $user_type);
-            $invoice = $this->load->function_in_alias($this->data->post('storageId'), '__get_Invoice', $invoice_where);
-
-            if(($invoice && $invoice->amount_free >= $quantity) || !$invoice && $quantity > 0){
-                $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['quantity'] = $res['quantity'] = $quantity;
-                $res['productTotalPrice'] = $_SESSION['cart']->products[$productId.'-'.$storageId.'-'.$invoiceId]['price'] * $quantity;
-                $res['result'] = true;
-            } else $res['maxQuantity'] = $invoice->amount_free;
-
-            foreach ($_SESSION['cart']->products as $product) {
-                $_SESSION['cart']->subTotal = $res['subTotal'] += ($product['price'] * $product['quantity']);
-                $_SESSION['cart']->productsCount = $res['productsCount'] += $product['quantity'];
+            if(isset($_SESSION['user']->id))
+            {
+                if(is_numeric($id))
+                {
+                    if($product = $this->cart_model->getProductInfo(array('id' => $id)))
+                    {
+                        if($product->user == $_SESSION['user']->id)
+                        {
+                            if($product->cart == 0)
+                            {
+                                if($this->db->deleteRow($this->cart_model->table('_products'), $id))
+                                {
+                                    $res['result'] = true;
+                                    $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                                }
+                                else
+                                    $res['error'] = $this->text('Помилка оновлення інформації');
+                            }
+                            else
+                                $res['error'] = $this->text('Редагувати інформацію про товар можна лише на неоформлених замовленнях!');
+                        }
+                        else
+                            $res['error'] = $this->text('У Вас відсутній доступ до даного товару!');
+                    }
+                    else
+                        $res['error'] = $this->text('Товар у корзині не ідентифіковано');
+                }
+                else
+                    $res['error'] = $this->text('Товар у корзині не ідентифіковано');
             }
-
-            header('Content-type: application/json');
-            echo json_encode($res);
-            exit;
+            elseif(isset($_SESSION['cart']->products[$id]))
+            {
+                unset($_SESSION['cart']->products[$id]);
+                $res['result'] = true;
+                $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+            }
+            else
+                $res['error'] = $this->text('Товар у корзині не ідентифіковано');
         }
+        $this->load->json($res);
+    }
+
+    public function updateProduct()
+    {
+        $res = array('result' => false, 'subTotal' => 0);
+        if($this->data->post('id') && is_numeric($this->data->post('quantity')) && $this->data->post('quantity') >= 1)
+        {
+            $id = $this->data->post('id');
+            $quantity = $this->data->post('quantity');
+            $this->load->smodel('cart_model');
+
+            if(isset($_SESSION['user']->id))
+            {
+                if(is_numeric($id))
+                {
+                    if($product = $this->cart_model->getProductInfo(array('id' => $id)))
+                    {
+                        $res['quantity'] = $product->quantity;
+                        if($product->user == $_SESSION['user']->id)
+                        {
+                            if($product->cart == 0)
+                            {
+                                if($product->storage_invoice)
+                                {
+                                    if($invoice = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $_SESSION['user']->type)))
+                                    {
+                                        if($invoice->amount_free > $quantity)
+                                        {
+                                            $data = array();
+                                            $data['quantity'] = $data['quantity_wont'] = $quantity;
+                                            if($this->db->updateRow($this->cart_model->table('_products'), $data, $id))
+                                            {
+                                                $res['result'] = true;
+                                                $res['quantity'] = $quantity;
+                                                $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                                            }
+                                            else
+                                                $res['error'] = $this->text('Помилка оновлення інформації');
+                                        }
+                                        else
+                                            $res['error'] = $this->text('Увага! Недостатня кількість товару на складі');
+                                    }
+                                    else
+                                        $res['error'] = $this->text('Товар відсутній на складі');
+                                }
+                                else
+                                {
+                                    $data = array();
+                                    $data['quantity'] = $data['quantity_wont'] = $quantity;
+                                    if($this->db->updateRow($this->cart_model->table('_products'), $data, $id))
+                                    {
+                                        $res['result'] = true;
+                                        $res['quantity'] = $quantity;
+                                        $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                                    }
+                                    else
+                                        $res['error'] = $this->text('Помилка оновлення інформації');
+                                }
+                            }
+                            else
+                                $res['error'] = $this->text('Редагувати інформацію про товар можна лише на неоформлених замовленнях!');
+                        }
+                        else
+                            $res['error'] = $this->text('У Вас відсутній доступ до даного товару!');
+                    }
+                    else
+                        $res['error'] = $this->text('Товар у корзині не ідентифіковано');
+                }
+                else
+                    $res['error'] = $this->text('Товар у корзині не ідентифіковано');
+            }
+            elseif(isset($_SESSION['cart']->products[$id]))
+            {
+                $res['quantity'] = $_SESSION['cart']->products[$id]->quantity;
+                if($_SESSION['cart']->products[$id]->storage_invoice)
+                {
+                    if($invoice = $this->load->function_in_alias($_SESSION['cart']->products[$id]->storage_alias, '__get_Invoice', array('id' => $_SESSION['cart']->products[$id]->storage_invoice, 'user_type' => $_SESSION['user']->type)))
+                    {
+                        if($invoice->amount_free > $quantity)
+                        {
+                            $data = array();
+                            $data['quantity'] = $data['quantity_wont'] = $quantity;
+                            if($this->db->updateRow($this->cart_model->table('_products'), $data, $id))
+                            {
+                                $res['result'] = true;
+                                $res['quantity'] = $quantity;
+                                $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                            }
+                            else
+                                $res['error'] = $this->text('Помилка оновлення інформації');
+                        }
+                        else
+                            $res['error'] = $this->text('Увага! Недостатня кількість товару на складі');
+                    }
+                    else
+                        $res['error'] = $this->text('Товар відсутній на складі');
+                }
+                else
+                {
+                    $res['result'] = true;
+                    $_SESSION['cart']->products[$id]->quantity = $res['quantity'] = $quantity;
+                    $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                }
+            }
+            else
+                $res['error'] = $this->text('Товар у корзині не ідентифіковано');
+        }
+        $this->load->json($res);
     }
 
     function clientAuthentication()
@@ -310,7 +438,7 @@ class cart extends Controller {
         }
     }
 
-    public function addInvoice()
+     function addInvoice()
     {
         $res = array('result' => false, 'message' => 'Помилка');
         if(isset($_SESSION['cart']) && $_SESSION['cart']->subTotal > 0)
@@ -442,7 +570,7 @@ class cart extends Controller {
         exit;
     }
 
-    public function getPrice($amount, $code)
+     function getPrice($amount, $code)
     {
         $currencyInfo = $this->db->getQuery("SELECT * FROM s_currency WHERE code = '{$code}'");
 
@@ -451,7 +579,7 @@ class cart extends Controller {
         return number_format($price, 2);
     }
 
-    public function saveShipping()
+     function saveShipping()
     {
         if($this->userIs() && isset($_SESSION['cart']) && !empty($_POST)) {
             $res = array('result' => false, 'subTotal' => $_SESSION['cart']->subTotal);
@@ -503,25 +631,30 @@ class cart extends Controller {
         }
     }
 
-    public function loadShipping()
+     function loadShipping()
     {
         if($this->userIs() && isset($_SESSION['cart'])) {
             $this->load->view('shipping_view');
         }
     }
 
-    public function loadInvoice()
+     function loadInvoice()
     {
         if($this->userIs() && isset($_SESSION['cart'])) {
             $this->load->view('invoice_view');
         }
     }
 
-    public function loadPayments()
+     function loadPayments()
     {
         if($this->userIs() && isset($_SESSION['cart']->id)) {
             $this->load->view('payments_view');
         }
+    }
+
+    public function checkout()
+    {
+        # code...
     }
 
     public function pay()
@@ -548,19 +681,14 @@ class cart extends Controller {
         }
     }
 
-    private function getOrderProducts($orderId)
+    public function __show_btn_add_product($product)
     {
-        $this->db->select('s_cart_products as cp', '*', $orderId, 'cart');
-        $orderProducts = $this->db->get('array');
-
-        if($orderProducts){
-            foreach ($orderProducts as $product) {
-                $product->info = $this->load->function_in_alias($product->alias, '__get_Product', $product->product);
-            }
-        }
-
-        return $orderProducts;
+        if(!empty($product))
+            $this->load->view('__btn_add_product_subview', array('product' => $product));
+        else
+            echo "<p>Увага! Відсутня інформація про товар! (для генерації кнопки Додати товар до корзини)";
     }
+
 }
 
 ?>

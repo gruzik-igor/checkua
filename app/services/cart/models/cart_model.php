@@ -93,8 +93,9 @@ class cart_model
 				foreach ($this->additional_user_fields as $key => $field) {
 					$this->db->join('wl_user_info as ui_'.$key, 'value as user_'.$field, array('field' => $field, 'user' => "#c.user"));
 				}
+			$this->db->limit(1);
 
-			if($cart = $this->db->get('single'))
+			if($cart = $this->db->get())
 			{
 				if($allInfo)
 				{
@@ -123,24 +124,69 @@ class cart_model
 		return false;
 	}
 
+	public function getSubTotalInCart($user = 0)
+	{
+		$subTotal = 0;
+		if($products = $this->getProductsInCart($user))
+			foreach ($products as $product) {
+				$subTotal += $product->price * $product->quantity;
+			}
+		return $this->priceFormat($subTotal);
+	}
+
+	public function getProductInfo($where = array())
+	{
+		if(!empty($where))
+			return $this->db->select($this->table('_products') .' as p', '*', $where)
+							->join($this->table(), 'status, shipping_alias, shipping_id, payment_alias, payment_id, total, comment, date_add, date_edit', '#p.cart')
+							->get();
+		return false;
+	}
+
 	public function addProduct($product, $user = 0, $cart = 0)
 	{
-		$cart_product = array('cart' => $cart, 'quantity_returned' => 0);
+		$cart_product = array('cart' => $cart);
 		$cart_product['user'] = ($user == 0) ? $_SESSION['user']->id : $user;
 		$cart_product['product_alias'] = $product->wl_alias;
 		$cart_product['product_id'] = $product->id;
+		$cart_product['product_options'] = $product->options;
 		$cart_product['storage_alias'] = $product->storage_alias;
 		$cart_product['storage_invoice'] = $product->storage_invoice;
-		$cart_product['price'] = $product->price;
-		if($product->storage_invoice && isset($product->price_in))
-			$cart_product['price_in'] = $product->price_in;
-		else
-			$cart_product['price_in'] = $product->price;
-		$cart_product['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
-		$cart_product['discount'] = (isset($price->discount)) ? $product->discount : 0;
-		$cart_product['date'] = time();
+		if($inCart = $this->db->getAllDataById($this->table('_products'), $cart_product))
+		{
+			$update = array();
+			$update['price'] = $product->price;
+			if($product->storage_invoice && isset($product->price_in))
+				$update['price_in'] = $product->price_in;
+			else
+				$update['price_in'] = $product->price;
+			$update['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
+			$update['discount'] = (isset($price->discount)) ? $product->discount : 0;
+			$update['date'] = time();
+			$this->db->updateRow($this->table('_products'), $update, $inCart->id);
 
-		return $this->db->insertRow($this->table('_products'), $cart_product);
+			return $inCart->id;
+		}
+		else
+		{
+			$cart_product['price'] = $product->price;
+			if($product->storage_invoice && isset($product->price_in))
+				$cart_product['price_in'] = $product->price_in;
+			else
+				$cart_product['price_in'] = $product->price;
+			$cart_product['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
+			$cart_product['quantity_returned'] = 0;
+			$cart_product['discount'] = (isset($price->discount)) ? $product->discount : 0;
+			$cart_product['date'] = time();
+
+			return $this->db->insertRow($this->table('_products'), $cart_product);
+		}
+	}
+
+	public function priceFormat($price)
+	{
+		$text = "$" .round($price, 2);
+		return $text;
 	}
 
 

@@ -16,7 +16,7 @@
  * Версія 2.1.1 (27.09.2016) - до makeWhere() додано повторюване поле через "+"
  * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
  * Версія 2.2.1 (08.02.2017) - додано "chaining methods";
- * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId();
+ * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId(); fix getRows('single')
  */
 
 class Db {
@@ -123,6 +123,8 @@ class Db {
      */
     function getRows($type = '')
     {
+        if($type == 'single' && $this->result->num_rows != 1)
+            return false;
         if($this->result->num_rows > 1 || $type == 'array')
         {
             $objects = array();
@@ -131,8 +133,6 @@ class Db {
             }
             return $objects;
         }
-        elseif($type == 'single' && $this->result->num_rows != 1)
-            return false;
         return $this->result->fetch_object();
     }
 

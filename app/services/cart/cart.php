@@ -143,7 +143,21 @@ class cart extends Controller {
                 {
                     $product->key = $this->data->post('productKey');
                     $product->quantity = $this->data->post('quantity');
-                    $product->options = $this->data->post('options');
+                    $product->options = '';
+                    if(!empty($_POST['options']) && is_array($_POST['options']))
+                    {
+                        $list = array();
+                        foreach ($_POST['options'] as $option) {
+                            $option = explode(':', $option, 2);
+                            if(count($option) == 2 && is_numeric($option[0]))
+                            {
+                                if($info = $this->load->function_in_alias($wl_alias, '__get_Option_Info', $option[0]))
+                                    $list[$info->name] = htmlspecialchars($option[1], ENT_QUOTES);
+                            }
+                        }
+                        if(!empty($list))
+                            $product->options = serialize($list);
+                    }
                     $product->storage_alias = $product->storage_invoice = 0;
                     if($storage_id)
                     {

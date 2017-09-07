@@ -34,11 +34,11 @@ if($_SESSION['cart']->initJsStyle) {
 						<?php } ?>
 						<div class="col-md-<?=($product->info->photo) ? 8 : 11?>">
 							<h3><a href="<?=SITE_URL.$product->info->link?>"><?= $product->info->name ?></a></h3>
-							<?php if(!empty($product->options))
+							<?php if(!empty($product->product_options))
 							{
-								$product->options = unserialize($product->options);
-								foreach ($product->options as $key => $value) {
-									echo "<br>{$key}: <strong>{$value}</strong>";
+								$product->product_options = unserialize($product->product_options);
+								foreach ($product->product_options as $key => $value) {
+									echo "<p>{$key}: <strong>{$value}</strong></p>";
 								}
 							} ?>
 							<p class="price"><?=$this->cart_model->priceFormat($product->price) ?></p>

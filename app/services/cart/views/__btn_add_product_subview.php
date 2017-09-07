@@ -8,6 +8,16 @@ $quantity = 1;
 $productKey = $product->wl_alias . '-' . $product->id;
 if(isset($product->storage_alias) && isset($product->storage_id) && $product->storage_id > 0)
 	$productKey .= '-' . $product->storage_alias . '-' . $product->storage_id;
+$options = '';
+if(!empty($product->options))
+{
+	$options = array();
+	foreach ($product->options as $option) {
+		if($option->toCart)
+			$options[] = $option->id;
+	}
+	$options = '['.implode(',', $options).']';
+}
 ?>
 <div class="row">
     <div class="form-group">
@@ -22,7 +32,7 @@ if(isset($product->storage_alias) && isset($product->storage_id) && $product->st
 	        </div>
         <?php } ?>
         <div class="col-md-3">
-           <button type="button" class="btn addToCartBtn" onclick="cart.add(<?= "'".$productKey."', ".$quantity?>)"><?=$this->text('Додати до корзини')?></button>
+           <button type="button" class="btn addToCartBtn" onclick="cart.add(<?= "'".$productKey."', ".$quantity.", ".$options?>)"><?=$this->text('Додати до корзини')?></button>
         </div>
     </div>
 </div>

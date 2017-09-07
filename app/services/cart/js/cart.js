@@ -1,8 +1,19 @@
 var cart = {
-	'add' : function(productKey, quantity, options)
+	'add' : function(productKey, quantity, options_id)
 	{
 		if(quantity == 0)
 			quantity = $("#productQuantity").val();
+		if(options_id != '')
+		{
+			var options = [];
+			for (var i = 0; i < options_id.length; i++) {
+				var id = options_id[i].toString();
+				var value = id + ':' + $('#product-option-' + id).val();
+				options.push(value);
+			}
+		}
+		else
+			options = '';
 		$.ajax({
 			url: SITE_URL+'cart/addProduct',
 			type: 'POST',
@@ -13,19 +24,7 @@ var cart = {
 			},
 			success:function(res){
 				if(res){
-					$("#productsCount").text(res['productsCount']);
-					$(".subtotal-cost").text(res['subTotal']+" грн");
-
-					$(".mCustomScrollbar li:has(span.cart-empty)").remove();
-					var image = res['m_photo'] ? "<img class='img-responsive' src="+res['m_photo']+">" : '';
-					if($("#cartProduct-"+productId+'-'+invoiceId+'-'+storageId).length > 0){
-						$("#cartProduct-"+productId+'-'+invoiceId+'-'+storageId).remove();
-					}
-					$(".mCustomScrollbar #mCSB_1_container").append("<li id='cartProduct-"+productId+'-'+invoiceId+'-'+storageId+"'>"+image+"<button type='button' class='close' onclick='cart.remove("+res['productId']+','+invoiceId+','+storageId+")'>×</button><div class='overflow-h'><span>"+res['name']+"</span><small>"+res['quantity']+' x '+res['price']+" грн</small></div></li>");
-
-					$(".g-popup-wrapper .g-image").empty().append(image);
-					$(".g-popup-wrapper .g-name").empty().append(res['name']+'<br>'+res['price']+' грн');
-					$(".g-popup-wrapper").css('display', 'block');
+					alert('Product add to cart');
 				}
 			}
 		})

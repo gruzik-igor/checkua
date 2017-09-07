@@ -35,6 +35,7 @@
 								<th>Група</th>
 								<th>Тип</th>
 								<th>Єлемент фільтру</th>
+								<th>До корзини</th>
 								<th>Стан</th>
 								<th>Змінити порядок</th>
 								<th></th>
@@ -48,6 +49,7 @@
 								<td><?=$a->group_name?></td>
 								<td><?=$a->type_name?></td>
 								<td><?=($a->filter == 1)?'так':'ні'?></td>
+								<td><?=($a->toCart == 1)?'так':'ні'?></td>
 								<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
 								<td><form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_option_position"><input type="hidden" name="id" value="<?=$a->id?>"><input type="number" name="position" min="1" max="<?=$max?>" value="<?=$a->position?>" onchange="this.form.submit();" autocomplete="off" class='form-control'></form></td>
 							</tr>

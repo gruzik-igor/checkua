@@ -146,7 +146,6 @@
 			}
 			echo "</td></tr>";
 
-			$options_parents = array();
 			if($_SESSION['option']->useGroups && isset($list))
 			{
 				if($_SESSION['option']->ProductMultiGroup)
@@ -169,7 +168,6 @@
 				}
 
 			}
-			array_unshift($options_parents, 0);
 		}
 		if($_SESSION['option']->ProductMultiGroup == 0) { ?>
 			<tr>
@@ -224,100 +222,112 @@
                 </div>
 			</td>
 		</tr>
-		<?php if(!empty($options_parents)) {
-				$showh3 = true;
-			 $this->load->smodel('options_model');
-				foreach ($options_parents as $option_id) {
-					$options = $this->options_model->getOptions($option_id);
-					if($options)
+		<?php array_unshift($options_parents, 0);
+		$showh3 = true;
+		$this->load->smodel('options_model');
+		foreach ($options_parents as $option_id) {
+			if($options = $this->options_model->getOptions($option_id))
+				foreach ($options as $option)
+					if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea'))
 					{
 						if($showh3)
 						{
 							echo "<tr><td colspan=\"2\"><h3>Властивості {$_SESSION['admin_options']['word:products']}</h3></td></tr>";
 							$showh3 = false;
 						}
-						foreach ($options as $option)
-						if($_SESSION['language'] == false || ($option->type_name != 'text' && $option->type_name != 'textarea'))
-						{
-							$value = '';
-							if(isset($product_options[$option->id])) $value = $product_options[$option->id];
-							echo('<tr>');
-							echo('<th>'.$option->name);
-							if($option->sufix != '') echo " ({$option->sufix})";
-							echo('</th><td>');
-							if($option->type_name == 'checkbox')
-							{
-								$where = '';
-								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-								if($this->db->numRows() > 0)
-				                    $option_values = $this->db->getRows('array');
 
-								if(!empty($option_values))
-								{
-									$value = explode(',', $value);
-									foreach ($option_values as $ov) {
-										$checked = '';
-										if(in_array($ov->id, $value)) $checked = ' checked';
-										echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
-									}
-								}
-							}
-							elseif($option->type_name == 'radio')
+						$value = '';
+						if(isset($product_options[$option->id])) $value = $product_options[$option->id];
+						echo('<tr>');
+						echo('<th>'.$option->name);
+						if($option->sufix != '') echo " ({$option->sufix})";
+						echo('</th><td>');
+						if($option->toCart && $option->type_name != 'checkbox')
+						{
+							echo 'Обирає клієнт перед додачею в корзину (для ручного керування оберіть тип властивісті checkbox): ';
+							$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
+							$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
+							if(!empty($option_values))
 							{
-								$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
-								$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
-								if(!empty($option_values))
-								{
-									$checked = ($value == '' || $value == 0) ? ' checked' : '';
-									echo('<input type="radio" name="option-'.$option->id.'" value="0" id="option-'.$option->id.'-0" '.$checked.'> <label for="option-'.$option->id.'-0">Не вказано</label> ');
-									foreach ($option_values as $ov) {
-										$checked = ($value == $ov->id) ? ' checked' : '';
-										echo('<input type="radio" name="option-'.$option->id.'" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
-									}
+								$names = array();
+								foreach ($option_values as $ov) {
+									$names[] = '<strong>'.$ov->name.'</strong>';
 								}
+								echo implode(', ', $names);
 							}
-							elseif($option->type_name == 'select')
-							{
-								$where = '';
-								if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-								$option_values = array();
-								$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-								if($this->db->numRows() > 0){
-				                    $option_values = $this->db->getRows('array');
-				                }
-								echo('<select name="option-'.$option->id.'" class="form-control"> ');
-								echo("<option value='0'>Не вказано</option>");
-								if(!empty($option_values)){
-									foreach ($option_values as $ov) {
-										$selected = '';
-										if($value == $ov->id) $selected = ' selected';
-										echo("<option value='{$ov->id}'{$selected}>{$ov->name}</option>");
-									}
-								}
-								echo("</select> ");
-							}
-							elseif($option->type_name == 'textarea')
-							{
-								echo('<textarea onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'">'.$value.'</textarea>');
-							}
-							else
-							{
-								if($option->sufix != '')
-									echo('<div class="input-group">');
-								echo('<input type="'.$option->type_name.'" name="option-'.$option->id.'" value="'.$value.'"  class="form-control" onChange="saveOption(this, \''.$option->name.'\')"> ');
-								if($option->sufix != '')
-								{
-									echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
-									echo('</div>');
-								}
-							}
-							echo('</td></tr>');
+
 						}
+						if($option->type_name == 'checkbox')
+						{
+							$where = '';
+							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
+							$option_values = array();
+							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+							if($this->db->numRows() > 0)
+			                    $option_values = $this->db->getRows('array');
+
+							if(!empty($option_values))
+							{
+								$value = explode(',', $value);
+								foreach ($option_values as $ov) {
+									$checked = '';
+									if(in_array($ov->id, $value)) $checked = ' checked';
+									echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
+								}
+							}
+						}
+						elseif($option->type_name == 'radio' && !$option->toCart)
+						{
+							$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
+							$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
+							if(!empty($option_values))
+							{
+								$checked = ($value == '' || $value == 0) ? ' checked' : '';
+								echo('<input type="radio" name="option-'.$option->id.'" value="0" id="option-'.$option->id.'-0" '.$checked.'> <label for="option-'.$option->id.'-0">Не вказано</label> ');
+								foreach ($option_values as $ov) {
+									$checked = ($value == $ov->id) ? ' checked' : '';
+									echo('<input type="radio" name="option-'.$option->id.'" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
+								}
+							}
+						}
+						elseif($option->type_name == 'select' && !$option->toCart)
+						{
+							$where = '';
+							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
+							$option_values = array();
+							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+							if($this->db->numRows() > 0){
+			                    $option_values = $this->db->getRows('array');
+			                }
+							echo('<select name="option-'.$option->id.'" class="form-control"> ');
+							echo("<option value='0'>Не вказано</option>");
+							if(!empty($option_values)){
+								foreach ($option_values as $ov) {
+									$selected = '';
+									if($value == $ov->id) $selected = ' selected';
+									echo("<option value='{$ov->id}'{$selected}>{$ov->name}</option>");
+								}
+							}
+							echo("</select> ");
+						}
+						elseif($option->type_name == 'textarea' && !$option->toCart)
+						{
+							echo('<textarea onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'">'.$value.'</textarea>');
+						}
+						elseif(!$option->toCart)
+						{
+							if($option->sufix != '')
+								echo('<div class="input-group">');
+							echo('<input type="'.$option->type_name.'" name="option-'.$option->id.'" value="'.$value.'"  class="form-control" onChange="saveOption(this, \''.$option->name.'\')"> ');
+							if($option->sufix != '')
+							{
+								echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
+								echo('</div>');
+							}
+						}
+						echo('</td></tr>');
 					}
-				}
-			}
+		}
 		?>
 		<tr>
 			<td>

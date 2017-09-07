@@ -47,7 +47,7 @@ class options_model {
 		if($property && isset($_POST['id'])) $data['group'] = -1 * $_POST['id'];
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];
 		$data['active'] = 1;
-		$data['filter'] = 0;
+		$data['filter'] = $data['toCart'] = 0;
 		if($this->db->insertRow($this->table('_options'), $data)){
 			$id = $this->db->getLastInsertedId();
 			$data = array();
@@ -86,10 +86,11 @@ class options_model {
 
 	public function saveOption($id)
 	{
-		$data = array('active' => 1, 'filter' => 0);
+		$data = array('active' => 1, 'filter' => 0, 'toCart' => 0);
 		if(isset($_POST['alias']) && $_POST['alias'] != '') $data['alias'] = $_POST['id'] . '-' . $_POST['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
 		if(isset($_POST['filter']) && $_POST['filter'] == 1) $data['filter'] = 1;
+		if(isset($_POST['toCart']) && $_POST['toCart'] == 1) $data['toCart'] = 1;
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];
 		if($_SESSION['option']->useGroups){
 			if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];

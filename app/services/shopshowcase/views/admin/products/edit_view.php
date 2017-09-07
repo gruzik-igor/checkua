@@ -14,7 +14,7 @@
   		$ntkd = $wl[0];
   }
   
-  $product_options = array();
+  $product_options = $options_parents = array();
   $options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
   if($options)
   {

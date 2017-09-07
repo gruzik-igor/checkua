@@ -343,6 +343,7 @@ class install
 					  `position` int(11) NULL,
 					  `type` int(11) NULL,
 					  `filter` tinyint(1) NULL,
+					  `toCart` tinyint(1) NULL,
 					  `active` tinyint(1) NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`),

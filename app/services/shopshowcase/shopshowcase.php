@@ -293,8 +293,18 @@ class shopshowcase extends Controller {
 		$this->db->select($this->shop_model->table('_options').' as o', '*', -$id, 'group');
 		$where = array('option' => '#o.id');
 		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-		$this->db->join($this->shop_model->table('_options_name'), 'name', '');
+		$this->db->join($this->shop_model->table('_options_name'), 'name', $where);
 		return $this->db->get('array');
+	}
+
+	public function __get_Option_Info($id = 0)
+	{
+		$this->load->smodel('shop_model');
+		$this->db->select($this->shop_model->table('_options').' as o', '*', $id);
+		$where = array('option' => '#o.id');
+		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+		$this->db->join($this->shop_model->table('_options_name'), 'name', $where);
+		return $this->db->get('single');
 	}
 
 	private function makeArticle($article)

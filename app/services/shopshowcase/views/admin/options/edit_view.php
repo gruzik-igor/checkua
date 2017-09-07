@@ -195,6 +195,19 @@
                             </label>
                         </div>
                     </div>
+                    <div class="form-group">
+                        <label class="col-md-3 control-label">Відносно корзини</label>
+                        <div class="col-md-9">
+                            <label class="radio-inline">
+                            	<input type="radio" name="toCart" value="1" <?=($option->toCart == 1)?'checked':''?>>
+                                властивість впливає на товар (обирає покупець перед додачею в корзину)
+                            </label>
+                            <label class="radio-inline">
+                            	<input type="radio" name="toCart" value="0" <?=($option->toCart == 0)?'checked':''?>>
+                                властивість описує товар (менеджер фіксує значення для товау)
+                            </label>
+                        </div>
+                    </div>
 
 					<?php
 						echo('<table id="options" class="table table-striped table-bordered nowrap col-md-12"><tbody>');

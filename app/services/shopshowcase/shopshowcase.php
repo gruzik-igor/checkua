@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.4.1"
+ 	Service "Shop Showcase 2.5"
 	for WhiteLion 1.0
 
 */
@@ -304,7 +304,12 @@ class shopshowcase extends Controller {
 		$where = array('option' => '#o.id');
 		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
 		$this->db->join($this->shop_model->table('_options_name'), 'name', $where);
-		return $this->db->get('single');
+		if($option = $this->db->get('single'))
+		{
+			$option->values = $this->__get_Values_To_Option($option->id);
+			return $option;
+		}
+		return false;
 	}
 
 	private function makeArticle($article)

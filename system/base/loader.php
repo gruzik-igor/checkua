@@ -272,19 +272,16 @@ class Loader {
 			// if($admin && !$this->userCan($alias->alias))
 			// 	return false;
 
-			if(!isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
-			{
-				$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
-				if(isset($_SESSION['option']))
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
-				else
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
-				if(isset($_SESSION['service']))
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
-				else
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
-			}
+			$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
+			$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
+			if(isset($_SESSION['option']))
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
+			else
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
+			if(isset($_SESSION['service']))
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
+			else
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
 
 			if(isset($_SESSION['alias-cache'][$alias->id]))
 			{
@@ -298,12 +295,16 @@ class Loader {
 				if($admin == false)
 				{
 					$service = $alias->alias;
+					if($alias->service)
+						$service = $_SESSION['alias']->service;
 					if(isset($this->$service) && is_object($this->$service))
 					{
+						$_SESSION['alias']->alias_from = $old_alias;
 						if(is_callable(array($this->$service, '_remap')))
 							$rezult = $this->$service->_remap($method, $data);
 						else if(is_callable(array($this->$service, $method)))
 							$rezult = $this->$service->$method($data);
+						unset($_SESSION['alias']->alias_from);
 					}
 				}
 			}
@@ -339,6 +340,7 @@ class Loader {
 						$model_path = APP_PATH.'controllers'.DIRSEP.'admin'.DIRSEP.$service.'.php';
 				}
 
+				$_SESSION['alias-cache'][$alias->id]->alias = clone $_SESSION['alias'];
 				if(isset($_SESSION['option']))
 					$_SESSION['alias-cache'][$alias->id]->options = clone $_SESSION['option'];
 				if(isset($_SESSION['service']))
@@ -349,6 +351,7 @@ class Loader {
 					require_once $model_path;
 					if($method != '')
 					{
+						$_SESSION['alias']->alias_from = $old_alias;
 						$controller = $service;
 						$service = new $service();
 						if(is_callable(array($service, '_remap')))
@@ -357,6 +360,7 @@ class Loader {
 							$rezult = $service->$method($data);
 						if($admin == false)
 							$this->$controller = clone $service;
+						unset($_SESSION['alias']->alias_from);
 					}
 				}
 			}

@@ -142,6 +142,8 @@ class cart extends Controller {
                 if($product = $this->load->function_in_alias($wl_alias, '__get_Product', $id))
                 {
                     $product->key = $this->data->post('productKey');
+                    $product->product_alias = $wl_alias;
+                    $product->product_id = $id;
                     $product->quantity = $this->data->post('quantity');
                     $product->options = '';
                     if(!empty($_POST['options']) && is_array($_POST['options']))
@@ -171,13 +173,12 @@ class cart extends Controller {
                                 $product->quantity = $invoice->amount_free;
                         }
                     }
+                    $this->load->smodel('cart_model');
                     if(isset($_SESSION['user']->id))
-                    {
-                        $this->load->smodel('cart_model');
                         $product->key = $this->cart_model->addProduct($product);
-                    }
                     else
                         $_SESSION['cart']->products[$product->key] = $product;
+                    $product->priceFormat = $this->cart_model->priceFormat($product->price);
                     $res['product'] = $product;
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                     $res['result'] = true;
@@ -268,6 +269,7 @@ class cart extends Controller {
                                             {
                                                 $res['result'] = true;
                                                 $res['quantity'] = $quantity;
+                                                $res['priceFormat'] = $this->cart_model->priceFormat($product->price);
                                                 $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                                             }
                                             else
@@ -287,6 +289,7 @@ class cart extends Controller {
                                     {
                                         $res['result'] = true;
                                         $res['quantity'] = $quantity;
+                                        $res['priceFormat'] = $this->cart_model->priceFormat($product->price);
                                         $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                                     }
                                     else
@@ -320,6 +323,7 @@ class cart extends Controller {
                             {
                                 $res['result'] = true;
                                 $res['quantity'] = $quantity;
+                                $res['priceFormat'] = $_SESSION['cart']->products[$id]->priceFormat;
                                 $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                             }
                             else
@@ -335,6 +339,7 @@ class cart extends Controller {
                 {
                     $res['result'] = true;
                     $_SESSION['cart']->products[$id]->quantity = $res['quantity'] = $quantity;
+                    $res['priceFormat'] = $_SESSION['cart']->products[$id]->priceFormat;
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                 }
             }
@@ -701,6 +706,23 @@ class cart extends Controller {
             $this->load->view('__btn_add_product_subview', array('product' => $product));
         else
             echo "<p>Увага! Відсутня інформація про товар! (для генерації кнопки Додати товар до корзини)";
+    }
+
+    public function __show_minicart()
+    {
+        $this->load->smodel('cart_model');
+        $user_type = $subTotal = 0;
+        if(isset($_SESSION['user']->type))
+            $user_type = $_SESSION['user']->type;
+        $products = $this->cart_model->getProductsInCart();
+        if($products)
+            foreach ($products as $product) {
+                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                if($product->storage_invoice && false)
+                    $product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
+                $subTotal += $product->price * $product->quantity;
+            }
+        $this->load->view('__minicart_subview', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
     }
 
 }

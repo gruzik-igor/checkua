@@ -23,7 +23,7 @@ if($_SESSION['cart']->initJsStyle) {
 				?>
 					<div class="row product">
 						<div class="col-md-1">
-							<button type="button" class="close" onclick="cart.remove(<?= $product->id?>, this)" ><span>×</span><span class="sr-only">Close</span></button>
+							<button type="button" class="close" onclick="cart.remove('<?= $product->key?>', this)" ><span>×</span><span class="sr-only">Close</span></button>
 						</div>
 						<?php if($product->info->photo) { ?>
 							<div class="col-md-3">
@@ -44,11 +44,11 @@ if($_SESSION['cart']->initJsStyle) {
 							<p class="price"><?=$this->cart_model->priceFormat($product->price) ?></p>
 							<div class="input-group has-success col-md-3">
 								<div class="input-group-btn">
-									<button type="button" class="btn btn-success" onclick="cart.update(<?= $product->id?>, event)" value="-">-</button>
+									<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="-">-</button>
 								</div>
-								<input type="number" min="1" name="productQuantity-<?= $product->id?>" id="productQuantity-<?= $product->id?>" onchange="cart.update(<?= $product->id?>, event)" value="<?= $product->quantity?>" class="form-control">
+								<input type="number" min="1" name="productQuantity-<?= $product->id?>" id="productQuantity-<?= $product->key?>" onchange="cart.update('<?= $product->key?>', event)" value="<?= $product->quantity?>" class="form-control">
 								<div class="input-group-btn">
-									<button type="button" class="btn btn-success" onclick="cart.update(<?= $product->id?>, event)" value="+">+</button>
+									<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="+">+</button>
 								</div>
 							</div>
 						</div>
@@ -62,7 +62,7 @@ if($_SESSION['cart']->initJsStyle) {
 			<div class="col-md-4">
 				<?php if($products) { ?>
 					<h3><?=$this->text('Попередня сума')?></h3>
-					<p id="subTotal" class="price"><?=$this->cart_model->priceFormat($subtotal) ?></p>
+					<p class="subTotal price"><?=$this->cart_model->priceFormat($subtotal) ?></p>
 					<input type="submit" class="btn btn-warning" value="<?=$this->text('Оформити замовлення')?>">
 				<?php } ?>
 			</div>

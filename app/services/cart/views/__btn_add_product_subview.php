@@ -1,6 +1,9 @@
 <?php $showSelectQuantity = true;
 if($_SESSION['cart']->initJsStyle) {
-	$_SESSION['alias-cache'][$product->wl_alias]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/cart.js';
+	if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
+		$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/cart.js';
+	else
+		$_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/cart.js';
 	echo '<link rel="stylesheet" type="text/css" href="'.SITE_URL.'style/'.$_SESSION['alias']->alias.'/cart.css">';
 	$_SESSION['cart']->initJsStyle = false;
 }

@@ -23,8 +23,52 @@ var cart = {
 				'options' : options
 			},
 			success:function(res){
-				if(res){
-					alert('Product add to cart');
+				if(res.result)
+				{
+					var product_exist = document.getElementById('product-'+res.product.key);
+					if(product_exist)
+					{
+						$('#product-'+res.product.key + ' span.amount').text(res.product.priceFormat+' x '+res.product.quantity);
+					}
+					else
+					{
+						var li = document.createElement('li');
+						li.id = 'product-'+res.product.key;
+
+						var a = document.createElement('a');
+						a.href = SITE_URL + res.product.link;
+
+						var a_img = a.cloneNode(true);
+						var img = document.createElement('img');
+						img.src = SITE_URL + 'images/' + res.product.admin_photo;
+						img.className = 'img-responsive product-img';
+						a_img.appendChild(img);
+						li.appendChild(a_img);
+
+						var div = document.createElement('div');
+						div.className = 'product-details';
+
+						var p_title = document.createElement('p');
+						p_title.className = 'product-title clearfix';
+						a.innerText = res.product.name;
+						p_title.appendChild(a);
+						div.appendChild(p_title);
+
+						var p_price = document.createElement('p');
+						p_price.className = 'product-price clearfix';
+						p_price.innerHTML = '<span class="amount">'+res.product.priceFormat+' x '+res.product.quantity+'</span>';
+						div.appendChild(p_price);
+
+						li.appendChild(div);
+
+						var minicart_in = document.getElementById('slimScrollDiv');
+						minicart_in.insertBefore(li, minicart_in.firstChild);
+					}
+
+					var minicart = document.getElementById('shopping-cart-in-menu');
+					minicart.className = 'open';
+
+					document.getElementById('subTotal').innerText = res.subTotal;
 				}
 			}
 		})
@@ -88,7 +132,10 @@ var cart = {
 				{
 					$("#productQuantity-"+id).val(res['quantity']);
 					if(res['result'] == true)
-						$('#subTotal').text(res['subTotal']);
+					{
+						$('.subTotal').text(res['subTotal']);
+						$('#product-'+id + ' span.amount').text(res.priceFormat+' x '+quantity);
+					}
 					else
 					{
 						if(res.max)

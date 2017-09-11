@@ -721,6 +721,7 @@ class cart extends Controller {
                 if($product->storage_invoice && false)
                     $product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
                 $subTotal += $product->price * $product->quantity;
+                $product->priceFormat = $this->cart_model->priceFormat($product->price);
             }
         $this->load->view('__minicart_subview', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
     }

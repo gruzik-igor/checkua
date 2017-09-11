@@ -21,9 +21,9 @@
 				}
 	    		foreach ($products as $product) { ?>
 	            <li id="product-<?=$product->key?>">
-	                <a href="<?=SITE_URL.$product->link?>"><img src="<?=IMG_PATH.$product->admin_photo?>" class="img-responsive product-img" alt="<?=$product->name?>"></a>
+	                <a href="<?=SITE_URL.$product->info->link?>"><img src="<?=IMG_PATH.$product->info->admin_photo?>" class="img-responsive product-img" alt="<?=$product->info->name?>"></a>
 	                <div class="product-details">
-	                    <p class="product-title clearfix"><a href="<?=SITE_URL.$product->link?>"><?=$product->name?></a></p>
+	                    <p class="product-title clearfix"><a href="<?=SITE_URL.$product->info->link?>"><?=$product->info->name?></a></p>
 	                    <p class="product-price clearfix">
 							<span class="amount"><?=$product->priceFormat?> x <?=$product->quantity?></span>
 						</p>

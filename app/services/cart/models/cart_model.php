@@ -117,7 +117,13 @@ class cart_model
 		if(isset($_SESSION['user']->id))
 		{
 			$user = ($user == 0) ? $_SESSION['user']->id : $user;
-			return $this->db->getAllDataByFieldInArray($this->table('_products'), $user, 'user');
+			if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), $user, 'user'))
+			{
+				foreach ($products as $product) {
+					$product->key = $product->id;
+				}
+				return $products;
+			}
 		}
 		elseif(isset($_SESSION['cart']->products))
 			return $_SESSION['cart']->products;

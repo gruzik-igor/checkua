@@ -96,6 +96,8 @@ class shop_model {
 						}
 					}
 				}
+				if(empty($where['id']))
+					return false;
 			}
 			elseif($Group >= 0)
 			{

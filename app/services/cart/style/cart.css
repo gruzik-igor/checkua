@@ -1,3 +1,7 @@
+#cart .product
+{
+	margin-bottom: 10px;
+}
 #cart .product img
 {
 	width: 100%;

@@ -35,6 +35,19 @@ class install
 		if($alias == 0)
 			return false;
 
+		$checkout = array();
+		$checkout['alias'] = $alias;
+		$checkout['content'] = 1;
+		$checkout['name'] = 'Checkout';
+		$checkout['language'] = $checkout['title'] = $checkout['description'] = $checkout['keywords'] = $checkout['text'] = $checkout['list'] = $checkout['meta'] = NULL;
+		if($_SESSION['language'])
+			foreach ($_SESSION['all_languages'] as $language) {
+				$checkout['language'] = $language;
+				$this->db->insertRow('wl_ntkd', $checkout);
+			}
+		else
+			$this->db->insertRow('wl_ntkd', $checkout);
+
 		return true;
 	}
 

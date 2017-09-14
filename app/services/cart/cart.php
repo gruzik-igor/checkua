@@ -9,22 +9,9 @@
 
 class cart extends Controller {
 
-    private $useShipping = false;
-    private $usePayments = false;
-    private $useStorage = false;
-
     function __construct()
     {
         parent::__construct();
-        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
-            foreach ($cooperation as $row) {
-                if($row->type == 'delivery')
-                    $this->useShipping = true;
-                elseif($row->type == 'payment')
-                    $this->usePayments = true;
-                elseif($row->type == 'storage')
-                    $this->useStorage = true;
-            }
         if(empty($_SESSION['cart']))
             $_SESSION['cart'] = new stdClass();
         $_SESSION['cart']->initJsStyle = true;
@@ -100,7 +87,7 @@ class cart extends Controller {
 
     public function my()
     {
-        if(isset($_SESSION['user']->id))
+        if($this->userIs())
         {
             $_SESSION['alias']->name = $this->text('Мої замовлення');
 
@@ -349,44 +336,44 @@ class cart extends Controller {
         $this->load->json($res);
     }
 
-    function clientAuthentication()
+    public function login()
     {
         if($this->data->post('email') && $this->data->post('password'))
         {
-            $res = array('result' => false);
+            $_SESSION['notify'] = new stdClass();
 
-            $email = $this->data->post('email');
+            $key = 'email';
+            $email_phone = $this->data->post('email');
             $password = $this->data->post('password');
-
-            $this->load->model('wl_user_model');
-            if($this->wl_user_model->login('email', $password) || $this->wl_user_model->login('phone', $email) || $this->wl_user_model->login('phone2', $email))
+            $this->load->library('validator');
+            if(!$this->validator->email('email', $email_phone))
             {
-                $res['result'] = true;
-                if($_SESSION['option']->useStorage)
+                if($email_phone = $this->validator->getPhone($email_phone))
                 {
-                    $this->recalculationProductsByUserType();
-                    $res['subTotal'] = $_SESSION['cart']->subTotal;
+                    $key = 'phone';
+                    $password = $email_phone;
                 }
+                else
+                    $key = false;
             }
 
-            header('Content-type: application/json');
-            echo json_encode($res);
-            exit;
-        }
-    }
-
-    private function recalculationProductsByUserType()
-    {
-        if($this->userIs() && $_SESSION['cart']){
-            $_SESSION['cart']->subTotal = 0;
-            foreach ($_SESSION['cart']->products as &$product) {
-                $invoice_where = array('id' => $product['invoiceId'], 'user_type' => $_SESSION['user']->type);
-                $invoice = $this->load->function_in_alias($product['storageId'], '__get_Invoice', $invoice_where);
-
-                $product['price'] = $invoice->price_out;
-                $_SESSION['cart']->subTotal += ($product['price'] * $product['quantity']);
+            if($key)
+            {
+                $this->load->model('wl_user_model');
+                if($this->wl_user_model->login($key, $password))
+                {
+                    if(date('H') > 18 || date('H') < 6)
+                        $_SESSION['notify']->success = $this->text('Доброго вечора, <strong>'.$_SESSION['user']->name.'</strong>! Дякуємо що повернулися');
+                    else
+                        $_SESSION['notify']->success = $this->text('Доброго дня, <strong>'.$_SESSION['user']->name.'</strong>! Дякуємо що повернулися');
+                }
+                else
+                    $_SESSION['notify']->error = $this->text('Неправильно введено email/телефон або пароль');
             }
+            else
+                $_SESSION['notify']->error = $this->text('Невірний формат email/номеру телефону');
         }
+        $this->redirect();
     }
 
     function clientSignUp()
@@ -455,6 +442,11 @@ class cart extends Controller {
                 exit;
             }
         }
+    }
+
+    public function confirm()
+    {
+        # code...
     }
 
      function addInvoice()
@@ -589,15 +581,6 @@ class cart extends Controller {
         exit;
     }
 
-     function getPrice($amount, $code)
-    {
-        $currencyInfo = $this->db->getQuery("SELECT * FROM s_currency WHERE code = '{$code}'");
-
-        $price = $amount / $currencyInfo->currency;
-
-        return number_format($price, 2);
-    }
-
      function saveShipping()
     {
         if($this->userIs() && isset($_SESSION['cart']) && !empty($_POST)) {
@@ -650,30 +633,31 @@ class cart extends Controller {
         }
     }
 
-     function loadShipping()
-    {
-        if($this->userIs() && isset($_SESSION['cart'])) {
-            $this->load->view('shipping_view');
-        }
-    }
-
-     function loadInvoice()
-    {
-        if($this->userIs() && isset($_SESSION['cart'])) {
-            $this->load->view('invoice_view');
-        }
-    }
-
-     function loadPayments()
-    {
-        if($this->userIs() && isset($_SESSION['cart']->id)) {
-            $this->load->view('payments_view');
-        }
-    }
-
     public function checkout()
     {
-        # code...
+        $this->load->smodel('cart_model');
+        if($products = $this->cart_model->getProductsInCart())
+        {
+            $this->wl_alias_model->setContent(1);
+            
+            $user_type = $subTotal = 0;
+            if(isset($_SESSION['user']->type))
+                $user_type = $_SESSION['user']->type;
+            
+            foreach ($products as $product) {
+                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                if($product->storage_invoice)
+                {
+                    if($product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type)))
+                        $product->price = $product->storage->price_out;
+                }
+                $subTotal += $product->price * $product->quantity;
+                $product->priceFormat = $this->cart_model->priceFormat($product->price);
+            }
+            $this->load->page_view('checkout_view', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+        }
+        else
+            $this->redirect($_SESSION['alias']->alias);
     }
 
     public function pay()
@@ -718,12 +702,20 @@ class cart extends Controller {
         if($products)
             foreach ($products as $product) {
                 $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
-                if($product->storage_invoice && false)
-                    $product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
+                if($product->storage_invoice)
+                {
+                    if($product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type)))
+                        $product->price = $product->storage->price_out;
+                }
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
             }
         $this->load->view('__minicart_subview', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+    }
+
+    public function __get_Search($content)
+    {
+        return false;
     }
 
 }

@@ -10,6 +10,10 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 		</div>
 		<div class="row">
 
+			<div class="alert alert-danger alert-dismissible fade hidden" role="alert">
+				<strong>Помилка!</strong> Максимальна кількість доступних товарів <span id="maxQuantity"></span>
+			</div>
+
 			<?php if(!$this->userIs()) { ?>
 			<div class="col-md-6">
 				<div class="box">
@@ -85,40 +89,44 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 					<div class="billing-field box">
 						<h3 class="title"><?=$this->text('Доставка')?></h3>
 
-						<div class="form-group">
-							<input type="text" class="form-control" placeholder="Name" required>
-						</div>
-
-						<div class="row">
-							<div class="form-group col-sm-6">
-								<div class="required">
-									<input type="email" class="form-control" placeholder="Email Address" required="">
-								</div>
-							</div>
-							<div class="form-group col-sm-6">
-								<div class="required">
-									<input type="tel" class="form-control" placeholder="Phone" required="">
-								</div>
-							</div>
-						</div>
-
 						<?php 
-							$cooperation_where['alias1'] = $_SESSION['alias']->id;
-							$cooperation_where['type'] = 'delivery';
-							$cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
-					        if($cooperation)
-					        {
-					            foreach ($cooperation as $storage) {
-					                $this->load->function_in_alias($storage->alias2, '__get_Shipping_to_cart');
-					            }
-					        }
-						?>
+						$cooperation_where['alias1'] = $_SESSION['alias']->id;
+						$cooperation_where['type'] = 'delivery';
+						$cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
+				        if($cooperation)
+				        {
+				            foreach ($cooperation as $storage) {
+				                $this->load->function_in_alias($storage->alias2, '__get_Shipping_to_cart');
+				            }
+				        }
+				        else { ?>
+					        <div class="form-group">
+								<input type="text" class="form-control" placeholder="Name" required>
+							</div>
+
+							<div class="row">
+								<div class="form-group col-sm-6">
+									<div class="required">
+										<input type="email" class="form-control" placeholder="Email Address" required="">
+									</div>
+								</div>
+								<div class="form-group col-sm-6">
+									<div class="required">
+										<input type="tel" class="form-control" placeholder="Phone" required="">
+									</div>
+								</div>
+							</div>
+						<?php } ?>
 						
 						<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
 						<div class="form-group">
 							<textarea class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
 						</div>
 					</div>
+
+					<div class="row">
+				        <div id="map"></div>
+				    </div>
 				</div>
 
 				<div class="col-md-6">

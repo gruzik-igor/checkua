@@ -244,3 +244,15 @@ input[type=radio]:not(.browser-default):checked+label.radio {
     text-align: left;
     font: 700 16px Verdana;
 }
+
+#map {
+    height: 300px;
+    visibility: hidden;
+}
+
+.delivery-time {
+    border: 1px solid #c9253c;
+    padding: 10px;
+    color: #333;
+    font-weight: bold;
+}

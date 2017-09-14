@@ -30,18 +30,6 @@ class delivery_model
 		return true;
 	}
 
-    public function get($code)
-    {
-    	$delivery = $this->db->getAllDataById($this->table(), $code, 'code');
-    	if($delivery)
-    	{
-    		$today = strtotime('today');
-    		if($delivery->day != $today) return $this->updatePrivat24($code);
-    		else return $delivery->delivery;
-    	}
-    	return false;
-	}
-
 }
 
 ?>

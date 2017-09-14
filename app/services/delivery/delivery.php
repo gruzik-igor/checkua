@@ -2,13 +2,13 @@
 
 /*
 
- 	Service "Delivery 1.0"
+ 	Service "Delivery 1.1"
 	for WhiteLion 1.0
 
 */
 
 class delivery extends Controller {
-				
+
     function _remap($method, $data = array())
     {
         if (method_exists($this, $method)) {
@@ -59,10 +59,9 @@ class delivery extends Controller {
 
     public function __get_delivery_info($id)
     {
-        $this->db->select($_SESSION['service']->table.'_carts as d', '*', $id);
-        $this->db->join($_SESSION['service']->table.'_methods', 'name as method_name, site as method_site', '#d.method');
-
-        return $this->db->get('single');
+        return  $this->db->select($_SESSION['service']->table.'_carts as d', '*', $id)
+                            ->join($_SESSION['service']->table.'_methods', 'name as method_name, site as method_site', '#d.method')
+                            ->get('single');
     }
 
     public function __get_Shipping_to_cart()
@@ -77,7 +76,24 @@ class delivery extends Controller {
                 $delivery->method = 0;
                 $delivery->address = '';
             }
-            $this->load->view('cart_view', array('delivery' => $delivery, 'methods' => $methods));
+
+            $warehouselist = file_get_contents (APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'np.json');
+            $warehouselist = json_decode ($warehouselist, true);
+
+            $warehouse_by_city = $cities = array();
+            foreach($warehouselist['response'] as $warehouse){
+                $cities[] = $warehouse['city'];
+                $warehouse_by_city[$warehouse['city']][] = array(
+                    'city' => $warehouse['city'],  //назва міста
+                    'address' => preg_replace('/\([^)]+\)/', '', $warehouse['address']), //адрес відділення
+                    'number' => $warehouse['number'] //номер відділення
+                );
+            }
+            ksort($warehouse_by_city);
+
+            $cities = '"'. implode('","', array_keys($warehouse_by_city)) . '"';
+
+            $this->load->view('cart_view', array('delivery' => $delivery, 'methods' => $methods, 'warehouse_by_city' => json_encode($warehouse_by_city), 'cities' => $cities));
         }
     }
 
@@ -85,6 +101,8 @@ class delivery extends Controller {
     {
         $delivery['method'] = $this->data->post('shippingMethod');
         $delivery['address'] = $this->data->post('shippingAddress');
+        $delivery['receiver'] = $this->data->post('shippingReceiver');
+        $delivery['phone'] = $this->data->post('shippingPhone');
         $shipping = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
         if($shipping)
         {
@@ -95,6 +113,16 @@ class delivery extends Controller {
             $delivery['user'] = $_SESSION['user']->id;
             $this->db->insertRow($_SESSION['service']->table.'_users', $delivery);
         }
+
+        $user = $this->db->select('wl_users as u', 'name', $_SESSION['user']->id)
+                         ->join('wl_user_info', 'value as phone', array('user' => $_SESSION['user']->id, 'field' => 'phone'))
+                         ->get('single');
+
+        if(empty($user->name))
+            $this->db->updateRow('wl_users', array('name' => $delivery['receiver']), $_SESSION['user']->id);
+        if(empty($user->phone))
+            $this->db->insertRow('wl_user_info', array('user' =>  $_SESSION['user']->id, 'field' => 'phone', 'value' => $delivery['phone'], 'date' => time()));
+
         return true;
     }
 
@@ -105,9 +133,7 @@ class delivery extends Controller {
 
     public function __set_Delivery_from_cart($data = array())
     {
-        $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
-
-        return $this->db->getLastInsertedId();
+        return $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
     }
 
     public function save()
@@ -126,9 +152,9 @@ class delivery extends Controller {
                 $check = $this->db->getAllDataById($_SESSION['service']->table.'_users', $this->data->post('id'));
                 if($check && $check->user == $_SESSION['user']->id) $this->db->updateRow($_SESSION['service']->table.'_users', $delivery, $this->data->post('id'));
             }
-            $this->redirect('#tabs-delivery');
+            $this->redirect('profile/delivery');
         }
-        $this->load->page_404();
+        $this->redirect('login');
     }
 
 }

@@ -1,35 +1,91 @@
-<div class="container">
+<?php
+    if(!empty($delivery->address)){
+        if($delivery->method == 1)
+            $city = explode(":", $delivery->address, 2);
+        else
+            $anotherCity = explode(":", $delivery->address, 2);
+    }
+ ?>
     <div class="row">
-        <div class="col-lg-6">
+        <div class="form-group">
+            <label for="name"><?=$this->text('Служба доставки')?></label>
+            <select id="shipping-method" class="form-control" required onchange="changeInfo(this)">
+                <?php if($methods) foreach ($methods as $method) { ?>
+                    <option value="<?=$method->id?>" <?php if($delivery->method && $delivery->method == $method->id){ echo 'selected'; $placeholder = $method->placeholder; } else { $placeholder = ''; } ?> ><?=$method->name?></option>
+                <?php } ?>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label><?=$this->text('Місто доставки')?></label>
+            <input type="text" class="form-control" id="shipping-cities" placeholder="<?=$this->text('Місто')?>" value="<?= isset($city) ? rtrim($city[0]) : (isset($anotherCity) ? rtrim($anotherCity[0]) : '' ) ?>">
+        </div>
+
+        <div class="form-group <?= isset($city) || isset($anotherCity) ? '' : 'hidden' ?> " id="novaPoshtaDepartments" >
+            <label><?=$this->text('Відділення')?></label>
+            <select class="form-control <?= isset($city) ? '' : 'hidden' ?>" name="department" id="shipping-department">
+                <?php if(isset($city)) { ?>
+                <option disabled="" value=""><?=$this->text('Виберіть відділення')?></option>
+                <?php foreach(json_decode($warehouse_by_city, true)[trim(htmlspecialchars_decode($city[0], ENT_QUOTES))] as $department) { $department = '№'.$department['number'] .' : '. $department['address']; ?>
+                <option value="<?= $department ?>" <?= $department == trim($city[1]) ? 'selected' : '' ?> ><?= $department ?></option>
+                <?php } }?>
+            </select>
+            <input type="text" class="form-control <?= isset($anotherCity) ? '' : 'hidden' ?>" value="<?= isset($anotherCity) ? $anotherCity[1] : '' ?>" id="shipping-department-other" placeholder="<?=$this->text('Введіть номер/адрес відділення')?>">
+        </div>
+
+        <div class="form-group">
+            <label><?=$this->text('Отримувач')?></label>
+            <input type="text" class="form-control" id="shipping-receiver" placeholder="<?=$this->text('Ім\'я Прізвище')?>" value="<?= isset($delivery->receiver) ? $delivery->receiver : '' ?>">
+        </div>
+
+        <?php if($this->userIs()) { ?>
             <div class="form-group">
-                <label for="name">Служба доставки</label>
-                <select id="shipping-method" class="form-control" required onchange="changePlaceholder(this)">
-                	<option value="0" disabled <?=($delivery->method == 0) ? 'selected' : ''?>>Не вказано</option>
-                	<?php if($methods) foreach ($methods as $method) { ?>
-                		<option value="<?=$method->id?>" <?php if($delivery->method == $method->id){ echo 'selected'; $placeholder = $method->placeholder; } ?> ><?=$method->name?></option>
-                	<?php } ?>
-                </select>
+                <label><?=$this->text('Контактий номер телефону')?></label>
+                 <input type="text" class="form-control" id="shipping-phone" placeholder="<?=$this->text('+380*********')?>" value="<?= isset($delivery->phone) ? $delivery->phone : '' ?>">
             </div>
-            <div class="form-group">
-                <label>Адреса доставки/№ відділення</label>
-                <textarea id="shipping-address" placeholder="<?= $placeholder ?>" class="form-control" required><?=$delivery->address?></textarea>
+        <?php } else { ?>
+            <div class="row">
+                <div class="form-group col-sm-6">
+                    <div class="required">
+                        <input type="email" class="form-control" placeholder="Email Address" required="">
+                    </div>
+                </div>
+                <div class="form-group col-sm-6">
+                    <div class="required">
+                        <input type="tel" class="form-control" placeholder="Phone" required="">
+                    </div>
+                </div>
             </div>
-            <div class="form-group">
-                <label><input type="checkbox" id="shipping-default" value="1">
-                Використовувати ці дані, як інформацію по доставці за замовчуванням</label>
+        <?php } ?>
+
+        <div class="form-group">
+            <label><input type="checkbox" id="shipping-default" value="1" checked>
+            <?=$this->text('Використовувати ці дані, як інформацію по доставці за замовчуванням')?></label>
+        </div>
+
+        <div class="form-group">
+            <div class="col-md-12 delivery-time">
+                <?=$this->text('Термін доставки триває від 3 до 14 днів')?>
             </div>
+            <label>
+                <input type="checkbox" id="shipping-agree" value="1" > <?=$this->text('Я ознайомився з термінами доставки')?>
+            </label>
         </div>
     </div>
-</div>
 
 <script>
-    function changePlaceholder(el) {
-        var placeholders = {
-            <?php if($methods) foreach ($methods as $method)
-                echo "\"$method->id\"" . ' : ' . ($method->placeholder != '' ? "\"$method->placeholder\"" : '"Адреса доставки/№ відділення"')  . ', ';
-            ?>
-        }
-        $("#shipping-address").attr('placeholder', placeholders[$(el).val()]);
-        
-    }
+var placeholders = {
+    <?php if($methods) foreach ($methods as $method)
+        echo "\"$method->id\"" . ' : ' . ($method->placeholder != '' ? "\"$method->placeholder\"" : '"Адреса доставки/№ відділення"')  . ', ';
+    ?>
+};
+var information = {
+    <?php if($methods) foreach ($methods as $method)
+        echo "\"$method->id\"" . ' : ' . ($method->info != '' ? "\"$method->info\"" : '""')  . ', ';
+    ?>
+};
+var cities = [<?= $cities ?>];
+var warehouse_by_city = <?= $warehouse_by_city ?>;
 </script>
+<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAI_XtUP8ShoOOBdMJEOzDQDs3E5hZp3a0&callback=initMap"></script>
+<?php $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/shipping.js'; ?>

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Delivery 1.0"
+ 	Service "Delivery 1.1"
 	for WhiteLion 1.0
 
 */
@@ -46,13 +46,9 @@ class delivery extends Controller {
     {
         $this->load->smodel('delivery_model');
         if($this->data->post('id') == 0)
-        {
             $this->delivery_model->method_add();
-        }
         elseif($this->data->post('id') > 0)
-        {
             $this->delivery_model->method_update($this->data->post('id'));
-        }
         $this->redirect('admin/'.$_SESSION['alias']->alias);
     }
 	

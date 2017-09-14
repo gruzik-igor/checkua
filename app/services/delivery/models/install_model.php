@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 1;
 	public $admin_ico = 'fa-car';
-	public $version = "1.0";
+	public $version = "1.1";
 
 	public $options = array();
 	public $options_type = array();
@@ -29,6 +29,14 @@ class install
 	{
 		if($alias == 0)
 			return false;
+
+		$np = array();
+		$np['active'] = 1;
+		$np['name'] = 'Нова пошта';
+		$np['info'] = $np['placeholder'] = NULL;
+		$np['site'] = 'https://novaposhta.ua/';
+		$np['date_add'] = time();
+		$this->db->insertRow($this->table_service.'_methods', $np);
 
 		return true;
 	}
@@ -74,9 +82,9 @@ class install
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `active` tinyint(1) NOT NULL,
 					  `name` text NOT NULL,
-					  `info` text NOT NULL,
-					  `placeholder` text NOT NULL,
-					  `site` text NOT NULL,
+					  `info` text NULL,
+					  `placeholder` text NULL,
+					  `site` text NULL,
 					  `date_add` int(11) NOT NULL,
 					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";

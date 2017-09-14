@@ -17,6 +17,7 @@
  * Версія 1.2.2 (24.10.2016) Виправлено make(): правильно розпізнає поля як з типом так і без; непередані поля
  * Версія 1.3 (06.12.2016) Додано get_link() - формування лінку за GET зі змінами
  * Версія 1.3.1 (20.01.2017) Функцію make() перейменовано на prepare()
+ * Версія 1.3.2 (14.09.2017) Fix get_link(): коректно працює із масивами в get
  */
 
 class Data {
@@ -29,12 +30,6 @@ class Data {
 		$arr = (empty($_GET['request'])) ? '' : $_GET['request'];
 		$arr = trim($arr, '/\\');
 		$arr = explode('/', $arr);
-
-		if(end($arr) == 'amp')
-		{
-			$_SESSION['amp'] = true;
-			array_pop($arr);
-		}
 		$this->uri_data = $arr;
 
 		if($_SESSION['language'] && ($GLOBALS['multilanguage_type'] == 'main domain' || $_SERVER["SERVER_NAME"] == 'localhost'))
@@ -147,8 +142,11 @@ class Data {
 		{
         	$link .= '?';
         	$updated = false;
+        	$nk2 = $new_key;
+        	if(substr($nk2, -2) == '[]')
+        		$nk2 = substr($nk2, 0, -2);
         	foreach ($_GET as $key => $value) {
-	            if($key != 'request' && $key != $new_key)
+	            if($key != 'request' && $key != $nk2)
 	            {
 	                if(!is_array($value)) {
 	                    $link .= $key .'='.$value . '&';

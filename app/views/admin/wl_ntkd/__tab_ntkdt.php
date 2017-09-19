@@ -35,6 +35,13 @@ else
 		$where['language'] = $language;
 	$ntkd = $this->db->getAllDataById('wl_ntkd', $where);
 
+	if(empty($ntkd))
+	{
+		$this->db->insertRow('wl_ntkd', $where);
+		$ntkd = new stdClass();
+		$ntkd->name = $ntkd->title = $ntkd->keywords = $ntkd->description = $ntkd->text = $ntkd->list = $ntkd->meta = '';
+	}
+
 	$pageNames[$language] = $ntkd->name;
 	$language_attr = ", '{$language}'";
 	$language_block = "-{$language}";

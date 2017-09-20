@@ -382,8 +382,11 @@ class groups_model {
 
 	private function getLink($all, $parent, $link)
 	{
-		$link = $all[$parent]->alias .'/'.$link;
-		if($all[$parent]->parent > 0) $link = $this->getLink ($all, $all[$parent]->parent, $link);
+		if(isset($all[$parent]))
+		{
+			$link = $all[$parent]->alias .'/'.$link;
+			if($all[$parent]->parent > 0) $link = $this->getLink ($all, $all[$parent]->parent, $link);
+		}
 		return $link;
 	}
 

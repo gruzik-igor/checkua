@@ -26,7 +26,16 @@ class images extends Controller {
     					if($sizes = $this->db->getAliasImageSizes($folder->alias))
     					{
     						foreach ($sizes as $resize) {
-    							if($resize->prefix != '' && $resize->prefix == $name[0])
+                                $prefix = $name[0];
+                                $count = count(explode('_', $resize->prefix));
+                                if($count > 1)
+                                {
+                                    for ($i=1; $i < $count; $i++) { 
+                                        if(isset($name[$i]))
+                                            $prefix .= '_'.$name[$i];
+                                    }
+                                }
+    							if($resize->prefix != '' && $resize->prefix == $prefix)
     							{
     								$name = substr($this->data->uri(3), strlen($resize->prefix) + 1);
     								$path = IMG_PATH.$folder->value.'/'.$this->data->uri(2).'/'.$name;

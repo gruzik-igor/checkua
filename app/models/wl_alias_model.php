@@ -117,18 +117,21 @@ class wl_alias_model
 						$photo->title = $data->name;
 				}
 		}
-		if($content == 0)
+		if(empty($_SESSION['alias']->breadcrumbs))
 		{
-			$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
-			$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
-		}
-		else
-		{
-			$where['content'] = 0;
-			if($data = $this->db->getAllDataById('wl_ntkd', $where))
+			if($content == 0)
 			{
-				$_SESSION['alias']->breadcrumb_name = $data->name;
-				$_SESSION['alias']->breadcrumbs = array($data->name => $_SESSION['alias']->alias);
+				$_SESSION['alias']->breadcrumb_name = $_SESSION['alias']->name;
+				$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => '');
+			}
+			else
+			{
+				$where['content'] = 0;
+				if($data = $this->db->getAllDataById('wl_ntkd', $where))
+				{
+					$_SESSION['alias']->breadcrumb_name = $data->name;
+					$_SESSION['alias']->breadcrumbs = array($data->name => $_SESSION['alias']->alias);
+				}
 			}
 		}
 

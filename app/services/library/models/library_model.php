@@ -262,7 +262,11 @@ class library_model {
         if($article)
         {
         	if(isset($_SESSION['alias']->breadcrumbs))
-        		$_SESSION['alias']->breadcrumbs = array($_SESSION['alias']->name => $_SESSION['alias']->alias);
+        	{
+        		$where_ntkd['content'] = 0;
+        		$alias_ntkd = $this->db->select('wl_ntkd', 'name', $where_ntkd)->get();
+        		$_SESSION['alias']->breadcrumbs = array($alias_ntkd->name => $_SESSION['alias']->alias);
+        	}
 
         	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
 
@@ -283,8 +287,9 @@ class library_model {
 					$article->parents = $this->makeParents($list, $article->group, $article->parents);
 					$link = $_SESSION['alias']->alias . '/';
 					foreach ($article->parents as $parent) {
-						$link .= $parent->alias .'/';
+						$link .= $parent->alias;
 						if(isset($_SESSION['alias']->breadcrumbs)) $_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+						$link .= '/';
 					}
 					$article->group_link = $link;
 					$article->link = $link . $article->alias;

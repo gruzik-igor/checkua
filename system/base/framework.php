@@ -184,7 +184,11 @@ if(isset($_GET['request']))
 	{
 		header ('HTTP/1.1 301 Moved Permanently');
 		if($request != '')
+		{
+			if($request[0] == '/')
+				$request = substr($request, 1);
 			header ('Location: '. SITE_URL . $request);
+		}
 		else
 			header ('Location: '. substr(SITE_URL, 0, -1));
 		exit();

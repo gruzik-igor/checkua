@@ -166,6 +166,8 @@ else
 				exit("Невірне налаштування мультимовності 'multilanguage_type' у index.php");
 		}
 
+		if($request[0] == '/')
+			$request = substr($request, 1);
 		define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.'/'.$request);
 	}
 	else

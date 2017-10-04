@@ -7,11 +7,14 @@ class wl_language_model
 {
 	
 	private $words = array();
+	private $words_aliases = array(0);
 
 	public function get($word, $alias = -1)
 	{
 		if(empty($this->words))
-			$this->getWords();
+			$this->getWords($alias);
+		if($alias >= 0 && !in_array($alias, $this->words_aliases))
+			$this->getWords($alias);
 		if(array_key_exists($word, $this->words))
 		{
 			if($this->words[$word] != '')
@@ -57,9 +60,14 @@ class wl_language_model
 		return $this->db->get('array');
 	}
 
-	private function getWords()
+	private function getWords($alias = -1)
 	{
-		$where['alias'] = array(0, $_SESSION['alias']->id);
+		$this->words = array();
+		if(!in_array($_SESSION['alias']->id, $this->words_aliases))
+			$this->words_aliases[] = $_SESSION['alias']->id;
+		if($alias >= 0 && !in_array($alias, $this->words_aliases))
+			$this->words_aliases[] = $alias;
+		$where['alias'] = $this->words_aliases;
 		$this->db->select('wl_language_words as w', 'word', $where);
 		if($_SESSION['language'])
 			$this->db->join('wl_language_values', 'value', array('language' => $_SESSION['language'], 'word' => '#w.id'));

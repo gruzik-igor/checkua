@@ -476,7 +476,13 @@ class wl_sitemap extends Controller {
             {
                 $this->load->library('SitemapGenerator');
                 foreach ($sitemap as $url) {
-                    if($url->link == 'main') $url->link = '';
+                    if($url->link == 'main'){
+                        $url->link = '';
+                        if($_SESSION['language'] && $url->language != $_SESSION['all_languages'][0])
+                            $url->link = $url->language;
+                    }
+                    elseif($_SESSION['language'] && $url->language != $_SESSION['all_languages'][0])
+                        $url->link = $url->language.'/'.$url->link;
                     $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
                 }
                 try {

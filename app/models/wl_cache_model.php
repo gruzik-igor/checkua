@@ -138,7 +138,7 @@ class wl_cache_model extends Loader
 			$where['code'] = '!301';
 			$where['+code'] = '!404';
 			$where['priority'] = '>=0';
-			$this->db->select('wl_sitemap', 'link, time, changefreq, priority', $where);
+			$this->db->select('wl_sitemap', 'language, link, time, changefreq, priority', $where);
 			return $this->db->get();
 		}
 		return false;

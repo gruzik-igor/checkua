@@ -10,9 +10,18 @@ class wl_cache_model extends Loader
 		$where['link'] = $link;
 		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
 		
-		$this->page = $this->db->getAllDataById('wl_sitemap', $where);
-		if($this->page)
+		$pages = $this->db->getAllDataByFieldInArray('wl_sitemap', $where);
+		if(count($pages) > 1)
 		{
+			for ($i=1; $i < count($pages); $i++) {
+				$this->db->deleteRow('wl_sitemap', $pages[$i]->id);
+				$this->db->deleteRow('wl_sitemap_from', $pages[$i]->id, 'sitemap');
+				$this->db->deleteRow('wl_statistic_pages', array('alias' => 0, 'content' => $pages[$i]->id));
+			}
+		}
+		if(isset($pages[0]))
+		{
+			$this->page = $pages[0];
 			$this->page->uniq_link = $link;
 			if($_SESSION['language']) $this->page->uniq_link .= '/'.$_SESSION['language'];
 			return true;

@@ -52,8 +52,8 @@ if($_SERVER["SERVER_NAME"] == 'localhost')
 		}
 		else
 		{
-			define('SITE_URL', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
-			define('SITE_URL_MAIN', 'http://'.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+			define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
+			define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/'.$REQUEST_URI[1].'/');
 			$_SESSION['language'] = false;
 		}
 	}
@@ -126,10 +126,6 @@ else
 					$uri = implode(".", $uri);
 					define('SERVER_URL', $protocol.$uri.'/');
 					define('SITE_NAME', $uri);
-
-					for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-						define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SESSION['all_languages'][$i].'.'.SITE_NAME.'/'.$request);
-					}
 				}
 				elseif($uri[0] == $_SESSION['all_languages'][0] || (!$useWWW && $uri[0] == 'www'))
 				{
@@ -151,7 +147,16 @@ else
 					header ('Location: '. $protocol . $uri . $request);
 					exit();
 				}
-				elseif($uri[0] == $multilanguage_type[1])
+				elseif($useWWW && $uri[0] == 'www' && $uri[1] == $multilanguage_type[1])
+				{
+					array_shift($multilanguage_type);
+					$_SESSION['language'] = $_SESSION['all_languages'][0];
+					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+					define('SITE_NAME', implode('.', $multilanguage_type));
+				}
+				elseif(!$useWWW && $uri[0] == $multilanguage_type[1])
 				{
 					$_SESSION['language'] = $_SESSION['all_languages'][0];
 					define('SITE_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
@@ -166,9 +171,15 @@ else
 				exit("Невірне налаштування мультимовності 'multilanguage_type' у index.php");
 		}
 
-		if($request[0] == '/')
-			$request = substr($request, 1);
-		define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.'/'.$request);
+		if(defined('SITE_NAME'))
+		{
+			if($request != '')
+				$request = '/'.$request;
+			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
+				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SESSION['all_languages'][$i].'.'.SITE_NAME.$request);
+			}
+			define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.$request);
+		}
 	}
 	else
 	{

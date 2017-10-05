@@ -28,10 +28,22 @@
 
 			if($list)
 			{
-				$parent = $article->group;
-				while ($parent != 0) {
-					array_unshift($options_parents, $parent);
-					$parent = $list[$parent]->parent;
+				if(is_array($article->group))
+				{
+					foreach ($article->group as $parent) {
+						while ($parent != 0) {
+							array_unshift($options_parents, $parent);
+							$parent = $list[$parent]->parent;
+						}
+					}
+				}
+				else
+				{
+					$parent = $article->group;
+					while ($parent != 0) {
+						array_unshift($options_parents, $parent);
+						$parent = $list[$parent]->parent;
+					}
 				}
 			}
 		?>
@@ -170,7 +182,7 @@
 						elseif($option->type_name == 'radio')
 						{
 							$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
-							$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
+							$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->library_model->table('_options')}` as o LEFT JOIN `{$this->library_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
 							if(!empty($option_values))
 							{
 								$checked = ($value == '' || $value == 0) ? ' checked' : '';
@@ -186,7 +198,7 @@
 							$where = '';
 							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
 							$option_values = array();
-							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
+							$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->library_model->table('_options')}` as o LEFT JOIN `{$this->library_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
 							if($this->db->numRows() > 0){
 			                    $option_values = $this->db->getRows('array');
 			                }

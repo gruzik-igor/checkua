@@ -29,6 +29,13 @@ class Router extends Loader {
 		parent::library('db', $this);
 		$this->authorize();
 
+		if(empty($_POST) && preg_match('/[A-Z]/',$this->request))
+		{
+			header('HTTP/1.1 301 Moved Permanently');
+		    header('Location: ' . SITE_URL.mb_strtolower($this->request));
+		    exit();
+		}
+
 		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
 		$admin = false;
@@ -39,6 +46,9 @@ class Router extends Loader {
 			$_SESSION['amp'] = true;
 			array_pop($parts);
 		}
+		
+		if(empty($parts[0]))
+			array_shift($parts);
 		if(empty($parts))
 			$parts[] = 'main';
 

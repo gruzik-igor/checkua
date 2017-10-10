@@ -103,12 +103,6 @@ else
 				define('SITE_URL_MAIN', $protocol.$_SERVER["SERVER_NAME"].'/');
 			}
 
-			if($request != '')
-				$request = '/'.$request;
-			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SERVER["SERVER_NAME"].'/'.$_SESSION['all_languages'][$i].$request);
-			}
-
 			define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 			define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
 		}

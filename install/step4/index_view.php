@@ -22,7 +22,7 @@
 		<label><input onclick="multiLang(2)" name="language" type="radio" value="multi"> Багатомовний</label>
 
 		<div id="anotherLanguage" style="display:none" >
-			<label><input type="checkbox" name="languages[]" value="ua"> ua </label> 
+			<label><input type="checkbox" name="languages[]" value="uk"> uk </label> 
 			<label><input type="checkbox" name="languages[]" value="ru"> ru </label> 
 			<label><input type="checkbox" name="languages[]" value="en"> en </label> 
 			<label><input type="checkbox" name="languages[]" value="pl"> pl </label> 

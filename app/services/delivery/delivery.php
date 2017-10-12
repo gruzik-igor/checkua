@@ -35,7 +35,8 @@ class delivery extends Controller {
             }
             $this->load->page_view('user_view', array('delivery' => $delivery, 'methods' => $methods));
         }
-    	$this->load->page_404();
+    	else
+            $this->redirect('login');
     }
 
     public function __get_Search($content)
@@ -66,10 +67,24 @@ class delivery extends Controller {
 
     public function __get_Shipping_to_cart()
     {
-        if($this->userIs() && isset($_SESSION['cart'])) {
-            $methods = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_methods', 1, 'active');
-            $delivery = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
-            if(!$delivery)
+        if(isset($_SESSION['cart']))
+        {
+            if(!empty($_SESSION['user']->id))
+            {
+                $delivery = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
+                if(!$delivery)
+                {
+                    $delivery = new stdClass();
+                    $delivery->id = 0;
+                    $delivery->method = 0;
+                    $delivery->address = '';
+                    $delivery->receiver = $_SESSION['user']->name;
+                    $delivery->email = $_SESSION['user']->email;
+                    if($phones = $this->db->getAllDataByFieldInArray('wl_user_info', array('user' => $_SESSION['user']->id, 'field' => 'phone')))
+                        $delivery->phone = $phones[0]->value;
+                }
+            }
+            else
             {
                 $delivery = new stdClass();
                 $delivery->id = 0;
@@ -77,11 +92,12 @@ class delivery extends Controller {
                 $delivery->address = '';
             }
 
+            $methods = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_methods', 1, 'active');
             $warehouselist = file_get_contents (APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'np.json');
             $warehouselist = json_decode ($warehouselist, true);
 
             $warehouse_by_city = $cities = array();
-            foreach($warehouselist['response'] as $warehouse){
+            foreach($warehouselist['response'] as $warehouse) {
                 $cities[] = $warehouse['city'];
                 $warehouse_by_city[$warehouse['city']][] = array(
                     'city' => $warehouse['city'],  //назва міста

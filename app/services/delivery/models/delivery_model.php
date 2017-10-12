@@ -13,7 +13,7 @@ class delivery_model
 		$delivery['name'] = $this->data->post('name');
 		$delivery['site'] = $this->data->post('site');
 		$delivery['info'] = $this->data->post('info');
-		$delivery['active'] = 1;
+		$delivery['active'] = $delivery['department'] = 1;
 		$delivery['date_add'] = time();
 		$this->db->insertRow($this->table('_methods'), $delivery);
 		return true;
@@ -24,7 +24,7 @@ class delivery_model
 		$delivery['name'] = $this->data->post('name');
 		$delivery['site'] = $this->data->post('site');
 		$delivery['info'] = $this->data->post('info');
-		$delivery['placeholder'] = $this->data->post('placeholder');
+		$delivery['department'] = $this->data->post('department');
 		$delivery['active'] = $this->data->post('active');
 		$this->db->updateRow($this->table('_methods'), $delivery, $id);
 		return true;

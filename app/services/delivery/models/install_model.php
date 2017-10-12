@@ -11,6 +11,7 @@ class install
 	public $table_service = "s_delivery";
 	public $multi_alias = 0;
 	public $order_alias = 1;
+	public $multi_page = 0;
 	public $admin_ico = 'fa-car';
 	public $version = "1.1";
 
@@ -33,8 +34,9 @@ class install
 		$np = array();
 		$np['active'] = 1;
 		$np['name'] = 'Нова пошта';
-		$np['info'] = $np['placeholder'] = NULL;
+		$np['info'] = NULL;
 		$np['site'] = 'https://novaposhta.ua/';
+		$np['department'] = 1;
 		$np['date_add'] = time();
 		$this->db->insertRow($this->table_service.'_methods', $np);
 
@@ -83,8 +85,8 @@ class install
 					  `active` tinyint(1) NOT NULL,
 					  `name` text NOT NULL,
 					  `info` text NULL,
-					  `placeholder` text NULL,
 					  `site` text NULL,
+					  `department` tinyint(1) NULL,
 					  `date_add` int(11) NOT NULL,
 					  PRIMARY KEY (`id`)
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8 AUTO_INCREMENT=1";

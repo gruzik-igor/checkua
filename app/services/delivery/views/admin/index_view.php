@@ -16,7 +16,7 @@
                                 <th>Перевізник</th>
 								<th>Сайт</th>
                                 <th>Інформація</th>
-								<th>Placeholder</th>
+								<th>Відправка</th>
 								<th>Статус</th>
 								<th>Додано</th>
                             </tr>
@@ -33,8 +33,8 @@
 										</td>
 										<td><?=$method->site?></td>
                                         <td><?=$method->info?></td>
-										<td><?=$method->placeholder?></td>
-										<td><?=$method->active?></td>
+										<td><?=$method->department == 1 ? 'у відділення' : 'за адресою'?></td>
+										<td><?=$method->active == 1 ? 'активна' : 'відключено'?></td>
 										<td><?=date("d.m.Y H:i", $method->date_add)?></td>
 									</tr>
 							<?php } } ?>

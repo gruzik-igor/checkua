@@ -34,8 +34,11 @@
 								<td><textarea name="info" class="form-control"><?=$delivery->info?></textarea></td>
 							</tr>
 							<tr>
-								<th>Placeholder</th>
-								<td><textarea name="placeholder" class="form-control"><?=$delivery->placeholder?></textarea></td>
+								<th>Відправка</th>
+								<td>
+									<label><input type="radio" name="department" value="1" <?=$delivery->department == 1 ? 'checked' : ''?>> у відділення</label>
+									<label><input type="radio" name="department" value="0" <?=$delivery->department == 0 ? 'checked' : ''?>> за адресою</label>
+								</td>
 							</tr>
 							<tr>
 								<td></td>

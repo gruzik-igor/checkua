@@ -446,7 +446,17 @@ class cart extends Controller {
 
     public function confirm()
     {
-        # code...
+        if(isset($_SESSION['cart']) && $_SESSION['cart']->subTotal > 0)
+        {
+            if(!$this->userIs())
+            {
+                $this->load->model('wl_user_model');
+                $info = array();
+                $this->wl_user_model->add();
+            }
+        }
+        else
+            $this->redirect($_SESSION['alias']->alias);
     }
 
      function addInvoice()

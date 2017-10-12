@@ -92,30 +92,33 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 						<?php 
 						$cooperation_where['alias1'] = $_SESSION['alias']->id;
 						$cooperation_where['type'] = 'delivery';
-						$cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
-				        if($cooperation)
+				        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
 				        {
 				            foreach ($cooperation as $storage) {
 				                $this->load->function_in_alias($storage->alias2, '__get_Shipping_to_cart');
 				            }
-				        }
-				        else { ?>
+				        } else { ?>
 					        <div class="form-group">
-								<input type="text" class="form-control" placeholder="Name" required>
+								<input type="text" class="form-control" placeholder="<?=$this->text('Ім\'я Прізвище отримувача')?>" required>
 							</div>
 
 							<div class="row">
 								<div class="form-group col-sm-6">
 									<div class="required">
-										<input type="email" class="form-control" placeholder="Email Address" required="">
+										<input type="email" class="form-control" placeholder="Email" required>
 									</div>
 								</div>
 								<div class="form-group col-sm-6">
 									<div class="required">
-										<input type="tel" class="form-control" placeholder="Phone" required="">
+										<input type="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
 									</div>
 								</div>
 							</div>
+
+							<div class="form-group">
+					            <label><?=$this->text('Адреса доставки')?></label>
+					            <textarea class="form-control" name="shipping-address" placeholder="<?=$this->text('Поштовий індекс, м. Київ, вул. Київська 12, кв. 3')?>" rows="3"></textarea>
+					        </div>
 						<?php } ?>
 						
 						<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
@@ -123,10 +126,6 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 							<textarea class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
 						</div>
 					</div>
-
-					<div class="row">
-				        <div id="map"></div>
-				    </div>
 				</div>
 
 				<div class="col-md-6">
@@ -170,6 +169,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 								        <?php } ?>
 								    </tbody>
 								    <tfoot>
+								    	<?php /*
 								        <tr class="cart-subtotal">
 								            <th><?=$this->text('Попередня сума')?></th>
 								            <td><span class="amount"><?=$subTotal?></span></td>
@@ -179,7 +179,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 								            <td>
 								                <p><?=$this->text('безкоштовно')?></p>
 								            </td>
-								        </tr>
+								        </tr> */ ?>
 								        <tr class="order-total">
 								            <th><?=$this->text('До оплати')?></th>
 								            <td>
@@ -225,10 +225,11 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 							        }
 									?>
 							    </ul>
-						    	<div class="text-right">
-						    		<button type="submit" class="btn btn-buy"><?=$this->text('Оформити замовлення')?></button>
-						    	</div>
 							</div>
+
+							<div class="text-right">
+					    		<button type="submit" class="btn btn-buy"><?=$this->text('Оформити замовлення')?></button>
+					    	</div>
 						</div>
 					</div>
 				</div>

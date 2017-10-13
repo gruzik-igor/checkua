@@ -109,7 +109,7 @@ class validator {
     {
         if(!$this->getPhone($data))
         {
-            array_push($this->errors, 'Невірний формат телефону.');
+            array_push($this->errors, $field.': невірний формат телефону.');
             return false;
         }
         return true;

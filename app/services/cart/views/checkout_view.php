@@ -94,28 +94,25 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 					<div class="billing-field box">
 						<h3 class="title"><?=$this->text('Доставка')?></h3>
 
-						<?php 
+						<?php $cooperation_where = array();
 						$cooperation_where['alias1'] = $_SESSION['alias']->id;
 						$cooperation_where['type'] = 'delivery';
 				        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
-				        {
-				            foreach ($cooperation as $storage) {
-				                $this->load->function_in_alias($storage->alias2, '__get_Shipping_to_cart');
-				            }
-				        } else { ?>
+				            $this->load->function_in_alias($cooperation[0]->alias2, '__get_Shipping_to_cart');
+				        else { ?>
 					        <div class="form-group">
-								<input type="text" class="form-control" placeholder="<?=$this->text('Ім\'я Прізвище отримувача')?>" required>
+								<input type="text" name="name" class="form-control" placeholder="<?=$this->text('Ім\'я Прізвище отримувача')?>" required>
 							</div>
 
 							<div class="row">
 								<div class="form-group col-sm-6">
 									<div class="required">
-										<input type="email" class="form-control" placeholder="Email" required>
+										<input type="email" name="email" class="form-control" placeholder="Email" required>
 									</div>
 								</div>
 								<div class="form-group col-sm-6">
 									<div class="required">
-										<input type="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
+										<input type="phone" name="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
 									</div>
 								</div>
 							</div>
@@ -128,7 +125,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 						
 						<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
 						<div class="form-group">
-							<textarea class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
+							<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
 						</div>
 					</div>
 				</div>

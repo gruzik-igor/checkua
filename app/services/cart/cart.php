@@ -362,6 +362,15 @@ class cart extends Controller {
                 $this->load->model('wl_user_model');
                 if($this->wl_user_model->login($key, $password))
                 {
+                    if(!empty($_SESSION['cart']->products))
+                    {
+                        $this->load->smodel('cart_model');
+                        foreach ($_SESSION['cart']->products as $product) {
+                            $this->cart_model->addProduct($product, $_SESSION['user']->id);
+                        }
+                        $_SESSION['cart']->products = NULL;
+                    }
+
                     if(date('H') > 18 || date('H') < 6)
                         $_SESSION['notify']->success = $this->text('Доброго вечора, <strong>'.$_SESSION['user']->name.'</strong>! Дякуємо що повернулися');
                     else
@@ -457,6 +466,8 @@ class cart extends Controller {
 
             if($this->validator->run())
             {
+                $_POST['phone'] = $this->validator->getPhone($_POST['phone']);
+                $new_user = false;
                 if(!$this->userIs())
                 {
                     $this->load->model('wl_user_model');
@@ -465,12 +476,32 @@ class cart extends Controller {
                     $info['name'] = $this->data->post('name');
                     $info['photo'] = NULL;
                     $info['password'] = 'cart-autoregister-'.time();
-                    $additionall['phone'] = $this->data->post('phone');
+                    $additionall = array();
+                    if(!empty($this->cart_model->additional_user_fields))
+                        foreach ($this->cart_model->additional_user_fields as $key) {
+                            $additionall[$key] = $this->data->post($key);
+                        }
                     if($user = $this->wl_user_model->add($info, $additionall, $_SESSION['option']->newUserType, false, 'cart autoregister'))
                         $this->wl_user_model->setSession($user);
+                    $new_user = true;
                 }
+                else
+                    $this->cart_model->updateAdditionalUserFields($_SESSION['user']->id);
 
-                
+                if(!empty($_SESSION['cart']->products))
+                    foreach ($_SESSION['cart']->products as $product) {
+                        $this->cart_model->addProduct($product, $_SESSION['user']->id);
+                    }
+
+                $delivery = array();
+                if($delivery_alias = $this->data->post('delivery_alias'))
+                    if(is_numeric($delivery_alias))
+                        $delivery = $this->load->function_in_alias($delivery_alias, '__set_Shipping_from_cart');
+
+                if($cart = $this->cart_model->checkout($_SESSION['user']->id, $delivery))
+                {
+
+                }
             }
             else
             {

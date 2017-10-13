@@ -116,8 +116,10 @@ class cart_model
 	{
 		if(isset($_SESSION['user']->id))
 		{
-			$user = ($user == 0) ? $_SESSION['user']->id : $user;
-			if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), $user, 'user'))
+			$where_cp = array();
+			$where_cp['user'] = ($user == 0) ? $_SESSION['user']->id : $user;
+			$where_cp['cart'] = 0;
+			if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), $where_cp))
 			{
 				foreach ($products as $product) {
 					$product->key = $product->id;
@@ -130,14 +132,16 @@ class cart_model
 		return false;
 	}
 
-	public function getSubTotalInCart($user = 0)
+	public function getSubTotalInCart($user = 0, $priceFormat = true)
 	{
 		$subTotal = 0;
 		if($products = $this->getProductsInCart($user))
 			foreach ($products as $product) {
 				$subTotal += $product->price * $product->quantity;
 			}
-		return $this->priceFormat($subTotal);
+		if($priceFormat)
+			return $this->priceFormat($subTotal);
+		return $subTotal;
 	}
 
 	public function getProductInfo($where = array())
@@ -187,6 +191,61 @@ class cart_model
 
 			return $this->db->insertRow($this->table('_products'), $cart_product);
 		}
+	}
+
+	public function checkout($user, $delivery = array())
+	{
+		$cart = array();
+		$cart['user'] = $user;
+		$cart['status'] = 1;
+		$cart['shipping_alias'] = (isset($delivery['shipping_alias'])) ? $delivery['shipping_alias'] : 0;
+		$cart['shipping_id'] = (isset($delivery['shipping_id'])) ? $delivery['shipping_id'] : 0;
+		$cart['payment_alias'] = $cart['payment_id'] = 0;
+		$cart['total'] = $this->getSubTotalInCart($user, false);
+		$cart['comment'] = $this->data->post('comment');
+		$cart['date_add'] = $cart['date_edit'] = time();
+		$cart_id = $this->db->insertRow($this->table(), $cart);
+
+		$where = array('user' => $user, 'cart' => 0);
+		$this->db->updateRow($this->table('_products'), array('cart' => $cart_id), $where);
+
+		return $cart_id;
+	}
+
+	public function updateAdditionalUserFields($user)
+	{
+		if(!empty($this->additional_user_fields))
+		{
+			$exist = array();
+			if($infos = $this->db->getAllDataByFieldInArray('wl_user_info', $_SESSION['user']->id, 'user'))
+				foreach ($infos as $info) {
+					if(isset($exist[$info->field]))
+						$exist[$info->field][] = $info->value;
+					else
+						$exist[$info->field] = array($info->value);
+				}
+			foreach ($this->additional_user_fields as $key) {
+                if($value = $this->data->post($key))
+                {
+                	if(isset($exist[$key]))
+                	{
+                		if(!in_array($value, $exist[$key]))
+                		{
+                			$data = array('user' => $_SESSION['user']->id, 'date' => time());
+							$data['field'] = $key;
+							$data['value'] = $value;
+                			$this->db->insertRow('wl_user_info', $data);
+                		}
+                	}
+                }
+            }
+		}
+		
+		$user = $this->db->select('wl_users as u', 'name', $_SESSION['user']->id)->get();
+		if(empty($user->name))
+            $this->db->updateRow('wl_users', array('name' => $delivery['receiver']), $_SESSION['user']->id);
+        
+        return true;
 	}
 
 	public function priceFormat($price)

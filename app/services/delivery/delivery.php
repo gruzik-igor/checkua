@@ -109,47 +109,38 @@ class delivery extends Controller {
 
             $cities = '"'. implode('","', array_keys($warehouse_by_city)) . '"';
 
-            $this->load->view('cart_view', array('delivery' => $delivery, 'methods' => $methods, 'warehouse_by_city' => json_encode($warehouse_by_city), 'cities' => $cities));
+            $this->load->view('__cart_view', array('delivery' => $delivery, 'methods' => $methods, 'warehouse_by_city' => json_encode($warehouse_by_city), 'cities' => $cities));
         }
     }
 
-    public function __set_Default_from_cart()
+    public function __set_Shipping_from_cart()
     {
-        $delivery['method'] = $this->data->post('shippingMethod');
-        $delivery['address'] = $this->data->post('shippingAddress');
-        $delivery['receiver'] = $this->data->post('shippingReceiver');
-        $delivery['phone'] = $this->data->post('shippingPhone');
-        $shipping = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
-        if($shipping)
+        $data = array();
+        $data['user'] = $_SESSION['user']->id;
+        $data['method'] = $this->data->post('shipping-method');
+        $data['address'] = $this->data->post('shipping-city');
+        if($department = $this->data->post('shipping-department'))
+            $data['address'] .= ': '.$department;
+        if($department = $this->data->post('shipping-department-other'))
+            $data['address'] .= ': '.$department;
+        if($address = $this->data->post('shipping-address'))
+            $data['address'] .= '. '.$address;
+        $data['receiver'] = $this->data->post('name');
+        $data['phone'] = $this->data->post('phone');
+
+        if($this->data->post('shipping-default') == 1)
         {
-            $this->db->updateRow($_SESSION['service']->table.'_users', $delivery, $shipping->id);
-        }
-        else
-        {
-            $delivery['user'] = $_SESSION['user']->id;
-            $this->db->insertRow($_SESSION['service']->table.'_users', $delivery);
+            if($default = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user'))
+                $this->db->updateRow($_SESSION['service']->table.'_users', $data, $default->id);
+            else
+                $this->db->insertRow($_SESSION['service']->table.'_users', $data);
         }
 
-        $user = $this->db->select('wl_users as u', 'name', $_SESSION['user']->id)
-                         ->join('wl_user_info', 'value as phone', array('user' => $_SESSION['user']->id, 'field' => 'phone'))
-                         ->get('single');
+        $data['comment'] = NULL;
 
-        if(empty($user->name))
-            $this->db->updateRow('wl_users', array('name' => $delivery['receiver']), $_SESSION['user']->id);
-        if(empty($user->phone))
-            $this->db->insertRow('wl_user_info', array('user' =>  $_SESSION['user']->id, 'field' => 'phone', 'value' => $delivery['phone'], 'date' => time()));
-
-        return true;
-    }
-
-    public function __get_Method_info($id = 0)
-    {
-        return $this->db->getAllDataById($_SESSION['service']->table.'_methods', $id);
-    }
-
-    public function __set_Delivery_from_cart($data = array())
-    {
-        return $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
+        $delivery = array('shipping_alias' => $_SESSION['alias']->id);
+        $delivery['shipping_id'] = $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
+        return $delivery;
     }
 
     public function save()

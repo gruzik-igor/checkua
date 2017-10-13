@@ -8,11 +8,16 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 		<div class="row">
 			<h1 class="col-md-12"><?=$_SESSION['alias']->name?></h1>
 		</div>
-		<div class="row">
 
-			<div class="alert alert-danger alert-dismissible fade hidden" role="alert">
-				<strong>Помилка!</strong> Максимальна кількість доступних товарів <span id="maxQuantity"></span>
-			</div>
+		<?php if(!empty($_SESSION['notify-Cart'])) { ?>
+		   <div class="alert alert-danger alert-dismissible  fade in">
+		        <span class="close" data-dismiss="alert">×</span>
+		        <h4><?=(isset($_SESSION['notify-Cart']->title)) ? $_SESSION['notify-Cart']->title : $this->text('Помилка!')?></h4>
+		        <?=$_SESSION['notify-Cart']->error?>
+		    </div>
+		<?php } ?>
+
+		<div class="row">
 
 			<?php if(!$this->userIs()) { ?>
 			<div class="col-md-6">

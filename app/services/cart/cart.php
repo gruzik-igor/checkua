@@ -446,13 +446,37 @@ class cart extends Controller {
 
     public function confirm()
     {
-        if(isset($_SESSION['cart']) && $_SESSION['cart']->subTotal > 0)
+        $this->load->smodel('cart_model');
+        if($products = $this->cart_model->getProductsInCart())
         {
+            $this->load->library('validator');
+            $this->validator->setRules($this->text('Ім\'я Прізвище'), $this->data->post('name'), 'required|5..50');
+            $this->validator->setRules($this->text('Контактний номер'), $this->data->post('phone'), 'required|phone');
             if(!$this->userIs())
+                $this->validator->setRules($this->text('email'), $this->data->post('email'), 'required|email');
+
+            if($this->validator->run())
             {
-                $this->load->model('wl_user_model');
-                $info = array();
-                $this->wl_user_model->add();
+                if(!$this->userIs())
+                {
+                    $this->load->model('wl_user_model');
+                    $info = $additionall = array();
+                    $info['email'] = $this->data->post('email');
+                    $info['name'] = $this->data->post('name');
+                    $info['photo'] = NULL;
+                    $info['password'] = 'cart-autoregister-'.time();
+                    $additionall['phone'] = $this->data->post('phone');
+                    if($user = $this->wl_user_model->add($info, $additionall, $_SESSION['option']->newUserType, false, 'cart autoregister'))
+                        $this->wl_user_model->setSession($user);
+                }
+
+                
+            }
+            else
+            {
+                $_SESSION['notify-Cart'] = new stdClass();
+                $_SESSION['notify-Cart']->error = $this->validator->getErrors();
+                $this->redirect();
             }
         }
         else

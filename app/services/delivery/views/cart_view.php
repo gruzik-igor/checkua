@@ -47,7 +47,7 @@
         <?php if($this->userIs()) { ?>
             <div class="form-group">
                 <label><?=$this->text('Контактий номер телефону')?></label>
-                 <input type="text" class="form-control" id="shipping-phone" placeholder="<?=$this->text('+380*********')?>" value="<?= isset($delivery->phone) ? $delivery->phone : '' ?>">
+                 <input type="text" name="phone" class="form-control" id="shipping-phone" placeholder="<?=$this->text('+380*********')?>" value="<?= isset($delivery->phone) ? $delivery->phone : '' ?>">
             </div>
         <?php } else { ?>
             <div class="row">

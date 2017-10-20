@@ -281,6 +281,13 @@
 								foreach ($options as $opt) {
 									echo('<tr id="option_'.$opt->id.'">');
 									echo("<td>#{$i}</td>");
+									if($opt->photo == 0)
+										echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
+									else {
+										$photoPath = $_SESSION["alias"]->alias."/options/".$option->originalAlias."/".$opt->photo; 
+										echo('<td><img style="width: 100px; height: auto; display: inline-block;" src='.IMG_PATH.$photoPath.' >');
+										echo(' <button class="btn btn-danger" onClick="deletePropertyPhoto('.$opt->id.',\''.$photoPath.'\')">-</button></td>');
+									}
 									echo("<td><input type='text' name='option_{$opt->name_id}' value='{$opt->name}' class='form-control'></td>");
 									echo('<td><button type="button" onClick="deleteOptionRow('.$opt->id.')" class="btn btn-danger">Видалити властивість</button>');
 									echo('</tr>');

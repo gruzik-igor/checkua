@@ -621,7 +621,10 @@ class shopshowcase extends Controller {
 					            $path = substr($path, 0, -1);
 					            if(!is_dir($path))
 					            	mkdir($path, 0777);
-					            $path .= '/'.$_SESSION['option']->folder.'/options';
+					            $path .= '/'.$_SESSION['option']->folder;
+					            if(!is_dir($path))
+					            	mkdir($path, 0777);
+					            $path .= '/options';
 					            if(!is_dir($path))
 					            	mkdir($path, 0777);
 								$path .= '/'.$this->data->post('id').'-'.$this->data->post('alias');

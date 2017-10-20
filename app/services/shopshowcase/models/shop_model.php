@@ -75,7 +75,10 @@ class shop_model {
 		if($active)
 		{
 			if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1)
-				$where['#pg.active'] = 1;
+			{
+				if(!is_array($Group) && $Group >= 0)
+					$where['#pg.active'] = 1;
+			}
 			else
 				$where['active'] = 1;
 		}

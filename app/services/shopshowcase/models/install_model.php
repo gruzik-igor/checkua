@@ -340,6 +340,7 @@ class install
 					  `wl_alias` int(11) NOT NULL,
 					  `group` int(11) NULL,
 					  `alias` text NULL,
+					  `photo` text NULL,
 					  `position` int(11) NULL,
 					  `type` int(11) NULL,
 					  `filter` tinyint(1) NULL,

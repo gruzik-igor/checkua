@@ -63,8 +63,8 @@ if(isset($_SESSION['option']->productOrder))
 					if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
 						echo("<td>");
 						if(!empty($a->group) && is_array($a->group)) {
-                            foreach ($a->group as $group) {
-                                echo('<a href="'.SITE_URL.'admin/'.$group->link.'">'.$group->name.'</a> ');
+                            foreach ($a->group as $g) {
+                                echo('<a href="'.SITE_URL.'admin/'.$g->link.'">'.$g->name.'</a> ');
                             }
                         } else {
                             echo("Не визначено");

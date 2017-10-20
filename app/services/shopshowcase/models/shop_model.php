@@ -325,7 +325,7 @@ class shop_model {
 						$product->group = array();
 
 						$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
-						$this->db->join($this->table('_groups'), 'id, alias, parent, prom_group', array('id' => '#pg.group', 'active' => 1));
+						$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
 						$where_ntkd['content'] = "#-pg.group";
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 						$product->group = $this->db->get('array');
@@ -504,7 +504,7 @@ class shop_model {
 		return $this->db->get();
 	}
 
-	private function getProductOptions($product, $parents)
+	private function getProductOptions($product, $parents = array())
 	{
 		$product_options = array();
 		$where_language = '';

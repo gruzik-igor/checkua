@@ -89,41 +89,58 @@ class shop_model {
 		{
 			if(is_array($Group) || $Group >= 0)
 			{
-				$endGroups = $Group;
-				if($active && (is_array($Group) && !in_array(0, $Group) || $Group > 0))
-					$endGroups = $this->getEndGroups($Group);
-				if(!empty($endGroups))
+				if(is_array($Group) && isset($Group[0]->id))
 				{
-					if($_SESSION['option']->ProductMultiGroup == 0)
-						$where['group'] = $endGroups;
-					else
-					{
-						$order = 'position';
-						if(count($_GET) == 1)
-						{
-							$limit = 0;
-							if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
-								$limit = $_SESSION['option']->paginator_per_page;
-							if($limit > 0)
-								$order .= ' LIMIT '.$limit;
-						}
-						$pg = array('group' => $endGroups);
-						if($active)
-							$pg['active'] = 1;
-						if($products = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $pg, $order))
-						{
-							$where['id'] = array();
-							foreach ($products as $product) if($product->product != $noInclude) {
-								array_push($where['id'], $product->product);
-							}
-							$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $endGroups, 'product' => '#p.id'));
-						}
-						else
-							return null;
+					$list = array();
+					foreach ($Group as $g) {
+						$list[] = $g->id;
 					}
+					$Group = $list;
+					unset($list);
+				}
+				$endGroups = $Group;
+				if(is_array($Group) && in_array(0, $Group) || is_numeric($Group) && $Group == 0)
+				{
+					$where['#pg.active'] = 1;
+					$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $endGroups, 'product' => '#p.id'));
 				}
 				else
-					return false;
+				{
+					if($active)
+						$endGroups = $this->getEndGroups($Group);
+					if(!empty($endGroups))
+					{
+						if($_SESSION['option']->ProductMultiGroup == 0)
+							$where['group'] = $endGroups;
+						else
+						{
+							$order = 'position';
+							if(count($_GET) == 1)
+							{
+								$limit = 0;
+								if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+									$limit = $_SESSION['option']->paginator_per_page;
+								if($limit > 0)
+									$order .= ' LIMIT '.$limit;
+							}
+							$pg = array('group' => $endGroups);
+							if($active)
+								$pg['active'] = 1;
+							if($products = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $pg, $order))
+							{
+								$where['id'] = array();
+								foreach ($products as $product) if($product->product != $noInclude) {
+									array_push($where['id'], $product->product);
+								}
+								$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $endGroups, 'product' => '#p.id'));
+							}
+							else
+								return null;
+						}
+					}
+					else
+						return false;
+				}
 			}
 			elseif($noInclude > 0)
 				$where['id'] = '!'.$noInclude;

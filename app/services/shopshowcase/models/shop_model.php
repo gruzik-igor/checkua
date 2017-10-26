@@ -87,9 +87,11 @@ class shop_model {
 			$where['article'] = $Group;
 		elseif($_SESSION['option']->useGroups > 0)
 		{
-			if(is_array($Group) || $Group > 0)
+			if(is_array($Group) || $Group >= 0)
 			{
-				$endGroups = $this->getEndGroups($Group);
+				$endGroups = $Group;
+				if($active && (is_array($Group) && !in_array(0, $Group) || $Group > 0))
+					$endGroups = $this->getEndGroups($Group);
 				if(!empty($endGroups))
 				{
 					if($_SESSION['option']->ProductMultiGroup == 0)
@@ -193,7 +195,7 @@ class shop_model {
 			if(isset($_GET['sale']) && $_GET['sale'] == 1)
 				$where['#p.old_price'] = '>0';
 		}
-		if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
+		if($active && $_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
 			$where['#g.active'] = 1;
 
 		$this->db->select($this->table('_products').' as p', '*', $where);

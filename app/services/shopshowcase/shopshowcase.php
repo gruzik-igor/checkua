@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.5"
+ 	Service "Shop Showcase 2.5.1"
 	for WhiteLion 1.0
 
 */
@@ -91,14 +91,7 @@ class shopshowcase extends Controller {
 
 				$subgroups = $this->shop_model->getGroups($group->id);
 
-				if($subgroups)
-				{
-					$this->getSubGroupIds($subgroups);
-    				$products = $this->shop_model->getProducts($this->groups);
-				}
-				else {
-					$products = $this->shop_model->getProducts($group->id);
-				}
+				$products = $this->shop_model->getProducts($group->id);
 
 				$filters = $this->shop_model->getOptionsToGroup($group);
 
@@ -137,26 +130,6 @@ class shopshowcase extends Controller {
 			else
 				$this->load->page_view('index_view', array('products' => $products));
 		}
-    }
-
-    private function getSubGroupIds($subGroups)
-    {
-    	foreach ($subGroups as $subGroup)
-    	{
-    		$hasSubGroups = $this->shop_model->getGroups($subGroup->id);
-
-			if($hasSubGroups)
-			{
-				$this->getSubGroupIds($hasSubGroups);
-			}
-			else
-			{
-
-				$this->groups[$subGroup->id] = new stdClass();
-				$this->groups[$subGroup->id]->id = $subGroup->id;
-			}
-    	}
-
     }
 
 	public function search()
@@ -251,6 +224,7 @@ class shopshowcase extends Controller {
 		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
 		elseif(isset($data['group']) && (is_numeric($data['group']) || is_array($data['group']))) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];
+		if(isset($data['sale']) && $data['sale'] == 1) $_GET['sale'] = 1;
 
 		$this->load->smodel('shop_model');
 		return $this->shop_model->getProducts($group);

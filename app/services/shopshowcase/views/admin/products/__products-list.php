@@ -31,7 +31,7 @@ if(isset($_SESSION['option']->productOrder))
 				<?php } ?>
 				<th>Автор</th>
 				<th>Редаговано</th>
-				<th>Стан</th>
+				<?php if(!isset($search) && $productOrder) echo "<th>Стан</th>"; ?>
             </tr>
         </thead>
         <tbody>
@@ -74,7 +74,9 @@ if(isset($_SESSION['option']->productOrder))
                     ?>
 					<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
 					<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-					<td><input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" /></td>
+					<?php if(!isset($search) && $productOrder) { ?>
+						<td><input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" /></td>
+					<?php } ?>
 				</tr>
 			<?php } ?>
         </tbody>

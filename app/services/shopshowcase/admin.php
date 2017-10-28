@@ -38,6 +38,8 @@ class shopshowcase extends Controller {
 
 			if($_SESSION['option']->useGroups && $type == 'group' && $product)
 			{
+				$this->wl_alias_model->setContent();
+				
 				$group = clone $product;
 				unset($product);
 

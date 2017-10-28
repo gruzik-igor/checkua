@@ -98,23 +98,27 @@ class shop_model {
 					$Group = $list;
 					unset($list);
 				}
-				$endGroups = $Group;
-				if(is_array($Group) && in_array(0, $Group) || is_numeric($Group) && $Group == 0)
+				if(!$active)
 				{
-					$where['#pg.active'] = 1;
-					$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $endGroups, 'product' => '#p.id'));
+					if($_SESSION['option']->ProductMultiGroup)
+					{
+						$where['#pg.group'] = $Group;
+						$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $Group, 'product' => '#p.id'));
+					}
+					else
+						$where['group'] = $Group;
 				}
 				else
 				{
-					if($active)
-						$endGroups = $this->getEndGroups($Group);
-					if(!empty($endGroups))
+					if(is_array($Group) && in_array(0, $Group) || is_numeric($Group) && $Group == 0)
 					{
-						if($_SESSION['option']->ProductMultiGroup == 0)
-							$where['group'] = $endGroups;
-						else
+						if($_SESSION['option']->ProductMultiGroup)
 						{
-							$order = 'position';
+							$order = explode(' ', trim($_SESSION['option']->productOrder));
+							if($order[0] == 'position')
+								$order = trim($_SESSION['option']->productOrder);
+							else
+								$order = '';
 							if(count($_GET) == 1)
 							{
 								$limit = 0;
@@ -123,23 +127,55 @@ class shop_model {
 								if($limit > 0)
 									$order .= ' LIMIT '.$limit;
 							}
-							$pg = array('group' => $endGroups);
-							if($active)
-								$pg['active'] = 1;
+							$pg = array('active' => 1, 'product' => '!'.$noInclude);
 							if($products = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $pg, $order))
 							{
 								$where['id'] = array();
-								foreach ($products as $product) if($product->product != $noInclude) {
+								foreach ($products as $product) {
 									array_push($where['id'], $product->product);
 								}
-								$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $endGroups, 'product' => '#p.id'));
 							}
 							else
 								return null;
 						}
 					}
 					else
-						return false;
+					{
+						$endGroups = $this->getEndGroups($Group);
+						if(!empty($endGroups))
+						{
+							if($_SESSION['option']->ProductMultiGroup == 0)
+								$where['group'] = $endGroups;
+							else
+							{
+								$order = explode(' ', trim($_SESSION['option']->productOrder));
+								if($order[0] == 'position')
+									$order = trim($_SESSION['option']->productOrder);
+								else
+									$order = '';
+								if(count($_GET) == 1)
+								{
+									$limit = 0;
+									if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+										$limit = $_SESSION['option']->paginator_per_page;
+									if($limit > 0)
+										$order .= ' LIMIT '.$limit;
+								}
+								$pg = array('group' => $endGroups, 'active' => 1, 'product' => '!'.$noInclude);
+								if($products = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $pg, $order))
+								{
+									$where['id'] = array();
+									foreach ($products as $product) {
+										array_push($where['id'], $product->product);
+									}
+								}
+								else
+									return null;
+							}
+						}
+						else
+							return false;
+					}
 				}
 			}
 			elseif($noInclude > 0)
@@ -245,12 +281,6 @@ class shop_model {
 		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
 		$this->db->join('wl_ntkd as n', 'name, text, list', $where_ntkd);
 
-		$prefix = 'p';
-		$_SESSION['option']->productOrder = trim($_SESSION['option']->productOrder);
-		$order = explode(' ', $_SESSION['option']->productOrder);
-        if(((count($order) == 2 && $order[0] == 'position' && in_array($order[1], array('asc', 'ASC', 'desc', 'DESC'))) || (count($order) == 1 && $order[0] == 'position')) && $_SESSION['option']->ProductMultiGroup && !is_array($Group) && $Group >= 0)
-        	$prefix = 'pg';
-
 		if(isset($_GET['sort']))
 		{
 			switch ($this->data->get('sort')) {
@@ -269,7 +299,7 @@ class shop_model {
 			}
 		}
 		else
-			$this->db->order($_SESSION['option']->productOrder, $prefix);
+			$this->db->order($_SESSION['option']->productOrder);
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
@@ -281,8 +311,7 @@ class shop_model {
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
-		$products = $this->db->get('array', false);
-        if($products)
+		if($products = $this->db->get('array', false))
         {
 			$_SESSION['option']->paginator_total = $this->db->get('count');
 

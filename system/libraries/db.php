@@ -17,6 +17,7 @@
  * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
  * Версія 2.2.1 (08.02.2017) - додано "chaining methods";
  * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId(); fix getRows('single')
+ * Версія 2.2.3 (29.10.2017) - додано count_db_queries, shopDBdump
  */
 
 class Db {
@@ -24,6 +25,8 @@ class Db {
     private $connects = array();
     private $current = 0;
     private $result;
+    public $count_db_queries = 0;
+    public $shopDBdump = false;
 
     /*
      * Отримуємо дані для з'єднання з конфігураційного файлу
@@ -55,11 +58,19 @@ class Db {
      */
     function executeQuery($query)
     {
+        if ($this->shopDBdump) {
+            $this->time_start = microtime(true);
+            $this->mem_start = memory_get_usage();
+            echo $this->count_db_queries.': '.$query;
+        }
         $result = $this->connects[$this->current]->query($query);
         if(!$result)
             echo $this->connects[$this->current]->error;
         else
             $this->result = $result;
+        $this->count_db_queries++;
+        if($this->shopDBdump)
+            $this->showTime();
     }
 
     function updateRow($table, $changes, $key, $row_key = 'id')
@@ -277,7 +288,7 @@ class Db {
                         $where = substr($where, 0, -2);
                         $where .= ') AND ';
                     }
-                    elseif($value != '')
+                    elseif($value != '' || $value == 0)
                     {
                         $value = $this->sanitizeString($value);
                         if($value[0] == '%')
@@ -728,6 +739,37 @@ class Db {
         $where['alias'] = ($alias == 0) ? $_SESSION['alias']->id : $alias;
         $this->updateRow('wl_sitemap', array('data' => NULL), $where);
         return true;
+    }
+
+    private function showTime()
+    {
+        $mem_end = memory_get_usage();
+        $time_end = microtime(true);
+        $time = $time_end - $this->time_start;
+        $mem = $mem_end - $this->mem_start;
+        $timeGlobe = $time_end - $GLOBALS['time_start'];
+        $memGlobe = $mem_end - $GLOBALS['mem_start'];
+        $mem = round($mem/1024, 5);
+        if($mem > 1024)
+        {
+            $mem = round($mem/1024, 5);
+            $mem = (string) $mem . ' Мб';
+        }
+        else
+            $mem = (string) $mem . ' Кб';
+        $memGlobe = round($memGlobe/1024, 5);
+        if($memGlobe > 1024)
+        {
+            $memGlobe = round($memGlobe/1024, 5);
+            $memGlobe = (string) $memGlobe . ' Мб';
+        }
+        else
+            $memGlobe = (string) $memGlobe . ' Кб';
+        if(isset($this->result->num_rows))
+            echo "<br> Результатів: ".$this->result->num_rows;
+        else
+            echo '<br>';
+        echo ' Час виконання: '.round($time, 5).' сек. Використанок памяті: '.$mem.'. Від старту: Час виконання: '.round($timeGlobe, 5).' сек. Використанок памяті: '.$memGlobe.' <hr>';
     }
 
 }

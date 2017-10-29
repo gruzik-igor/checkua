@@ -124,7 +124,7 @@ class wl_cache_model extends Loader
 			$mem = (string) $mem . ' Кб';
 
 		$after = ($_SESSION['cache']) ? 'Cache активний' : 'Cache відключено';
-		echo '<hr><center>Час виконання: '.round($time, 5).' сек. Використанок памяті: '.$mem.'. '.$after.'</center>';
+		echo '<hr><center>Час виконання: '.round($time, 5).' сек. Використанок памяті: '.$mem.'. Запитів до БД: '.$this->db->count_db_queries.'. '.$after.'</center>';
 	}
 
 	public function SiteMap($force = false)

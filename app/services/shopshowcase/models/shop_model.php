@@ -89,7 +89,7 @@ class shop_model {
 		{
 			if(is_array($Group) || $Group >= 0)
 			{
-				if(is_array($Group) && isset($Group[0]->id))
+				if(is_array($Group) && isset($Group[key($Group)]->id))
 				{
 					$list = array();
 					foreach ($Group as $g) {

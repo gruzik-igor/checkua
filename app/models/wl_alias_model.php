@@ -42,11 +42,14 @@ class wl_alias_model
 				}
 			}
 			
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
-				foreach($options as $opt) {
-					$key = $opt->name;
-					$_SESSION['option']->$key = $opt->value;
-				}
+			if($alias->service > 0)
+			{
+				if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
+					foreach($options as $opt) {
+						$key = $opt->name;
+						$_SESSION['option']->$key = $opt->value;
+					}
+			}
 			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => $alias->id)))
 				foreach($options as $opt) {
 					$key = $opt->name;

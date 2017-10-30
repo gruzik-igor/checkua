@@ -40,10 +40,7 @@ class wl_alias_model
 					$_SESSION['service']->name = $service->name;
 					$_SESSION['service']->table = $service->table;
 				}
-			}
-			
-			if($alias->service > 0)
-			{
+
 				if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
 					foreach($options as $opt) {
 						$key = $opt->name;
@@ -56,6 +53,52 @@ class wl_alias_model
 					$_SESSION['option']->$key = $opt->value;
 				}
 		}
+		return true;
+    }
+
+    public function initFromCache($page)
+    {
+		$_SESSION['alias'] = new stdClass();
+		$_SESSION['option'] = new stdClass();
+		$_SESSION['service'] = new stdClass();
+
+		$_SESSION['alias']->alias = $page->alias_link;
+		$_SESSION['alias']->link = $page->link;
+		$_SESSION['alias']->id = $page->alias;
+		$_SESSION['alias']->content = $page->content;
+		$_SESSION['alias']->code = $page->content;
+		$_SESSION['alias']->table = $page->alias_table;
+		if($page->service)
+		{
+			$_SESSION['alias']->service = $page->service_name;
+			$_SESSION['service']->name = $page->service_name;
+			$_SESSION['service']->table = $page->service_table;
+		}
+		else
+			$_SESSION['alias']->service = false;
+		$_SESSION['alias']->name = $_SESSION['alias']->title = $_SESSION['alias']->breadcrumb_name = $page->link;
+		$_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = $_SESSION['alias']->meta = '';
+		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
+		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
+
+		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
+			foreach($options as $opt) {
+				$key = $opt->name;
+				$_SESSION['option']->$key = $opt->value;
+			}
+		if($page->service > 0)
+		{
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $page->service, 'alias' => 0)))
+				foreach($options as $opt) {
+					$key = $opt->name;
+					$_SESSION['option']->$key = $opt->value;
+				}
+		}
+		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $page->service, 'alias' => $page->alias)))
+			foreach($options as $opt) {
+				$key = $opt->name;
+				$_SESSION['option']->$key = $opt->value;
+			}
 		return true;
     }
 
@@ -179,19 +222,12 @@ class wl_alias_model
 
     public function setContentRobot($data = array())
     {
-    	$ntkd = array();
+    	$ntkd = $where = array();
     	$keys = array('title', 'description', 'keywords', 'text', 'list', 'meta');
-    	$where = array('alias' => 0, 'content' => 0);
     	if($_SESSION['language'])
     		$where['language'] = $_SESSION['language'];
-    	if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
-    	{
-    		foreach ($all as $key => $value) {
-    			if(in_array($key, $keys) && $value != '')
-    				$ntkd[$key] = htmlspecialchars_decode($value);
-    		}
-    	}
-    	if($_SESSION['alias']->id > 0)
+
+    	if($_SESSION['alias']->id > 0 && $_SESSION['alias']->content > 0)
     	{
     		$where['alias'] = $_SESSION['alias']->id;
     		if($_SESSION['alias']->content > 0)
@@ -199,6 +235,17 @@ class wl_alias_model
     		else
     			$where['content'] = -1;
     		if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
+	    	{
+	    		foreach ($all as $key => $value) {
+	    			if(in_array($key, $keys) && $value != '')
+	    				$ntkd[$key] = htmlspecialchars_decode($value);
+	    		}
+	    	}
+    	}
+    	if(empty($ntkd))
+    	{
+	    	$where['alias'] = $where['content'] = 0;
+	    	if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
 	    	{
 	    		foreach ($all as $key => $value) {
 	    			if(in_array($key, $keys) && $value != '')

@@ -89,7 +89,6 @@ class Router extends Loader {
 		else
 		{
 			parent::model('wl_alias_model');
-			$this->wl_alias_model->init($parts[0], $this->request);
 
 			if(empty($_POST))
 			{
@@ -105,9 +104,12 @@ class Router extends Loader {
 					if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
 						$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					
+					$this->wl_alias_model->initFromCache($this->wl_cache_model->page);
 					$this->wl_cache_model->get();
 				}
 			}
+			else
+				$this->wl_alias_model->init($parts[0], $this->request);
 		}
 
 		if($this->isService())

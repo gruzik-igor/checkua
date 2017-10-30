@@ -8,9 +8,12 @@ class wl_cache_model extends Loader
 	public function init($link)
 	{
 		$where['link'] = $link;
-		if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-		
-		$pages = $this->db->getAllDataByFieldInArray('wl_sitemap', $where);
+		if($_SESSION['language'])
+			$where['language'] = $_SESSION['language'];
+		$pages = $this->db->select('wl_sitemap as s', '*', $where)
+							->join('wl_aliases as a', 'alias as alias_link, service, table as alias_table', '#s.alias')
+							->join('wl_services', 'name as service_name, table as service_table', '#a.service')
+							->get('array');
 		if(count($pages) > 1)
 		{
 			for ($i=1; $i < count($pages); $i++) {
@@ -70,7 +73,6 @@ class wl_cache_model extends Loader
 		}
 		if($_SESSION['cache'])
 			ob_start();
-		$_SESSION['alias']->content = $this->page->content;
 	}
 
 	public function set()

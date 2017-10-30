@@ -6,6 +6,13 @@
  * Підключаємо всі необхідні файли і створюєм обєкт route
  */
 
+if(empty($_POST) && $_SERVER["REQUEST_URI"][0] == '/' && $_SERVER["REQUEST_URI"][1] == '/')
+{
+	header ('HTTP/1.1 301 Moved Permanently');
+	header ('Location: '. substr($_SERVER["REQUEST_URI"], 1));
+	exit;
+}
+
 if(empty($_SESSION['user'])) 
 {
 	$_SESSION['user'] = new stdClass();

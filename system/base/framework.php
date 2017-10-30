@@ -6,7 +6,7 @@
  * Підключаємо всі необхідні файли і створюєм обєкт route
  */
 
-if(empty($_POST) && $_SERVER["REQUEST_URI"][0] == '/' && $_SERVER["REQUEST_URI"][1] == '/')
+if(empty($_POST) && isset($_SERVER["REQUEST_URI"][0]) && isset($_SERVER["REQUEST_URI"][1]) && $_SERVER["REQUEST_URI"][0] == '/' && $_SERVER["REQUEST_URI"][1] == '/')
 {
 	header ('HTTP/1.1 301 Moved Permanently');
 	header ('Location: '. substr($_SERVER["REQUEST_URI"], 1));

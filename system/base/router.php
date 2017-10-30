@@ -107,6 +107,8 @@ class Router extends Loader {
 					$this->wl_alias_model->initFromCache($this->wl_cache_model->page);
 					$this->wl_cache_model->get();
 				}
+				else
+					$this->wl_alias_model->init($parts[0], $this->request);
 			}
 			else
 				$this->wl_alias_model->init($parts[0], $this->request);

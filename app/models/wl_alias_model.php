@@ -22,37 +22,29 @@ class wl_alias_model
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
 
-		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
-			foreach($options as $opt) {
-				$key = $opt->name;
-				$_SESSION['option']->$key = $opt->value;
-			}
+		$options_where['service'] = $options_where['alias'] = array(0);
 
-		if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
+		$this->db->select('wl_aliases as a', '*', $alias, 'alias');
+		$this->db->join('wl_services', 'name as service_name, table as service_table', '#a.service');
+		if($alias = $this->db->get('single'))
 		{
 			$_SESSION['alias']->id = $alias->id;
 			$_SESSION['alias']->table = $alias->table;
 			if($alias->service > 0)
 			{
-				if($service = $this->db->getQuery("SELECT `name`, `table` FROM `wl_services` WHERE `id` = {$alias->service}"))
-				{
-					$_SESSION['alias']->service = $service->name;
-					$_SESSION['service']->name = $service->name;
-					$_SESSION['service']->table = $service->table;
-				}
-
-				if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => 0)))
-					foreach($options as $opt) {
-						$key = $opt->name;
-						$_SESSION['option']->$key = $opt->value;
-					}
+				$options_where['service'][] = $alias->service;
+				$_SESSION['alias']->service = $alias->service_name;
+				$_SESSION['service']->name = $alias->service_name;
+				$_SESSION['service']->table = $alias->service_table;
 			}
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $alias->service, 'alias' => $alias->id)))
-				foreach($options as $opt) {
-					$key = $opt->name;
-					$_SESSION['option']->$key = $opt->value;
-				}
+			$options_where['alias'][] = $alias->id;
 		}
+
+		if($options = $this->db->getAllDataByFieldInArray('wl_options', $options_where, 'service, alias'))
+			foreach($options as $opt) {
+				$key = $opt->name;
+				$_SESSION['option']->$key = $opt->value;
+			}
 		return true;
     }
 
@@ -81,20 +73,11 @@ class wl_alias_model
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
 
-		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
-			foreach($options as $opt) {
-				$key = $opt->name;
-				$_SESSION['option']->$key = $opt->value;
-			}
+		$options_where['service'] = $options_where['alias'] = array(0);
 		if($page->service > 0)
-		{
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $page->service, 'alias' => 0)))
-				foreach($options as $opt) {
-					$key = $opt->name;
-					$_SESSION['option']->$key = $opt->value;
-				}
-		}
-		if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $page->service, 'alias' => $page->alias)))
+			$options_where['service'][] = $page->service;
+		$options_where['alias'][] = $page->alias;
+		if($options = $this->db->getAllDataByFieldInArray('wl_options', $options_where, 'service, alias'))
 			foreach($options as $opt) {
 				$key = $opt->name;
 				$_SESSION['option']->$key = $opt->value;
@@ -229,29 +212,29 @@ class wl_alias_model
 
     	if($_SESSION['alias']->id > 0 && $_SESSION['alias']->content > 0)
     	{
-    		$where['alias'] = $_SESSION['alias']->id;
+    		$where['alias'] = array(0, $_SESSION['alias']->id);
     		if($_SESSION['alias']->content > 0)
-    			$where['content'] = 1;
+    			$where['content'] = array(0, 1);
     		else
-    			$where['content'] = -1;
-    		if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
+    			$where['content'] = array(0, -1);
+    		if($all = $this->db->getAllDataByFieldInArray('wl_ntkd_robot', $where, 'alias DESC'))
 	    	{
-	    		foreach ($all as $key => $value) {
-	    			if(in_array($key, $keys) && $value != '')
-	    				$ntkd[$key] = htmlspecialchars_decode($value);
+	    		foreach ($all as $row) {
+	    			foreach ($row as $key => $value) {
+		    			if(in_array($key, $keys) && $value != '')
+		    				$ntkd[$key] = htmlspecialchars_decode($value);
+		    		}
 	    		}
 	    	}
     	}
-    	if(empty($ntkd))
+    	else
     	{
 	    	$where['alias'] = $where['content'] = 0;
 	    	if($all = $this->db->getAllDataById('wl_ntkd_robot', $where))
-	    	{
 	    		foreach ($all as $key => $value) {
 	    			if(in_array($key, $keys) && $value != '')
 	    				$ntkd[$key] = htmlspecialchars_decode($value);
 	    		}
-	    	}
     	}
     	if(!empty($ntkd))
     	{

@@ -17,7 +17,8 @@
  * Версія 2.2 (19.12.2016) - додано sitemap_add(), sitemap_redirect(), sitemap_update(), sitemap_index(), sitemap_remove(), cache_clear()
  * Версія 2.2.1 (08.02.2017) - додано "chaining methods";
  * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId(); fix getRows('single')
- * Версія 2.2.3 (29.10.2017) - додано count_db_queries, shopDBdump
+ * Версія 2.2.3 (29.10.2017) - додано count_db_queries, shopDBdump, виправлено помилку у where() для пустого/нульового значення
+ * Версія 2.2.4 (01.11.2017) - додано group(), оптимізовано роботу getAliasImageSizes()
  */
 
 class Db {
@@ -25,6 +26,7 @@ class Db {
     private $connects = array();
     private $current = 0;
     private $result;
+    private $imageReSizes = array();
     public $count_db_queries = 0;
     public $shopDBdump = false;
 
@@ -369,6 +371,8 @@ class Db {
     private $query_fields = '*';
     private $query_where = false;
     private $query_join = array();
+    private $query_group = false;
+    private $query_group_prefix = false;
     private $query_order = false;
     private $query_order_prefix = false;
     private $query_limit = false;
@@ -416,6 +420,13 @@ class Db {
     {
         $this->query_order_prefix = $prefix;
         $this->query_order = $order;
+        return $this;
+    }
+
+    public function group($group, $prefix = false)
+    {
+        $this->query_group_prefix = $prefix;
+        $this->query_group = $group;
         return $this;
     }
 
@@ -516,6 +527,19 @@ class Db {
                 if($this->query_where)
                     $query .= "WHERE {$this->query_where} ";
 
+                //group
+                if($this->query_group)
+                {
+                    if($this->query_prefix || $this->query_group_prefix)
+                    {
+                        if($this->query_group_prefix == false)
+                            $this->query_group_prefix = $this->query_prefix;
+                        $query .= "GROUP BY {$this->query_group_prefix}.{$this->query_group} ";
+                    }
+                    else
+                        $query .= "GROUP BY {$this->query_group} ";
+                }
+
                 //order
                 if($this->query_order)
                 {
@@ -554,6 +578,7 @@ class Db {
         $this->query_fields = '*';
         $this->query_where = false;
         $this->query_join = array();
+        $this->query_group = false;
         $this->query_order = false;
         $this->query_limit = false;
     }
@@ -580,28 +605,18 @@ class Db {
     {
         if($alias == 0)
             $alias = $_SESSION['alias']->id;
-        $sizes_all = $this->getAllDataByFieldInArray('wl_images_sizes', array('alias' => 0, 'active' => 1));
-        $sizes = $this->getAllDataByFieldInArray('wl_images_sizes', array('alias' => $alias, 'active' => 1));
-        if($sizes)
-        {
-            $sizes_all_index = array();
-            if($sizes_all)
-                foreach ($sizes_all as $key => $size) {
-                    $sizes_all_index[$size->prefix] = $key;
-                }
+        if(isset($this->imageReSizes[$alias]))
+            return $this->imageReSizes[$alias];
+        $reSizes = array();
+        if($sizes = $this->getAllDataByFieldInArray('wl_images_sizes', array('alias' => array(0, $alias), 'active' => 1, 'alias DESC')))
             foreach ($sizes as $size) {
-                if(array_key_exists($size->prefix, $sizes_all_index))
-                {
-                    $key = $sizes_all_index[$size->prefix];
-                    $sizes_all[$key]->type = $size->type;
-                    $sizes_all[$key]->width = $size->width;
-                    $sizes_all[$key]->height = $size->height;
-                }
-                else
-                    array_push($sizes_all, $size);
+                $key = $size->prefix;
+                if(!$size->prefix)
+                    $key = 0;
+                $reSizes[$key] = $size;
             }
-        }
-        return $sizes_all;
+        $this->imageReSizes[$alias] = $reSizes;
+        return $reSizes;
     }
 
     public function sitemap_add($content = NULL, $link = '', $code = 0, $priority = 5, $changefreq = 'daily', $alias = 0)

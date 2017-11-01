@@ -200,7 +200,7 @@
 								<div class="col-md-3 padding-left-5 padding-right-5">
 									<div class="product-full-brd">
 										<div class="product-img product-img-brd">
-											<?php if($product->photo != '') { ?>
+											<?php if(!empty($product->m_photo)) { ?>
 												<a href="<?=SITE_URL.$product->link?>">
 													<img class="full-width img-responsive" src="<?=IMG_PATH.$product->m_photo?>" alt="<?=$product->article?> <?=$product->name?>">
 												</a>

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.5.1"
+ 	Service "Shop Showcase 2.5"
 	for WhiteLion 1.0
 
 */
@@ -233,7 +233,6 @@ class shopshowcase extends Controller {
 	public function ajaxGetProducts()
 	{
 		if(isset($_POST['params']))
-		{
 			foreach ($_POST['params'] as $key => $value) {
 				if(is_array($value))
 				{
@@ -244,9 +243,7 @@ class shopshowcase extends Controller {
 				else
 					$_GET[$key] = $value;
 			}
-		}
 
-		$_SESSION['option']->paginator_per_page = 20;
 		$_GET['page'] = $this->data->post('page');
 		$group = $this->data->post('group') > 0 ? $this->data->post('group') : '-1' ;
 

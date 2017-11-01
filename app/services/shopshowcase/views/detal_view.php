@@ -52,8 +52,14 @@
                 </div>
                 <?php if($product->group) { ?>
                     <div class="wishlist-category">
-                        <strong><?=$this->text('Категорія')?>:</strong>
-                        <p><a href="<?=SITE_URL.$product->group_link?>"><?= $product->group_name ?></a></p>
+                        <strong><?=$this->text('Категорія')?>:</strong> <p>
+                        <?php if(is_array($product->group)) {
+                            foreach ($product->group as $group) {
+                                echo '<a href="'.SITE_URL.$group->link.'">'.$group->name.'</a> ';
+                            }
+                        } else
+                            echo '<a href="'.SITE_URL.$product->group_link.'">'.$product->group_name.'</a>';
+                        ?></p>
                     </div>
                 <?php } ?>
 

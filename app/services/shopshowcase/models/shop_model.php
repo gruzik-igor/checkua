@@ -69,7 +69,7 @@ class shop_model {
 		return false;
 	}
 
-	public function getProducts($Group = -1, $noInclude = 0, $active = true)
+	public function getProducts($Group = -1, $noInclude = 0, $active = true, $getProductOptions = false)
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active)
@@ -147,11 +147,17 @@ class shop_model {
 							$where['group'] = $endGroups;
 						else
 						{
+							$wherePG = array('active' => 1);
+							if($noInclude > 0)
+								$wherePG['product'] = '!'.$noInclude;
+							$wherePG['group'] = $endGroups;
+							$this->db->select($this->table('_product_group').' as pg', 'product', $wherePG);
+							$this->db->group('product');
+
 							$order = explode(' ', trim($_SESSION['option']->productOrder));
 							if($order[0] == 'position')
-								$order = 'ORDER BY '.trim($_SESSION['option']->productOrder);
-							else
-								$order = '';
+								$this->db->order(trim($_SESSION['option']->productOrder));
+
 							if(count($_GET) == 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 							{
 								$start = 0;
@@ -159,10 +165,10 @@ class shop_model {
 									$_SESSION['option']->paginator_per_page = $_GET['per_page'];
 								if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
 									$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
-								$order .= ' LIMIT '.$start.', '.$_SESSION['option']->paginator_per_page;
+								$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 							}
-							$pgNoInclude = ($noInclude > 0) ? 'AND `product` != '.$noInclude : '';
-							if($products = $this->db->getQuery("SELECT `product` FROM `{$this->table('_product_group')}` WHERE `active` = '1' {$pgNoInclude} GROUP BY `product` ".$order, 'array'))
+
+							if($products = $this->db->get('array'))
 							{
 								$where['id'] = array();
 								foreach ($products as $product) {
@@ -350,7 +356,8 @@ class shop_model {
             {
             	$product->link = $link.$product->alias;
             	$product->parents = $parents;
-            	$product->options = $this->getProductOptions($product);
+            	if($getProductOptions)
+            		$product->options = $this->getProductOptions($product);
             	if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && $products[0]->group > 0)
             		$product->group_link = $_SESSION['alias']->alias . $link;
 
@@ -577,9 +584,19 @@ class shop_model {
 	private function getProductOptions($product, $parents = array())
 	{
 		$product_options = array();
-		$where_language = '';
-        if($_SESSION['language']) $where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
-		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, po.value, it.name as type_name, it.options FROM `{$this->table('_product_options')}` as po LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option LEFT JOIN `wl_input_types` as it ON it.id = go.type WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} ORDER BY go.position");
+		$where_language = $where_gon_language = '';
+        if($_SESSION['language'])
+    	{
+    		$where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
+    		$where_gon_language = "AND gon.language = '{$_SESSION['language']}'";
+    	}
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
+			FROM `{$this->table('_product_options')}` as po 
+			LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option 
+			LEFT JOIN `{$this->table('_options_name')}` as gon ON gon.option = go.id {$where_gon_language} 
+			LEFT JOIN `wl_input_types` as it ON it.id = go.type 
+			WHERE go.active = 1 AND po.product = '{$product->id}' {$where_language} 
+			ORDER BY go.position");
 		if($this->db->numRows() > 0)
 		{
 			$options = $this->db->getRows('array');
@@ -591,46 +608,42 @@ class shop_model {
 					$product_options[$option->alias]->alias = $option->alias;
 					$product_options[$option->alias]->filter = $option->filter;
 					$product_options[$option->alias]->toCart = $option->toCart;
-					$where = array();
-					$where['option'] = $option->id;
-					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-					$name = $this->db->getAllDataById($this->table('_options_name'), $where);
-					$photo = $this->db->getAllDataById($this->table('_options'), array('id' => $option->value));
+					$product_options[$option->alias]->name = $option->name;
+					$product_options[$option->alias]->sufix = $option->sufix;
+					$product_options[$option->alias]->photo = false;
 
-					if($name)
-					{
-						$product_options[$option->alias]->name = $name->name;
-						$product_options[$option->alias]->sufix = $name->sufix;
-					}
 
-					if(isset($photo->photo) && $photo->photo != 0)
-						$product_options[$option->alias]->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$photo->photo;
+					if($option->photo)
+						$product_options[$option->alias]->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$option->photo;
 
 					if($option->options == 1)
 					{
 						if($option->type_name == 'checkbox')
 						{
-							$option->value = explode(',', $option->value);
-							$product_options[$option->alias]->value = array();
-							foreach ($option->value as $value) {
-								$where = array();
-								$where['option'] = $value;
-								if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-								$value = $this->db->getAllDataById($this->table('_options_name'), $where);
-								if($value)
-									$product_options[$option->alias]->value[] = $value->name;
-							}
+							$where = array('option' => '#o.id');
+							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', explode(',', $option->value))
+												->join($this->table('_options_name'), 'name', $where)
+												->get('array');
+							if($list)
+								foreach ($list as $el) {
+									$product_options[$option->alias]->value[] = $el;
+									if($el->photo)
+										$el->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$el->photo;
+								}
 						}
 						elseif($option->toCart)
 						{
 							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-							$list = $this->db->select($this->table('_options') .' as o', 'id', -$option->id, 'group')
+							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', -$option->id, 'group')
 												->join($this->table('_options_name'), 'name', $where)
 												->get('array');
 							if($list)
 								foreach ($list as $el) {
-									$product_options[$option->alias]->value[] = $el->name;
+									$product_options[$option->alias]->value[] = $el;
+									if($el->photo)
+										$el->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$el->photo;
 								}
 							else
 								unset($product_options[$option->alias]);

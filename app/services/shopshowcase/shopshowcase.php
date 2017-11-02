@@ -221,13 +221,19 @@ class shopshowcase extends Controller {
 	public function __get_Products($data = array())
 	{
 		$group = -1;
+		$noInclude = 0;
+		$active = true;
+		$getProductOptions = false;
 		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
 		elseif(isset($data['group']) && (is_numeric($data['group']) || is_array($data['group']))) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];
 		if(isset($data['sale']) && $data['sale'] == 1) $_GET['sale'] = 1;
+		if(isset($data['noInclude']) && $data['noInclude'] > 0) $noInclude = $data['noInclude'];
+		if(isset($data['active']) && $data['active'] == false) $active = false;
+		if(isset($data['getProductOptions']) && $data['getProductOptions'] == true) $getProductOptions = true;
 
 		$this->load->smodel('shop_model');
-		return $this->shop_model->getProducts($group);
+		return $this->shop_model->getProducts($group, $noInclude, $active, $getProductOptions);
 	}
 
 	public function ajaxGetProducts()

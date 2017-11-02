@@ -16,16 +16,10 @@ class wl_services_model {
 			$_SESSION['service']->name = $service->name;
 			$_SESSION['service']->table = $service->table;
 
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $service->id, 'alias' => 0)))
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => array(0, $service->id), 'alias' => array(0, $_SESSION['alias']->id)), 'service, alias'))
 				foreach($options as $opt){
 					$key = $opt->name;
 					@$_SESSION['option']->$key = $opt->value;
-				}
-
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => $service->id, 'alias' => $_SESSION['alias']->id)))
-				foreach($options as $opt){
-					$key = $opt->name;
-					$_SESSION['option']->$key = $opt->value;
 				}
 
 			return true;

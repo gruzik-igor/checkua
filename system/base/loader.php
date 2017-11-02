@@ -256,32 +256,48 @@ class Loader {
 	 * @params $data дані, що передаємо функції
 	 * @params $admin позначка що відповідає за режим доступу та контролер панелі керування
 	 */	
-	function function_in_alias($alias, $method = '', $data = array(), $admin = false)
+	private $wl_aliases = array();
+	public function function_in_alias($alias, $method = '', $data = array(), $admin = false)
 	{
 		$rezult = NULL;
 		$old_alias = $_SESSION['alias']->id;
 		$this->library('db');
 
-		if(is_numeric($alias))
-			$alias = $this->db->getAllDataById('wl_aliases', $alias);
+		if(isset($this->wl_aliases[$alias]))
+			$alias = $this->wl_aliases[$alias];
 		else
-			$alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
+		{
+			$this->wl_aliases[$alias] = false;
+			if(is_numeric($alias))
+				$alias = $this->db->getAllDataById('wl_aliases', $alias);
+			else
+				$alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
+		}
 
 		if(is_object($alias))
 		{
+			if(empty($this->wl_aliases[$alias->id]) || empty($this->wl_aliases[$alias->alias]))
+			{
+				$this->wl_aliases[$alias->id] = clone $alias;
+				$this->wl_aliases[$alias->alias] = clone $alias;
+			}
+
 			// if($admin && !$this->userCan($alias->alias))
 			// 	return false;
 
-			$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
-			$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
-			if(isset($_SESSION['option']))
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
-			else
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
-			if(isset($_SESSION['service']))
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
-			else
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
+			if(empty($_SESSION['alias-cache'][$_SESSION['alias']->id]))
+			{
+				$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
+				if(isset($_SESSION['option']))
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
+				else
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
+				if(isset($_SESSION['service']))
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
+				else
+					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
+			}
 
 			if(isset($_SESSION['alias-cache'][$alias->id]))
 			{

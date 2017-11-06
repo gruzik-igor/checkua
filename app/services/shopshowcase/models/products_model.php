@@ -275,7 +275,7 @@ class products_model {
 				{
 					foreach ($_POST['group'] as $group) {
 						$all = 1 + $this->db->getCount($this->table('_product_group'), $group, 'group');
-						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all));
+						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all, 'active' => 1));
 					}
 				}
 				else
@@ -471,10 +471,11 @@ class products_model {
 	{
 		$options = array();
 		foreach ($_POST as $key => $value) {
+			$is_array = (is_array($_POST[$key])) ? true : false;
 			$key = explode('-', $key);
 			if($key[0] == 'option' && isset($key[1]) && is_numeric($key[1]))
 			{
-				if(is_array($value))
+				if($is_array)
 					$options[$key[1]] = implode(',', $value);
 				else
 				{
@@ -485,7 +486,6 @@ class products_model {
 				}
 			}
 		}
-		
 		$list_temp = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $id, 'product');
 		$list = array();
 		if($list_temp)
@@ -539,6 +539,7 @@ class products_model {
 						$data['value'] = $value;
 						$this->db->insertRow($this->table('_product_options'), $data);
 					}
+					unset($list[$key]);
 				}
 			}
 		}

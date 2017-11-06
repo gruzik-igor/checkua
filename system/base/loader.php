@@ -234,6 +234,8 @@ class Loader {
 	{
 		if($_SESSION['service']->name)
 		{
+			if(isset($this->$model) && is_object($this->$model))
+				return true;
 			$model_path = APP_PATH.'services'.DIRSEP.$_SESSION['service']->name.DIRSEP.'models'.DIRSEP.$model.'.php';
 			if(file_exists($model_path))
 			{
@@ -246,6 +248,7 @@ class Loader {
 				}
 			}
 		}
+		return false;
 	}
 
 	/**
@@ -368,14 +371,13 @@ class Loader {
 					if($method != '')
 					{
 						$_SESSION['alias']->alias_from = $old_alias;
-						$controller = $service;
-						$service = new $service();
+						$this->$service = new $service();
 						if(is_callable(array($service, '_remap')))
-							$rezult = $service->_remap($method, $data);
+							$rezult = $this->$service->_remap($method, $data);
 						else if(is_callable(array($service, $method)))
-							$rezult = $service->$method($data);
-						if($admin == false)
-							$this->$controller = clone $service;
+							$rezult = $this->$service->$method($data);
+						if($admin)
+							unset($this->$service);
 						unset($_SESSION['alias']->alias_from);
 					}
 				}

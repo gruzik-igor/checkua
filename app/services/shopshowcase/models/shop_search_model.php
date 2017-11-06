@@ -3,6 +3,8 @@
 class shop_search_model
 {
 
+	private $all_groups = NULL;
+
 	public function table($sufix = '')
 	{
 		return $_SESSION['service']->table.$sufix;
@@ -17,8 +19,24 @@ class shop_search_model
 			$this->db->select($this->table('_products').' as p', '*', $content);
 			$this->db->join('wl_users', 'name as author_name', '#p.author_edit');
 			$product = $this->db->get('single');
-			if($product && ($product->active || $admin))
+			if($product && ($product->active || $admin || $_SESSION['option']->ProductMultiGroup))
 			{
+				if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup)
+				{
+					$where_product_group = array('product' => $product->id);
+					if(!$admin)
+						$where_product_group['active'] = 1;
+					$this->db->select($this->table('_product_group') .' as pg', '', $where_product_group);
+					$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
+					$where_ntkd['alias'] = $_SESSION['alias']->id;
+					$where_ntkd['content'] = "#-pg.group";
+					if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+        			$this->db->join('wl_ntkd', 'name', $where_ntkd);
+					$groups = $this->db->get('array');
+					if(!$admin && empty($groups))
+						return false;
+				}
+
 				$search = new stdClass();
 				$search->id = $product->id;
 				$search->link = $_SESSION['alias']->alias.'/'.$product->alias;
@@ -36,10 +54,12 @@ class shop_search_model
 					$search->additional = array();
 
 					$list = array();
-					$all_groups = $this->db->getAllData($this->table('_groups'));
-		            if($all_groups) foreach ($all_groups as $g) {
-		            	$list[$g->id] = clone $g;
-		            }
+					if($this->all_groups === NULL)
+						$this->all_groups = $this->db->getAllData($this->table('_groups'));
+		            if($this->all_groups) 
+		            	foreach ($this->all_groups as $g) {
+			            	$list[$g->id] = clone $g;
+			            }
 
 					if($_SESSION['option']->ProductMultiGroup == 0 && $product->group > 0)
 					{
@@ -53,24 +73,15 @@ class shop_search_model
 					}
 					elseif($_SESSION['option']->ProductMultiGroup == 1)
 					{
-						$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
-						$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
-						$where_ntkd['alias'] = $_SESSION['alias']->id;
-						$where_ntkd['content'] = "#-pg.group";
-						if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
-	        			$this->db->join('wl_ntkd', 'name', $where_ntkd);
-						$groups = $this->db->get('array');
-
 						if($groups)
-						{
 				            foreach ($groups as $g) {
-				            	if($g->parent > 0) {
-				            		$link = $_SESSION['alias']->alias .'/';
-				            		$link .= $this->makeLink($list, $g->parent, $g->alias);
-				            		$search->additional[$link] = $g->name;
-				            	}
-				            }							
-						}
+			            		$link = $_SESSION['alias']->alias .'/';
+			            		if($g->parent > 0)
+			            			$link .= $this->makeLink($list, $g->parent, $g->alias);
+			            		else
+			            			$link .= $g->alias;
+			            		$search->additional[$link] = $g->name;
+			            	}
 					}
 				}
 				if($admin)
@@ -121,10 +132,12 @@ class shop_search_model
 					$search->additional = array();
 
 					$list = array();
-					$all_groups = $this->db->getAllData($this->table('_groups'));
-		            if($all_groups) foreach ($all_groups as $g) {
-		            	$list[$g->id] = clone $g;
-		            }
+					if($this->all_groups === NULL)
+						$this->all_groups = $this->db->getAllData($this->table('_groups'));
+		            if($this->all_groups)
+		            	foreach ($this->all_groups as $g) {
+			            	$list[$g->id] = clone $g;
+			            }
 
 	            	$parents = $this->makeParents($list, $group->parent, array());
 					$link = $_SESSION['alias']->alias .'/';

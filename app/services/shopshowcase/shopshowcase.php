@@ -227,6 +227,7 @@ class shopshowcase extends Controller {
 		if(isset($data['article']) && $data['article'] != '') $group = '%'.$data['article'];
 		elseif(isset($data['group']) && (is_numeric($data['group']) || is_array($data['group']))) $group = $data['group'];
 		if(isset($data['limit']) && is_numeric($data['limit'])) $_SESSION['option']->paginator_per_page = $data['limit'];
+		if(isset($data['sort']) && $data['sort'] != '') $_SESSION['option']->productOrder = $data['sort'];
 		if(isset($data['sale']) && $data['sale'] == 1) $_GET['sale'] = 1;
 		if(isset($data['noInclude']) && $data['noInclude'] > 0) $noInclude = $data['noInclude'];
 		if(isset($data['active']) && $data['active'] == false) $active = false;

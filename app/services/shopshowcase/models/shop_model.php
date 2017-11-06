@@ -622,7 +622,7 @@ class shop_model {
 						{
 							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', explode(',', $option->value))
+							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', array('id' => explode(',', $option->value)))
 												->join($this->table('_options_name'), 'name', $where)
 												->get('array');
 							if($list)

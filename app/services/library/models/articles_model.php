@@ -328,10 +328,11 @@ class articles_model {
 	{
 		$options = array();
 		foreach ($_POST as $key => $value) {
+			$is_array = (is_array($_POST[$key])) ? true : false;
 			$key = explode('-', $key);
 			if($key[0] == 'option' && isset($key[1]) && is_numeric($key[1]))
 			{
-				if(is_array($value))
+				if($is_array)
 					$options[$key[1]] = implode(',', $value);
 				else
 				{
@@ -342,26 +343,34 @@ class articles_model {
 				}
 			}
 		}
+		$list_temp = $this->db->getAllDataByFieldInArray($this->table('_article_options'), $id, 'article');
+		$list = array();
+		if($list_temp)
+			foreach ($list_temp as $option) {
+				if($_SESSION['language'] && $option->language != ''){
+					$list[$option->option][$option->language] = $option;
+				} else {
+					$list[$option->option] = $option;
+				}
+			}
 		if(!empty($options))
 		{
-			$list_temp = $this->db->getAllDataByFieldInArray($this->table('_article_options'), $id, 'article');
-			$list = array();
-			if($list_temp)
-				foreach ($list_temp as $option) {
-					if($_SESSION['language'] && $option->language != ''){
-						$list[$option->option][$option->language] = $option;
-					} else {
-						$list[$option->option] = $option;
-					}
-				}
 			foreach ($options as $key => $value) {
 				if(is_array($value))
 				{
 					foreach ($value as $lang => $value2) {
-						if(isset($list[$key][$lang]))
+
+						if($_SESSION['language'] && isset($list[$key][$lang]))
 						{
 							if($list[$key][$lang]->value != $value2)
 								$this->db->updateRow($this->table('_article_options'), array('value' => $value2), $list[$key][$lang]->id);
+							unset($list[$key]);
+						}
+						elseif(isset($list[$key]))
+						{
+							if($list[$key]->value != $value2)
+								$this->db->updateRow($this->table('_article_options'), array('value' => $value2), $list[$key]->id);
+							unset($list[$key]);
 						}
 						else
 						{
@@ -388,7 +397,19 @@ class articles_model {
 						$data['language'] = '';
 						$this->db->insertRow($this->table('_article_options'), $data);
 					}
+					unset($list[$key]);
 				}
+			}
+		}
+		if(!empty($list))
+		{
+			foreach ($list as $option) {
+				if(is_array($option))
+					foreach ($option as $el) {
+						$this->db->deleteRow($this->table('_article_options'), $el->id);
+					}
+				else
+					$this->db->deleteRow($this->table('_article_options'), $option->id);
 			}
 		}
 		return true;

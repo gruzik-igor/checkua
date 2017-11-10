@@ -385,6 +385,7 @@ class articles_model {
 						$data['article'] = $id;
 						$data['option'] = $key;
 						$data['value'] = $value;
+						$data['language'] = '';
 						$this->db->insertRow($this->table('_article_options'), $data);
 					}
 				}

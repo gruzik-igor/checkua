@@ -475,6 +475,7 @@ class wl_sitemap extends Controller {
             if($sitemap = $this->wl_cache_model->SiteMap(true))
             {
                 $this->load->library('SitemapGenerator');
+                $links = array();
                 foreach ($sitemap as $url) {
                     if($url->link[0] == '/')
                         $url->link = substr($url->link, 1);
@@ -485,33 +486,40 @@ class wl_sitemap extends Controller {
                     }
                     elseif($_SESSION['language'] && $url->language != $_SESSION['all_languages'][0])
                         $url->link = $url->language.'/'.$url->link;
-                    $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
-                }
-                try {
-                    // create sitemap
-                    $this->sitemapgenerator->createSitemap();
-                    // write sitemap as file
-                    $this->sitemapgenerator->writeSitemap();
-                    // update robots.txt file
-                    $this->sitemapgenerator->updateRobots();
-
-                    $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
-                    $_SESSION['notify']->success = 'SiteMap успішно згенеровано!';
-
-                    if($this->data->post('sent') == 1)
+                    if(empty($links[$url->link]))
                     {
-                        // submit sitemaps to search engines
-                        // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
-                        $result = $this->sitemapgenerator->submitSitemap();
-                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
-                        // shows each search engine submitting status
-                        $_SESSION['notify']->success .= "<br><br><pre>";
-                        $_SESSION['notify']->success .= print_r($result, true);
-                        $_SESSION['notify']->success .= "</pre>";
+                        $this->sitemapgenerator->addUrl(SITE_URL.$url->link, date('c', $url->time), $url->changefreq, $url->priority/10);
+                        $links[$url->link] = 1;
                     }
                 }
-                catch (Exception $exc) {
-                    $_SESSION['notify']->errors = $exc->getTraceAsString();
+                if(!empty($links))
+                {
+                    try {
+                        // create sitemap
+                        $this->sitemapgenerator->createSitemap();
+                        // write sitemap as file
+                        $this->sitemapgenerator->writeSitemap();
+                        // update robots.txt file
+                        $this->sitemapgenerator->updateRobots();
+
+                        $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
+                        $_SESSION['notify']->success = 'SiteMap успішно згенеровано!';
+
+                        if($this->data->post('sent') == 1)
+                        {
+                            // submit sitemaps to search engines
+                            // $result = $this->sitemapgenerator->submitSitemap("yahooAppId");
+                            $result = $this->sitemapgenerator->submitSitemap();
+                            $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastsent'));
+                            // shows each search engine submitting status
+                            $_SESSION['notify']->success .= "<br><br><pre>";
+                            $_SESSION['notify']->success .= print_r($result, true);
+                            $_SESSION['notify']->success .= "</pre>";
+                        }
+                    }
+                    catch (Exception $exc) {
+                        $_SESSION['notify']->errors = $exc->getTraceAsString();
+                    }
                 }
             }
         }

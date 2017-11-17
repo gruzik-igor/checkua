@@ -141,7 +141,7 @@ class wl_pagespeed extends Controller {
 				foreach ($files as $file) {
 					if(in_array($file['to'], $_POST['replace']))
 					{
-						if(in_array($file['to'], $_POST['backup']))
+						if(isset($_POST['backup']) && in_array($file['to'], $_POST['backup']))
 						{
 							$name = explode('.', $file['to']);
 							$ext = array_pop($name);

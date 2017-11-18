@@ -217,17 +217,19 @@ CREATE TABLE IF NOT EXISTS `wl_input_types` (
 
 INSERT INTO `wl_input_types` (`id`, `name`, `options`) VALUES
 (1, 'text', 0),
-(2, 'email', 0),
-(3, 'textarea', 0),
-(4, 'photo', 0),
+(2, 'number', 0),
+(3, 'email', 0),
+(4, 'url', 0),
 (5, 'date', 0),
 (6, 'time', 0),
 (7, 'datetime', 0),
-(8, 'checkbox', 1),
+(8, 'textarea', 0),
 (9, 'radio', 1),
 (10, 'select', 1),
-(11, 'number', 0),
-(12, 'url', 0);
+(11, 'checkbox', 1),
+(12, 'checkbox-select2', 1);
+
+
 
 -- --------------------------------------------------------
 

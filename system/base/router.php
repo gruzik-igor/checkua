@@ -29,7 +29,7 @@ class Router extends Loader {
 		parent::library('db', $this);
 		$this->authorize();
 
-		if(empty($_POST) && preg_match('/[A-Z]/',$this->request))
+		if(empty($_POST) && count($_GET) == 1 && preg_match('/[A-Z]/', $this->request))
 		{
 			header('HTTP/1.1 301 Moved Permanently');
 		    header('Location: ' . SITE_URL.mb_strtolower($this->request));

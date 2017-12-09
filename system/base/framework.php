@@ -112,6 +112,16 @@ else
 
 			define('SITE_NAME', $_SERVER["SERVER_NAME"]);
 			define('SERVER_URL', $protocol.$_SERVER["SERVER_NAME"].'/');
+
+			if(defined('SITE_NAME'))
+			{
+				if($request != '')
+					$request = '/'.$request;
+				for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
+					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.SITE_NAME.'/'.$_SESSION['all_languages'][$i].$request);
+				}
+				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.$request);
+			}
 		}
 		elseif($multilanguage_type != '')
 		{
@@ -170,16 +180,16 @@ else
 			}
 			else
 				exit("Невірне налаштування мультимовності 'multilanguage_type' у index.php");
-		}
 
-		if(defined('SITE_NAME'))
-		{
-			if($request != '')
-				$request = '/'.$request;
-			for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
-				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SESSION['all_languages'][$i].'.'.SITE_NAME.$request);
+			if(defined('SITE_NAME'))
+			{
+				if($request != '')
+					$request = '/'.$request;
+				for ($i = 1; $i < count($_SESSION['all_languages']); $i++) {
+					define('SITE_URL_'.strtoupper($_SESSION['all_languages'][$i]), $protocol.$_SESSION['all_languages'][$i].'.'.SITE_NAME.$request);
+				}
+				define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.$request);
 			}
-			define('SITE_URL_'.strtoupper($_SESSION['all_languages'][0]), $protocol.SITE_NAME.$request);
 		}
 	}
 	else
@@ -210,6 +220,7 @@ if(isset($_GET['request']))
 }
 
 define('IMG_PATH', SERVER_URL.$images_folder.'/');
+
 $request = ($request == '') ? 'main' : $request;
 if($request[0] == '/')
 	$request = substr($request, 1);

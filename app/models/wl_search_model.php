@@ -1,19 +1,12 @@
-<?php 
+<?php
 
 class wl_search_model {
 
-	public function get($all = false)
+	public function get($by, $all = false)
 	{
-		$where = array();
-		if($by = $this->data->get('by'))
-			$where['name'] = '%'.$by;
-		if($keyword = $this->data->get('keyword'))
-			$where['keywords'] = '%'.$keyword;
-		
-		if(empty($where))
-			return false;
-
-		if($_SESSION['language']) 
+		$where['name'] = '%'.$by;
+		$where['content'] = '> 0';
+		if($_SESSION['language'])
 		{
 			if(!$all)
 				$where['language'] = $_SESSION['language'];
@@ -25,17 +18,6 @@ class wl_search_model {
 			if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
 				$where['alias'] = $alias->id;
 		}
-		if($aliases = $this->data->get('aliases'))
-		{
-			$aliases = explode(',', $aliases);
-			$list = array();
-			foreach ($aliases as $alias) {
-				if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
-					$list[] = $alias->id;
-			}
-			if(!empty($list))
-				$where['alias'] = $list;
-		}
 		$this->db->select('wl_ntkd', 'alias as alias_id, content, name, list, text', $where);
 		$this->db->join('wl_aliases', 'alias, table, service', '#wl_ntkd.alias');
 		if($sort = $this->data->get('sort'))
@@ -45,6 +27,30 @@ class wl_search_model {
 			else
 				$this->db->order('name DESC');
 		}
+		else
+		{
+			$this->db->order('content ASC');
+		}
+
+		return $this->db->get('array');
+	}
+
+	public function getGroups($by)
+	{
+		$where['name'] = '%'.$by;
+		$where['content'] = '< 0';
+		if($_SESSION['language'])
+		{
+			$where['language'] = $_SESSION['language'];
+		}
+
+
+		$this->db->select('wl_ntkd', 'alias as alias_id, content, name, list, text', $where);
+		$this->db->join('wl_aliases', 'alias, table, service', '#wl_ntkd.alias');
+
+		$this->db->order('content ASC');
+
+
 		return $this->db->get('array');
 	}
 

@@ -119,14 +119,17 @@ class wl_alias_model
 				$_SESSION['alias']->image = $_SESSION['alias']->images[0]->path;
 		}
 
-		$this->db->select('wl_video', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#author');
-		$_SESSION['alias']->videos = $this->db->get('array');
+		if($_SESSION['alias']->content > 0)
+		{
+			$this->db->select('wl_video', '*', $where);
+			$this->db->join('wl_users', 'name as user_name', '#author');
+			$_SESSION['alias']->videos = $this->db->get('array');
 
-		$this->db->select('wl_audio', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#author');
-		$this->db->order('position ASC');
-		$_SESSION['alias']->audios = $this->db->get('array');
+			$this->db->select('wl_audio', '*', $where);
+			$this->db->join('wl_users', 'name as user_name', '#author');
+			$this->db->order('position ASC');
+			$_SESSION['alias']->audios = $this->db->get('array');
+		}
 
 		if($_SESSION['language'])
 			$where['language'] = $_SESSION['language'];

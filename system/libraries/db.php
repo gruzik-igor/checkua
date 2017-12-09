@@ -19,6 +19,7 @@
  * Версія 2.2.2 (05.09.2017) - у випадку успіху insertRow() повернає getLastInsertedId(); fix getRows('single')
  * Версія 2.2.3 (29.10.2017) - додано count_db_queries, shopDBdump, виправлено помилку у where() для пустого/нульового значення
  * Версія 2.2.4 (01.11.2017) - додано group(), оптимізовано роботу getAliasImageSizes()
+ * Версія 2.2.5 (01.12.2017) - amp версію виключено з індексації
  */
 
 class Db {
@@ -374,7 +375,7 @@ class Db {
     private $query_group = false;
     private $query_group_prefix = false;
     private $query_order = false;
-    private $query_order_prefix = false;
+    private $query_order_prefix = true;
     private $query_limit = false;
 
     public function prefix($prefix)
@@ -416,7 +417,7 @@ class Db {
         return $this;
     }
 
-    public function order($order, $prefix = false)
+    public function order($order, $prefix = true)
     {
         $this->query_order_prefix = $prefix;
         $this->query_order = $order;
@@ -543,9 +544,9 @@ class Db {
                 //order
                 if($this->query_order)
                 {
-                    if($this->query_prefix || $this->query_order_prefix)
+                    if($this->query_order_prefix)
                     {
-                        if($this->query_order_prefix == false)
+                        if($this->query_order_prefix === true)
                             $this->query_order_prefix = $this->query_prefix;
                         $query .= "ORDER BY {$this->query_order_prefix}.{$this->query_order} ";
                     }
@@ -631,6 +632,8 @@ class Db {
         $sitemap['time'] = $_SESSION['option']->sitemap_lastedit = time();
         $sitemap['changefreq'] = (in_array($changefreq, array('always','hourly','daily','weekly','monthly','yearly','never'))) ? $changefreq : 'daily';
         if($priority < 1) $priority *= 10;
+        if($_SESSION['amp'] && $priority > 0)
+            $priority *= -1;
         $sitemap['priority'] = $priority;
         if($_SESSION['language'])
         {
@@ -746,7 +749,7 @@ class Db {
         if($content === NULL) return false;
         $where = array('content' => $content, 'code' => '!301');
         
-        if($_SESSION['language'] && !is_numeric($language))
+        if($_SESSION['language'] && is_string($language))
             $where['language'] = $language;
         elseif(is_numeric($language) && $language > 0)
             $alias = $language;

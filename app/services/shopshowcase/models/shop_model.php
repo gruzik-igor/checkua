@@ -96,7 +96,7 @@ class shop_model {
 				$Group = $list;
 				unset($list);
 			}
-			if(!$active)
+			if(!$active && $Group >= 0 && !$this->data->get('name'))
 			{
 				if($_SESSION['option']->ProductMultiGroup)
 				{
@@ -117,7 +117,8 @@ class shop_model {
 							$order = 'ORDER BY '.trim($_SESSION['option']->productOrder);
 						else
 							$order = '';
-						if(count($_GET) == 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+
+						if(count($_GET) <= 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 						{
 							$start = 0;
 							if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
@@ -126,8 +127,11 @@ class shop_model {
 								$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
 							$order .= ' LIMIT '.$start.', '.$_SESSION['option']->paginator_per_page;
 						}
-						$pgNoInclude = ($noInclude > 0) ? 'AND `product` != '.$noInclude : '';
-						if($products = $this->db->getQuery("SELECT `product` FROM `{$this->table('_product_group')}` WHERE `active` = '1' {$pgNoInclude} GROUP BY `product` ".$order, 'array'))
+						$pgNoInclude = ($active) ? '`active` = 1' : '';
+						$pgNoInclude .= ($noInclude > 0) ? ' AND `product` != '.$noInclude : '';
+						if($pgNoInclude != '')
+							$pgNoInclude = 'WHERE '.$pgNoInclude;
+						if($products = $this->db->getQuery("SELECT `product` FROM `{$this->table('_product_group')}` {$pgNoInclude} GROUP BY `product` ".$order, 'array'))
 						{
 							$where['id'] = array();
 							foreach ($products as $product) {
@@ -166,10 +170,13 @@ class shop_model {
 								if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
 									$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
 								$this->db->limit($start, $_SESSION['option']->paginator_per_page);
+								$_SESSION['option']->paginator_per_page = 0;
 							}
 
-							if($products = $this->db->get('array'))
+							if($products = $this->db->get('array', false))
 							{
+								$_SESSION['option']->paginator_total = $_SESSION['paginatorForBrands'] = $this->db->get('count');
+								$this->db->clear();
 								$where['id'] = array();
 								foreach ($products as $product) {
 									array_push($where['id'], $product->product);
@@ -237,7 +244,7 @@ class shop_model {
 					}
 					else
 					{
-						$ids = clone $where['id'];
+						$ids = $where['id'];
 						$where['id'] = array();
 						foreach ($products as $p) {
 							if(in_array($p->content, $ids))
@@ -256,7 +263,8 @@ class shop_model {
 
 		$this->db->select($this->table('_products').' as p', '*', $where);
 
-		$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
+		if(!$active)
+			$this->db->join('wl_users', 'name as user_name', '#p.author_edit');
 
 		if($_SESSION['option']->useAvailability > 0)
 		{
@@ -297,12 +305,13 @@ class shop_model {
 					$this->db->order('article ASC');
 					break;
 				default:
-					$this->db->order($_SESSION['option']->productOrder, $prefix);
+					$this->db->order($_SESSION['option']->productOrder);
 					break;
 			}
 		}
 		else
 			$this->db->order($_SESSION['option']->productOrder);
+
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
@@ -316,13 +325,26 @@ class shop_model {
 
 		if($products = $this->db->get('array', false))
         {
-			$_SESSION['option']->paginator_total = $this->db->get('count');
+        	if(empty($_SESSION['option']->paginator_total) || count($_GET) > 1)
+				$_SESSION['option']->paginator_total = $this->db->get('count');
+			$this->db->clear();
 
             $list = array();
         	if($_SESSION['option']->useGroups > 0)
         	{
         		if(empty($this->allGroups))
-					$this->allGroups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+        		{
+        			$where = array();
+        			$where['wl_alias'] = $_SESSION['alias']->id;
+					$where['active'] = 1;
+					$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+					$where_ntkd['alias'] = $_SESSION['alias']->id;
+					$where_ntkd['content'] = "#-g.id";
+					if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+					$this->db->join('wl_ntkd', "name", $where_ntkd);
+					$this->allGroups = $this->db->get('array');
+        		}
 	            if($this->allGroups)
 	            	foreach ($this->allGroups as $g) {
 		            	$list[$g->id] = clone $g;
@@ -331,7 +353,7 @@ class shop_model {
 
 			$sizes = $this->db->getAliasImageSizes();
 
-			$products_ids = $products_photos = array();
+			$products_ids = $products_photos = $main_options = $main_options_Alias = array();
             foreach ($products as $product)
             	$products_ids[] = $product->id;
             if($photos = $this->getProductPhoto($products_ids))
@@ -340,6 +362,27 @@ class shop_model {
 	            	$products_photos[$photo->content] = clone $photo;
 	            }
 	            unset($photos);
+	        }
+	        if(!$getProductOptions)
+	        {
+	        	if($mainOptions = $this->db->getAllDataByFieldInArray($this->table('_options'), array('alias' => $_SESSION['alias']->id, 'main' => 1)))
+	        	{
+	        		$ids = array();
+	        		foreach ($mainOptions as $o) {
+	        			$ids[] = $o->id;
+	        			$main_options_Alias[$o->id] = $o->alias;
+	        		}
+	        		$where = array('option' => '#po.value');
+	        		if($_SESSION['language'])
+	        			$where['language'] = $_SESSION['language'];
+			        $options = $this->db->select($this->table('_product_options'). ' as po', 'product', array('product' => $products_ids, 'option' => $ids))
+		            						->join($this->table('_options_name'), 'name', $where)->get('array');
+		            if($options)
+		            	foreach ($options as $opt) {
+			            	$main_options[$opt->product][$opt->option] = $opt->name;
+			            }
+		            unset($options);
+		        }
 	        }
 
 	        $link = $_SESSION['alias']->alias.'/';
@@ -358,6 +401,11 @@ class shop_model {
             	$product->parents = $parents;
             	if($getProductOptions)
             		$product->options = $this->getProductOptions($product);
+            	elseif(isset($main_options[$product->id]))
+            		foreach ($main_options[$product->id] as $opt_id => $value) {
+            			$key = $main_options_Alias[$opt_id];
+            			$product->$key = $value;
+            		}
             	if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && $products[0]->group > 0)
             		$product->group_link = $_SESSION['alias']->alias . $link;
 
@@ -373,7 +421,7 @@ class shop_model {
 					$product->photo = $_SESSION['option']->folder.'/'.$product->id.'/'.$photo->file_name;
             	}
 
-            	if(@$this->data->url()[0] != 'admin')
+            	if(@$this->data->url()[0] != 'admin' || (@$this->data->url()[0] == 'admin' && @$this->data->url()[1] == 'cart'))
 	        	{
 	        		if($_SESSION['option']->useMarkUp > 0 && $product->markup){
 		        		$product->price *= $product->markup;
@@ -384,23 +432,26 @@ class shop_model {
 		        	$product->price = ceil($product->price);
 	        	}
 				
-				if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 1)
-				{
-					$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
-					$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
-					$where_ntkd['content'] = "#-pg.group";
-        			$this->db->join('wl_ntkd', 'name', $where_ntkd);
+				// if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 1)
+				// {
+				// 	$this->db->select($this->table('_product_group') .' as pg', 'active', $product->id, 'product');
+				// 	if($active)
+				// 		$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
+				// 	else
+				// 		$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
+				// 	$where_ntkd['content'] = "#-pg.group";
+    //     			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 
-					if($product->group = $this->db->get('array'))
-			            foreach ($product->group as $g) {
-			            	if($g->parent > 0) {
-			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
-			            	}
-			            	else
-			            		$g->link = $_SESSION['alias']->alias . '/' . $g->alias;
-			            }
+				// 	if($product->group = $this->db->get('array'))
+			 //            foreach ($product->group as $g) {
+			 //            	if($g->parent > 0) {
+			 //            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
+			 //            	}
+			 //            	else
+			 //            		$g->link = $_SESSION['alias']->alias . '/' . $g->alias;
+			 //            }
 
-				}
+				// }
             }
 
 			return $products;
@@ -489,12 +540,14 @@ class shop_model {
 				{
 					$product->group = array();
 
-					$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
+					$this->db->select($this->table('_product_group') .' as pg', 'active', $product->id, 'product');
 					$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
 					$where_ntkd['content'] = "#-pg.group";
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					if($product->group = $this->db->get('array'))
 			            foreach ($product->group as $g) {
+			            	if($g->active)
+			            		$product->active = $g->active;
 			            	if($g->parent > 0)
 			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
 			            	else
@@ -549,6 +602,13 @@ class shop_model {
 									}
 								$product->similarProducts[$key]->photo = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$photo->file_name;
 			            	}
+
+			            	$similarProductColor = $this->db->select($this->table('_product_options').' as po', 'value', array('product' => $similarProduct->id, 'option' => 3))
+										 ->join($this->table('_options_name'), 'name as color_name', array('option' => '#po.value', 'language' => $_SESSION['language']))
+										 ->limit(1)
+										 ->get();
+
+							$product->similarProducts[$key]->color = @$similarProductColor->color_name;
 						}
 					}
 				}
@@ -569,7 +629,7 @@ class shop_model {
 		$where['content'] = $product;
 		$this->db->select('wl_images', '*', $where);
 		$this->db->order('position ASC');
-		if(is_array($product))
+		if(is_array($product) || $product == '<0')
 			$this->db->group('content');
 		if($all)
 			$this->db->join('wl_users', 'name as user_name', '#author');
@@ -618,7 +678,7 @@ class shop_model {
 
 					if($option->options == 1)
 					{
-						if($option->type_name == 'checkbox')
+						if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2' )
 						{
 							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
@@ -705,39 +765,59 @@ class shop_model {
 
 	public function getGroups($parent = 0)
 	{
-		$where['wl_alias'] = $_SESSION['alias']->id;
-		$where['active'] = 1;
-		if($parent >= 0) $where['parent'] = $parent;
-		$this->db->select($this->table('_groups') .' as g', '*', $where);
-
-		$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
-
-		$where_ntkd['alias'] = $_SESSION['alias']->id;
-		$where_ntkd['content'] = "#-g.id";
-		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
-		$this->db->join('wl_ntkd', "name, text, list", $where_ntkd);
-
-		$this->db->order($_SESSION['option']->groupOrder);
-
-		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0 && $parent >= 0)
+		$categories = array();
+		if($parent < 0 && !empty($this->allGroups))
+			$categories = $this->allGroups;
+		else
 		{
-			$start = 0;
-			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
-				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
-			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
+			if(!empty($this->allGroups))
+			{
+				foreach ($this->allGroups as $group) {
+					if($group->parent == $parent)
+						$categories[] = clone $group;
+				}
+			}
+			else
+			{
+				$where['wl_alias'] = $_SESSION['alias']->id;
+				$where['active'] = 1;
+				if($parent >= 0) $where['parent'] = $parent;
+				$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+				$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
+
+				$where_ntkd['alias'] = $_SESSION['alias']->id;
+				$where_ntkd['content'] = "#-g.id";
+				if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+				$this->db->join('wl_ntkd', "name, text, list", $where_ntkd);
+
+				$this->db->order($_SESSION['option']->groupOrder);
+
+				if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0 && $parent >= 0)
+				{
+					$start = 0;
+					if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
+						$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
+					$this->db->limit($start, $_SESSION['option']->paginator_per_page);
+				}
+				$categories = $this->db->get('array', false);
+				$_SESSION['option']->paginator_total = $this->db->get('count');
+				$this->db->clear();
+			}
 		}
 
-		if($categories = $this->db->get('array', false))
+		if(!empty($categories))
 		{
-			@$_SESSION['option']->count_all_products = $this->db->get('count');
-
 			$link = $_SESSION['alias']->alias.'/';
             $list = $groups_ids = $groups_photos = array();
             $sizes = $this->db->getAliasImageSizes();
 
-	        foreach ($categories as $g) {
-				$groups_ids[] = -$g->id;
-			}
+			if($parent < 0)
+				$groups_ids = '<0';
+			else
+				foreach ($categories as $g) {
+					$groups_ids[] = -$g->id;
+				}
             if($photos = $this->getProductPhoto($groups_ids))
             {
 	            foreach ($photos as $photo) {
@@ -746,19 +826,41 @@ class shop_model {
 	            unset($photos);
 	        }
 
-	        if($parent > 0)
+	        if($parent != 0)
 	        {
 	            if(empty($this->allGroups))
-					$this->allGroups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+	            {
+	            	if($parent < 0)
+	            		$this->allGroups = $categories;
+	            	else
+	            	{
+						if(empty($this->allGroups))
+		        		{
+		        			$where = array();
+		        			$where['wl_alias'] = $_SESSION['alias']->id;
+							$where['active'] = 1;
+							$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+							$where_ntkd['alias'] = $_SESSION['alias']->id;
+							$where_ntkd['content'] = "#-g.id";
+							if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+							$this->db->join('wl_ntkd', "name", $where_ntkd);
+							$this->allGroups = $this->db->get('array');
+		        		}
+	            	}
+	            }
 	            if($this->allGroups)
 	            	foreach ($this->allGroups as $g) {
 		            	$list[$g->id] = clone $g;
 		            }
-		        $link .= $this->makeLink($list, $parent, '');
+		        if($parent > 0)
+		        	$link .= $this->makeLink($list, $parent, '');
 	        }
 
             foreach ($categories as $Group) {
             	$Group->link = $link.$Group->alias;
+            	if($parent < 0 && $Group->parent > 0)
+            		$Group->link = $link.$this->makeLink($list, $Group->parent, $Group->alias);
             	$Group->photo = null;
             	if(isset($groups_photos[$Group->id]))
             	{
@@ -771,6 +873,8 @@ class shop_model {
 					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
             }
+            if($parent < 0)
+        		$this->allGroups = $categories;
             return $categories;
 		}
 		else
@@ -781,12 +885,14 @@ class shop_model {
 	public function makeParents($all, $parent, $parents)
 	{
 		$group = clone $all[$parent];
-		$where = '';
-        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
-        $ntkd = $this->db->getQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
-    	if(is_object($ntkd))
-    		$group->name = $ntkd->name;
-
+		if(empty($group->name))
+		{
+			$where = '';
+	        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
+	        $ntkd = $this->db->getQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
+	    	if(is_object($ntkd))
+	    		$group->name = $ntkd->name;
+	    }
     	array_unshift ($parents, $group);
 		if($all[$parent]->parent > 0)
 			$parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
@@ -819,6 +925,7 @@ class shop_model {
 		return $group;
 	}
 
+	// Потребує оптимізації
 	public function getOptionsToGroup($group = 0, $filter = true)
 	{
 		$products = false;
@@ -831,7 +938,16 @@ class shop_model {
 		}
 		elseif(is_numeric($group))
 		{
-			$group = $this->db->getAllDataById($this->table('_groups'), $group);
+			if(!empty($this->allGroups))
+				foreach ($this->allGroups as $g) {
+					if($g->id == $group)
+					{
+						$group = clone $g;
+						break;
+					}
+				}
+			else
+				$group = $this->db->getAllDataById($this->table('_groups'), $group);
 			if($group == false) return false;
 		}
 
@@ -863,7 +979,17 @@ class shop_model {
 			{
 				array_push($where['group'], $group->id);
 				while ($group->parent > 0) {
-					$group = $this->db->getAllDataById($this->table('_groups'), $group->parent);
+					if(!empty($this->allGroups))
+						foreach ($this->allGroups as $g) {
+							if($g->id == $group->parent)
+							{
+								$group = clone $g;
+								break;
+							}
+						}
+					else
+						$group = $this->db->getAllDataById($this->table('_groups'), $group->parent);
+					array_push($where['group'], $group->id);
 				}
 			}
 			$where['wl_alias'] = $_SESSION['alias']->id;
@@ -896,7 +1022,7 @@ class shop_model {
 		    			if($products) $where['product'] = $products;
 		    			foreach ($option->values as $i => $value) {
 		    				$where['option'] = $option->id;
-		    				if($option->type_name == 'checkbox')
+		    				if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2' )
 		    				{
 		    					$count = 0;
 								$where['value'] = '%'.$value->id;
@@ -953,7 +1079,18 @@ class shop_model {
 	{
 		$endGroups = $groups = array();
 		if(empty($this->allGroups))
-			$this->allGroups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
+		{
+			$where = array();
+			$where['wl_alias'] = $_SESSION['alias']->id;
+			$where['active'] = 1;
+			$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+			$where_ntkd['alias'] = $_SESSION['alias']->id;
+			$where_ntkd['content'] = "#-g.id";
+			if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+			$this->db->join('wl_ntkd', "name", $where_ntkd);
+			$this->allGroups = $this->db->get('array');
+		}
 		foreach ($this->allGroups as $group) {
 			if(isset($groups[$group->parent]))
 				$groups[$group->parent][] = $group->id;

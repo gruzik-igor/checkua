@@ -14,7 +14,11 @@
 			?>
 					<div class="col-md-4">
 						<div class="product-img product-img-brd">
-							<a href="<?=SITE_URL.$group->link?>"><img class="full-width img-responsive" src="<?=IMG_PATH.$group->photo?>" alt="<?=$group->name .' '. SITE_NAME?>"></a>
+							<a href="<?=SITE_URL.$group->link?>">
+								<?php if($group->photo) {?>
+								<img class="full-width img-responsive" src="<?=IMG_PATH.$group->photo?>" alt="<?=$group->name .' '. SITE_NAME?>">
+								<?php } ?>
+							</a>
 							<a class="product-review" href="<?=SITE_URL.$group->link?>"><?=$group->name?></a>
 						</div>
 					</div>
@@ -51,7 +55,7 @@
 			<input type="hidden" name="show" value="<?=(isset($_GET['show'])) ? $this->data->get('show') : ''?>">
 			<input type="hidden" name="sort" value="<?=(isset($_GET['sort'])) ? $this->data->get('sort') : ''?>">
 			<input type="hidden" name="per_page" value="<?=(isset($_GET['per_page'])) ? $this->data->get('per_page') : ''?>">
-			<?php $filters = $this->shop_model->getOptionsToGroup($group); 
+			<?php $filters = $this->shop_model->getOptionsToGroup($group);
 
 			if($filters)
 			{
@@ -70,7 +74,7 @@
 					<div id="collapseOne" class="panel-collapse collapse in">
 						<div class="panel-body">
 							<ul class="list-unstyled checkbox-list">
-								<?php foreach ($filter->values as $value) { 
+								<?php foreach ($filter->values as $value) {
 									$checked = '';
 									if(isset($_GET[$filter->alias]) && is_array($_GET[$filter->alias]) && in_array($value->id, $_GET[$filter->alias])) $checked = 'checked';
 									?>
@@ -164,8 +168,8 @@
 								<div class="overflow-h margin-bottom-5">
 									<ul class="list-inline overflow-h">
 										<li><h4 class="title-price"><a href="<?=SITE_URL.$product->link?>"><?= str_replace($product->article, '', $product->name) ?></a></h4></li>
-										
-									</ul>										
+
+									</ul>
 									<div class="margin-bottom-10">
 										<span class="title-price margin-right-10"><?=$product->price?> грн.</span><br>
 										<?php if($product->old_price != 0) { ?>
@@ -180,7 +184,7 @@
 					</div>
 				<?php } } else { ?>
 					<div class="row illustration-v2 margin-bottom-30">
-						<?php 
+						<?php
 						$i = 0;
 						if(!empty($products))
 						foreach ($products as $product) {
@@ -207,9 +211,6 @@
 										<div class="overflow-h margin-bottom-5">
 											<div class="">
 												<h4 class="title-price"><a href="<?=SITE_URL.$product->link?>"><?= str_replace($product->article, '', $product->name) ?></a></h4>
-												<?php if(isset($product->options['35-typ-masla']) && $product->options['35-typ-masla']->value != '') { ?>
-													<span class="gender text-uppercase"><?=$product->options['35-typ-masla']->value?></span>
-												<?php } ?>
 											</div>
 											<div class="product-price">
 												<span class="title-price"><?=$product->price?> грн.</span>
@@ -220,7 +221,7 @@
 										</div>
 									</div>
 								</div>
-								
+
 							</div>
 						<?php
 							$i++;

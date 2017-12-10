@@ -1,15 +1,4 @@
-<div class="row">
-	<div class="row search-row">
-        <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/search">
-            <div class="col-lg-8 col-sm-8 search-col">
-                <input type="text" name="<?=($_SESSION['option']->ProductUseArticle) ? 'article' : 'id'?>" class="form-control" placeholder="<?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'ID'?>" value="<?=$this->data->get('article')?>" required="required">
-            </div>
-            <div class="col-lg-4 col-sm-4 search-col">
-                <button class="btn btn-primary btn-search btn-block"><i class="fa fa-search"></i><strong> Знайти</strong></button>
-            </div>
-        </form>
-    </div>
-</div>
+<?php require_once APP_PATH.'services'.DIRSEP.$_SESSION['service']->name.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.'__search_subview.php'; ?>
 
 <div class="row">
     <div class="col-md-12">
@@ -123,22 +112,3 @@
         </div>
     </div>
 </div>
-
-
-
-<style type="text/css">
-	.search-row {
-	    max-width: 800px;
-	    margin-left: auto;
-	    margin-right: auto;
-	}
-	.search-row .search-col {
-	    padding: 0;
-	    position: relative;
-	}
-	.search-row .search-col:first-child .form-control {
-	    border: 1px solid #16A085;
-	    border-radius: 3px 0 0 3px;
-	    margin-bottom: 20px;
-	}
-</style>

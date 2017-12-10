@@ -343,6 +343,8 @@ class install
 					  `photo` text NULL,
 					  `position` int(11) NULL,
 					  `type` int(11) NULL,
+					  `main` tinyint(1)  NULL DEFAULT '0',
+					  `changePrice` text NULL,
 					  `filter` tinyint(1) NULL,
 					  `toCart` tinyint(1) NULL,
 					  `active` tinyint(1) NULL,

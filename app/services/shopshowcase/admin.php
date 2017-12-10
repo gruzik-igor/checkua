@@ -11,6 +11,8 @@ class shopshowcase extends Controller {
 				
     function _remap($method, $data = array())
     {
+    	$this->wl_alias_model->setContent();
+
     	if(isset($_SESSION['alias']->name))
     		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
         if (method_exists($this, $method))
@@ -38,8 +40,6 @@ class shopshowcase extends Controller {
 
 			if($_SESSION['option']->useGroups && $type == 'group' && $product)
 			{
-				$this->wl_alias_model->setContent();
-				
 				$group = clone $product;
 				unset($product);
 
@@ -102,25 +102,46 @@ class shopshowcase extends Controller {
 	public function search()
 	{
 		$this->load->smodel('shop_model');
+		$search = -1; $group = false;
 		if($this->data->get('id'))
 		{
-			$product = $this->shop_model->getProduct($this->data->get('id'), 'id', false);
-			if($product)
+			if($product = $this->shop_model->getProduct($this->data->get('id'), 'id', false))
 				$this->redirect('admin/'.$product->link);
-			$this->load->admin_view('products/list_view', array('products' => false));
+			$search = '%'.$this->data->get('id');
 		}
-		elseif($this->data->get('article'))
+		if($this->data->get('article'))
+			$search = '%'.$this->makeArticle($this->data->get('article'));
+
+		if($this->data->get('group'))
 		{
-			if($products = $this->shop_model->getProducts('%'.$this->makeArticle($this->data->get('article')), 0, false))
+			if($group = $this->shop_model->getGroupByAlias($this->data->get('group'), 0, 'id'))
 			{
-				if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => $_SESSION['alias']->id, 'type' => 'storage')))
-					$this->load->admin_view('products/search_view', array('products' => $products, 'cooperation' => $cooperation));
-				else
-					$this->load->admin_view('products/list_view', array('products' => $products, 'search' => true));
+				$group->alias_name = $_SESSION['alias']->name;
+				$group->parents = array();
+				if($group->parent > 0)
+				{
+					$list = array();
+		            $groups = $this->db->getAllData($this->shop_model->table('_groups'));
+		            foreach ($groups as $Group) {
+		            	$list[$Group->id] = clone $Group;
+		            }
+					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
+				}
+				$this->wl_alias_model->setContent(($group->id * -1));
+
+				$search = $group->id;
 			}
-			else
-				$this->load->admin_view('products/list_view', array('products' => false));
 		}
+
+		if($products = $this->shop_model->getProducts($search, 0, false))
+		{
+			if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => $_SESSION['alias']->id, 'type' => 'storage')))
+				$this->load->admin_view('products/search_view', array('products' => $products, 'cooperation' => $cooperation, 'group' => $group));
+			else
+				$this->load->admin_view('products/list_view', array('products' => $products, 'search' => true, 'group' => $group));
+		}
+		else
+			$this->load->admin_view('products/list_view', array('products' => false));
 	}
 
 	private function makeArticle($article)
@@ -138,11 +159,30 @@ class shopshowcase extends Controller {
 		$_SESSION['alias']->name .= '. Додати новий запис';
 		$this->load->admin_view('products/add_view');
 	}
+
+	public function _get_groupsTree()
+	{
+		if($product_id = $this->data->get('product'))
+		{
+			$this->load->smodel('shop_model');
+			$groups = $this->shop_model->getGroups(-1);
+			if($_SESSION['option']->ProductMultiGroup)
+			{
+				$product_groups = array();
+				if($activeGroups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_group'), $product_id, 'product'))
+					foreach ($activeGroups as $ag) {
+						$product_groups[] = $ag->group;
+					}
+			}
+			$this->load->view('admin/products/_groupsTree', array('groups' => $groups, 'product_groups' => $product_groups));
+		}
+	}
 	
 	private function edit($product)
 	{
+		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias);
 		$this->wl_alias_model->setContent($product->id);
-		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Редагувати запис' => '');
+		$_SESSION['alias']->breadcrumb['Редагувати '.$_SESSION['alias']->name] = '';
 
 		$groups = null;
 		if($_SESSION['option']->useGroups)
@@ -157,6 +197,7 @@ class shopshowcase extends Controller {
 						foreach ($groups as $group) {
 							if($group->id == $ag->group)
 							{
+								$group->product_active = $ag->active;
 								$group->product_position = $ag->position;
 								$group->product_position_max = $this->db->getCount($this->shop_model->table('_product_group'), $group->id, 'group');
 								break;
@@ -167,17 +208,23 @@ class shopshowcase extends Controller {
 		}
 
 		$similarProducts = null;
-		$similars = $this->db->getAllDataByFieldInArray($this->shop_model->table('_products_similar'), array('product' => $product->id));
+		$getSimilar = $this->db->getAllDataById($this->shop_model->table('_products_similar'), array('product' => $product->id));
 
-		if($similars)
+		if($getSimilar)
 		{
-			foreach ($similars as $similar) {
-				$where_ntkd['alias'] = $_SESSION['alias']->id;
-				$where_ntkd['content'] = '#p.id';
-				if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
-				$this->db->select('s_shopshowcase_products as p', 'id, alias, article, price', $similar->similar_product);
-				$this->db->join('wl_ntkd', 'name as product_name', $where_ntkd);
-				$similarProducts['products'][] = $this->db->get();
+			$similars = $this->db->getQuery("SELECT * FROM `s_shopshowcase_products_similar` WHERE `group` = '{$getSimilar->group}' AND product != '{$product->id}' ", 'array');
+
+			$similarProducts = array('group' => $getSimilar->group);
+			if($similars)
+			{
+				foreach ($similars as $similar) {
+					$where_ntkd['alias'] = $_SESSION['alias']->id;
+					$where_ntkd['content'] = '#p.id';
+					if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+					$this->db->select('s_shopshowcase_products as p', 'id, alias, article, price', $similar->product);
+					$this->db->join('wl_ntkd', 'name as product_name', $where_ntkd);
+					$similarProducts['products'][] = $this->db->get();
+				}
 			}
 		}
 
@@ -292,6 +339,14 @@ class shopshowcase extends Controller {
 			$res['result'] = true;
 
 		$this->json($res);
+	}
+
+	public function export()
+	{
+		$this->load->smodel('groups_model');
+		$groups = $this->groups_model->getGroups(-1, false);
+
+		$this->load->admin_view('products/export_view', array('groups' => $groups));
 	}
 
 	public function saveOption()
@@ -498,6 +553,51 @@ class shopshowcase extends Controller {
 			}
 		}
 		$this->load->page_404();
+	}
+
+	public function changePromGroup()
+	{
+		$res = array('result' => false);
+		$groupId = $this->data->post('groupId');
+		$promGroupId = $this->data->post('promGroupId');
+
+		if($promGroupId && $groupId)
+		{
+			$this->db->updateRow('s_shopshowcase_groups', array('prom_group' => $promGroupId), $groupId);
+			$res['result'] = true;
+		}
+
+		$this->json($res);
+	}
+
+	public function changePromLink()
+	{
+		$res = array('result' => false);
+		$groupId = $this->data->post('groupId');
+		$promLink = $this->data->post('promLink');
+
+		if($promLink && $groupId)
+		{
+			$this->db->updateRow('s_shopshowcase_groups', array('prom_link' => $promLink), $groupId);
+			$res['result'] = true;
+		}
+
+		$this->json($res);
+	}	
+
+	public function changePromLinkId()
+	{
+		$res = array('result' => false);
+		$groupId = $this->data->post('groupId');
+		$promLinkId = $this->data->post('promLinkId');
+
+		if($promLinkId && $groupId)
+		{
+			$this->db->updateRow('s_shopshowcase_groups', array('prom_link_id' => $promLinkId), $groupId);
+			$res['result'] = true;
+		}
+
+		$this->json($res);
 	}
 
 	public function options()
@@ -713,9 +813,7 @@ class shopshowcase extends Controller {
 
 			$path = IMG_PATH.$path;
             $path = substr($path, strlen(SITE_URL));
-
             
-
 			@unlink($path);
 			$this->db->updateRow('s_shopshowcase_options', array('photo' => 0), $id);
 		}
@@ -814,13 +912,35 @@ class shopshowcase extends Controller {
     {
         $articleId = $this->data->post('article');
         $productId = $this->data->post('product');
+        $group = $this->data->post('group');
 
-        $articleInfo =  $this->db->select('s_shopshowcase_products', 'id', array('article' => $articleId))->get();
+        $articleInfo =  $this->db->select('s_shopshowcase_products', 'id, `group`', array('article' => $articleId))->get();
 
         if($articleInfo && $productId != $articleInfo->id)
         {
-        	$this->db->executeQuery("INSERT INTO s_shopshowcase_products_similar(id,product, similar_product)VALUES(NULL,'{$productId}', '{$articleInfo->id}') ON DUPLICATE KEY UPDATE product = VALUES (product),similar_product = VALUES(similar_product)");
-        	$this->db->executeQuery("INSERT INTO s_shopshowcase_products_similar(id,product, similar_product)VALUES(NULL,'{$articleInfo->id}', '{$productId}') ON DUPLICATE KEY UPDATE product = VALUES (product),similar_product = VALUES(similar_product)");
+        	if($group == 0 && $articleInfo->group == 0)
+        	{
+        		$this->db->updateRow('s_shopshowcase_products', array('group' => '-'.$articleInfo->id), $articleInfo->id);
+        		$this->db->updateRow('s_shopshowcase_products', array('group' => '-'.$articleInfo->id), $productId);
+
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => '-'.$articleInfo->id));
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $productId, 'group' => '-'.$articleInfo->id));
+        	}
+        	elseif($group != 0 && $articleInfo->group == 0)
+        	{
+        		$this->db->updateRow('s_shopshowcase_products', array('group' => $group), $articleInfo->id);
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => $group));
+        	}
+        	elseif($group == 0 && $articleInfo->group != 0)
+        	{
+        		$this->db->updateRow('s_shopshowcase_products', array('group' => $articleInfo->group), $productId);
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $productId, 'group' => $articleInfo->group));
+        	}
+        	else
+        	{
+        		$_SESSION['notify'] = new stdClass();
+        		$_SESSION['notify']->errors = 'Товар уже має інші схожі товари.';
+        	}
         }
 
         $this->redirect("#tab-similar");
@@ -829,9 +949,9 @@ class shopshowcase extends Controller {
 	public function deleteSimilarProduct()
 	{
 		$productId = $this->data->post('productId');
-		$similarProduct = $this->data->post('similarProduct');
 
-		$this->db->executeQuery("DELETE FROM `s_shopshowcase_products_similar` WHERE (product, similar_product)  IN(('{$similarProduct}','{$productId}'),('{$productId}','{$similarProduct}'))");
+		$this->db->deleteRow('s_shopshowcase_products_similar', $productId, 'product');
+		$this->db->updateRow('s_shopshowcase_products', array('group' => 0), $productId);
 	}
 
 	public function saveSimilarText()

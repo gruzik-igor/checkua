@@ -18,6 +18,9 @@ class shop_search_model
 		{
 			$this->db->select($this->table('_products').' as p', '*', $content);
 			$this->db->join('wl_users', 'name as author_name', '#p.author_edit');
+			if($_SESSION['option']->useMarkUp > 0){
+				$this->db->join($this->table('_markup'), 'value as markup', array('from' => '<p.price', 'to' => '>=p.price'));
+			}
 			$product = $this->db->get('single');
 			if($product && ($product->active || $admin || $_SESSION['option']->ProductMultiGroup))
 			{
@@ -39,12 +42,22 @@ class shop_search_model
 
 				$search = new stdClass();
 				$search->id = $product->id;
+				$search->article = $product->article;
 				$search->link = $_SESSION['alias']->alias.'/'.$product->alias;
 				$search->date = $product->date_edit;
 				$search->author = $product->author_edit;
 				$search->author_name = $product->author_name;
 				$search->additional = false;
 				$search->price = $product->price;
+
+				if($_SESSION['option']->useMarkUp > 0 && $product->markup){
+	        		$search->price = $product->price * $product->markup;
+	        		$search->old_price = $product->old_price * $product->markup;
+	        	}
+
+	        	$search->old_price = $search->price != $search->old_price ? ceil($search->old_price) : 0;
+		        $search->price = ceil($search->price);
+
 				$search->folder = false;
 				if(isset($_SESSION['option']->folder))
 					$search->folder = $_SESSION['option']->folder;

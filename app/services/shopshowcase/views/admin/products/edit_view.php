@@ -38,13 +38,13 @@
       <div class="panel-heading">
         <div class="panel-heading-btn">
           <a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$product->alias?>" class="btn btn-info btn-xs"><?=$_SESSION['admin_options']['word:product_to']?></a>
-          <?php
-            $url = $this->data->url();
-            array_shift($url);
-            array_pop ($url);
-            $url = implode('/', $url);
-          ?>
-          <a href="<?=SITE_URL.'admin/'.$url?>" class="btn btn-success btn-xs">До каталогу</a>
+          <?php $url = $this->data->url();
+              array_shift($url);
+              array_pop ($url);
+              $url = implode('/', $url);
+            if(!$_SESSION['option']->ProductMultiGroup) { ?>
+            <a href="<?=SITE_URL.'admin/'.$url?>" class="btn btn-success btn-xs">До каталогу</a>
+          <?php } ?>
           <button onClick="showUninstalForm()" class="btn btn-danger btn-xs">Видалити <?=$_SESSION['admin_options']['word:product_to_delete']?></button>
         </div>
 

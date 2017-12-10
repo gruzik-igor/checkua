@@ -31,7 +31,7 @@ if(isset($_SESSION['option']->productOrder))
 				<?php } ?>
 				<th>Автор</th>
 				<th>Редаговано</th>
-				<?php if(!isset($search) && $productOrder) echo "<th>Стан</th>"; ?>
+				<th>Стан</th>
             </tr>
         </thead>
         <tbody>
@@ -62,9 +62,12 @@ if(isset($_SESSION['option']->productOrder))
 					<?php }
 					if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->ProductMultiGroup == 1) {
 						echo("<td>");
+						$active = 0;
 						if(!empty($a->group) && is_array($a->group)) {
                             foreach ($a->group as $g) {
                                 echo('<a href="'.SITE_URL.'admin/'.$g->link.'">'.$g->name.'</a> ');
+                                if($g->active)
+                                    $active++;
                             }
                         } else {
                             echo("Не визначено");
@@ -74,8 +77,29 @@ if(isset($_SESSION['option']->productOrder))
                     ?>
 					<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
 					<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
+					
 					<?php if(!isset($search) && $productOrder) { ?>
-						<td><input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" /></td>
+						<td>
+							<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
+						</td>
+					<?php } else { 
+						if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
+                        {
+                            $color = 'success';
+                            $color_text = 'активний';
+                            if($active == 0)
+                            {
+                                $color = 'danger';
+                                $color_text = 'відключено';
+                            }
+                            elseif($active < count($a->group))
+                            {
+                                $color = 'warning';
+                                $color_text = 'частково активний';
+                            }
+                        }
+					?>
+						<td class="<?=$color?>"><?=$color_text?></td>
 					<?php } ?>
 				</tr>
 			<?php } ?>

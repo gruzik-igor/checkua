@@ -49,7 +49,7 @@
 												$prefix .= '- ';
 											}
 											foreach ($list as $g) if($g->parent == $parent) {
-												echo('<option value="'.$g->id.'">'.$prefix.$g->name.'</option>');
+												echo('<option '.(!empty($g->child) ? 'style="font-weight:bold"' : "").' value="'.$g->id.'">'.$prefix.$g->name.'</option>');
 												if(!empty($g->child)) {
 													$l = $level + 1;
 													$childs = array();

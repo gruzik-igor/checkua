@@ -109,7 +109,7 @@ class products_model {
 					} elseif($_SESSION['option']->ProductMultiGroup == 1){
 						$product->group = array();
 
-						$this->db->select($this->table('_product_group') .' as pg', '', $product->id, 'product');
+						$this->db->select($this->table('_product_group') .' as pg', 'active', $product->id, 'product');
 						$this->db->join($this->table('_groups'), 'id, alias, parent', '#pg.group');
 						$where_ntkd['content'] = "#-pg.group";
             			$this->db->join('wl_ntkd', 'name', $where_ntkd);
@@ -271,9 +271,10 @@ class products_model {
 			
 			if($_SESSION['option']->useGroups)
 			{
-				if($_SESSION['option']->ProductMultiGroup && isset($_POST['group']) && is_array($_POST['group']))
+				if($_SESSION['option']->ProductMultiGroup && !empty($_POST['product_groups']))
 				{
-					foreach ($_POST['group'] as $group) {
+					$product_groups = explode(',', $_POST['product_groups']);
+					foreach ($product_groups as $group) {
 						$all = 1 + $this->db->getCount($this->table('_product_group'), $group, 'group');
 						$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all, 'active' => 1));
 					}
@@ -360,6 +361,7 @@ class products_model {
 						$temp[] = $ac->group;
 						$activegroups_position[$ac->group] = new stdClass();
 						$activegroups_position[$ac->group]->position = $ac->position;
+						$activegroups_position[$ac->group]->active = $ac->active;
 						$activegroups_position[$ac->group]->id = $ac->id;
 						$this->db->cache_clear(-$ac->group);
 					}
@@ -368,13 +370,14 @@ class products_model {
 				}
 				else
 					$activegroups = array();
-				if(isset($_POST['group']) && is_array($_POST['group']))
+				$product_groups_new = explode(',', $_POST['product_groups']);
+				if(!empty($product_groups_new))
 				{
-					foreach ($_POST['group'] as $group) {
+					foreach ($product_groups_new as $group) {
 						if(!in_array($group, $activegroups))
 						{
 							$all = 1 + $this->db->getCount($this->table('_product_group'), $group, 'group');
-							$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all));
+							$this->db->insertRow($this->table('_product_group'), array('product' => $id, 'group' => $group, 'position' => $all, 'active' => 1));
 						}
 						else
 						{
@@ -386,6 +389,11 @@ class products_model {
 								$pg_new->position = $this->data->post('position-group-'.$group);
 								$this->multigroup_new_position[] = $pg_new;
 							}
+							$active = 0;
+							if(isset($_POST['active-group-'.$group]) && $_POST['active-group-'.$group] == 1)
+								$active = 1;
+							if(isset($activegroups_position[$group]) && $activegroups_position[$group]->active != $active)
+								$this->db->updateRow($this->table('_product_group'), array('active' => $active), $activegroups_position[$group]->id);
 						}
 						$use[] = $group;
 					}

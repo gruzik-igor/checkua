@@ -1,3 +1,5 @@
+<?php require_once APP_PATH.'services'.DIRSEP.$_SESSION['service']->name.DIRSEP.'views'.DIRSEP.'admin'.DIRSEP.'__search_subview.php'; ?>
+
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-inverse">
@@ -41,14 +43,17 @@
     										<td><?=$a->id?></td>
     										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->name?></a></td>
                                             <td><?=$a->price?></td>
-    										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->alias?></a></td>
+    										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>" target="_blank"><?=$a->alias?></a></td>
     										<?php
                                             if($_SESSION['option']->useGroups == 1) {
-                                                echo("<td>");
+                                                echo("<td>"); $active = 0;
                                                 if($_SESSION['option']->ProductMultiGroup) {
                                                     if(!empty($a->group) && is_array($a->group)) {
                                                         foreach ($a->group as $group) {
-                                                            echo('<a href="'.SITE_URL.$_SESSION['alias']->alias.'/'.$group->link.'">'.$group->name.'</a> ');
+                                                            $class = ($group->active) ? '' : 'class="label label-warning"';
+                                                            echo('<a href="'.SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$group->link.'" target="_blank" '.$class.'>'.$group->name.'</a> ');
+                                                            if($group->active)
+                                                                $active++;
                                                         }
                                                     } else {
                                                         echo("Не визначено");
@@ -61,7 +66,25 @@
                                             ?>
     										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
     										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-    										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
+                                            <?php $color = ($a->active == 1) ? 'success':'danger';
+                                            $color_text = ($a->active == 1) ? 'активний':'відключено';
+                                            if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
+                                            {
+                                                $color = 'success';
+                                                $color_text = 'активний';
+                                                if($active == 0)
+                                                {
+                                                    $color = 'danger';
+                                                    $color_text = 'відключено';
+                                                }
+                                                elseif($active < count($a->group))
+                                                {
+                                                    $color = 'warning';
+                                                    $color_text = 'частково активний';
+                                                }
+                                            }
+                                        ?>
+                                            <td class="<?=$color?>"><?=$color_text?></td>
     									</tr>
     							<?php } ?>
                             </tbody>

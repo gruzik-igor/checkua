@@ -1,4 +1,4 @@
-<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data">
+<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" enctype="multipart/form-data" id="editProductForm">
 	<input type="hidden" name="id" value="<?=$product->id?>">
 	<table class="table table-striped table-bordered">
 		<tr>
@@ -55,62 +55,82 @@
 				}
 			}
 
-			echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
-			if($_SESSION['option']->ProductMultiGroup && !empty($list))
+			if($_SESSION['option']->ProductMultiGroup)
 			{
-				$_SESSION['option']->productOrder = trim($_SESSION['option']->productOrder);
-				function showList($product_group, $all, $list, $parent = 0, $level = 0, $parents = array())
+	            $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
+				echo '<link rel="stylesheet" href="'.SITE_URL.'assets/switchery/switchery.min.css" />';
+				$_SESSION['alias']->js_load[] = 'assets/jstree/jstree.min.js';
+				echo '<link rel="stylesheet" href="'.SITE_URL.'assets/jstree/themes/default/style.min.css" />';
+				echo "<tr><td colspan=2><table class=\"table table-striped table-bordered\">";
+				echo "<tr>
+						<th style='width:80px'>Стан</th>
+						<th>Група <a href=\"#modal-groupsTree\" data-toggle=\"modal\" class=\"btn btn-success btn-xs right\"><i class=\"fa fa-list\"></i> Керувати групами товару</a></th>";
+				$order = explode(' ', $_SESSION['option']->productOrder);
+				if($order[0] == 'position')
+					echo "<th style='width:225px'>Позиція (Режим: <i>{$_SESSION['option']->productOrder}</i>)</th>";
+				echo "</tr><tr>";
+				if($product->group)
 				{
-					$ml = 15 * $level;
-					foreach ($list as $g) if($g->parent == $parent) {
-						$class = '';
-						if($g->parent > 0 && !empty($parents))
+					function parentsLink(&$parents, $all, $parent, $link)
+					{
+						if($parent > 0)
 						{
-							$class = 'class="';
-							foreach ($parents as $p) {
-								$class .= ' parent-'.$p;
-							}
-							$class .= '"';
-						}
-						if(empty($g->child))
-						{
-							$checked = '';
-							if(in_array($g->id, $product_group))
-								$checked = 'checked';
-							echo ('<input type="checkbox" name="group[]" value="'.$g->id.'" id="group-'.$g->id.'" '.$class.' '.$checked.'>');
-							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label> ');
-
-							$order = explode(' ', $_SESSION['option']->productOrder);
-							if(in_array($g->id, $product_group) && $order[0] == 'position' && isset($g->product_position))
-							{
-								echo 'Позиція в групі: <input type="number" name="position-group-'.$g->id.'" title="Обережно при зміні" value="'.$g->product_position.'" min="1" max="'.$g->product_position_max.'" required> (Режим: <i>'.$_SESSION['option']->productOrder.'</i>)';
-							}
-							echo ('<br>');
-						}
-						else
-						{
-							echo ('<input type="checkbox" id="group-'.$g->id.'" '.$class.' onChange="setChilds('.$g->id.')">');
-							echo ('<label for="group-'.$g->id.'">'.$g->name.'</label>');
-							$l = $level + 1;
-							$childs = array();
-							foreach ($g->child as $c) {
-								$childs[] = $all[$c];
-							}
-							$ml = 15 * $l;
-							echo ('<div style="margin-left: '.$ml.'px">');
-							$parents2 = $parents;
-							$parents2[] = $g->id;
-							showList ($product_group, $all, $childs, $g->id, $l, $parents2);
-							echo('</div>');
+							$link = $all[$parent]->alias .'/'.$link;
+							$parents[] = $parent;
+							if($all[$parent]->parent > 0) $link = parentsLink ($parents, $all, $all[$parent]->parent, $link);
+							return $link;
 						}
 					}
+					function makeLink($all, $parent, $link)
+					{
+						if($parent > 0)
+						{
+							$link = $all[$parent]->alias .'/'.$link;
+							if($all[$parent]->parent > 0) $link = parentsLink ($parents, $all, $all[$parent]->parent, $link);
+						}
+						return $link;
+					}
+					foreach ($product->group as $g) {
+						$g = $list[$g]; 
+						$checked = ($g->product_active) ? 'checked' : '';
+		            	echo '<td><input name="active-group-'.$g->id.'" type="checkbox" data-render="switchery" class="switchery-small" '.$checked.' value="1" /></td>';
 
-					return true;
-				}
-				showList($product->group, $list, $list);
+						echo "<td>"; reset($_SESSION['alias']->breadcrumb);
+						$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
+						$name = key($_SESSION['alias']->breadcrumb);
+		            	echo "<a href=\"{$link}\" target=\"_blank\">{$name}</a>/";
+		            	if($g->parent > 0) {
+		            		$parents = array();
+		            		$g->link = SITE_URL.'admin/'.$_SESSION['alias']->alias . '/' . parentsLink($parents, $list, $g->parent, $g->alias);
+		            		if($parents)
+		            		{
+		            			rsort($parents);
+		            			foreach ($parents as $parent) {
+		            				$link = SITE_URL.'admin/'.$_SESSION['alias']->alias . '/' . makeLink($list, $list[$parent]->parent, $list[$parent]->alias);
+		            				echo "<a href=\"{$link}\" target=\"_blank\">{$list[$parent]->name}</a>/";
+		            			}
+		            		}
+		            	}
+		            	else
+		            		$g->link = SITE_URL.'admin/'.$_SESSION['alias']->alias . '/' . $g->alias;
+		            	echo "<a href=\"{$g->link}\" target=\"_blank\"><strong>{$g->name}</strong></a></td>";
+		            	
+		            	if($order[0] == 'position')
+		            		echo '<td><input type="number" name="position-group-'.$g->id.'" title="Обережно при зміні" value="'.$g->product_position.'" min="1" max="'.$g->product_position_max.'" class="form-control" required></td>';
+		            	echo "</tr>";
+		            }
+		        } else {
+		        	echo "<tr><td colspan=3 class='center'>
+		        		<a href=\"#modal-groupsTree\" data-toggle=\"modal\" class=\"btn btn-success\"><i class=\"fa fa-list\"></i> Керувати групами товару</a>
+		        		</td></tr>";
+		        }
+				echo "</table>";
+				echo '<input type="hidden" name="product_groups" id="selected" value="'.implode(',', $product->group).'" />';
+				echo "</td></tr>";
 			}
 			else
 			{
+				echo "<tr><th>Оберіть {$_SESSION['admin_options']['word:groups_to_delete']}</th><td>";
 				echo('<input type="hidden" name="group_old" value="'.$product->group.'">');
 				echo('<select name="group" class="form-control">');
 				echo ('<option value="0">Немає</option>');
@@ -143,10 +163,27 @@
 					showList($product->group, $list, $list);
 				}
 				echo('</select>');
-			}
-			echo "</td></tr>";
+				echo "</td></tr>"; ?>
+				<tr>
+					<th>Позиція в групі</th>
+					<td>
+						<input type="hidden" name="position_old" value="<?=$product->position?>">
+						<div class="input-group">
+							<input type="number" name="position" title="Обережно при зміні" value="<?=$product->position?>" min="1" required class="form-control">
+							<span class="input-group-addon">Режим: <i><?=$_SESSION['option']->productOrder?></i></span>
+						</div>
+					</td>
+				</tr>
+				<tr>
+					<th>Стан</th>
+					<td>
+						<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Публікація активна</label>
+						<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
+					</td>
+				</tr>
+			<?php }
 
-			if($_SESSION['option']->useGroups && isset($list))
+			if(!empty($list))
 			{
 				if($_SESSION['option']->ProductMultiGroup)
 				{
@@ -168,26 +205,7 @@
 				}
 
 			}
-		}
-		if($_SESSION['option']->ProductMultiGroup == 0) { ?>
-			<tr>
-				<th>Позиція в групі</th>
-				<td>
-					<input type="hidden" name="position_old" value="<?=$product->position?>">
-					<div class="input-group">
-						<input type="number" name="position" title="Обережно при зміні" value="<?=$product->position?>" min="1" required class="form-control">
-						<span class="input-group-addon">Режим: <i><?=$_SESSION['option']->productOrder?></i></span>
-					</div>
-				</td>
-			</tr>
-			<tr>
-				<th>Стан</th>
-				<td>
-					<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Публікація активна</label>
-					<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
-				</td>
-			</tr>
-		<?php } if($_SESSION['option']->useAvailability) { ?>
+		} if($_SESSION['option']->useAvailability) { ?>
 			<tr>
 				<th>Наявність</th>
 				<td>
@@ -223,7 +241,7 @@
 			</td>
 		</tr>
 		<?php array_unshift($options_parents, 0);
-		$showh3 = true;
+		$showh3 = $init_select2 = true; 
 		$this->load->smodel('options_model');
 		foreach ($options_parents as $option_id) {
 			if($options = $this->options_model->getOptions($option_id))
@@ -257,7 +275,7 @@
 							}
 
 						}
-						if($option->type_name == 'checkbox')
+						if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2')
 						{
 							$where = '';
 							if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
@@ -269,10 +287,28 @@
 							if(!empty($option_values))
 							{
 								$value = explode(',', $value);
-								foreach ($option_values as $ov) {
-									$checked = '';
-									if(in_array($ov->id, $value)) $checked = ' checked';
-									echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
+								if($option->type_name == 'checkbox')
+									foreach ($option_values as $ov) {
+										$checked = '';
+										if(in_array($ov->id, $value)) $checked = ' checked';
+										echo('<input type="checkbox" name="option-'.$option->id.'[]" value="'.$ov->id.'" id="option-'.$ov->id.'" '.$checked.'> <label for="option-'.$ov->id.'">'.$ov->name.'</label> ');
+									}
+								else
+								{
+									echo('<select name="option-'.$option->id.'[]" class="form-control select2" multiple="multiple"> ');
+									foreach ($option_values as $ov) {
+										$selected = '';
+										if(in_array($ov->id, $value)) $selected = ' selected';
+										echo("<option value='{$ov->id}'{$selected}>{$ov->name}</option>");
+									}
+									echo("</select> ");
+									
+									if($init_select2)
+									{
+										$init_select2 = false;
+										echo '<link rel="stylesheet" href="'.SITE_URL.'assets/select2/select2.min.css" />';
+										$_SESSION['alias']->js_load[] = 'assets/select2/select2.min.js';
+									}
 								}
 							}
 						}
@@ -299,7 +335,7 @@
 							if($this->db->numRows() > 0){
 			                    $option_values = $this->db->getRows('array');
 			                }
-							echo('<select name="option-'.$option->id.'" class="form-control"> ');
+							echo('<select name="option-'.$option->id.'" class="form-control select2"> ');
 							echo("<option value='0'>Не вказано</option>");
 							if(!empty($option_values)){
 								foreach ($option_values as $ov) {
@@ -309,6 +345,12 @@
 								}
 							}
 							echo("</select> ");
+							if($init_select2)
+							{
+								$init_select2 = false;
+								echo '<link rel="stylesheet" href="'.SITE_URL.'assets/select2/select2.min.css" />';
+								$_SESSION['alias']->js_load[] = 'assets/select2/select2.min.js';
+							}
 						}
 						elseif($option->type_name == 'textarea' && !$option->toCart)
 						{
@@ -346,6 +388,28 @@
 	</table>
 </form>
 
+<div class="modal fade" id="modal-groupsTree">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title">Керувати групами товару</h4>
+			</div>
+			<div class="modal-body">
+				<img src="<?=SITE_URL?>style/admin/images/icon-loading.gif" width=40> Завантаження груп...
+			</div>
+			<div class="modal-footer">
+				<div class="col-md-6">
+					<input type="search" id="search" class="form-control col-md-6" placeholder="Пошук" />
+				</div>
+				
+				<a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Закрити</a>
+				<input type="submit" class="btn btn-sm btn-success" value="Зберегти" form="editProductForm">
+			</div>
+		</div>
+	</div>
+</div>
+
 <style type="text/css">
 	input[type="radio"]{
 		min-width: 15px;
@@ -372,13 +436,6 @@
 			$('#uninstall-form').slideDown("slow");
 		} else {
 			$('#uninstall-form').slideUp("fast");
-		}
-	}
-	function setChilds (parent) {
-		if($('#group-'+parent).prop('checked')){
-			$('.parent-'+parent).prop('checked', true);
-		} else {
-			$('.parent-'+parent).prop('checked', false);
 		}
 	}
 </script>

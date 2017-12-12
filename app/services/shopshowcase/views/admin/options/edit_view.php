@@ -180,8 +180,21 @@
 						</select>
                     </div>
                 </div>
-
-				<?php if($options){ ?>
+				
+				<?php if($options) { ?>
+					<div class="form-group">
+                        <label class="col-md-3 control-label">Основна характеристика товару (витягується завжди)</label>
+                        <div class="col-md-9">
+                            <label class="radio-inline">
+                            	<input type="radio" name="main" value="1" <?=($option->main == 1)?'checked':''?>>
+                                Так
+                            </label>
+                            <label class="radio-inline">
+                            	<input type="radio" name="main" value="0" <?=($option->main == 0)?'checked':''?>>
+                                Ні
+                            </label>
+                        </div>
+                    </div>
 					<div class="form-group">
                         <label class="col-md-3 control-label">Елемент фільтру (для пошуку)</label>
                         <div class="col-md-9">
@@ -208,8 +221,21 @@
                             </label>
                         </div>
                     </div>
-
-					<?php
+                    <?php if($option->toCart == 1) { ?>
+						<div class="form-group">
+	                        <label class="col-md-3 control-label">Впливає на ціну</label>
+	                        <div class="col-md-9">
+	                            <label class="radio-inline">
+	                            	<input type="radio" name="changePrice" value="1" <?=($option->changePrice)?'checked':''?>>
+	                                Так
+	                            </label>
+	                            <label class="radio-inline">
+	                            	<input type="radio" name="changePrice" value="0" <?=(!$option->changePrice)?'checked':''?>>
+	                                Ні
+	                            </label>
+	                        </div>
+	                    </div>
+					<?php }
 						echo('<table id="options" class="table table-striped table-bordered nowrap col-md-12"><tbody>');
 						echo('<tr><th colspan="');
 						$colspan = 3;

@@ -375,6 +375,7 @@ class install
 			  `option` int(11) NOT NULL,
 			  `language` varchar(2) DEFAULT '',
 			  `value` text NULL,
+			  `changePrice` text NULL,
 			  PRIMARY KEY (`id`),
 			  UNIQUE KEY `id` (`id`),
 			  KEY `option` (`product`, `option`)

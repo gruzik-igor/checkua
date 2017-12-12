@@ -6,7 +6,8 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                     <a href="<?=SITE_URL?>admin/wl_sitemap/add_redirect" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> Додати 301 переадресацію</a>
-                	<a href="<?=SITE_URL?>admin/wl_sitemap/generate" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Генерувати карту сайту</a>
+                    <a href="<?=SITE_URL?>admin/wl_sitemap/generate" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Генерувати карту сайту</a>
+                	<a href="<?=SITE_URL?>admin/wl_sitemap/generate_image" class="btn btn-warning btn-xs"><i class="fa fa-image"></i> Карта сайту картинок</a>
                     <?php if($_SESSION['cache']) { ?>
                         <a href="#modal-deleteCache" class="btn btn-danger btn-xs" data-toggle="modal"><i class="fa fa-trash"></i> Очистити весь Cache сайту</a>
                     <?php } ?>

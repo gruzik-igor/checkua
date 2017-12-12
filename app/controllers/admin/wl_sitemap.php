@@ -454,6 +454,121 @@ class wl_sitemap extends Controller {
         $this->load->admin_view('wl_sitemap/generate_view');
     }
 
+    public function generate_image()
+    {
+        $_SESSION['alias']->name = 'Карта сайту картинок';
+
+        $allImages = $this->db->select('wl_images as i', 'id, file_name as photo, content' )
+                         ->join('wl_ntkd', 'name', array('alias' => '#i.alias', 'content' => 0))
+                         ->join('wl_options', 'value, alias', array('alias' => '#i.alias', 'name' => 'folder' ))
+                         ->get('array');
+
+        $images = array();
+        if($allImages)
+        {
+            $this->load->library('image');
+            foreach($allImages as $key => $allImage)
+            {
+                if($allImage->photo)
+                {
+                    $images[$key]['original'] = IMG_PATH.$allImage->value.'/'.$allImage->content.'/'.$allImage->photo;
+                    $images[$key]['admin'] = IMG_PATH.$allImage->value.'/'.$allImage->content.'/admin_'.$allImage->photo;
+
+                    $path = substr($images[$key]['original'], strlen(SITE_URL));
+
+                    if(@getimagesize($path))
+                    {
+                        if(!getimagesize(substr($images[$key]['admin'], strlen(SITE_URL))) && $this->image->loadImage($path))
+                        {
+                            $this->image->preview(150, 150, 100, 2);
+                            $this->image->save('admin');
+                        }
+                    }
+                    else
+                    {
+                        unset($images[$key]);
+                        // $this->db->deleteRow('wl_images', $allImage->id);
+                    }
+                }
+            }
+        }
+
+        $this->load->admin_view('wl_sitemap/generate_image_view', array('images' => $images));
+    }
+
+    public function start_generate_images()
+    {
+        $where = array();
+        $where['alias'] = '#i.alias';
+        $where['content'] = '#i.content';
+        if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+        $allImages = $this->db->select('wl_images as i', 'id, file_name as photo, content' )
+                         ->join('wl_ntkd', 'name', array('alias' => '#i.alias', 'content' => 0))
+                         ->join('wl_options', 'value, alias', array('alias' => '#i.alias', 'name' => 'folder' ))
+                         ->join('wl_sitemap', 'link', $where)
+                         ->get('array');
+
+
+        if($allImages)
+        {
+            $xmlString = file_get_contents('sitemap.xml');
+
+            $dom = new DomDocument;
+            $dom->preserveWhiteSpace = FALSE;
+            $dom->loadXML($xmlString);
+
+            $urls = $dom->getElementsByTagName('url'); 
+
+            foreach($allImages as $key => $allImage)
+            {
+                if($allImage->photo)
+                {
+                    $photo = IMG_PATH.$allImage->value.'/'.$allImage->content.'/'.$allImage->photo;
+
+                    $path = substr($photo, strlen(SITE_URL));
+
+                    if(@getimagesize($path))
+                    {
+                        $link = SITE_URL.ltrim($allImage->link, '/');
+
+                        if(!isset($allImages[$link]))
+                        {
+                            $allImages[$link] = $allImage;
+                            $allImages[$link]->photos = array($photo);
+                        }
+                        else
+                            $allImages[$link]->photos[] = $photo;
+                    }
+                }
+
+                unset($allImages[$key]);
+            }
+
+            foreach ($urls as $url) 
+            {
+                $textContent = $url->getElementsByTagName('loc')->item(0)->textContent;
+                if(isset($allImages[$textContent]))
+                {
+                    foreach ($allImages[$textContent]->photos as $photo) 
+                    {
+                        $imageImage = $dom->createElement('image:image');
+                        $url->appendChild($imageImage);
+
+                        $imageLoc = $dom->createElement('image:loc');
+                        $imageImage->appendChild($imageLoc);
+
+                        $text = $dom->createTextNode($photo);
+                        $imageLoc->appendChild($text);
+                    }
+                }
+            }
+
+            $dom->saveXML();
+
+            $dom->save('sitemap.xml');
+        }
+    }
+
     public function save_generate()
     {
         $fields = array('sitemap_active' => 0, 'sitemap_autosent' => 0);
@@ -501,6 +616,8 @@ class wl_sitemap extends Controller {
                         $this->sitemapgenerator->writeSitemap();
                         // update robots.txt file
                         $this->sitemapgenerator->updateRobots();
+                        // added images
+                        $this->start_generate_images();
 
                         $this->db->updateRow('wl_options', array('value' => time()), array('service' => 0, 'alias' => 0, 'name' => 'sitemap_lastgenerate'));
                         $_SESSION['notify']->success = 'SiteMap успішно згенеровано!';
@@ -525,6 +642,7 @@ class wl_sitemap extends Controller {
         }
         else
             $_SESSION['notify']->errors = 'Невірний код безпеки!';
+
         $this->redirect();
     }
 

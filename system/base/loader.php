@@ -152,6 +152,23 @@ class Loader {
 		}
 	}
 
+	function profile_view($data = null)
+	{
+		if(is_array($data))
+			foreach($data as $key => $value) {
+				$$key = $value;
+			}
+		else
+			$content = $data;
+		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
+		$view_file = 'profile/index_view';
+		if(file_exists($view_path))
+		{
+			require $view_path;
+			exit();
+		}
+	}
+
 	function page_404($update_SiteMap = true)
 	{
 		if($update_SiteMap)

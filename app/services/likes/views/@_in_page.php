@@ -1,0 +1,1 @@
+<label>Вподобати сторінку <?php $this->load->function_in_alias('likes', '__show_Like_Btn', $product->id); ?></label>

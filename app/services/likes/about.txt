@@ -1,0 +1,21 @@
+Service "Likes 1.0"
+for WhiteLion 1.0
+
+Author: Ostap Matskiv
+Date 1.0 : 01.01.2018
+
+Description: Вподобайки
+
+Need to work: jquery-1.8.3.js+
+
+Public links:
+	/index() - set/update like to page by id alias and content
+	/__get_Search()	- return false
+
+Admin links:
+	/index() - all users likes
+	/__tab_profile - tab to admin profile detal page
+	/__get_Search() - return false
+
+Versions:
+	1.0 	Основа модулю, включно із ajax збереженням даних

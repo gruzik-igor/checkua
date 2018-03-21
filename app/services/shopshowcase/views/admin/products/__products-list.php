@@ -44,7 +44,15 @@ if(isset($_SESSION['option']->productOrder))
 					<td>
 						<?php if(!empty($a->admin_photo)) {?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" class="pull-left" alt=""></a>
-						<?php } ?>
+						<?php }
+						if($_SESSION['option']->ProductUseArticle)
+						{
+							$name = explode(' ', $a->name);
+							$article = array_pop($name);
+							if($article == $a->article)
+								$a->name = implode(' ', $name);
+						}
+						?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a>
 						<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
 					</td>

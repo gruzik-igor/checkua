@@ -4,96 +4,123 @@ class Comments extends Controller {
 				
     function _remap($method)
     {
-        if (method_exists($this, $method) && $method != 'library' && $method != 'db') {
+        if (method_exists($this, $method) && $method != 'library' && $method != 'db')
             $this->$method();
-        } else {
+        else
             $this->index($method);
-        }
     }
 
-    function index()
+    public function index()
     {
-    	$this->load->page_view('@wl_comments/index_view', array('content' => false, 'alias' => false));
+        $this->load->model('wl_comments_model');
+        $comments = $this->wl_comments_model->get(array('status' => array(1, 2)));
+    	$this->load->page_view('@wl_comments/index_view', array('comments' => $comments, 'showAddForm' => false));
     }
 
-    function add()
+    public function add()
     {
-        if($_POST){
-            $response = $this->data->post('g-recaptcha-response');
-            $callback = file_get_contents('https://www.google.com/recaptcha/api/siteverify?secret=6LdQrwATAAAAAEVaf3KleqOHmfbcAw09NFomGg7x&response='.$response);
-            $callback = json_decode($callback);
+        $this->load->library('recaptcha');
+        $_SESSION['notify'] = new stdClass();
+        $anchor = '';
 
-            if($callback->success == false){
-                $this->load->notify_view(array('errors' => 'Заполните каптчу "Я не робот"!'));
-                exit;
-            }
+        if($this->recaptcha->check($this->data->post('g-recaptcha-response')))
+        {
+            $this->load->library('validator');
+            $this->validator->setRules('E-mail', $this->data->post('email'), 'required|email');
+            $this->validator->setRules('Name', $this->data->post('name'), 'required|3..30');
+            $this->validator->setRules('system:alias', $this->data->post('alias'), 'required');
+            $this->validator->setRules('system:content', $this->data->post('content'), 'required');
+            if($this->validator->run())
+            {
+                $userId = 0;
+                $name = trim($this->data->post('name'));
+                if($user = $this->db->getAllDataById('wl_users', $this->data->post('email'), 'email'))
+                {
+                    if($name != $user->name)
+                    {
+                        $this->db->updateRow('wl_users', array('name' => $name), $user->id);
+                        $this->db->register('profile_data', 'name before: '.$user->name, $user->id);
+                    }
+                    $userId = $user->id;
+                }
+                else
+                {
+                    $user = array('name' => $name);
+                    $user['email'] = trim($this->data->post('email'));
+                    $user['photo'] = false;
+                    $user['password'] = 'auto signup '.time();
+                    $this->load->model('wl_user_model');
+                    if($user = $this->wl_user_model->add($user, false, 5, false, 'from comments'))
+                        $userId = $user->id;
+                }
 
-            $name = $this->data->post('name');
-            $comment = $this->data->post('comment');
-            $alias = (is_numeric($this->data->post('alias'))) ? $this->data->post('alias') : 0;
-            $content = (is_numeric($this->data->post('content'))) ? $this->data->post('content') : 0;
-            $status = $_SESSION['option']->default_status;
-            $date_add = time();
-            $mark1 = (($this->data->post('mark1') >=1)  && ($this->data->post('mark1') <= 5)) ? $this->data->post('mark1') : '0';
-            $mark2 = (($this->data->post('mark2') >=1)  && ($this->data->post('mark2') <= 5)) ? $this->data->post('mark2') : '0';
-            $mark3 = (($this->data->post('mark3') >=1)  && ($this->data->post('mark3') <= 5)) ? $this->data->post('mark3') : '0';
-            $mark4 = (($this->data->post('mark4') >=1)  && ($this->data->post('mark4') <= 5)) ? $this->data->post('mark4') : '0';
-            $mark5 = (($this->data->post('mark5') >=1)  && ($this->data->post('mark5') <= 5)) ? $this->data->post('mark5') : '0';
-            $mark6 = (($this->data->post('mark6') >=1)  && ($this->data->post('mark6') <= 5)) ? $this->data->post('mark6') : '0';
-           
-            if(isset($name) && isset($comment)){
-                $this->db->executeQuery("INSERT INTO comments (`id`, `alias`, `content`, `name`, `comment`, `mark1`, `mark2`, `mark3`, `mark4`, `mark5`, `mark6`, `status`, `date_add`) VALUES (NULL, {$alias}, {$content}, '{$name}', '{$comment}', '{$mark1}', '{$mark2}', '{$mark3}', '{$mark4}', '{$mark5}', '{$mark6}', $status, '{$date_add}')");
-            }
-            header('Location: ' . $_SERVER['HTTP_REFERER']);
-            exit();
-        }
-    }
+                if($userId > 0)
+                {
+                    $this->load->model('wl_comments_model');
+                    $image_names = false;
+                    if($id = $this->wl_comments_model->add($userId, $image_names))
+                    {
+                        $anchor = '#comment-'.$id;
+                        $anchor = '#comment_add_success';
 
-    function delete()
-    {
-        if($this->userCan()){
-            if($_POST){
-                $id = $this->data->post('id');
-                $this->db->executeQuery("DELETE FROM `comments` WHERE id = $id");
-            }
-        }
-    }
+                        $name_field = 'images';
+                        if($image_names && !empty($_FILES[$name_field]['name']))
+                        {
 
-    function status_edit()
-    {
-        if($this->userCan()){
-            if($_POST){
-                $status = $this->data->post('status');
-                if(isset($_POST['row'])){
-                    foreach ($_POST['row'] as $row) {
-                        $this->db->executeQuery("UPDATE `comments` SET `status` = $status WHERE `id` = $row");
+                            $path = IMG_PATH;
+                            $path = substr($path, strlen(SITE_URL));
+                            $path = substr($path, 0, -1);
+                            
+                            if(!is_dir($path))
+                            {
+                                if(mkdir($path, 0777) == false)
+                                    exit('Error create dir ' . $path);
+                            }
+                            $path .= '/comments';
+                            if(!is_dir($path))
+                            {
+                                if(mkdir($path, 0777) == false)
+                                    exit('Error create dir ' . $path);
+                            }
+                            $path .= '/'.$id;
+                            if(!is_dir($path))
+                            {
+                                if(mkdir($path, 0777) == false)
+                                    exit('Error create dir ' . $path);
+                            }
+                            $path .= '/';
+
+                            $this->load->library('image');
+                            for ($i=0; $i < count($_FILES['images']['name']); $i++) { 
+                                if(is_array($image_names))
+                                    $name = $image_names[$i];
+                                else
+                                    $name = $image_names;
+                                $this->image->uploadArray($name_field, $i, $path, $name);
+                                $extension = $this->image->getExtension();
+                                $this->image->resize(1280, 1280);
+                                $this->image->save();
+                                if($this->image->getErrors() == '')
+                                {
+                                    if($this->image->loadImage($path, $name, $extension))
+                                    {
+                                        $this->image->preview(130, 90);
+                                        $this->image->save('m');
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
-
             }
+            else
+                $_SESSION['notify']->errors = '<ul>'.$this->validator->getErrors('<li>', '</li>').'</ul>';
         }
+        else
+            $_SESSION['notify']->errors = $this->text('Please fill in the captcha');
+        if(isset($_SESSION['notify']->errors))
+            $anchor = '#comment_add_error';
+        $this->redirect($anchor);
     }
-
-    function reply()
-    {
-        if($this->userCan()){
-            if($_POST){
-                $comment_id = $this->data->post('id');
-                $reply = $this->data->post('reply');
-                $date_add = time();
-                if(isset($comment_id) && isset($reply)){
-                    $this->db->executeQuery("SELECT * FROM comments_reply WHERE comment = $comment_id");
-                    if($this->db->numRows() == 0)
-                        $this->db->executeQuery("INSERT INTO comments_reply (`comment`, `reply`, `date_add`) VALUES ($comment_id, '{$reply}', $date_add)");
-                    else
-                        $this->db->executeQuery("UPDATE comments_reply SET `reply` = '{$reply}', `date_add` = $date_add");
-                }
-            }
-            header('Location: ' . $_SERVER['HTTP_REFERER'].'#tab-comments');
-            exit;
-        }
-    }
-
-    
 
 }

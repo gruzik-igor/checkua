@@ -715,3 +715,48 @@ ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+
+
+-- --------------------------------------------------------
+
+--
+-- Структура таблиці `wl_comments`
+--
+
+CREATE TABLE `wl_comments` (
+  `id` int(11) NOT NULL,
+  `alias` int(11) NOT NULL,
+  `content` int(11) NOT NULL,
+  `user` int(11) NOT NULL,
+  `parent` int(11) NOT NULL,
+  `comment` text,
+  `rating` tinyint(4) DEFAULT NULL,
+  `images` text,
+  `status` tinyint(1) NOT NULL,
+  `date_add` int(11) NOT NULL,
+  `manager` int(11) DEFAULT NULL,
+  `date_manage` int(11) DEFAULT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Індекси збережених таблиць
+--
+
+--
+-- Індекси таблиці `wl_comments`
+--
+ALTER TABLE `wl_comments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `alias` (`alias`,`content`),
+  ADD KEY `user` (`user`),
+  ADD KEY `status` (`status`);
+
+--
+-- AUTO_INCREMENT для збережених таблиць
+--
+
+--
+-- AUTO_INCREMENT для таблиці `wl_comments`
+--
+ALTER TABLE `wl_comments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;

@@ -1,61 +1,59 @@
-<?php if($comments) {
-	$count = 0;
-	$_SESSION['alias']->js_load[] = 'assets/white-lion/comment-reviews.js';
-?>
+<?php if($comments) { ?>
 
-<div id="hotel-reviews">
+<div class="reviews-block mb-4">
+	<h5 class="reviews-block-title font-weight-bold mb-3" id="reviews-airport">Reviews <?=$_SESSION['alias']->name?></h5>
 
-    <div class="guest-reviews">
-        <h2>Отзывы</h2>
+	<?php if(!empty($_SESSION['notify']->success)): ?>
+	    <div id="comment_add_success" class="alert alert-success">
+	        <span class="close" data-dismiss="alert">×</span>
+	        <i class="fa fa-check fa-2x pull-left"></i>
+	        <h4><?=(isset($_SESSION['notify']->title)) ? $_SESSION['notify']->title : 'Success!'?></h4>
+	        <p><?=$_SESSION['notify']->success?></p>
+	    </div>
+	<?php endif; ?>
 
-        <?php foreach ($comments as $comment) { $count++; ?>
-
-			<div class="guest-review table-wrapper" <?= ($count > 5) ? 'hidden' : '' ?>>
-				<div class="col-xs-3 col-md-2 author table-cell">
-					<p class="name"><?= $comment->name?></p>
-					<p class="date"><?=date("d.m.Y H:i",$comment->date_add)?></p>
-				</div>
-				<div class="col-xs-9 col-md-10 table-cell comment-container">
-					<div class="comment-content">
-						<?=$comment->comment?>
-					</div>
-
-					<?php $reply = $this->db->getQuery("SELECT * FROM comments_reply WHERE comment = $comment->id");
-					if($reply) { ?>
-						<hr>
-						<div class="answer comment-header clearfix">
-							<h4 class="comment-title">Администрация <?=date("d.m.Y H:i",$reply->date_add)?></h4>
-						</div>
-						<div class="comment-content">
-							<?=$reply->reply?>
-						</div>
-					<?php }
-					if($this->userCan()) { ?>
-						<div style="clear:both">
-							<br>
-							<button id="reply" onclick="reply(<?= $comment->id?>)">Ответить</button>
-							<div id="replyBlock_<?= $comment->id?>" hidden>
-								<form action="<?=SITE_URL?>comments/reply" method="POST">
-									<input type="hidden" name="id" value="<?= $comment->id?>">
-									<textarea name="reply" id="" cols="50" rows="5" style="margin: 10px 0 10px 0"></textarea><br>	
-									<input type="submit" value="Отправить">
-								</form>
-								
-							</div>
-						</div>
+	<ul class="reviews-list list-unstyled mb-0">
+		<?php foreach ($comments as $comment) { ?>
+			<li class="row" id="comment-<?=$comment->id?>">
+				<div class="col-12 col-xl-2">
+					<?php for($i = 0; $i < $comment->rating; $i++) { ?>
+						<i class="fa fa-star" aria-hidden="true"></i>
+					<?php } for($i = $comment->rating; $i < 5; $i++) { ?>
+						<i class="fa fa-star-o" aria-hidden="true"></i>
 					<?php } ?>
-
 				</div>
-			</div>
-
+				<div class="col-12 col-xl-10">
+					<div class="reviews-author-date mb-2">
+						<span><?=$comment->user_name?></span>
+						<time datetime="2017-11-30 05:14"><?=date('F j, Y \a\t g:i a', $comment->date_add)?></time>
+					</div>
+					<p class="reviews-article mb-0">
+						<?=nl2br($comment->comment)?>
+						<?php if($comment->images) {
+							echo('<p>');
+							$comment->images = explode('|||', $comment->images);
+							foreach ($comment->images as $image) {
+								echo '<a href="'.IMG_PATH.'comments/'.$comment->id.'/'.$image.'" rel="lightbox"><img src="'.IMG_PATH.'comments/'.$comment->id.'/m_'.$image.'" alt="'.$_SESSION['alias']->name.'"></a>';
+							}
+							echo('</p>');
+						} ?>
+					</p>
+					<?php $this->wl_comments_model->paginator = false;
+					if($replays = $this->wl_comments_model->get(array('parent' => $comment->id, 'status' => '<3')))
+						foreach ($replays as $replay) { ?>
+							<hr>
+							<div class="reviews-author-date mb-2">
+								<span><?=$replay->user_name?></span>
+								<time datetime="2017-11-30 05:14"><?=date('F j, Y \a\t g:i a', $replay->date_add)?></time>
+							</div>
+							<p class="reviews-article mb-0">
+								<?=nl2br($replay->comment)?>
+							</p>
+					<?php } ?>
+				</div>
+			</li>
 		<?php } ?>
-
-    </div>
-
-    <?php if($count >= 6) { ?>
-    	<a class="button full-width btn-large show_feedbacks"><?=$this->text('Завантажити більше', 0)?></a>
-    <?php } ?>
-
+	</ul>
 </div>
 
 <?php } ?>

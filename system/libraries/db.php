@@ -65,6 +65,12 @@ class Db {
             $this->time_start = microtime(true);
             $this->mem_start = memory_get_usage();
             echo $this->count_db_queries.': '.$query;
+            // if($this->count_db_queries == 11)
+            // {
+            //     echo "<pre>";
+            //     debug_print_backtrace();
+            //     echo "</pre>";
+            // }
         }
         $result = $this->connects[$this->current]->query($query);
         if(!$result)
@@ -388,6 +394,7 @@ class Db {
 
     public function select($table, $fields = '*', $key = '', $row_key = 'id')
     {
+        $this->clear();
         $table = preg_replace("|[\s]+|", " ", $table);
         $table = explode(' ', $table);
         if(count($table) == 3 && ($table[1] == 'as' || $table[1] == 'AS' || $table[1] == 'As'))

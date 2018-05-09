@@ -76,6 +76,25 @@ class Mail {
             if(file_exists($path) == false)
                 $path = APP_PATH.'mails'.DIRSEP.$template.'.php';
         }
+        if($_SESSION['alias']->service)
+        {
+            $folder_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'mails';
+            if(is_dir($folder_path))
+            {
+                $folder_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'mails'.DIRSEP.$template.'.php';
+                if(file_exists($folder_path))
+                {
+                    $path = $folder_path;
+                    if($_SESSION['language'])
+                    {
+                        $folder_path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'mails'.DIRSEP.$_SESSION['language'].DIRSEP.$template.'.php';
+                        if(file_exists($folder_path))
+                            $path = $folder_path;
+                    }
+                }
+            }
+            
+        }
 		if(file_exists($path))
         {
 			$subject = '';

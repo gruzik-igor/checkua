@@ -1,6 +1,6 @@
 <h2 class="heading-md"><?=$this->text('Загальні дані мого аккаунту')?></h2>
 <br>
-<form action="<?= SITE_URL?>profile/saveUserInfo" method="POST" class="sky-form">
+<form action="<?= SITE_URL?>profile/saveUserInfo" method="POST" class="sky-form col-md-8">
     <dl class="dl-horizontal">
         <dt>
             <strong><?=$this->text('Моє ім\'я')?></strong>
@@ -68,3 +68,17 @@
         <button class="btn-u hidden" type="submit" id="saveInfo"><?=$this->text('Зберегти зміни')?></button>
     </dl>
 </form>
+<div class="col-md-4 md-margin-bottom-40">
+    <div id="fileupload" class="fileupload-buttonbar">
+        <div style="text-align: center;">
+            <div>
+                <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?= ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : IMG_PATH.'empty-avatar.jpg'  ?>" alt="Фото" title="Фото" >
+            </div>
+            <div class="fileUpload ">
+                <span style="font-weight:bold"> <?=$this->text('Додати фото')?></span>
+                <input onchange="show_image(this)" type="file" name="photos" class="upload">
+            </div>
+            <img id="loading" class="hidden" src="<?=IMG_PATH?>ajax-loader.gif" >
+        </div>
+    </div>
+</div>

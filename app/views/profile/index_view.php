@@ -8,12 +8,8 @@
             <div class="row">
                 <!--Left Sidebar-->
                 <div class="col-md-3 md-margin-bottom-40">
-                    <?php $avatar = (isset($user->id)) ? $user->id : 0;
-                    $avatar = ($this->userIs() && $avatar == 0) ? $_SESSION['user']->id : 0;
-                    $avatar = ($avatar > 0) ? 'profile/'.$avatar . '.jpg' : 'empty-avatar.jpg';
-                    if(file_exists(IMG_PATH.$avatar)) { ?>
-                        <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?=IMG_PATH.$avatar ?>">
-                    <?php } ?>
+                    <?php $avatar = ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : IMG_PATH.'empty-avatar.jpg'; ?>
+                    <img class="img-responsive profile-img margin-bottom-20" id="photo" src="<?=$avatar ?>">
                     <ul class="list-group sidebar-nav-v1 margin-bottom-40" id="sidebar-nav-1">
                         <li class="list-group-item <?=($_SESSION['alias']->alias == 'profile') ? 'active' : ''?>">
                             <a href="<?= SITE_URL?>profile"><i class="fa fa-user"></i> <?=$this->text('Профіль')?></a>
@@ -41,32 +37,28 @@
                                 <a href="<?=SITE_URL?>admin"><i class="fa fa-cogs"></i> Панель керування</a>
                             </li>
                         <?php } ?>
+                        <li class="list-group-item">
+                            <a href="<?=SITE_URL?>logout"> Вийти</a>
+                        </li>
                     </ul>   
                 </div>
                 <!--End Left Sidebar-->
                 
                 <!-- Profile Content -->
                 <div class="col-md-9">
-                    <div class="profile-body">
 
-                        <?php if(isset($content))
-                                echo $content;
-                            else {
-                         ?>
-
-                        <div class="profile-bio">
-                            <div class="row">
-                                <h2><?=$user->name?></h2>
-                                <?php if($user->email) {?>
-                                <span><strong>Email:</strong> <?=$user->email?></span>
-                                <?php } ?>
-                            </div>    
-                        </div><!--/end row-->
-
-                        <?php } ?>
-
-                        <hr>   
+                    <div class="row">
+                        <div class="profile-body margin-bottom-20">
+                            <h1><?=$user->name?></h1>
+                            <?php if($user->email) {?>
+                            <span><strong>Email:</strong> <?=$user->email?></span>
+                            <?php } ?>
+                        </div>
                     </div>
+
+                    <?php if(isset($sub_page))
+                            require_once $sub_page;
+                    ?>
                 </div>
                 <!-- End Profile Content -->
             </div>

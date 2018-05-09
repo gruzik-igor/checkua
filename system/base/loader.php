@@ -152,14 +152,16 @@ class Loader {
 		}
 	}
 
-	function profile_view($data = null)
+	function profile_view($sub_page = false, $data = null)
 	{
 		if(is_array($data))
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		else
-			$content = $data;
+		if($sub_page)
+			$sub_page .= '.php';
+		if($_SESSION['alias']->service)
+			$sub_page = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$sub_page;
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		$view_file = 'profile/index_view';
 		if(file_exists($view_path))
@@ -400,7 +402,7 @@ class Loader {
 				}
 			}
 			
-			if($old_alias != $alias->id)
+			if($old_alias != $alias->id && isset($_SESSION['alias-cache'][$old_alias]))
 			{
 				$_SESSION['alias'] = clone $_SESSION['alias-cache'][$old_alias]->alias;
 				$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;

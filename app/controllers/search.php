@@ -20,17 +20,19 @@ class Search extends Controller {
 			{
 				$per_page = 0;
 				$start = 1;
+				$_SESSION['option']->paginator_per_page = 50;
 				if($this->data->get('page') > 1 && isset($_SESSION['option']->paginator_per_page))
 					$start = ($this->data->get('page') - 1) * $_SESSION['option']->paginator_per_page + 1;
+				$_SESSION['option']->paginator_total = count($search_data);
 
 				foreach ($search_data as $search)
 				{
 					if($result = $this->load->function_in_alias($search->alias_id, '__get_Search', $search->content))
 					{
 						$current++;
-						$result->name = $search->name;
+						if(empty($result->name))
+							$result->name = $search->name;
 						$result->list = $search->list;
-						$result->text = $search->text;
 						$result->image = false;
 						if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 						{
@@ -46,6 +48,8 @@ class Search extends Controller {
 							array_push($data, $result);
 						}
 					}
+					if($current == $_SESSION['option']->paginator_per_page)
+						break;
 				}
 			}
 		}
@@ -54,12 +58,39 @@ class Search extends Controller {
 			$_SESSION['notify'] = new stdClass();
 			$_SESSION['notify']->errors = $this->validator->getErrors();
 		}
-		@$_SESSION['option']->paginator_total = $current;
+		// @$_SESSION['option']->paginator_total = $current;
 
 		if(count($data) == 1)
 			header("Location:".SITE_URL.$data[0]->link);
 
 		$this->load->page_view('search_view', array('data' => $data));
+	}
+
+	public function ajax()
+	{
+		$this->load->library('validator');
+		if($this->data->get('by'))
+			$this->validator->setRules($this->text('search text'), $this->data->get('by'), '3..100');
+		if($this->validator->run())
+		{
+			$data = array();
+			$_SESSION['option']->paginator_per_page = 20;
+			$this->load->model('wl_search_model');
+			if($search_data = $this->wl_search_model->get())
+				foreach ($search_data as $search)
+				{
+					if($result = $this->load->function_in_alias($search->alias_id, '__get_Search', $search->content))
+					{
+						if(empty($result->name))
+							$result->name = $search->name;
+						$row = new stdClass();
+						$row->name = $result->name;
+						$row->link = SITE_URL.$result->link;
+						array_push($data, $row);
+					}
+				}
+			$this->load->json($data);
+		}
 	}
 
 	public function __get_Keywords($data = 0)

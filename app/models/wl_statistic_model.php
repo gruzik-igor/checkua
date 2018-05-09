@@ -88,9 +88,12 @@ class wl_statistic_model {
 
 	public function searchBot()
 	{
-		$bots = array('Googlebot', 'Yahoo', 'Slurp', 'MSNBot', 'Teoma', 'Scooter', 'ia_archiver', 'Lycos', 'Yandex', 'StackRambler', 'Mail.Ru', 'Aport', 'WebAlta', 'bot', 'Google');
-		foreach ($bots as $bot) {
-			if ( stristr($_SERVER['HTTP_USER_AGENT'], $bot) ) return true;
+		if(isset($_SERVER['HTTP_USER_AGENT']))
+		{
+			$bots = array('Googlebot', 'Yahoo', 'Slurp', 'MSNBot', 'Teoma', 'Scooter', 'ia_archiver', 'Lycos', 'Yandex', 'StackRambler', 'Mail.Ru', 'Aport', 'WebAlta', 'bot', 'Google');
+			foreach ($bots as $bot) {
+				if ( stristr($_SERVER['HTTP_USER_AGENT'], $bot) ) return true;
+			}
 		}
 		return false;
 	}

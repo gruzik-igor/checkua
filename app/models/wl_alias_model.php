@@ -213,7 +213,7 @@ class wl_alias_model
     	if($_SESSION['language'])
     		$where['language'] = $_SESSION['language'];
 
-    	if($_SESSION['alias']->id > 0 && $_SESSION['alias']->content > 0)
+    	if($_SESSION['alias']->id > 0)
     	{
     		$where['alias'] = array(0, $_SESSION['alias']->id);
     		if($_SESSION['alias']->content > 0)

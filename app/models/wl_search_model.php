@@ -2,10 +2,13 @@
 
 class wl_search_model {
 
-	public function get($by, $all = false)
+	public function get($all = false)
 	{
-		$where['name'] = '%'.$by;
-		$where['content'] = '> 0';
+		// $where['alias'] = array(8, 9, 11, 12);
+		if($by = $this->data->get('by'))
+			$where['keywords'] = '%'.$by;
+		if($keywords = $this->data->get('keywords'))
+			$where['keywords'] = '%'.$keywords;
 		if($_SESSION['language'])
 		{
 			if(!$all)
@@ -18,7 +21,11 @@ class wl_search_model {
 			if($alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias'))
 				$where['alias'] = $alias->id;
 		}
-		$this->db->select('wl_ntkd', 'alias as alias_id, content, name, list, text', $where);
+		if($wl_aliases = $this->db->getAllDataByFieldInArray('wl_aliases', array('service' => '>0')))
+			foreach ($wl_aliases as $alias) {
+				$where['alias'][] = $alias->id;
+			}
+		$this->db->select('wl_ntkd', 'alias as alias_id, content, name, list', $where);
 		$this->db->join('wl_aliases', 'alias, table, service', '#wl_ntkd.alias');
 		if($sort = $this->data->get('sort'))
 		{
@@ -29,27 +36,17 @@ class wl_search_model {
 		}
 		else
 		{
-			$this->db->order('content ASC');
+			$this->db->order('content DESC');
 		}
-
-		return $this->db->get('array');
-	}
-
-	public function getGroups($by)
-	{
-		$where['name'] = '%'.$by;
-		$where['content'] = '< 0';
-		if($_SESSION['language'])
+		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 		{
-			$where['language'] = $_SESSION['language'];
+			$start = 0;
+			if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
+				$_SESSION['option']->paginator_per_page = $_GET['per_page'];
+			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1)
+				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
+			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
-
-
-		$this->db->select('wl_ntkd', 'alias as alias_id, content, name, list, text', $where);
-		$this->db->join('wl_aliases', 'alias, table, service', '#wl_ntkd.alias');
-
-		$this->db->order('content ASC');
-
 
 		return $this->db->get('array');
 	}

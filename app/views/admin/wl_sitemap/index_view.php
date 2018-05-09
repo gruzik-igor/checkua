@@ -6,8 +6,8 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                     <a href="<?=SITE_URL?>admin/wl_sitemap/add_redirect" class="btn btn-success btn-xs"><i class="fa fa-plus"></i> Додати 301 переадресацію</a>
+                    <a href="<?=SITE_URL?>admin/wl_sitemap/generate_image" class="btn btn-info btn-xs"><i class="fa fa-image"></i> Карта сайту картинок</a>
                     <a href="<?=SITE_URL?>admin/wl_sitemap/generate" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Генерувати карту сайту</a>
-                	<a href="<?=SITE_URL?>admin/wl_sitemap/generate_image" class="btn btn-warning btn-xs"><i class="fa fa-image"></i> Карта сайту картинок</a>
                     <?php if($_SESSION['cache']) { ?>
                         <a href="#modal-deleteCache" class="btn btn-danger btn-xs" data-toggle="modal"><i class="fa fa-trash"></i> Очистити весь Cache сайту</a>
                     <?php } ?>
@@ -69,7 +69,7 @@
                 <div class="pull-right" style="width: 400px">
                     <form>
                         <div class="input-group">
-                            <input type="text" name="link" class="form-control input-sm" placeholder="Адреса" required>
+                            <input type="text" name="link" value="<?=$this->data->get('link')?>" class="form-control input-sm" placeholder="Адреса" required>
                             <div class="input-group-btn">
                                 <input type="submit" class="btn btn-info btn-sm" value="Пошук">
                             </div>

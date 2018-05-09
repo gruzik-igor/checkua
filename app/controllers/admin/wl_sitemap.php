@@ -451,12 +451,15 @@ class wl_sitemap extends Controller {
 
     public function generate()
     {
+        $_SESSION['alias']->name = 'Генерувати карту сайту';
+        $_SESSION['alias']->breadcrumb = array('Site Map' => 'admin/wl_sitemap', 'Налаштування' => '');
         $this->load->admin_view('wl_sitemap/generate_view');
     }
 
     public function generate_image()
     {
-        $_SESSION['alias']->name = 'Карта сайту картинок';
+        $_SESSION['alias']->name = 'Карта сайту зображень';
+        $_SESSION['alias']->breadcrumb = array('Site Map' => 'admin/wl_sitemap', 'Зображення' => '');
 
         $allImages = $this->db->select('wl_images as i', 'id, file_name as photo, content' )
                          ->join('wl_ntkd', 'name', array('alias' => '#i.alias', 'content' => 0))
@@ -579,6 +582,83 @@ class wl_sitemap extends Controller {
         $_SESSION['notify'] = new stdClass();
         $_SESSION['notify']->success = 'Загальні налаштування SiteMap успішно оновлено!';
         $this->redirect();
+    }
+
+    public function re_generate()
+    {
+        $_SESSION['notify'] = new stdClass();
+        if($this->data->post('code_hidden') == $this->data->post('code_open') && $this->data->post('code_hidden') > 0)
+        {
+            $where = array('code' => 301);
+            if(empty($_POST['deletePageCode']))
+                $where['+code'] = 404;
+            if($exeption = $this->db->getAllDataByFieldInArray('wl_sitemap', $where))
+            {
+                foreach ($where as $key => $value) {
+                    $value = '!'.$value;
+                }
+                $this->db->deleteRow('wl_sitemap', $where);
+                $where = "NOT IN ( ";
+                foreach ($exeption as $row) {
+                    $where .= "'{$row->id}', ";
+                }
+                $where = substr($where, 0, -2);
+                $where .= ')';
+                $this->db->executeQuery("DELETE FROM `wl_sitemap_from` WHERE `sitemap` {$where}");
+                $this->db->executeQuery("DELETE FROM `wl_statistic_pages` WHERE `alias` = 0 AND `content` {$where}");
+            }
+            else
+            {
+                $this->db->executeQuery("TRUNCATE wl_sitemap");
+                $this->db->executeQuery("TRUNCATE wl_sitemap_from");
+                $this->db->deleteRow('wl_statistic_pages', array('alias' => 0));
+            }
+
+            $data = array();
+            $keys = array('link', 'alias', 'content', 'language', 'code', 'data', 'time', 'changefreq', 'priority');
+            if(!empty($_POST['aliases']) && is_array($_POST['aliases']))
+                foreach ($_POST['aliases'] as $alias_id) {
+                    if(is_numeric($alias_id))
+                    {
+                        if($rows = $this->function_in_alias($alias_id, '__get_SiteMap_Links'))
+                            foreach ($rows as $row) {
+                                if(empty($row['alias']))
+                                    $row['alias'] = $alias_id;
+                                if(empty($row['code']))
+                                    $row['code'] = 200;
+                                if(empty($row['time']))
+                                    $row['time'] = time();
+                                if(empty($row['changefreq']))
+                                    $row['changefreq'] = 'daily';
+                                if(empty($row['priority']))
+                                    $row['priority'] = 5;
+                                if(empty($row['time']))
+                                    $row['time'] = time();
+                                if($_SESSION['language'])
+                                    foreach ($_SESSION['all_languages'] as $language) {
+                                        $row['language'] = $language;
+                                        $data[] = $row;
+                                    }
+                                else
+                                    $data[] = $row;
+
+                                if(count($data) > 1000)
+                                {
+                                    $this->db->insertRows('wl_sitemap', $keys, $data);
+                                    $data = array();
+                                    
+                                }
+                            }
+                    }
+                }
+            if(!empty($data))
+                $this->db->insertRows('wl_sitemap', $keys, $data);
+            $_SESSION['notify']->success = 'Карту сайту сформовано успішно';
+        }
+        else
+            $_SESSION['notify']->errors = 'Невірний код безпеки!';
+
+        $this->redirect('admin/wl_sitemap');
     }
 
     public function start_generate()

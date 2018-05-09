@@ -308,7 +308,7 @@
                                                 }
                                             }
                                         ?>
-                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="language-tab-<?=$lang?>">
+                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="language-tab2-<?=$lang?>">
                                             <table>
                                                 <div class="form-group">
                                                     <label class="col-md-2 control-label">Title</label>
@@ -428,8 +428,8 @@
                             <h4 class="panel-title">Слова</h4>
                         </div>
                         <div class="panel-body" id="words">
-                            <button type="button" class="btn btn-default" title="назва сторінки">{name}</button>
-                            <button type="button" class="btn btn-default" title="Базова адреса сайту: <?=SITE_URL?>">{SITE_URL}</button>
+                            <button type="button" class="btn btn-default m-b-5" title="назва сторінки">{name}</button>
+                            <button type="button" class="btn btn-default m-b-5" title="Базова адреса сайту: <?=SITE_URL?>">{SITE_URL}</button>
                             <button type="button" class="btn btn-default" title="Базова адреса зображень: <?=IMG_PATH?>">{IMG_PATH}</button>
                             <hr>
                             <div id="pageKeyWords">
@@ -504,6 +504,8 @@
 
                     $('#wordTarget').focus()
                     wordTarget.setSelectionRange(cursorPos + buttonText.length, cursorPos + buttonText.length);
+
+                    $('#wordTarget').change();
                 }
             })
        }

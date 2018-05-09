@@ -76,7 +76,7 @@
                             </p>
                             <div class="btn-row">
                                 <a href="<?=SITE_URL.$search->link?>" data-toggle="tooltip" data-container="body" data-title="Дивитись сторінку на сайті"><i class="fa fa-fw fa-cloud-upload"></i></a>
-                                <a href="<?=SITE_URL.$search->edit_link?>" data-toggle="tooltip" data-container="body" data-title="Редагувати"><i class="fa fa-fw fa-cog"></i></a>
+                                <a href="<?=SITE_URL.'admin/'.$search->edit_link?>" data-toggle="tooltip" data-container="body" data-title="Редагувати"><i class="fa fa-fw fa-cog"></i></a>
                                 <?php if($search->folder) { ?>
                                     <a href="<?=SITE_URL.$search->edit_link?>#tab-photo" data-toggle="tooltip" data-container="body" data-title="Редагувати зображення"><i class="fa fa-fw fa-camera"></i></a>
                                     <a href="<?=SITE_URL.$search->edit_link?>#tab-audio" data-toggle="tooltip" data-container="body" data-title="Редагувати аудіо"><i class="fa fa-fw fa-tasks"></i></a>

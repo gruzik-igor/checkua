@@ -1,5 +1,5 @@
 <?php
-    $this->db->select('wl_aliases as a', 'alias, admin_ico, service');
+    $this->db->select('wl_aliases as a', 'alias, seo_robot, admin_ico, service');
     $where = array('alias' => '#a.id', 'content' => 0);
     if($_SESSION['language']) $where['language'] = $_SESSION['language'];
     $this->db->join('wl_ntkd', 'name', $where);
@@ -38,7 +38,7 @@
 							<tr>
 								<td>
                                     <a href="<?=SITE_URL.'admin/wl_ntkd/'.$alias->alias?>"><?=($alias->admin_ico) ? '<i class="fa '.$alias->admin_ico.'"></i>' : ''?> <?=$alias->alias?></a>
-                                    <?php if($alias->service > 0) { ?>
+                                    <?php if($alias->seo_robot > 0) { ?>
                                         <a href="<?=SITE_URL?>admin/wl_ntkd/<?=$alias->alias?>/seo_robot" class="btn btn-success btn-xs"><i class="fa fa-globe"></i> SEO робот</a>
                                     <?php } ?>
                                 </td>

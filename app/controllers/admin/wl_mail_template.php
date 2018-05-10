@@ -32,7 +32,7 @@ class wl_mail_template extends Controller {
                 $checkedForms = $this->db->getQuery("SELECT ma.form, f.name as formName, ff.name  FROM `wl_mail_active` as ma LEFT JOIN `wl_forms` as f ON ma.form = f.id LEFT JOIN `wl_fields` as ff ON f.id = ff.form WHERE ma.template = $mailTemplate->id", 'array');
                 $fields = $this->db->getQuery("SELECT ff.name, it.name as type FROM `wl_mail_active` as ma LEFT JOIN `wl_forms` as f ON ma.form = f.id LEFT JOIN `wl_fields` as ff ON f.id = ff.form LEFT JOIN `wl_input_types` as it ON ff.input_type = it.id WHERE ma.template = $mailTemplate->id", 'array');
 
-                if(!empty($checkedForms)){
+                if(!empty($checkedForms) && !empty($allForms)){
                     foreach ($allForms as $form) {
                         foreach ($checkedForms as $checkedForm) {
                             if($checkedForm->form == $form->id){

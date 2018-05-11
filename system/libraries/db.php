@@ -20,6 +20,7 @@
  * Версія 2.2.3 (29.10.2017) - додано count_db_queries, shopDBdump, виправлено помилку у where() для пустого/нульового значення
  * Версія 2.2.4 (01.11.2017) - додано group(), оптимізовано роботу getAliasImageSizes()
  * Версія 2.2.5 (01.12.2017) - amp версію виключено з індексації
+ * Версія 2.3 (17.03.2018) - додано insertRows() - мультивставка рядків
  */
 
 class Db {
@@ -117,6 +118,46 @@ class Db {
         if($this->affectedRows() > 0)
             return $this->getLastInsertedId();
         return false;
+    }
+
+    function insertRows($table, $keys = array(), $data = array(), $perQuery = 50)
+    {
+        if(empty($keys) || empty($data))
+            return false;
+
+        $insert = "INSERT INTO `".$table."` ( ";
+        foreach ($keys as $key) {
+            $insert .= '`' . $key . '`, ';
+        }
+        $insert = substr($insert, 0, -2);
+        $insert .= ' ) VALUES ';
+        $inserted = $i = 0; $query = '';
+        foreach ($data as $row) { 
+            $values = '';
+            foreach ($keys as $key) {
+                $value = '';
+                if(isset($row[$key]))
+                    $value = $this->sanitizeString($row[$key]);
+                $values .= "'{$value}', ";
+            }
+            $values = substr($values, 0, -2);
+            $query .= '( ' . $values . ' ), ';
+            if(++$i > $perQuery)
+            {
+                $i = 0;
+                $query = $insert . substr($query, 0, -2) . ';';
+                $this->executeQuery($query);
+                $inserted += $this->affectedRows();
+                $query = '';
+            }
+        }
+        if($i > 0)
+        {
+            $query = $insert . substr($query, 0, -2) . ';';
+            $this->executeQuery($query);
+            $inserted += $this->affectedRows();
+        }
+        return true;
     }
 
     function getLastInsertedId()
@@ -302,6 +343,11 @@ class Db {
                         $value = $this->sanitizeString($value);
                         if($value[0] == '%')
                             $where .= " LIKE '{$value}%' AND ";
+                        elseif($value[0] == '@')
+                        {
+                            $value = substr($value, 1);
+                            $where .= " LIKE '{$value}%' AND ";
+                        }
                         elseif($value[0] == '>')
                         {
                             if($value[1] == '=')

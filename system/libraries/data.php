@@ -245,7 +245,7 @@ class Data {
 	 */
 	private function xss_clean($value)
     {
-		return htmlspecialchars($value, ENT_QUOTES);
+		return htmlspecialchars(trim($value), ENT_QUOTES);
 	}
 
 	public function latterUAtoEN($text)

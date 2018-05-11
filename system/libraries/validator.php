@@ -58,7 +58,7 @@ class validator {
     {
         if(mb_strlen($data, 'utf-8') < $min || mb_strlen($data, 'utf-8') > $max)
         {
-            array_push($this->errors, $field.' повинно містити від '.$min.' до '.$max.' символів.');
+            array_push($this->errors, $field.' must have from '.$min.' to '.$max.' letters');
             return false;
         }
         return true;
@@ -73,7 +73,7 @@ class validator {
     public function email($field, $data)
     {
         if(!preg_match('^[_a-z0-9-]+(\.[_a-z0-9-]+)*@[a-z0-9-]+(\.[a-z0-9-]+)*(\.[a-z]{2,4})^', $data)){
-            array_push($this->errors, $field.' неправильне.');
+            array_push($this->errors, $field.' no correct');
             return false;
         }
         return true;
@@ -89,7 +89,7 @@ class validator {
     {
         if($data == '')
         {
-            array_push($this->errors, $field.' обов\'язкове.');
+            array_push($this->errors, $field.' required');
             return false;
         }
         return true;

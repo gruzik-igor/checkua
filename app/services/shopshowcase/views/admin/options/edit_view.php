@@ -242,42 +242,48 @@
 						if($_SESSION['language']) $colspan += count($_SESSION['all_languages']);
 						else $colspan++;
 						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4> <button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning">Додати властивість</button></th></tr>');
+
 						$options = array();
-						if($_SESSION['language']){
-							$options = $this->db->getAllDataByFieldInArray($this->options_model->table(), ($option->id * -1), 'group');
+						$this->db->select($this->options_model->table().' as o', '*', -$option->id, 'group');
+						if($_SESSION['language'])
+						{
 							echo("<tr><td></td><td>Фото</td>");
 							foreach ($_SESSION['all_languages'] as $lang) {
 								echo("<td>{$lang}</td>");
 							}
 							echo("<td></td></tr>");
-						} else {
-							$this->db->select($this->options_model->table().' as o', '*', -$option->id, 'group');
-							$this->db->join($this->options_model->table('_options_name'), 'id as name_id, name', '#o.id', 'option');
-			                $options = $this->db->get('array');
 						}
+						else
+							$this->db->join($this->options_model->table('_options_name'), 'id as name_id, name', '#o.id', 'option');
 						
-						if($options){
+						if($options = $this->db->get('array'))
+						{
 							$i = 1;
-							if($_SESSION['language']){
-								foreach ($options as $opt){
+							
+							foreach ($options as $opt) {
+								
+								$rowspan = ($option->changePrice) ? 'rowspan="2"' : '';
+								echo('<tr id="option_'.$opt->id.'">');
+								echo("<td {$rowspan}>#{$i}</td>");
+
+								if($opt->photo == 0)
+									echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
+								else
+								{
+									$photoPath = $_SESSION["alias"]->alias."/options/".$option->originalAlias."/".$opt->photo; 
+									echo('<td><img style="width: 100px; height: auto; display: inline-block;" src='.IMG_PATH.$photoPath.' >');
+									echo(' <button class="btn btn-danger" onClick="deletePropertyPhoto('.$opt->id.',\''.$photoPath.'\')">-</button></td>');
+								}
+
+								if($_SESSION['language'])
+								{
 									$names_db = $this->db->getAllDataByFieldInArray($this->options_model->table('_options_name'), $opt->id, 'option');
 									$names = array();
-									if($names_db){
+									if($names_db)
 										foreach ($names_db as $name) {
 											@$names[$name->language]->id = $name->id;
 											$names[$name->language]->name = $name->name;
 										}
-									}
-									echo('<tr id="option_'.$opt->id.'">');
-									echo("<td>#{$i}</td>");
-
-									if($opt->photo == 0)
-										echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
-									else {
-										$photoPath = $_SESSION["alias"]->alias."/options/".$option->originalAlias."/".$opt->photo; 
-										echo('<td><img style="width: 100px; height: auto; display: inline-block;" src='.IMG_PATH.$photoPath.' >');
-										echo(' <button class="btn btn-danger" onClick="deletePropertyPhoto('.$opt->id.',\''.$photoPath.'\')">-</button></td>');
-									}
 
 									foreach ($_SESSION['all_languages'] as $lang) {
 										$value = '';
@@ -299,28 +305,57 @@
 											echo("<td>Error {$lang}</td>");
 										}
 									}
-									echo('<td><button type="button" onClick="deleteOptionRow('.$opt->id.')" class="btn btn-danger">Видалити властивість</button>');
-									echo('</tr>');
-									$i++;
 								}
-							} else {
-								foreach ($options as $opt) {
-									echo('<tr id="option_'.$opt->id.'">');
-									echo("<td>#{$i}</td>");
-									if($opt->photo == 0)
-										echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
-									else {
-										$photoPath = $_SESSION["alias"]->alias."/options/".$option->originalAlias."/".$opt->photo; 
-										echo('<td><img style="width: 100px; height: auto; display: inline-block;" src='.IMG_PATH.$photoPath.' >');
-										echo(' <button class="btn btn-danger" onClick="deletePropertyPhoto('.$opt->id.',\''.$photoPath.'\')">-</button></td>');
-									}
+								else
 									echo("<td><input type='text' name='option_{$opt->name_id}' value='{$opt->name}' class='form-control'></td>");
-									echo('<td><button type="button" onClick="deleteOptionRow('.$opt->id.')" class="btn btn-danger">Видалити властивість</button>');
-									echo('</tr>');
-									$i++;
-								}
+
+								echo('<td><button type="button" onClick="deleteOptionRow('.$opt->id.')" class="btn btn-danger">Видалити властивість</button>');
+								echo('</tr>');
+
+								if ($option->changePrice) { ?>
+									<tr id="option_price_<?=$opt->id?>">
+									<td colspan="<?=count($_SESSION['all_languages']) + 2 ?>">
+										
+					                    	<?php $action = $value = $currency = 0;
+					                    	if(!empty($opt->changePrice) && !is_numeric($opt->changePrice))
+					                    	{
+					                    		$changePrice = unserialize($opt->changePrice);
+					                    		$action = $changePrice['action'];
+					                    		$value = $changePrice['value'];
+					                    		$currency = $changePrice['currency'];
+					                    	}
+					                    	?>
+					                        <label class="col-md-3 control-label">Зміна ціни за замовчуванням</label>
+					                        <div class="col-md-9">
+					                        	<div class="row">
+					                        	<div class="col-xs-2">
+					                        		<select class="form-control" name="changePrice-action_<?=$opt->id?>" onchange="setChangePrice(<?=$opt->id?>, this.value)">
+						                            	<option value="0">відключено</option>
+						                            	<option value="+" <?=($action === '+') ? 'selected' : ''?>>+</option>
+						                            	<option value="-" <?=($action === '-') ? 'selected' : ''?>>-</option>
+						                            	<option value="*" <?=($action === '*') ? 'selected' : ''?>>*</option>
+						                            </select>
+					                        	</div>
+												<div class="col-xs-8">    
+						                            <input type="number" name="changePrice-value-<?=$opt->id?>" value="<?=$value?>" class="form-control changePrice-set-<?=$opt->id?>" <?=($action === 0) ? 'disabled' : ''?>>
+						                        </div>
+						                        <div class="col-xs-2">
+						                            <select class="form-control changePrice-set-<?=$opt->id?>" name="changePrice-currency-<?=$opt->id?>" <?=($action === 0) ? 'disabled' : ''?>>
+						                            	<option value="0">y.o.</option>
+						                            	<option value="p" <?=($currency === 'p') ? 'selected' : ''?>>%</option>
+						                            </select>
+						                        </div>
+						                        </div>
+					                        </div>
+				                	</td>
+									</tr>
+								<?php }
+
+								$i++;
 							}
-						} else {
+						}
+						else
+						{
 							echo("<tr>");
 							if($_SESSION['language']){
 								echo("<tr><td>#1</td>");
@@ -349,6 +384,13 @@
 
 
 <script type="text/javascript">
+	function setChangePrice(id, value) {
+		if(value == '0')
+			$('.changePrice-set-'+id).prop('disabled', true);
+		else
+			$('.changePrice-set-'+id).prop('disabled', false);
+	}
+
 	function addOptionRow () {
 		var countRows = $('#options tr').length;
 		<?php if($_SESSION['language']){ ?>
@@ -378,6 +420,7 @@
 						alert('Помилка! Спробуйте щераз');
 					} else {
 						$('#option_'+id).slideUp("fast");
+						$('#option_price_'+id).slideUp("fast");
 					}
 				}
 			});

@@ -319,7 +319,12 @@ class products_model {
 			if(empty($data['article']))
 				$data['alias'] = $id .'-'. trim($this->data->post('alias'));
 			else
-				$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+			{
+				if(empty($_POST['alias']))
+					$data['alias'] = $this->data->latterUAtoEN($data['article']);
+				else
+					$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+			}
 			if($this->data->post('article') != $this->data->post('article_old'))
 			{
 				if($names = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => $id)))
@@ -337,7 +342,12 @@ class products_model {
 			}
 		}
 		else
-			$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+		{
+			if(empty($_POST['alias']))
+				$data['alias'] = $id;
+			else
+				$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+		}
 		$link = $data['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 1)
 			$data['active'] = 1;
@@ -445,20 +455,19 @@ class products_model {
 
 	public function delete($id)
 	{
-		$product = $this->getById($id);
-		if($product)
+		if($product = $this->getById($id))
 		{
 			$this->db->sitemap_remove($product->id);
 			$this->db->deleteRow($this->table(), $product->id);
 			$this->db->executeQuery("UPDATE `{$this->table()}` SET `position` = position - 1 WHERE `position` > '{$product->position}' AND `group` = '{$product->group}'");
 			$this->db->deleteRow($this->table('_product_options'), $product->id, 'product');
+			$this->db->deleteRow($this->table('_products_similar'), $product->id, 'product');
 			if($_SESSION['option']->searchHistory)
 				$this->db->deleteRow($this->table('_search_history'), $product->id, 'product_id');
 			$this->db->executeQuery("DELETE FROM wl_ntkd WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM wl_audio WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM wl_images WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
 			$this->db->executeQuery("DELETE FROM wl_video WHERE alias = '{$_SESSION['alias']->id}' AND content = '{$product->id}'");
-			$this->db->executeQuery("DELETE FROM s_shopshowcase_products_similar WHERE product = '{$product->id}'");
 			
 			$path = IMG_PATH.$_SESSION['option']->folder.'/'.$product->id;
 			$path = substr($path, strlen(SITE_URL));
@@ -475,7 +484,7 @@ class products_model {
 		}
 	}
 
-	public function saveProductOptios($id)
+	public function saveProductOptios($id, $chekAll = true)
 	{
 		$options = array();
 		foreach ($_POST as $key => $value) {
@@ -551,7 +560,7 @@ class products_model {
 				}
 			}
 		}
-		if(!empty($list))
+		if(!empty($list) && $chekAll)
 		{
 			foreach ($list as $option) {
 				if(is_array($option))
@@ -563,6 +572,44 @@ class products_model {
 			}
 		}
 		return true;
+	}
+
+	public function saveChangePrice($id)
+	{
+		$data = $options = array();
+		$data['price'] = $this->data->post('price');
+		$data['old_price'] = $this->data->post('old_price');
+		$this->db->updateRow($this->table(), $data, $id);
+
+		foreach ($_POST as $key => $action) {
+			$key = explode('-', $key);
+			if($key[0] == 'changePrice' && $key[1] == 'action' && is_numeric($key[2]))
+			{
+				$key = $key[2];
+				if($option = $this->data->post('changePrice-option-'.$key))
+				{
+					if(!isset($options[$option]))
+						$options[$option] = array();
+					if($action == '1')
+		    			$options[$option][$key] = $this->data->post('changePrice-value-'.$key);
+		    		else if (is_numeric($action)) {
+		    			$options[$option][$key] = $action;
+		    		}
+					else
+					{
+						$changePrice = array();
+						$changePrice['action'] = $action;
+						$changePrice['value'] = $this->data->post('changePrice-value-'.$key);
+						$changePrice['currency'] = $this->data->post('changePrice-currency-'.$key);
+						$options[$option][$key] = $changePrice;
+					}
+				}
+			}
+		}
+		if(!empty($options))
+			foreach ($options as $key => $value) {
+				$this->db->updateRow($this->table('_product_options'), array('changePrice' => serialize($value)), array('product' => $id, 'option' => $key));
+			}
 	}
 
 	private function makeLink($all, $parent, $link)

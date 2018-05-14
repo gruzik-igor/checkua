@@ -44,15 +44,7 @@ if(isset($_SESSION['option']->productOrder))
 					<td>
 						<?php if(!empty($a->admin_photo)) {?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" class="pull-left" alt=""></a>
-						<?php }
-						if($_SESSION['option']->ProductUseArticle)
-						{
-							$name = explode(' ', $a->name);
-							$article = array_pop($name);
-							if($article == $a->article)
-								$a->name = implode(' ', $name);
-						}
-						?>
+						<?php } ?>
 						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a>
 						<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
 					</td>
@@ -90,17 +82,17 @@ if(isset($_SESSION['option']->productOrder))
 						<td>
 							<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
 						</td>
-					<?php } else { 
+					<?php } else {
+						$color = 'success';
+                        $color_text = 'активний';
+                        if($active == 0)
+                        {
+                            $color = 'danger';
+                            $color_text = 'відключено';
+                        }
 						if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
                         {
-                            $color = 'success';
-                            $color_text = 'активний';
-                            if($active == 0)
-                            {
-                                $color = 'danger';
-                                $color_text = 'відключено';
-                            }
-                            elseif($active < count($a->group))
+                            if($active < count($a->group))
                             {
                                 $color = 'warning';
                                 $color_text = 'частково активний';

@@ -354,7 +354,14 @@ class shopshowcase extends Controller {
 		$this->load->smodel('products_model');
 		$name = $this->data->post('option');
 		$_POST[$name] = $this->data->post('data');
-		$this->products_model->saveProductOptios($_POST['id']);
+		$this->products_model->saveProductOptios($_POST['id'], false);
+	}
+
+	public function saveChangePrice()
+	{
+		$this->load->smodel('products_model');
+		$this->products_model->saveChangePrice($_POST['id']);
+		$this->redirect('#tab-changePrice');
 	}
 	
 	public function delete()
@@ -703,13 +710,16 @@ class shopshowcase extends Controller {
 		{
 			$_SESSION['notify'] = new stdClass();
 			$this->load->smodel('options_model');
-			if($_POST['id'] == 0){
-				$id = $this->options_model->add_option();
-				if($id){
+			if($_POST['id'] == 0)
+			{
+				if($id = $this->options_model->add_option())
+				{
 					$_SESSION['notify']->success = 'Властивість успішно додано!';
 					$this->redirect('admin/'.$_SESSION['alias']->alias.'/options/'.$id);
 				}
-			} else {
+			}
+			else
+			{
 				if($this->options_model->saveOption($_POST['id'])){
 					$_SESSION['notify']->success = 'Властивість успішно оновлено!';
 
@@ -1022,6 +1032,11 @@ class shopshowcase extends Controller {
     			$words = array('{group.id}', '{group.name}', '{group.wl_alias}', '{group.parent}', '{group.alias}', '{group.active}', '{group.position}', '{group.author_add}', '{group.date_add}', '{group.author_edit}', '{group.date_edit}', '{group.user_name}');
     	}
     	return $words;
+    }
+
+    public function import()
+    {
+    	$this->load->admin_view('import_view');
     }
 }
 

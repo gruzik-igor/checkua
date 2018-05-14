@@ -49,7 +49,10 @@
 												$prefix .= '- ';
 											}
 											foreach ($list as $g) if($g->parent == $parent) {
-												echo('<option '.(!empty($g->child) ? 'style="font-weight:bold"' : "").' value="'.$g->id.'">'.$prefix.$g->name.'</option>');
+												$selected = '';
+												if(!empty($_GET['parent']) && $g->id == $_GET['parent'])
+														$selected = 'selected';
+												echo('<option '.(!empty($g->child) ? 'style="font-weight:bold"' : "").' value="'.$g->id.'" '.$selected.'>'.$prefix.$g->name.'</option>');
 												if(!empty($g->child)) {
 													$l = $level + 1;
 													$childs = array();
@@ -67,18 +70,20 @@
 							</select>
 						</div>
 					</div>
-					<?php if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $lang) { ?>
+					<?php $name = '';
+					if(!empty($_GET['name']))
+						$name = $this->data->get('name');if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $lang) { ?>
 						<div class="form-group">
 	                        <label class="col-md-3 control-label">Назва <?=$lang?></label>
 	                        <div class="col-md-9">
-	                            <input type="text" class="form-control" name="name_<?=$lang?>" placeholder="Назва <?=$lang?>" required>
+	                            <input type="text" class="form-control" name="name_<?=$lang?>" value="<?=$name?>" placeholder="Назва <?=$lang?>" required>
 	                        </div>
 	                    </div>
 					<?php } else { ?>
 						<div class="form-group">
 	                        <label class="col-md-3 control-label">Назва</label>
 	                        <div class="col-md-9">
-	                            <input type="text" class="form-control" name="name" placeholder="Назва" required>
+	                            <input type="text" class="form-control" name="name" value="<?=$name?>" placeholder="Назва" required>
 	                        </div>
 	                    </div>
 					<?php } ?>

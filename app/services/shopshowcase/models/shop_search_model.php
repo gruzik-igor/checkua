@@ -49,6 +49,7 @@ class shop_search_model
 				$search->author_name = $product->author_name;
 				$search->additional = false;
 				$search->price = $product->price;
+				$search->old_price = $product->old_price;
 
 				if($_SESSION['option']->useMarkUp > 0 && $product->markup){
 	        		$search->price = $product->price * $product->markup;

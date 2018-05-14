@@ -5,7 +5,7 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:product_add']?></a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(!empty($group))?'?group='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:product_add']?></a>
 					
                     <?php if($_SESSION['option']->useGroups == 1) { ?>
 						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:products_to_all']?></a>
@@ -14,11 +14,11 @@
 
 					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:options_to_all']?></a>
 
-					<a href="<?=SITE_URL.'admin/wl_ntkd/'.$_SESSION['alias']->alias?><?=(isset($group))?'/-'.$group->id:''?>" class="btn btn-info btn-xs">SEO</a>
+					<a href="<?=SITE_URL.'admin/wl_ntkd/'.$_SESSION['alias']->alias?><?=(!empty($group))?'/-'.$group->id:''?>" class="btn btn-info btn-xs">SEO</a>
                 </div>
-                <h4 class="panel-title"><?=(isset($group))?$_SESSION['alias']->name .'. Список '.$_SESSION['admin_options']['word:products_to_all']:'Список всіх '.$_SESSION['admin_options']['word:products_to_all']?></h4>
+                <h4 class="panel-title"><?=(!empty($group))?$_SESSION['alias']->name .'. Список '.$_SESSION['admin_options']['word:products_to_all']:'Список всіх '.$_SESSION['admin_options']['word:products_to_all']?></h4>
             </div>
-            <?php if(isset($group)) { ?>
+            <?php if(!empty($group)) { ?>
                 <div class="panel-heading">
 	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
 						<?php if(!empty($group->parents)) {
@@ -42,7 +42,7 @@
                 	<div class="note note-info">
                         <h4>Увага! Відсутні <?=$_SESSION['admin_options']['word:products']?></h4>
                         <p>
-                            <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:product_add']?></a>
+                            <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add<?=(!empty($group))?'?group='.$group->id:''?>" class="btn btn-warning"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:product_add']?></a>
                         </p>
                     </div>
                 <?php } ?>

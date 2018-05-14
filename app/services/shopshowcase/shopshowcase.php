@@ -47,7 +47,7 @@ class shopshowcase extends Controller {
 				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
-				if($_SESSION['option']->ProductUseArticle)
+				if($_SESSION['option']->ProductUseArticle && mb_strlen($product->article) > mb_strlen($_SESSION['alias']->name))
 					$_SESSION['alias']->name = substr($_SESSION['alias']->name, 0, (strlen($product->article) + 1) * -1);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
@@ -110,7 +110,7 @@ class shopshowcase extends Controller {
 				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters, 'filterExists' => $filterExists));
 			}
 			else
-				$this->load->page_404();
+				$this->load->page_404(false);
 		}
 		else
 		{
@@ -258,6 +258,16 @@ class shopshowcase extends Controller {
 		$this->load->json(array('products' => $this->shop_model->getProducts($group), 'page' => $_GET['page']+1, 'group' => $group));
 	}
 
+	public function ajaxUpdateProductPrice()
+	{
+		if ($product = $this->data->post('product')) {
+			if (isset($_POST['options']) && is_array($_POST['options'])) {
+				$this->load->smodel('shop_model');
+				$this->load->json(array('price' => $this->shop_model->getProductPriceWithOptions($product, $_POST['options']), 'product' => $product));
+			}
+		}
+	}
+
 	public function __get_Groups($parent = 0)
 	{
 		if(empty($parent)) $parent = 0;
@@ -286,6 +296,15 @@ class shopshowcase extends Controller {
 		{
 			$option->values = $this->__get_Values_To_Option($option->id);
 			return $option;
+		}
+		return false;
+	}
+
+	public function __get_Price_With_options($info)
+	{
+		if (isset($info['product']) && isset($info['options']) && is_array($info['options'])) {
+			$this->load->smodel('shop_model');
+			return $this->shop_model->getProductPriceWithOptions($info['product'], $info['options']);
 		}
 		return false;
 	}

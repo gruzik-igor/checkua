@@ -1,35 +1,92 @@
 <?php
-  $ntkd = $pageNames = array();
-  $where_ntkd['alias'] = $_SESSION['alias']->id;
-  $where_ntkd['content'] = $product->id;
-  $wl = $this->db->getAllDataByFieldInArray('wl_ntkd', $where_ntkd);
-  if($wl)
-  {
-  	if($_SESSION['language'])
-  		foreach ($wl as $nt) {
-        $ntkd[$nt->language] = $nt;
-	      $pageNames[$nt->language] = $nt->name;
-	    }
+$ntkd = $pageNames = array();
+$where_ntkd['alias'] = $_SESSION['alias']->id;
+$where_ntkd['content'] = $product->id;
+if($wl = $this->db->getAllDataByFieldInArray('wl_ntkd', $where_ntkd))
+{
+	if($_SESSION['language'])
+		foreach ($wl as $nt) {
+            $ntkd[$nt->language] = $nt;
+            $pageNames[$nt->language] = $nt->name;
+        }
     else
-  		$ntkd = $wl[0];
-  }
-  
-  $product_options = $options_parents = array();
-  $options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product');
-  if($options)
-  {
-    foreach ($options as $option) {
-      if($option->language != '' && in_array($option->language, $_SESSION['all_languages']))
-        $product_options[$option->option][$option->language] = $option->value;
-      else
-        $product_options[$option->option] = $option->value;
-    }
-  }
+	   $ntkd = $wl[0];
+}
 
-  $storages = array();
-  if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+$changePriceTab = false;
+$list = $productOptions = $product_options_values = $product_options_changePrice = $options_parents = array();
+if($_SESSION['option']->useGroups && $groups)
+{
+    $emptyChildsList = array();
+    foreach ($groups as $g) {
+        $g->parent = (int) $g->parent;
+        $list[$g->id] = $g;
+        $list[$g->id]->child = array();
+        if(isset($emptyChildsList[$g->id]))
+            foreach ($emptyChildsList[$g->id] as $c) {
+                $list[$g->id]->child[] = $c;
+            }
+        if($g->parent > 0)
+        {
+            if(isset($list[$g->parent]->child))
+                $list[$g->parent]->child[] = $g->id;
+            else
+            {
+                if(isset($emptyChildsList[$g->parent])) $emptyChildsList[$g->parent][] = $g->id;
+                else $emptyChildsList[$g->parent] = array($g->id);
+            }
+        }
+    }
+    if(!empty($list))
+    {
+        if($_SESSION['option']->ProductMultiGroup)
+        {
+            foreach ($product->group as $parent) {
+                $parent = (int) $parent;
+                while ($parent != 0) {
+                    if(!in_array($parent, $options_parents))
+                        array_unshift($options_parents, $parent);
+                    $parent = $list[$parent]->parent;
+                }
+            }
+        }
+        else
+        {
+            $parent = (int) $product->group;
+            while ($parent != 0) {
+                array_unshift($options_parents, $parent);
+                $parent = $list[$parent]->parent;
+            }
+        }
+    }
+}
+array_unshift($options_parents, 0);
+
+if($options = $this->db->getAllDataByFieldInArray($this->shop_model->table('_product_options'), $product->id, 'product'))
+    foreach ($options as $option) {
+        if($option->language != '' && in_array($option->language, $_SESSION['all_languages']))
+            $product_options_values[$option->option][$option->language] = $option->value;
+        else
+            $product_options_values[$option->option] = $option->value;
+        $product_options_changePrice[$option->option] = unserialize($option->changePrice);
+    }
+
+$this->load->smodel('options_model');
+foreach ($options_parents as $option_id) {
+    if($options = $this->options_model->getOptions($option_id))
+    {
+        foreach ($options as $option) {
+            if(!empty($option->changePrice) && !$changePriceTab)
+                $changePriceTab = true;
+        }
+        $productOptions[$option_id] = $options;
+    }
+}
+
+$storages = array();
+if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
     foreach ($cooperation as $c) {
-      if($c->type == 'storage') $storages[] = $c->alias2;
+        if($c->type == 'storage') $storages[] = $c->alias2;
     }
 ?>
 <div class="row">
@@ -75,7 +132,9 @@
             <li>
           <?php } else echo '<li class="active">'; ?>
             <a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
-          <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
+          <?php if($changePriceTab) { ?>
+            <li><a href="#tab-changePrice" data-toggle="tab" aria-expanded="true">Керування ціною</a></li>
+          <?php } if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
           	<li><a href="#tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
           <?php } } else { ?>
           	<li><a href="#tab-ntkd" data-toggle="tab" aria-expanded="true">Назва та опис</a></li>
@@ -96,7 +155,11 @@
             <div class="tab-pane fade active in" id="tab-main">
             <?php } require_once 'edit_tabs/tab-main.php'; ?>
           </div>
-          <?php if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
+          <?php if($changePriceTab) { ?>
+            <div class="tab-pane fade" id="tab-changePrice">
+              <?php require 'edit_tabs/tab-changePrice.php'; ?>
+            </div>
+          <?php } if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
             <div class="tab-pane fade" id="tab-<?=$lang?>">
               <?php require 'edit_tabs/tab-ntkd.php'; ?>
             </div>

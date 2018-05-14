@@ -27,44 +27,47 @@
 		</div>
 	</div>
 
-	<?php if(!empty($options_parents)) { ?>
-		<h3>Властивості <?=$_SESSION['admin_options']['word:product_to_delete']?></h3>
-		<?php 			
-			foreach ($options_parents as $option_id) {
-				$options = $this->options_model->getOptions($option_id);
-				if($options)
-				{
-					foreach ($options as $option) {
-						if($option->type_name == 'text' || $option->type_name == 'textarea')
+	<?php if(!empty($options_parents)) { 
+		$showh3 = true;	
+		foreach ($options_parents as $option_id) {
+			if(isset($productOptions[$option_id])) {
+				foreach ($productOptions[$option_id] as $option) {
+					if($option->type_name == 'text' || $option->type_name == 'textarea')
+					{
+						if($showh3)
 						{
-							$value = '';
-							if(isset($product_options[$option->id][$lang])) $value = $product_options[$option->id][$lang];
-							echo('<label>'.$option->name);
-							if($option->type_name == 'textarea')
+							echo "<h3>Властивості товару</h3>";
+							$showh3 = false;
+						}
+
+						$value = '';
+						if(isset($product_options[$option->id][$lang])) $value = $product_options[$option->id][$lang];
+						echo('<label>'.$option->name);
+						if($option->type_name == 'textarea')
+						{
+							if($option->sufix != '')
+								echo("({$option->sufix})");
+							echo(':</label>');
+							echo('<textarea onChange="saveOption(this, \''.$option->name.' '.$lang.'\')" name="option-'.$option->id.'-'.$lang.'">'.$value.'</textarea>');
+						}
+						else
+						{
+							echo(':</label>');
+							if($option->sufix != '')
+								echo('<div class="input-group">');
+							echo('<input type="text" onChange="saveOption(this, \''.$option->name.' '.$lang.'\')" name="option-'.$option->id.'-'.$lang.'" value="'.$value.'" class="form-control">');
+							if($option->sufix != '')
 							{
-								if($option->sufix != '')
-									echo("({$option->sufix})");
-								echo(':</label>');
-								echo('<textarea onChange="saveOption(this, \''.$option->name.' '.$lang.'\')" name="option-'.$option->id.'-'.$lang.'">'.$value.'</textarea>');
-							}
-							else
-							{
-								echo(':</label>');
-								if($option->sufix != '')
-									echo('<div class="input-group">');
-								echo('<input type="text" onChange="saveOption(this, \''.$option->name.' '.$lang.'\')" name="option-'.$option->id.'-'.$lang.'" value="'.$value.'" class="form-control">');
-								if($option->sufix != '')
-								{
-									echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
-									echo('</div>');
-								}
+								echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
+								echo('</div>');
 							}
 						}
 					}
 				}
 			}
 		}
-		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$lang}' );";
+	}
+	$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$lang}' );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>
@@ -97,9 +100,49 @@
 		    <span class="input-group-addon">max: 155</span>
 		</div>
 	</div>
+	<?php if(!empty($options_parents)) { 
+		$showh3 = true;	
+		foreach ($options_parents as $option_id) {
+			if(isset($productOptions[$option_id])) {
+				foreach ($productOptions[$option_id] as $option) {
+					if($option->type_name == 'text' || $option->type_name == 'textarea')
+					{
+						if($showh3)
+						{
+							echo "<h3>Властивості товару</h3>";
+							$showh3 = false;
+						}
+
+						$value = '';
+						if(isset($product_options[$option->id])) $value = $product_options[$option->id];
+						echo('<label>'.$option->name);
+						if($option->type_name == 'textarea')
+						{
+							if($option->sufix != '')
+								echo("({$option->sufix})");
+							echo(':</label>');
+							echo('<textarea onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'">'.$value.'</textarea>');
+						}
+						else
+						{
+							echo(':</label>');
+							if($option->sufix != '')
+								echo('<div class="input-group">');
+							echo('<input type="text" onChange="saveOption(this, \''.$option->name.'\')" name="option-'.$option->id.'" value="'.$value.'" class="form-control">');
+							if($option->sufix != '')
+							{
+								echo("<span class=\"input-group-addon\">{$option->sufix}</span>");
+								echo('</div>');
+							}
+						}
+					}
+				}
+			}
+		}
+	} ?>
 	<label class="control-label">Короткий опис:</label><br>
 	<textarea onChange="save('list', this)" class="form-control"><?=$ntkd->list?></textarea>
-	<label>Опис:</label><br>
+	<h3>Опис:</h3>
 	<textarea onChange="save('text', this)" id="editor"><?=html_entity_decode($ntkd->text, ENT_QUOTES, 'utf-8')?></textarea>
 	<button class="btn btn-success m-t-5" onClick="saveText(false)"><i class="fa fa-save"></i> Зберегти текст опису сторінки</button>
 

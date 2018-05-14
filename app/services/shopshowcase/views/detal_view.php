@@ -1,147 +1,302 @@
-<div class="shop-product">
-    <div class="container content">
+<link rel="stylesheet" href="<?=SERVER_URL?>assets/gritter/css/jquery.gritter.css">
+
+<div class="page-head content-top-margin">
+    <div class="container">
         <div class="row">
-            <?php if(!empty($_SESSION['alias']->images)) { ?>
-                <link rel="stylesheet" href="<?=SERVER_URL?>assets/blueimp/css/blueimp-gallery.min.css">
-                <div class="col-md-6 md-margin-bottom-50">
-                    <div id="blueimp-gallery-items" class="blueimp-gallery">
-                        <?php foreach ($_SESSION['alias']->images as $image) { 
-                            $path = (isset($image->m_path)) ? $image->m_path : $image->path;
-                            ?>
-                            <a href="<?=IMG_PATH.$image->path?>">
-                                <img src="<?=IMG_PATH.$path?>" alt="<?=$image->title?>">
-                            </a>
-                        <?php } ?>
-                    </div>
-                    
-                    <div id="blueimp-gallery-carousel" class="blueimp-gallery blueimp-gallery-carousel">
-                        <div class="slides"></div>
-                        <h3 class="title"></h3>
-                        <a class="prev">‹</a>
-                        <a class="next">›</a>
-                        <a class="play-pause"></a>
-                        <ol class="indicator"></ol>
-                    </div>
-                </div>
-            <?php
-                $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js";
-                $_SESSION['alias']->js_load[] = "assets/blueimp/js/blueimp-gallery.init.js";
-            } ?>
+            <div class="col-md-12 col-sm-12">
+                <ol class="breadcrumb">
+                    <li><a href="<?= SITE_URL?>"><?=$this->text('Головна', 0)?></a></li>
+                    <li><a href="<?= SITE_URL?>category"><?=$this->text('Каталог', 0)?></a></li>
+                   <!--  <?php if(count($product->group) < 2){ foreach ($product->group as $g) { ?>
+                    <li><a href="<?= SITE_URL.$_SESSION['alias']->alias.'/'.$g->alias?>"><?=$g->name?></a></li>
+                    <?php } }?> -->
 
-            <div class="col-md-6">
-            	<div class="shop-product-heading">
-            		<h2><?= html_entity_decode(str_replace($product->article, '', $product->name))?></h2>
-            	</div>
+                    <li class="active"><?=$_SESSION['alias']->name?></li>
 
-                <?php if(!empty($_SESSION['alias']->list)) { ?>
-                    <div class="clear-both"><p class="margin-top-20"><?=$_SESSION['alias']->list?></p></div>
-                <?php } ?>
-
-                <ul class="list-inline shop-product-prices margin-bottom-30">
-                    <li class="shop-red">
-                        <?= $product->price ?> грн
-                    </li>
-                    <?php if($product->old_price != 0) { ?>
-                        <li class="line-through"><?= $product->old_price ?> грн</li>
-                    <?php } ?>
-                </ul>
-
-                <div class="wishlist-category">
-                    <strong><?=$this->text('Артикул')?>:</strong>
-                    <p><?= $product->article ?></p>
-                </div>
-                <?php if($product->group) { ?>
-                    <div class="wishlist-category">
-                        <strong><?=$this->text('Категорія')?>:</strong> <p>
-                        <?php if(is_array($product->group)) {
-                            foreach ($product->group as $group) {
-                                echo '<a href="'.SITE_URL.$group->link.'">'.$group->name.'</a> ';
-                            }
-                        } else
-                            echo '<a href="'.SITE_URL.$product->group_link.'">'.$product->group_name.'</a>';
-                        ?></p>
-                    </div>
-                <?php } ?>
-
-                <?php if(!empty($product->options))
-                {
-                    foreach($product->options as $option) {
-                        if(!$option->toCart) { ?>
-                        <div class="wishlist-category">
-                            <strong><?= $option->name ?>:</strong>
-                            <?php if(is_array($option->value))
-                                    echo '<p>'.implode(', ', $option->value).'</p>';
-                                  else
-                                    echo "<p>{$option->value}</p>";
-                            ?>
-                        </div>
-                    <?php } }
-                    foreach($product->options as $option) {
-                        if($option->toCart) { ?>
-                        <div class="wishlist-category">
-                            <strong><?= $option->name ?>:</strong>
-                            <p>
-                                <select id="product-option-<?=$option->id?>">
-                                    <?php foreach ($option->value as $value) {
-                                        echo "<option>{$value}</option>";
-                                    } ?>
-                                </select>
-                            </p>
-                        </div>
-                    <?php } }
-                } ?>
-
-                <div class="margin-bottom-20">
-                    <?php $this->load->function_in_alias('cart', '__show_btn_add_product', $product); ?>
-                    
-                    <div class="delivery-time"><?=$this->text('Орієнтований час')?><br><?=$this->text('доставки')?>: <br><strong>7-10 <?=$this->text('днів')?></strong></div>
-                </div>
-
-                <div class="margin-bottom-30"></div>
-                <?=$_SESSION['alias']->text?>
+                    <li><a href="<?= SITE_URL?>"></a></li>
+                  
+                </ol>
             </div>
         </div>
     </div>
 </div>
-
-<?php $_SESSION['option']->paginator_per_page = 10;
-$otherProductsByGroup = $this->shop_model->getProducts($product->group);
-if(!empty($otherProductsByGroup) && count($otherProductsByGroup) > 1) { ?>
-<div class="container padding-top-40">
-    <div class="heading heading-v1 margin-bottom-20">
-        <h2><?=$this->text('Вас також може зацікавити')?></h2>
-    </div>
-
-    <div class="illustration-v2 margin-bottom-60">
-        <ul class="list-inline owl-slider-v4">
-        <?php foreach ($otherProductsByGroup as $otherProduct) {
-            if($otherProduct->id != $product->id) { ?>
-            <li class="item">
-                <div class="product-img">
-                    <?php if(isset($otherProduct->m_photo)) { ?>
-                        <a href="<?=SITE_URL.$otherProduct->link?>">
-                            <img class="full-width img-responsive" src="<?=IMG_PATH.$otherProduct->m_photo?>">
+<section class="section single-product-wrapper detalmargin">
+    <div class="container">
+        <div class="row">
+            <div class="col-sm-5">
+                <h3><?=$_SESSION['alias']->list?></h3><hr><br>
+                <?php if(!empty($_SESSION['alias']->images)) { ?>
+                <div class="product-images">
+                    <div class="product-thumbnail">
+                        <a href="<?=IMG_PATH.$_SESSION['alias']->images[0]->path?>" class="fancybox" rel="gallery">
+                            <img src="<?=IMG_PATH.$_SESSION['alias']->images[0]->md_path?>" style="width:auto; margin: 0 auto" class="img-responsive">
                         </a>
-                    <?php } if($otherProduct->old_price != 0) { ?>
-                        <div class="shop-rgba-red rgba-banner line-through"><?= $otherProduct->old_price ?> грн</div>
-                    <?php } ?>
-                </div>
-                <div class="product-description product-description-brd">
-                    <div class="overflow-h margin-bottom-5">
-                        <div class="">
-                            <h4 class="title-price product-name-overflow"><a href="<?=SITE_URL.$otherProduct->link?>"><?= str_replace($otherProduct->article, '', $otherProduct->name) ?></a></h4>
-                            <a href="<?= SITE_URL.$otherProduct->group_link ?>">
-                                <span class="gender text-uppercase"><?= $otherProduct->group_name ?></span>
+                    </div>
+                    <div class="product-images-carousel">
+                        <?php for ($i = 1; $i < count($_SESSION['alias']->images); $i++) {  ?>
+                        <div class="item">
+                            <a href="<?=IMG_PATH.$_SESSION['alias']->images[$i]->path?>" class="fancybox" rel="gallery">
+                                <img src="<?=IMG_PATH.$_SESSION['alias']->images[$i]->ld_path?>" class="img-responsive">
                             </a>
                         </div>
-                        <div class="product-price pull-right">
-                            <span class="title-price"><?= $otherProduct->price ?> грн</span>
+                        <?php } ?>
+                    </div>
+                </div>
+                <?php } ?>
+            </div>
+
+            <div class="col-sm-6 col-sm-offset-1">
+                <div class="product-details">
+                   <!--  <div class="rating">
+                        <span class="pull-right"><?=$this->text('Артикул')?>: <?= $product->article ?><span></span></span>
+                    </div>
+ -->
+                    <div class="product-title">
+                        <div class="row">
+                            <h3 class="product-name"><span style="font-size: 16px"><?=$this->text('Артикул')?>:</span> <?= $_SESSION['alias']->name ?></h3>
+                            <hr>
+                            <br>
+                            <br>
+                            <br>
+                            <p class="price">
+                                <?php if($product->old_price != 0) { ?>
+                                <del>
+                                    <span class="amount"><?= $product->old_price ?> грн</span>
+                                </del>
+                                <?php } ?>
+                                <ins>
+                                    <span class="amount" id="product-price"><?= $product->price ?> грн</span>
+                                </ins>
+                            </p>
+                        </div>
+                        
+                    </div>
+
+                    
+
+                    <div class="inputs-border">
+         
+                        <?php $productOptionsChangePrice = array();
+                        if(!empty($product->options))
+                        foreach ($product->options as $key => $option) {
+                            if($option->changePrice)
+                                $productOptionsChangePrice[] = $option->id;
+                            $next = array($option->id.'-podushky-1-katehorii', $option->id.'-podushky-2-katehorii', $option->id.'-podushky-3-katehorii');
+                            $key_array = explode('-', $key);
+                            $tkanuny = (isset($key_array[1]) && $key_array[1] == 'tkanyny') ? true : false;
+                            if($key == $option->id.'-kolir') { ?>
+                                <div class="product-attributes row product-options">
+                                    <h4 id="product-option-name-<?=$option->id?>"><?=$this->text('Колір')?></h4>
+                                    <?php foreach ($option->value as $value) {
+                                        if(!$value->photo) $value->photo = IMG_PATH.'noimg.jpg';
+                                        ?>
+                                        <div class="color-option">
+                                            <label class="labelimg" style="background-image: url('<?=$value->photo?>');">
+                                                <input type="radio" name="product-option-<?=$option->id?>" value="<?=$value->id?>" onchange="updateProductPrice()">
+                                            </label>
+                                            <h4><?=$value->name?></h4> 
+                                        </div>
+                                    <?php } ?>
+                                </div>
+                        <?php } else if($key == $option->id.'-rozmir') { ?>
+                            <div class="row">
+                                <h4 id="product-option-name-<?=$option->id?>"><?=$this->text('Розмір')?></h4>
+                                <?php foreach ($option->value as $value) { ?>
+
+                                <!-- <label class="size-option" style="float: left;">
+                                    <input type="radio" name="rozmir" value=""  class="" >
+                                    <p style="margin-top: -16px; margin-bottom: 16px"><?=$value->name?> см</p>
+                                    <div class="underlineoption"></div>
+                                </label> -->
+                                <div class="color-optiond h60">
+                                    <label class="labelimgd"  >
+                                        <div class="rozmirr">
+                                            <input type="radio" name="product-option-<?=$option->id?>" value="<?=$value->id?>" onchange="updateProductPrice()">
+                                            <h4><?=$value->name?> см</h4>
+                                        </div>
+                                    </label> 
+                                </div>
+                                <?php } ?>
+                            </div>
+                        <?php } else if($key == $option->id.'-dyvanni-podushky') { ?>
+                            <button type="button" class="btn pillow" data-toggle="modal" data-target="#myModal">
+                                <?=$this->text('Оберіть диванні подушки')?>  
+                            </button>
+                        <?php } else if($tkanuny) { ?>
+                            <div class="product-attributes row product-options">
+                                <h4 id="product-option-name-0"><?=$option->name?> </h4>
+                                <?php foreach ($option->value as $value) {
+                                    if(!$value->photo) $value->photo = IMG_PATH.'noimg.jpg';
+                                    ?>
+                                    <div class="color-optiond" >
+                                        <label class="labelimg" style="background-image: url('<?=$value->photo?>');background-size: 80px 100px;height: 100px;">
+                                            <input type="radio" name="product-option-0" data-id="<?=$option->id?>" value="<?=$value->id?>" onchange="updateProductPrice()">
+                                        </label>
+                                        <h4 style="margin-top: -10px"><?=$value->name?></h4> 
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        <?php } else if(!in_array($key, $next)) { ?>
+                            <div class="product-attributes row product-options">
+                                <h4 id="product-option-name-<?=$option->id?>"><?=$option->name?></h4>
+                                <?php foreach ($option->value as $value) {
+                                    if(!$value->photo) $value->photo = IMG_PATH.'noimg.jpg';
+                                    ?>
+                                    <div class="color-optiond" >
+                                        <label class="labelimg" style="background-image: url('<?=$value->photo?>');background-size: 80px 100px;height: 100px;">
+                                            <input type="radio" name="product-option-<?=$option->id?>" value="<?=$value->id?>" onchange="updateProductPrice()">
+                                        </label>
+                                        <h4 style="margin-top: -10px"><?=$value->name?></h4> 
+                                    </div>
+                                <?php } ?>
+                            </div>
+                        <?php } 
+                    } ?>
+
+                        <!-- Modal -->
+                        <div id="myModal" class="modal fade" role="dialog">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                        <h4 class="modal-title"><?=$this->text('Оберіть диванні подушки')?></h4>
+                                    </div>
+                                    <div class="modal-body" >
+                                        <strong><?=$this->text('Ви можете обрати не більше двох кольорів диванних подушок')?></strong>
+                                        <hr>
+                                        <div style="padding-bottom: 100%;">
+                                        <?php foreach ($product->options as $key => $option) {
+                                            $ok = array($option->id.'-podushky-1-katehorii', $option->id.'-podushky-2-katehorii', $option->id.'-podushky-3-katehorii');
+                                            if(in_array($key, $ok))
+                                                foreach ($option->value as $value) { ?>
+                                                <div class="color-optiond">
+                                                    <?php if($value->photo){?>
+                                                    <label class="labelimgd" style="background-image: url('<?=$value->photo?>');">
+                                                        <input type="checkbox" name="pillowcolour">
+                                                    </label>
+                                                    <?php }else{ ?>
+                                                    <label class="labelimgd" style="background-image: url('<?=IMG_PATH?>noimg.jpg');">
+                                                        <input type="checkbox" name="pillowcolour">
+                                                    </label>
+                                                    <?php } ?>
+                                                    <h4><?=$value->name?></h4> 
+                                                </div>
+                                            <?php } } ?>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="form-group">
+                            <div class="row">
+                                <label>
+                                <?=$this->text('Вподобати сторінку',0)?> <?php
+                                $likes = array();
+                                $likes['content'] = $product->id;
+                                $likes['name'] = $_SESSION['alias']->name;
+                                $likes['link'] = $_SESSION['alias']->link;
+                                $likes['image'] = (isset($_SESSION['alias']->images[0])) ? $_SESSION['alias']->images[0] : false;
+                                $likes['additionall'] = "<p>{$product->price} грн</p>";
+                                $this->load->function_in_alias('likes', '__show_Like_Btn', $likes); ?></label>
+                            </div>
+                            
+                        </div>
+                        <div class="row">
+                            <?php $this->load->function_in_alias('cart', '__show_btn_add_product', $product); ?>
                         </div>
                     </div>
                 </div>
-            </li>
-        <?php } } ?>
-        </ul>
+            </div>
+            <?php if($_SESSION['alias']->text || $_SESSION['alias']->list){ ?>
+            <div class="col-sm-12">
+                <div class="tabs-wrapper">
+                    <!-- Nav tabs -->
+                    <ul class="nav nav-tabs" role="tablist">
+                        <?php if($_SESSION['alias']->text){ ?>
+                        <li class="active">
+                            <a href="#tab-description" aria-controls="tab-description" data-toggle="tab"><?=$this->text('Опис')?></a>
+                        </li>
+                        <?php } ?>
+                    </ul>
+                    <!-- Tab panes -->
+
+                    <div class="tab-content">
+                        
+                        <div class="tab-pane active" id="tab-description">
+                            <?=html_entity_decode($_SESSION['alias']->text)?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <?php } ?>
+        </div>
+    </div>
+</section>
+
+<?php if($otherProductsByGroup = $this->shop_model->getProducts($product->group, $product->id)) { ?>
+
+<section class="section related-products second-style no-padding-top">
+    <div class="container">
+        <div class="section-title text-center">
+            <h3><i class="line"></i><?=$this->text('Вас також може зацікавити')?><i class="line"></i></h3>
+        </div>
+        <div id="related-products">
+            <?php foreach ($otherProductsByGroup as $otherProduct) { ?>
+            <div class="product" data-product-id="1">
+                <div class="inner-product">
+                    <?php if($otherProduct->photo != '') { ?>
+                    <div class="product-thumbnail">
+                        <img src="<?=IMG_PATH.$otherProduct->m_photo?>" class="img-responsive" alt="<?=$otherProduct->name?>">
+                    </div>
+                    <?php } ?>
+                    <div class="product-details text-center">
+                        <div class="product-btns">
+                            <span data-toggle="tooltip" data-placement="top" title="View">
+                                <a href="<?=SITE_URL.$otherProduct->link?>" class="li-icon view-details"><i class="lil-search"></i></a>
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                <h3 class="product-title"><a href="<?=SITE_URL.$otherProduct->link?>"><?= $otherProduct->article ?></a></h3>
+                <p class="product-price">
+                    <ins>
+                        <span class="amount"><?=$otherProduct->price?> грн </span>
+                    </ins>
+                    <?php if($otherProduct->old_price != 0 && $otherProduct->old_price > $otherProduct->price) { ?>
+                    <del>
+                        <span class="amount"><?=$otherProduct->old_price?> грн </span>
+                    </del>
+                    <?php } ?>
+                </p>
+            </div>
+            <?php } ?>
+        </div>
+    </div>
+</section>
+<?php } ?>
+
+<div class="g-popup-wrapper">
+    <div class="g-popup g-popup--discount">
+        <p class="g-image margin-bottom-15 clear-both"></p>
+        <p class="g-name"></p>
+        <div class="clear-both">
+            <label class="input pull-left padding-right-5">
+                <button class="btn btn-default g-popup__close__button" type="button"><?=$this->text('Продовжити')?></button>
+            </label>
+            <label class="input pull-right">
+                <a href="<?=SERVER_URL?>cart" class="btn btn-default" type="button"><?=$this->text('До корзини')?></a>
+            </label>
+        </div>
     </div>
 </div>
-<?php } ?>
+<script>
+    var productID = <?=$product->id?>;
+    var productOptionsChangePrice = [<?=implode(',', $productOptionsChangePrice)?>];
+    var SHOP_URL = '<?= SITE_URL.$_SESSION['alias']->alias ?>/';
+</script>
+<?php
+    $_SESSION['alias']->js_load[] = "assets/gritter/js/jquery.gritter.js";
+    $_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/product.js';
+    $_SESSION['alias']->js_load[] = 'js/order.js';
+?>

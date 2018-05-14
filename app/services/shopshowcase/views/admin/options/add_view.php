@@ -74,11 +74,14 @@
 							echo "</div></div>";
 						}
 					}
+					$name = '';
+					if(!empty($_GET['name']))
+						$name = $this->data->get('name');
 					if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $lang) { ?>
 						<div class="form-group">
 	                        <label class="col-md-3 control-label">Назва <?=$lang?></label>
 	                        <div class="col-md-9">
-	                            <input type="text" class="form-control" name="name_<?=$lang?>" placeholder="Назва <?=$lang?>" required>
+	                            <input type="text" class="form-control" name="name_<?=$lang?>" value="<?=$name?>" placeholder="Назва <?=$lang?>" required>
 	                        </div>
 	                    </div>
 	                    <div class="form-group">
@@ -91,7 +94,7 @@
 						<div class="form-group">
 	                        <label class="col-md-3 control-label">Назва</label>
 	                        <div class="col-md-9">
-	                            <input type="text" class="form-control" name="name" placeholder="Назва" required>
+	                            <input type="text" class="form-control" name="name" value="<?=$name?>" placeholder="Назва" required>
 	                        </div>
 	                    </div>
 	                    <div class="form-group">

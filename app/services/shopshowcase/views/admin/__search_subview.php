@@ -4,7 +4,7 @@
             <div class="col-sm-2 search-col">
                 <input type="text" name="<?=($_SESSION['option']->ProductUseArticle) ? 'article' : 'id'?>" class="form-control" placeholder="<?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'ID'?> *весь магазин" value="<?=$this->data->get('article')?>">
             </div>
-            <?php if(isset($group)) { ?>
+            <?php if(!empty($group)) { ?>
 	            <div class="col-sm-5 search-col">
 	                <input type="text" name="name" class="form-control" placeholder="Назва товару" value="<?=$this->data->get('name')?>">
 	            </div>

@@ -28,7 +28,7 @@
 						function showList($group_id, $group_parent, $all, $list, $parent = 0, $level = 0)
 						{
 							$prefix = '';
-							for ($i=0; $i < $level; $i++) {
+							for ($i=0; $i < $level; $i++) { 
 								$prefix .= '- ';
 							}
 							foreach ($list as $g) if($g->parent == $parent) {
@@ -78,7 +78,6 @@
 		}
 	}
 	?>
-
 	<div class="form-group">
         <label class="col-md-3 control-label">Стан активності</label>
         <div class="col-md-9">

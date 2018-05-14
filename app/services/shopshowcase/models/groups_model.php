@@ -11,39 +11,41 @@ class groups_model {
 	public function getGroups($parent = 0, $active = true)
 	{
 		$where = array('wl_alias' => $_SESSION['alias']->id);
-		if($active)
-			$where['active'] = 1;
-		if($parent >= 0)
-			$where['parent'] = $parent;
+		if($active) $where['active'] = 1;
+		if($parent >= 0) $where['parent'] = $parent;
 		$this->db->select($this->table() .' as c', '*', $where);
-		$names = array('alias' => $_SESSION['alias']->id, 'content' => '#-c.id');
-        if($_SESSION['language']) $names['language'] = $_SESSION['language'];
-		$this->db->join('wl_ntkd', 'name', $names);
+		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
 		$this->db->order($_SESSION['option']->groupOrder);
 
-		if($categories = $this->db->get('array'))
+		$categories = $this->db->get('array');
+		if($categories)
 		{
             $list = array();
-            if($parent >= 0)
-            {
-	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
-	            foreach ($groups as $Group) {
-	            	$list[$Group->id] = clone $Group;
-	            }
-	        }
-	        else
-	        	foreach ($categories as $Group) {
-	            	$list[$Group->id] = clone $Group;
-	            }
+            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
+            foreach ($groups as $Group) {
+            	$list[$Group->id] = clone $Group;
+            }
+
+            $where = array();
+            if($_SESSION['language']) $where['language'] = $_SESSION['language'];
+            $where['alias'] = $_SESSION['alias']->id;
 
             foreach ($categories as $Group) {
             	$Group->link = $Group->alias;
-            	if($Group->parent > 0)
+            	if($Group->parent > 0) {
             		$Group->link = $this->getLink($list, $Group->parent, $Group->alias);
+            	}
+            	$where['content'] = $Group->id * -1;
+            	$this->db->select('wl_ntkd', "name, text, list", $where);
+            	$ntkd = $this->db->get('single');
+            	if($ntkd){
+            		$Group->name = $ntkd->name;
+            		$Group->list = $ntkd->list;
+            		$Group->text = $ntkd->text;
+            	}
             }
-            return $categories;
 		}
-		return false;
+		return $categories;
 	}
 
 	public function getByAlias($alias, $parent = 0)

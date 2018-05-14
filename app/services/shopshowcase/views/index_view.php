@@ -1,25 +1,25 @@
 <div class="container content">
-	<div class="row">
+	<div class="row" style="margin-top: 120px">
 			<?php
 			if(!empty($groups))
 			{
 				$i = 0;
 				echo('<div class="row illustration-v2 margin-bottom-30">');
 				foreach ($groups as $group) {
-					if($i % 3 == 0)
+					if($i % 4 == 0)
 					{
 						echo('</div>');
 						echo('<div class="row illustration-v2 margin-bottom-30">');
 					}
 			?>
-					<div class="col-md-4">
+					<div class="col-md-3">
 						<div class="product-img product-img-brd">
 							<a href="<?=SITE_URL.$group->link?>">
 								<?php if($group->photo) {?>
-								<img class="full-width img-responsive" src="<?=IMG_PATH.$group->photo?>" alt="<?=$group->name .' '. SITE_NAME?>">
+								<img class="full-width img-responsive" src="<?=IMG_PATH.$group->mmg_photo?>" alt="<?=$group->name .' '. SITE_NAME?>">
 								<?php } ?>
 							</a>
-							<a class="product-review" href="<?=SITE_URL.$group->link?>"><?=$group->name?></a>
+							<a class="product-review" href="<?=SITE_URL.$group->link?>"><h4 style="padding: 5px 0 40px"><?=$group->name?></h4></a>
 						</div>
 					</div>
 			<?php
@@ -167,7 +167,7 @@
 							<div class="col-sm-<?=($product->photo != '')?8:12?> product-description">
 								<div class="overflow-h margin-bottom-5">
 									<ul class="list-inline overflow-h">
-										<li><h4 class="title-price"><a href="<?=SITE_URL.$product->link?>"><?= str_replace($product->article, '', $product->name) ?></a></h4></li>
+										<li><h4 class="title-price"><a href="<?=SITE_URL.$product->link?>"><?= $product->name ?></a></h4></li>
 
 									</ul>
 									<div class="margin-bottom-10">

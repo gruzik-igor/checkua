@@ -47,7 +47,7 @@ class options_model {
 		if($property && isset($_POST['id'])) $data['group'] = -1 * $_POST['id'];
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];
 		$data['active'] = 1;
-		$data['filter'] = $data['toCart'] = 0;
+		$data['filter'] = $data['toCart'] = $data['main'] = 0;
 		if($this->db->insertRow($this->table('_options'), $data)){
 			$id = $this->db->getLastInsertedId();
 			$data = array();
@@ -86,46 +86,71 @@ class options_model {
 
 	public function saveOption($id)
 	{
-		$data = array('active' => 1, 'filter' => 0, 'toCart' => 0);
+		$data = array('active' => 1, 'filter' => 0, 'toCart' => 0, 'main' => 0, 'changePrice' => 0);
 		if(isset($_POST['alias']) && $_POST['alias'] != '') $data['alias'] = $_POST['id'] . '-' . $_POST['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
 		if(isset($_POST['filter']) && $_POST['filter'] == 1) $data['filter'] = 1;
 		if(isset($_POST['toCart']) && $_POST['toCart'] == 1) $data['toCart'] = 1;
+		if(isset($_POST['changePrice']) && $_POST['changePrice'] == 1) $data['changePrice'] = 1;
+		if(isset($_POST['main']) && $_POST['main'] == 1) $data['main'] = 1;
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];
-		if($_SESSION['option']->useGroups){
+		if($_SESSION['option']->useGroups) {
 			if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
 		}
-		if($this->db->updateRow($this->table('_options'), $data, $id)){
-			if($_SESSION['language']){
-				foreach ($_SESSION['all_languages'] as $lang){
-					if(isset($_POST['name_'.$lang]) && isset($_POST['sufix_'.$lang])){
+		
+		if($this->db->updateRow($this->table('_options'), $data, $id))
+		{
+			if($_SESSION['language'])
+				foreach ($_SESSION['all_languages'] as $lang) {
+					if(isset($_POST['name_'.$lang]) && isset($_POST['sufix_'.$lang]))
 						$this->db->executeQuery("UPDATE `{$this->table('_options_name')}` SET `name` = '{$_POST['name_'.$lang]}', `sufix` = '{$_POST['sufix_'.$lang]}' WHERE `option` = '{$id}' AND `language` = '{$lang}'");
-					}
 				}
-			} else {
-				if(isset($_POST['name']) && isset($_POST['sufix'])){
+			else
+			{
+				if(isset($_POST['name']) && isset($_POST['sufix']))
+				{
 					$data = array();
 					$data['name'] = $_POST['name'];
 					$data['sufix'] = $_POST['sufix'];
 					$this->db->updateRow($this->table('_options_name'), $data, $id, 'option');
 				}
 			}
-			if(isset($_POST['type']) && is_numeric($_POST['type'])){
+			if(isset($_POST['type']) && is_numeric($_POST['type']))
+			{
 				$type = $this->db->getAllDataById('wl_input_types', $_POST['type']);
-				if($type->options == 1){
-					$options = array();
+				if($type->options == 1)
+				{
+					$options = $options_name = array();
 					foreach ($_POST as $key => $value) {
 						$key = explode('_', $key);
-						if($key[0] == 'option' && isset($key[1]) && is_numeric($key[1]) && $key[1] > 0) $options[] = $key[1];
+						if($key[0] == 'option' && isset($key[1]) && is_numeric($key[1]) && $key[1] > 0)
+							$options_name[] = $key[1];
+						if($key[0] == 'changePrice-action' && isset($key[1]) && is_numeric($key[1]) && $key[1] > 0)
+							$options[] = $key[1];
 					}
-					if($options){
-						foreach ($options as $opt) {
+					
+					if($options_name)
+						foreach ($options_name as $opt) {
 							$this->db->updateRow($this->table('_options_name'), array('name' => $_POST['option_'.$opt]), $opt);
 						}
-					}
-					if($_SESSION['language']){
-						if(isset($_POST['option_0_'.$_SESSION['language']]) && is_array($_POST['option_0_'.$_SESSION['language']])){
-							for($i = 0; $i < count($_POST['option_0_'.$_SESSION['language']]); $i++){
+					if(isset($_POST['changePrice']) && $_POST['changePrice'] == 1 && $options)
+						foreach ($options as $opt_id) {
+							$dataPrice = array('changePrice' => 0);
+							$action = $this->data->post('changePrice-action_'.$opt_id);
+							if($action != '0')
+							{
+								$changePrice['action'] = $action;
+								$changePrice['value'] = $this->data->post('changePrice-value-'.$opt_id);
+								$changePrice['currency'] = $this->data->post('changePrice-currency-'.$opt_id);
+								$dataPrice['changePrice'] = serialize($changePrice);
+							}
+							$this->db->updateRow($this->table('_options'), $dataPrice, $opt_id);
+						}
+					
+					if($_SESSION['language'])
+					{
+						if(!empty($_POST['option_0_'.$_SESSION['language']]) && is_array($_POST['option_0_'.$_SESSION['language']]))
+							for($i = 0; $i < count($_POST['option_0_'.$_SESSION['language']]); $i++) {
 								$data = array();
 								$data['wl_alias'] = $_SESSION['alias']->id;
 								$data['group'] = $id * -1;
@@ -142,9 +167,10 @@ class options_model {
 									$this->db->insertRow($this->table('_options_name'), $data);
 								}
 							}
-						}
-					} else {
-						if(isset($_POST['option_0']) && is_array($_POST['option_0'])){
+					}
+					else
+					{
+						if(!empty($_POST['option_0']) && is_array($_POST['option_0']))
 							foreach ($_POST['option_0'] as $option) {
 								$data = array();
 								$data['wl_alias'] = $_SESSION['alias']->id;
@@ -159,7 +185,6 @@ class options_model {
 								$data['name'] = $option;
 								$this->db->insertRow($this->table('_options_name'), $data);
 							}
-						}
 					}
 				}
 			}

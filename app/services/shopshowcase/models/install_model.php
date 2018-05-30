@@ -69,7 +69,7 @@ class install
 						  `product` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
 						  `position` int(11) NULL,
-						  `active` int(11) NULL,
+						  `active` tinyint(1) NULL,
 						  PRIMARY KEY (`id`),
 						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
@@ -220,6 +220,7 @@ class install
 						  `product` int(11) NOT NULL,
 						  `group` int(11) NOT NULL,
 						  `position` int(11) NULL,
+						  `active` tinyint(1) NULL,
 						  PRIMARY KEY (`id`),
 						  KEY `product` (`product`, `group`)
 						) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";

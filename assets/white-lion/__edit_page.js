@@ -211,3 +211,37 @@ function deletePhoto(id){
 		});
 	}
 }
+
+
+$("#modal-groupsTree").on("show.bs.modal", function(e) {
+    $.ajax({
+        url: ALIAS_ADMIN_URL+'_get_groupsTree?product='+CONTENT_ID,
+        success: function(res){
+            $("#modal-groupsTree").find(".modal-body").html(res);
+
+            var to = false;
+            $('#search').keyup(function () {
+                if(to) { clearTimeout(to); }
+                to = setTimeout(function () {
+                    var v = $('#search').val();
+                    $('#jstree').jstree(true).search(v);
+                }, 250);
+            });
+
+            $('#jstree')
+                .on("changed.jstree", function (e, data) {
+                    $('#selected').val(data.selected);
+                })
+                .jstree(
+                    {plugins: ["wholerow", "checkbox", "search"]}
+                ); 
+        },
+        error: function(){
+            alert("Помилка! Спробуйте ще раз!");
+        },
+        timeout: function(){
+            alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
+        }
+    });
+});
+

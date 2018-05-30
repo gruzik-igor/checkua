@@ -51,6 +51,17 @@
                         <span class="pull-right"><?=$this->text('Артикул')?>: <?= $product->article ?><span></span></span>
                     </div>
  -->
+
+                    <?php $canBy = false;
+                    if(!empty($product->group))
+                        foreach ($product->group as $g) {
+                            if($g->active)
+                            {
+                                $canBy = true;
+                                break;
+                            }
+                        }
+                     ?>
                     <div class="product-title">
                         <div class="row">
                             <h3 class="product-name"><span style="font-size: 16px"><?=$this->text('Артикул')?>:</span> <?= $_SESSION['alias']->name ?></h3>
@@ -58,16 +69,18 @@
                             <br>
                             <br>
                             <br>
-                            <p class="price">
-                                <?php if($product->old_price != 0) { ?>
-                                <del>
-                                    <span class="amount"><?= $product->old_price ?> грн</span>
-                                </del>
-                                <?php } ?>
-                                <ins>
-                                    <span class="amount" id="product-price"><?= $product->price ?> грн</span>
-                                </ins>
-                            </p>
+                            <?php if($canBy) { ?>
+                                <p class="price">
+                                    <?php if($product->old_price != 0) { ?>
+                                    <del>
+                                        <span class="amount"><?= $product->old_price ?> грн</span>
+                                    </del>
+                                    <?php } ?>
+                                    <ins>
+                                        <span class="amount" id="product-price"><?= $product->price ?> грн</span>
+                                    </ins>
+                                </p>
+                            <?php } ?>
                         </div>
                         
                     </div>

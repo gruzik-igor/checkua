@@ -9,10 +9,6 @@
 
 if(isset($pay) && $pay->amount > 0 && !empty($_SESSION['option']->receiverEmail)) {
 
-$payNowButtonUrl = 'https://www.paypal.com/cgi-bin/webscr';
-if($_SESSION['option']->testPay)
-	$payNowButtonUrl = 'https://www.sandbox.paypal.com/cgi-bin/websc';
-
 ?>
 
 <h2 style="font-size: 43px;"><i class="fa fa-cc-visa"></i> Attends une minute..</h2>
@@ -20,7 +16,7 @@ if($_SESSION['option']->testPay)
     
     <p class="reply__text">*Si la redirection ne s'est pas effectuée automatiquement, veuillez cliquer sur</p>
 
-<form action="<?php echo $payNowButtonUrl; ?>" method="post" id="pay_form" name="pay_form">
+<form action="<?php echo $pay->formLink; ?>" method="post" id="pay_form" name="pay_form">
 	<input type="hidden" name="cmd" value="_xclick">
 	<input type="hidden" name="business" value="<?php echo $_SESSION['option']->receiverEmail; ?>">
 	<input type="hidden" name="item_number" value="<?php echo $pay->id; ?>">
@@ -29,7 +25,7 @@ if($_SESSION['option']->testPay)
 	<input type="hidden" name="amount" value="<?php echo $pay->amount;?>">
 	<input type="hidden" name="no_shipping" value="1">
 	<input type="hidden" name="return" value="<?php echo SITE_URL.$pay->return_url; ?>">
-	<input type="hidden" name="notify_url" value="<?php echo SERVER_URL.$_SESSION['alias']->alias.'/validate/'.$pay->id; ?>">
+	<input type="hidden" name="notify_url" value="<?php echo SERVER_URL.$_SESSION['alias']->alias.'/validate'; ?>">
 	<input type="hidden" name="currency_code" value="<?php echo $_SESSION['option']->currency_code; ?>">
 	<input type="hidden" name="lc" value="US">
 	<input type="hidden" name="bn" value="PP-BuyNowBF">

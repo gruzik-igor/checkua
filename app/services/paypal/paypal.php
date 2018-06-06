@@ -26,15 +26,9 @@ class paypal extends Controller {
 
     public function validate()
     {
-        $id = $this->data->uri(2);
-        if(is_numeric($id) && $id > 0)
-        {
-            $this->load->smodel('paypal_model');
-            if($pay = $this->paypal_model->validate($id))
-                $this->load->function_in_alias($pay->cart_alias, '__set_Payment', $pay, true);
-        }
-        else
-            $this->load->page_404();
+        $this->load->smodel('paypal_model');
+        if($pay = $this->paypal_model->validate())
+            $this->load->function_in_alias($pay->cart_alias, '__set_Payment', $pay, true);
     }
 
     public function __get_Search($content)

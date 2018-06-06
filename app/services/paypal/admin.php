@@ -26,8 +26,7 @@ class paypal extends Controller {
     	$this->load->smodel('paypal_model');
     	if(is_numeric($uri))
     	{
-    		$payment = $this->paypal_model->getPayment($uri);
-    		if($payment)
+    		if($payment = $this->paypal_model->getPayment($uri))
     		{
     			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Оплата #'.$uri => '');
 				$_SESSION['alias']->name .= '. Оплата #'.$uri;

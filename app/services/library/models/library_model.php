@@ -166,14 +166,39 @@ class library_model {
         {
 			$_SESSION['option']->paginator_total = $this->db->get('count');
 
-            $list = array();
+			$list = array();
         	if($_SESSION['option']->useGroups > 0)
         	{
-	            $all_groups = $this->db->getAllDataByFieldInArray($this->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-	            if($all_groups)
-	            	foreach ($all_groups as $g) {
+        		if(empty($this->allGroups))
+        		{
+        			$where = array();
+        			$where['wl_alias'] = $_SESSION['alias']->id;
+					$where['active'] = 1;
+					$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+					$where_ntkd['alias'] = $_SESSION['alias']->id;
+					$where_ntkd['content'] = "#-g.id";
+					if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+					$this->db->join('wl_ntkd', "name", $where_ntkd);
+					$this->allGroups = $this->db->get('array');
+        		}
+	            if($this->allGroups)
+	            	foreach ($this->allGroups as $g) {
 		            	$list[$g->id] = clone $g;
 		            }
+	        }
+
+			$sizes = $this->db->getAliasImageSizes();
+
+			$articles_ids = $articles_photos = array();
+            foreach ($articles as $article)
+            	$articles_ids[] = $article->id;
+            if($photos = $this->getArticlePhoto($articles_ids))
+            {
+	            foreach ($photos as $photo) {
+	            	$articles_photos[$photo->content] = clone $photo;
+	            }
+	            unset($photos);
 	        }
 
 	        $sizes = $this->db->getAliasImageSizes();
@@ -181,11 +206,12 @@ class library_model {
             foreach ($articles as $article)
             {
             	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
-            	$article->photo = null;
             	// $article->video = $this->db->getAllDataByFieldInArray('wl_video', array('alias' => $_SESSION['alias']->id, 'content' => $article->id));
 
-            	if($photo = $this->getArticlePhoto($article->id))
+            	$article->photo = null;
+            	if(isset($articles_photos[$article->id]))
             	{
+            		$photo = $articles_photos[$article->id];
 					if($sizes)
 						foreach ($sizes as $resize) {
 							$resize_name = $resize->prefix.'_photo';
@@ -383,13 +409,6 @@ class library_model {
 	public function makeParents($all, $parent, $parents)
 	{
 		$group = clone $all[$parent];
-		$where = '';
-        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
-        $this->db->executeQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
-    	if($this->db->numRows() == 1){
-    		$ntkd = $this->db->getRows();
-    		$group->name = $ntkd->name;
-    	}
     	array_unshift ($parents, $group);
 		if($all[$parent]->parent > 0) $parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
 		return $parents;
@@ -428,11 +447,17 @@ class library_model {
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $article;
 		$this->db->select('wl_images', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('position ASC');
-		if(!$all)
+		if(is_array($article) || $article == '<0')
+			$this->db->group('content');
+		if($all)
+			$this->db->join('wl_users', 'name as user_name', '#author');
+		elseif(is_numeric($article))
 			$this->db->limit(1);
-		return $this->db->get();
+		if(is_array($article) || $all)
+			return $this->db->get('array');
+		else
+			return $this->db->get();
 	}
 
 	private function getOptions($article)

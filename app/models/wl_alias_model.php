@@ -134,14 +134,14 @@ class wl_alias_model
 		if($_SESSION['language'])
 			$where['language'] = $_SESSION['language'];
 		if($data = $this->db->getAllDataById('wl_ntkd', $where))
-		{    	
-			$_SESSION['alias']->name = $data->name;
-			$_SESSION['alias']->title = $data->title;
-			$_SESSION['alias']->description = $data->description;
-			$_SESSION['alias']->keywords = $data->keywords;
-			$_SESSION['alias']->text = htmlspecialchars_decode($data->text);
-			$_SESSION['alias']->list = $data->list;
-			$_SESSION['alias']->meta = $data->meta;
+		{
+			$_SESSION['alias']->name = html_entity_decode($data->name, ENT_QUOTES);
+			$_SESSION['alias']->title = html_entity_decode($data->title, ENT_QUOTES);
+			$_SESSION['alias']->description = html_entity_decode($data->description, ENT_QUOTES);
+			$_SESSION['alias']->keywords = html_entity_decode($data->keywords, ENT_QUOTES);
+			$_SESSION['alias']->text = html_entity_decode($data->text, ENT_QUOTES);
+			$_SESSION['alias']->list = html_entity_decode($data->list, ENT_QUOTES);
+			$_SESSION['alias']->meta = html_entity_decode($data->meta, ENT_QUOTES);
 
 			if($_SESSION['alias']->images)
 				foreach ($_SESSION['alias']->images as $photo) {

@@ -42,7 +42,7 @@
     									<tr>
     										<td><?=$a->id?></td>
     										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$a->link?>"><?=$a->name?></a></td>
-                                            <td><?=$a->price?></td>
+                                            <td><?=$a->price?> <?=($a->old_price) ? "<del>{$a->old_price}</del>" : ''?></td>
     										<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$a->link?>" target="_blank"><?=$a->alias?></a></td>
     										<?php
                                             if($_SESSION['option']->useGroups == 1) {

@@ -252,11 +252,11 @@ class shop_model {
 				else
 					return false;
 			}
-			if(isset($_GET['sale']) && $_GET['sale'] == 1)
-			{
-				$where['#p.old_price'] = '>0';
-				$where['+#p.old_price'] = '> p.price';
-			}
+		}
+		if(isset($_GET['sale']) && $_GET['sale'] == 1)
+		{
+			$where['#p.old_price'] = '>0';
+			$where['+#p.old_price'] = '> p.price';
 		}
 		if($active && $_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
 			$where['#g.active'] = 1;
@@ -392,7 +392,7 @@ class shop_model {
 	        $parents = NULL;
 			if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && $products[0]->group > 0)
 			{
-				$parents = $this->makeParents($list, $products[0]->group, $products[0]->parents);
+				$parents = $this->makeParents($list, $products[0]->group, array());
 				foreach ($parents as $parent) {
 					$link .= $parent->alias .'/';
 				}
@@ -460,7 +460,7 @@ class shop_model {
 			return $products;
 		}
 		$this->db->clear();
-		return null;
+		return false;
 	}
 
 	public function getProduct($alias, $key = 'alias', $all_info = true)
@@ -560,7 +560,15 @@ class shop_model {
 			}
 			if($all_info)
         	{
-        		$product->options = $this->getProductOptions($product, $product->parents);
+        		$parents_ids = array();
+        		if($product->parents)
+        			foreach ($product->parents as $pid) {
+        				if(is_object($pid) && isset($pid->id))
+        					$parents_ids[] = $pid->id;
+        				elseif(is_numeric($pid) && $pid > 0)
+        					$parents_ids[] = $pid;
+        			}
+        		$product->options = $this->getProductOptions($product, $parents_ids);
         		$product->photo = null;
 
         		$sizes = $this->db->getAliasImageSizes();
@@ -623,7 +631,7 @@ class shop_model {
         	}
             return $product;
 		}
-		return null;
+		return false;
 	}
 
 	public function getProductPhoto($product, $all = false)

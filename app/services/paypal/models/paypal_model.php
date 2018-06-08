@@ -47,6 +47,9 @@ class paypal_model
 			if($pay->status == 'Completed')
 				exit;
 
+			if($pay->signature != $this->signature($pay))
+				$this->saveToHistory($pay_id, 'bad signature');
+
 			$postdata = ""; 
 			foreach ($_POST as $key => $value)
 				$postdata .= $key."=".urlencode($value)."&";  

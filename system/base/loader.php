@@ -290,10 +290,12 @@ class Loader {
 		else
 		{
 			$this->wl_aliases[$alias] = false;
+			$key = 'alias';
 			if(is_numeric($alias))
-				$alias = $this->db->getAllDataById('wl_aliases', $alias);
-			else
-				$alias = $this->db->getAllDataById('wl_aliases', $alias, 'alias');
+				$key = 'id';
+			$alias = $this->db->select('wl_aliases as a', '*', $alias, $key)
+								->join('wl_services as s', 'name as service_name, table as service_table', '#a.service')
+								->get('single');
 		}
 
 		if(is_object($alias))
@@ -360,7 +362,7 @@ class Loader {
 				if($alias->service > 0)
 				{
 					$this->model('wl_services_model');
-					if($this->wl_services_model->loadService($alias->service))
+					if($this->wl_services_model->loadService($alias))
 					{
 						$service = $_SESSION['alias']->service;
 						$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';

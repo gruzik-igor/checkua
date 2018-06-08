@@ -7,20 +7,20 @@ class wl_services_model {
 		return $this->db->getAllData('wl_services');
 	}
 
-	public function loadService($service)
+	public function loadService($alias)
 	{
-		if($service = $this->db->getQuery("SELECT `id`, `name`, `table` FROM `wl_services` WHERE `id` = '{$service}'"))
+		if(!empty($alias->service_name))
 		{
-			$_SESSION['alias']->service = $service->name;
-			$_SESSION['service'] = new stdClass();
-			$_SESSION['service']->name = $service->name;
-			$_SESSION['service']->table = $service->table;
-
-			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => array(0, $service->id), 'alias' => array(0, $_SESSION['alias']->id)), 'service, alias'))
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => array(0, $alias->service), 'alias' => array(0, $alias->id)), 'service, alias'))
 				foreach($options as $opt){
 					$key = $opt->name;
 					@$_SESSION['option']->$key = $opt->value;
 				}
+
+			$_SESSION['alias']->service = $alias->service_name;
+			$_SESSION['service'] = new stdClass();
+			$_SESSION['service']->name = $alias->service_name;
+			$_SESSION['service']->table = $alias->service_table;
 
 			return true;
 		}

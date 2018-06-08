@@ -29,11 +29,15 @@
         if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') {
         ?>
             <li><a href="#tab-photo" data-toggle="tab" aria-expanded="true">Фото</a></li>
-        <?php } ?>
-        <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
-        <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
-            <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
-        <?php } 
+        <?php }
+
+        if($_SESSION['alias']->content > 0) { ?>
+            <li><a href="#tab-video" data-toggle="tab" aria-expanded="true">Відео</a></li>
+            <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
+                <li><a href="#tab-audio" data-toggle="tab" aria-expanded="true">Аудіо</a></li>
+            <?php }
+        }
+
         if(isset($AFTER_TAB_NAME) && isset($AFTER_TAB_PATH))
         {
             foreach ($AFTER_TAB_NAME as $key => $name) {
@@ -70,15 +74,16 @@
             <div class="tab-pane fade" id="tab-photo">
                 <?php require_once 'wl_images/__tab-photo.php'; ?>
             </div>
-        <?php } ?>
-        <div class="tab-pane fade" id="tab-video">
-            <?php require_once 'wl_video/__tab-video.php'; ?>
-        </div>
-        <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
-            <div class="tab-pane fade" id="tab-audio">
-                <?php require_once 'wl_audio/__tab-audio.php'; ?>
+        <?php } if($_SESSION['alias']->content > 0) { ?>
+            <div class="tab-pane fade" id="tab-video">
+                <?php require_once 'wl_video/__tab-video.php'; ?>
             </div>
-        <?php } 
+            <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
+                <div class="tab-pane fade" id="tab-audio">
+                    <?php require_once 'wl_audio/__tab-audio.php'; ?>
+                </div>
+            <?php } 
+        }
         if(isset($AFTER_TAB_NAME) && isset($AFTER_TAB_PATH))
         {
             foreach ($AFTER_TAB_PATH as $key => $path) {

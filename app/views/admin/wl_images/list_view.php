@@ -29,7 +29,7 @@
 								<tr>
 									<td><?=$pic->name?></td>
 									<td><?=$pic->prefix?></td>
-									<td><?=($pic->type == 1) ? 'resize' : 'preview'?></td>
+									<td><?=(in_array($pic->type, array(1, 11, 12))) ? 'resize' : 'preview'?></td>
 									<td><?=$pic->width?></td>
 									<td><?=$pic->height?></td>
 									<td><?=$pic->active?></td>

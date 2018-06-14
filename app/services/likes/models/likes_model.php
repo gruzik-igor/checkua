@@ -11,7 +11,7 @@ class likes_model
 
 	public function setLike($user)
 	{
-		$rez = array('setLike' => false, 'count' => 0);
+		$rez = array('setLike' => false, 'cancel' => false, 'count' => 0);
 		$like = array();
 		$like['user'] = $user;
 		$like['alias'] = $_POST['alias'];
@@ -19,7 +19,7 @@ class likes_model
 		if($row = $this->db->getAllDataById($this->table(), $like))
 		{
 			if($row->status == 1)
-                $this->db->updateRow($this->table(), array('status' => '0', 'date_update' => time()), $row->id);
+                $rez['cancel'] = true;
             else
             {
                 $this->db->updateRow($this->table(), array('status' => '1', 'date_update' => time()), $row->id);
@@ -34,8 +34,25 @@ class likes_model
 			$this->db->insertRow($this->table(), $like);
 		}
 		$rez['count'] = $this->db->getCount($this->table(), array('alias' => $_POST['alias'], 'content' => $_POST['content']));
-		if(!$rez['setLike'] && $rez['count'] > 0)
-			$rez['count']--;
+		return $rez;
+	}
+
+	public function cancelLike($user)
+	{
+		$rez = array('cancelLike' => false, 'count' => 0);
+		$like = array();
+		$like['user'] = $user;
+		$like['alias'] = $_POST['alias'];
+		$like['content'] = $_POST['content'];
+		if($row = $this->db->getAllDataById($this->table(), $like))
+		{
+			if($row->status == 1)
+			{
+				$rez['cancelLike'] = true;
+                $this->db->updateRow($this->table(), array('status' => '0', 'date_update' => time()), $row->id);
+			}
+		}
+		$rez['count'] = $this->db->getCount($this->table(), array('alias' => $_POST['alias'], 'content' => $_POST['content']));
 		return $rez;
 	}
 

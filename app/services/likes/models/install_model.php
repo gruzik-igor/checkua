@@ -11,7 +11,7 @@ class install {
 	public $table_service = "s_likes";
 	public $table_alias = "";
 	public $multi_alias = 0;
-	public $order_alias = 0;
+	public $order_alias = 5;
 	public $admin_ico = 'fa-heart';
 	public $version = "1.0";
 
@@ -25,6 +25,17 @@ class install {
 	public function alias($alias = 0, $table = '')
 	{
 		if($alias == 0) return false;
+
+		$alias1 = -1;
+		if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__tab_profile'), 'alias1'))
+			$alias1 = $actions[0]->alias1 - 1;
+		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__tab_profile'));
+
+		$alias1 = -1;
+		if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__link_profile'), 'alias1'))
+			$alias1 = $actions[0]->alias1 - 1;
+		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__link_profile'));
+
 		return true;
 	}
 

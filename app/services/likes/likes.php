@@ -18,14 +18,12 @@ class likes extends Controller {
     {
         if($this->userIs())
         {
+            $this->wl_alias_model->setContent();
+
             $this->load->smodel('likes_model');
             $where = array('user' => $_SESSION['user']->id, 'status' => 1);
             $likes = $this->likes_model->getLikesWithData($where);
-            ob_start();
-            $this->load->view('__user_likes_view', array('likes_list' => $likes));
-            $content = ob_get_contents();
-            ob_end_clean();
-            $this->load->profile_view($content);
+            $this->load->profile_view('__user_likes_view', array('likes_list' => $likes));
         }
         else
             $this->redirect('login');

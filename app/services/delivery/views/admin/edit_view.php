@@ -38,6 +38,7 @@
 								<td>
 									<label><input type="radio" name="department" value="1" <?=$delivery->department == 1 ? 'checked' : ''?>> у відділення</label>
 									<label><input type="radio" name="department" value="0" <?=$delivery->department == 0 ? 'checked' : ''?>> за адресою</label>
+									<label><input type="radio" name="department" value="2" <?=$delivery->department == 2 ? 'checked' : ''?>> без адреси</label>
 								</td>
 							</tr>
 							<tr>

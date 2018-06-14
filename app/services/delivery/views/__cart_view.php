@@ -5,6 +5,9 @@
         else
             $anotherCity = explode(":", $delivery->address, 2);
     }
+    $noCity = false;
+    if($delivery->method == 2)
+        $noCity = true;
     $info = ($methods) ? $methods[0]->info : '';
 ?>
 
@@ -20,7 +23,7 @@
         </select>
     </div>
 
-    <div class="form-group">
+    <div class="form-group <?= $noCity ? 'hidden' : '' ?>" id="CityInput">
         <label><?=$this->text('Місто доставки')?></label>
         <input type="text" name="shipping-city" class="form-control" id="shipping-cities" placeholder="<?=$this->text('Місто')?>" value="<?= isset($city) ? rtrim($city[0]) : (isset($anotherCity) ? rtrim($anotherCity[0]) : '' ) ?>" required>
     </div>
@@ -67,7 +70,7 @@
         </div>
     <?php } ?>
 
-    <div class="alert alert-warning" id="shipping-info">
+    <div class="alert alert-warning" id="shipping-info" <?=(empty($info)) ? 'style="display:none"':''?>>
         <?=$info?>
     </div>
 
@@ -77,8 +80,9 @@
     </div>
 
     <div class="form-group">
-            <input type="checkbox" name="shipping-agree" id="shipping-agree" value="1" required> 
-            <label class="checkbox" for="shipping-agree"><?=$this->text('Я ознайомився з термінами доставки')?>
+        <input type="checkbox" name="shipping-agree" id="shipping-agree" value="1" required>
+        <label class="checkbox" for="shipping-agree">
+        <span class="delivagree"><?=$this->text('Я ознайомився з термінами доставки')?></span>
         </label>
     </div>
 </div>

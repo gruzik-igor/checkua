@@ -6,6 +6,7 @@ function changeInfo(el) {
 
     if(departments[active_shipping_method] == '1')
     {
+        $("#CityInput").removeClass('hidden');
         if($("#shipping-method option:selected").text().toLowerCase() != 'нова пошта'.toLowerCase()){
             $("#shipping-department, #shipping-address").addClass('hidden').empty();
             $("#shipping-department-other").removeClass('hidden');
@@ -15,10 +16,14 @@ function changeInfo(el) {
             $("#shipping-cities").val('');
         }
     }
+    else if(departments[active_shipping_method] == '2')
+    {
+        $("#CityInput, #shipping-address, #shipping-department, #shipping-department-other, #novaPoshtaDepartments").addClass('hidden');
+    }
     else
     {
         $("#shipping-department, #shipping-department-other, #novaPoshtaDepartments").addClass('hidden');
-        $("#shipping-address").removeClass('hidden');
+        $("#CityInput").removeClass('hidden');
     }
 }
 

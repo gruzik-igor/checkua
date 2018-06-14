@@ -33,7 +33,17 @@
 										</td>
 										<td><?=$method->site?></td>
                                         <td><?=$method->info?></td>
-										<td><?=$method->department == 1 ? 'у відділення' : 'за адресою'?></td>
+										<td><?php switch ($method->department) {
+                                            case 1:
+                                                echo('у відділення');
+                                                break;
+                                            case 2:
+                                                echo('без адреси');
+                                                break;
+                                            default:
+                                                echo('за адресою');
+                                                break;
+                                        } ?></td>
 										<td><?=$method->active == 1 ? 'активна' : 'відключено'?></td>
 										<td><?=date("d.m.Y H:i", $method->date_add)?></td>
 									</tr>

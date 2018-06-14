@@ -32,25 +32,28 @@
         <div class="form-group">
             <textarea class="form-control rounded-0" name="comment" id="review-text" rows="6" placeholder="Review" required><?=$this->data->re_post('comment')?></textarea>
         </div>
-        <div class="form-group row">
-            <?php $this->load->library('recaptcha');
-                $this->recaptcha->form(); ?>
-        </div>
-        <div class="form-group row">
-            <div class="col-6 col-md-4">
-                <input class="form-control rounded-0" type="text" name="name" placeholder="Name*" value="<?=$this->data->re_post('name')?>" required>
+        <?php if($this->userIs()) { ?>
+            <div class="form-group row">
+                <div class="col-12 col-md-4 mt-md-0 mt-3">
+                    <input class="review-btn btn w-100 rounded-0" type="submit" value="Add review">
+                </div>
             </div>
-            <div class="col-6 col-md-4">
-                <input class="form-control rounded-0" type="email" name="email" placeholder="Email*" value="<?=$this->data->re_post('email')?>" required>
+        <?php } else { ?>
+            <div class="form-group row">
+                <?php $this->load->library('recaptcha');
+                    $this->recaptcha->form(); ?>
             </div>
-            <div class="col-12 col-md-4 mt-md-0 mt-3">
-                <input class="review-btn btn w-100 rounded-0" type="submit" value="Add review">
+            <div class="form-group row">
+                <div class="col-6 col-md-4">
+                    <input class="form-control rounded-0" type="text" name="name" placeholder="Name*" value="<?=$this->data->re_post('name')?>" required>
+                </div>
+                <div class="col-6 col-md-4">
+                    <input class="form-control rounded-0" type="email" name="email" placeholder="Email*" value="<?=$this->data->re_post('email')?>" required>
+                </div>
+                <div class="col-12 col-md-4 mt-md-0 mt-3">
+                    <input class="review-btn btn w-100 rounded-0" type="submit" value="Add review">
+                </div>
             </div>
-        </div>
-        <div class="form-group row">
-            <div class="col-md-12">
-                <p> Image Upload Policy: Please use the Upload option for uploading airport images only. All images uploaded to airportsinsider.com should be uploaded with the permission of the photographer or copyright holder. By uploading a photo to airportsinsider.com both yourself and the copyright holder of the image are agreeing to the publishing of the photo on our site.</p>
-            </div>
-       </div>
+        <?php } ?>
     </form>
 </div>

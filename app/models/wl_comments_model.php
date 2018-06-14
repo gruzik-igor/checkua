@@ -24,10 +24,14 @@ class wl_comments_model {
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
+		$wl_sitemap = array('alias' => '#c.alias', 'content' => '#c.content');
+		if($_SESSION['language'])
+			$wl_sitemap['language'] = $_SESSION['language'];
+
 		$this->db->select('wl_comments as c', '*', $where)
 				->join('wl_users', 'name as user_name, email as user_email', '#c.user')
-				->join('wl_ntkd', 'name as page_name', array('alias' => '#c.alias', 'content' => '#c.content'))
-				->join('wl_sitemap', 'link', array('alias' => '#c.alias', 'content' => '#c.content'))
+				->join('wl_ntkd', 'name as page_name', $wl_sitemap)
+				->join('wl_sitemap', 'link', $wl_sitemap)
 				->order('date_add DESC');
 
 		return $this->db->get($type);

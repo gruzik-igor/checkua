@@ -14,22 +14,23 @@ class Profile extends Controller {
 
     public function index($uri = false)
     {
-        $_SESSION['alias']->content = 0;
-        $_SESSION['alias']->code = 201;
-
         if($uri)
         {
             $this->load->model('wl_user_model');
-            $user = $this->wl_user_model->getInfo($uri, false, 'alias');
-            if($user)
+            if($user = $this->wl_user_model->getInfo($uri, false, 'alias'))
             {
                 $_SESSION['alias']->title = $user->name.'. Кабінет користувача';
                 $_SESSION['alias']->name = $user->name;
+                $_SESSION['alias']->content = $user->id;
+                $_SESSION['alias']->code = 201;
 
-                $this->load->page_view('profile/index_view', array('user' => $user));
-            } 
+                $orders = $this->load->function_in_alias('cart', '__get_user_orders', $user->id);
+
+                $subview = APP_PATH.'services/cart/views/list_view';
+                $this->load->profile_view($subview, array('user' => $user, 'orders' => $orders));
+            }
             else 
-                $this->load->page_404();
+                $this->load->page_404(false);
         } 
         elseif($this->userIs())
         {
@@ -44,16 +45,17 @@ class Profile extends Controller {
 
     public function edit()
     {
-        $_SESSION['alias']->code = 201;
         if($this->userIs())
         {
             $_SESSION['alias']->title = $_SESSION['user']->name.'. Кабінет користувача';
             $_SESSION['alias']->name = 'Кабінет користувача';
+            $_SESSION['alias']->content = $_SESSION['user']->id;
+            $_SESSION['alias']->code = 201;
 
             $this->load->model('wl_user_model');
             $registerDo = $this->db->getQuery("SELECT r.*, d.name, d.title_public as title_public FROM wl_user_register as r LEFT JOIN wl_user_register_do as d ON d.id = r.do WHERE r.user = {$_SESSION['user']->id} AND d.public = 1", 'array');
 
-            $this->load->page_view('profile/edit_view', array('user' => $this->wl_user_model->getInfo(), 'registerDo' => $registerDo));
+            $this->load->profile_view('__edit_view', array('user' => $this->wl_user_model->getInfo(), 'registerDo' => $registerDo));
         }
         else
             $this->redirect('login');

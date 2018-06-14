@@ -84,7 +84,7 @@ class Router extends Loader {
 					new Page404();
 			}
 			else
-				parent::redirect('login');
+				parent::redirect('login?redirect='.$this->request);
 		}
 		else
 		{

@@ -48,7 +48,12 @@ class Login extends Controller {
 					$res['result'] = true;
 					$this->load->json($res);
 				} else 
-					header('Location: '.SITE_URL.$status->load);
+				{
+					if($redirect = $this->data->post('redirect'))
+						$this->redirect($redirect);
+					else
+						header('Location: '.SITE_URL.$status->load);
+				}
 				exit;
             }
             else
@@ -142,7 +147,10 @@ class Login extends Controller {
 				$this->load->model('wl_user_model');
 				if($status = $this->wl_user_model->login('facebook', $user_profile['id']))
 				{
-					header('Location: '.SITE_URL.$status->load);
+					if($redirect = $this->data->post('redirect'))
+						$this->redirect($redirect);
+					else
+						header('Location: '.SITE_URL.$status->load);
 					exit;
 				}
 				elseif($this->wl_user_model->userExists($user_profile['email']))

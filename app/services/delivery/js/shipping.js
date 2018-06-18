@@ -19,11 +19,13 @@ function changeInfo(el) {
     else if(departments[active_shipping_method] == '2')
     {
         $("#CityInput, #shipping-address, #shipping-department, #shipping-department-other, #novaPoshtaDepartments").addClass('hidden');
+        $("#shipping-address, #shipping-department").attr('required', '');
     }
     else
     {
         $("#shipping-department, #shipping-department-other, #novaPoshtaDepartments").addClass('hidden');
         $("#CityInput").removeClass('hidden');
+        $("#shipping-address, #shipping-department").attr('required', 'required');
     }
 }
 

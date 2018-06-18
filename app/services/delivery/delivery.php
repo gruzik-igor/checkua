@@ -61,56 +61,53 @@ class delivery extends Controller {
     public function __get_delivery_info($id)
     {
         return  $this->db->select($_SESSION['service']->table.'_carts as d', '*', $id)
-                            ->join($_SESSION['service']->table.'_methods', 'name as method_name, site as method_site', '#d.method')
+                            ->join($_SESSION['service']->table.'_methods', 'name as method_name, site as method_site, department', '#d.method')
                             ->get('single');
     }
 
     public function __get_Shipping_to_cart()
     {
-        if(isset($_SESSION['cart']))
+        if(!empty($_SESSION['user']->id))
         {
-            if(!empty($_SESSION['user']->id))
-            {
-                $delivery = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
-                if(!$delivery)
-                {
-                    $delivery = new stdClass();
-                    $delivery->id = 0;
-                    $delivery->method = 0;
-                    $delivery->address = '';
-                    $delivery->receiver = $_SESSION['user']->name;
-                    $delivery->email = $_SESSION['user']->email;
-                    if($phones = $this->db->getAllDataByFieldInArray('wl_user_info', array('user' => $_SESSION['user']->id, 'field' => 'phone')))
-                        $delivery->phone = $phones[0]->value;
-                }
-            }
-            else
+            $delivery = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user');
+            if(!$delivery)
             {
                 $delivery = new stdClass();
                 $delivery->id = 0;
                 $delivery->method = 0;
                 $delivery->address = '';
+                $delivery->receiver = $_SESSION['user']->name;
+                $delivery->email = $_SESSION['user']->email;
+                if($phones = $this->db->getAllDataByFieldInArray('wl_user_info', array('user' => $_SESSION['user']->id, 'field' => 'phone')))
+                    $delivery->phone = $phones[0]->value;
             }
-
-            $methods = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_methods', 1, 'active');
-            $warehouselist = file_get_contents (APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'np.json');
-            $warehouselist = json_decode ($warehouselist, true);
-
-            $warehouse_by_city = $cities = array();
-            foreach($warehouselist['response'] as $warehouse) {
-                $cities[] = $warehouse['city'];
-                $warehouse_by_city[$warehouse['city']][] = array(
-                    'city' => $warehouse['city'],  //назва міста
-                    'address' => preg_replace('/\([^)]+\)/', '', $warehouse['address']), //адрес відділення
-                    'number' => $warehouse['number'] //номер відділення
-                );
-            }
-            ksort($warehouse_by_city);
-
-            $cities = '"'. implode('","', array_keys($warehouse_by_city)) . '"';
-
-            $this->load->view('__cart_view', array('delivery' => $delivery, 'methods' => $methods, 'warehouse_by_city' => json_encode($warehouse_by_city), 'cities' => $cities));
         }
+        else
+        {
+            $delivery = new stdClass();
+            $delivery->id = 0;
+            $delivery->method = 0;
+            $delivery->address = '';
+        }
+
+        $methods = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_methods', 1, 'active');
+        $warehouselist = file_get_contents (APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'np.json');
+        $warehouselist = json_decode ($warehouselist, true);
+
+        $warehouse_by_city = $cities = array();
+        foreach($warehouselist['response'] as $warehouse) {
+            $cities[] = $warehouse['city'];
+            $warehouse_by_city[$warehouse['city']][] = array(
+                'city' => $warehouse['city'],  //назва міста
+                'address' => preg_replace('/\([^)]+\)/', '', $warehouse['address']), //адрес відділення
+                'number' => $warehouse['number'] //номер відділення
+            );
+        }
+        ksort($warehouse_by_city);
+
+        $cities = '"'. implode('","', array_keys($warehouse_by_city)) . '"';
+
+        $this->load->view('__cart_view', array('delivery' => $delivery, 'methods' => $methods, 'warehouse_by_city' => json_encode($warehouse_by_city), 'cities' => $cities));
     }
 
     public function __set_Shipping_from_cart()
@@ -140,6 +137,7 @@ class delivery extends Controller {
 
         $delivery = array('shipping_alias' => $_SESSION['alias']->id);
         $delivery['shipping_id'] = $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
+        $delivery['info'] = $this->__get_delivery_info($delivery['shipping_id']);
         return $delivery;
     }
 

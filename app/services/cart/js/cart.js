@@ -1,6 +1,7 @@
 var cart = {
 	'add' : function(productKey, quantity, options_id)
 	{
+		var alertOptions = [];
 		if(quantity == 0)
 			quantity = $("#productQuantity").val();
 		if(options_id != '')
@@ -8,12 +9,35 @@ var cart = {
 			var options = [];
 			for (var i = 0; i < options_id.length; i++) {
 				var id = options_id[i].toString();
-				var value = id + ':' + $('#product-option-' + id).val();
-				options.push(value);
+				var elem = $('[name=product-option-' + id + ']:checked');
+				var value = elem.val();
+				if(!value)
+				{
+					var name = $('#product-option-name-' + id).text();
+					alertOptions.push(name);
+				}
+				else
+				{
+					if(elem.data('id'))
+						id = elem.data('id');
+					value = id + ':' + value;
+					options.push(value);
+				}
 			}
 		}
 		else
 			options = '';
+		if(alertOptions.length)
+		{
+			var text = 'Властивості товару';
+			for (var i = 0; i < alertOptions.length; i++) {
+				text += ' ' + alertOptions[i];
+			}
+			text += ' не вказані';
+			alert (text);
+		}
+		else
+
 		$.ajax({
 			url: SITE_URL+'cart/addProduct',
 			type: 'POST',
@@ -66,9 +90,10 @@ var cart = {
 					}
 
 					var minicart = document.getElementById('shopping-cart-in-menu');
-					minicart.className = 'open';
+					minicart.className = 'shopping-cart open';
+					$('.cart-empty').remove();
 
-					document.getElementById('subTotal').innerText = res.subTotal;
+					// document.getElementById('subTotal').innerText = res.subTotal;
 				}
 			}
 		})
@@ -88,6 +113,9 @@ var cart = {
 				{
 					e.closest('.product').remove();
 					$('#subTotal').text(res['subTotal']);
+					$('.subTotal').text(res['subTotal']);
+					if($('.row.product').length == 0)
+						$('.subTotal.price + input').attr('disabled', true);
 				}
 				else
 				{

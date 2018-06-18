@@ -1,12 +1,14 @@
 <div class="table-responsive" >
-	<h4 class="left">Тип покупця: <?= $cartInfo->user_type_name?></h4>
-	<?php if($cartInfo->status_weight == 0){ ?>
+	<h4 class="left">Тип покупця: <?= $cart->user_type_name?></h4>
+	<?php if($cart->status_weight == 0){ ?>
 	<button class="btn btn-sm btn-warning pull-right" id="toggleNewProduct" onclick="$('#newProduct').toggle();">Додати товар</button><div class="clearfix"></div><br>
     <?php } ?>
     <table class="table table-striped table-bordered nowrap" width="100%">
 	    <thead>
 	    	<tr>
-	    		<th>Артикул</th>
+	    		<?php if(!empty($cart->products[0]->info->article)) { ?>
+	    			<th>Артикул</th>
+	    		<?php } ?>
 	    		<th>Продукт</th>
 	    		<?php if($_SESSION['option']->useStorage) { ?>
 	    		<th>Склад</th>
@@ -14,22 +16,34 @@
 		    	<th>Ціна / од.</th>
 		    	<th>Кількість</th>
 		    	<th>Разом</th>
-		    	<?php if($cartInfo->status_weight == 0){ ?><th></th><?php } ?>
+		    	<?php if($cart->status_weight == 0){ ?><th></th><?php } ?>
 	    	</tr>
 	    </thead>
 	    <tbody>
-	    	<?php if($cartProducts) foreach($cartProducts as $product) {?>
+	    	<?php if($cart->products) foreach($cart->products as $product) { ?>
 	    	<tr id="productId-<?= $product->id ?>">
-	    		<td><a href="<?=SITE_URL.'admin/'.$product->alias_name.'/search?id='.$product->product?>" target="_blank"><?= $product->product_article ?></a></td>
+	    		<?php if(!empty($product->info->article)) { ?>
+	    			<td><a href="<?=SITE_URL.$product->info->link?>" target="_blank"><?= $product->info->article ?></a></td>
+	    		<?php } ?>
 	    		<td>
-	    			<img src="<?= $product->photo?>" width="90" alt="">
-	    			<?= $product->product_name . ( $product->additional ? ' ( '. $product->additional .' )' : '') ?>
+	    			<?php if($product->info->photo) { ?>
+	    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
+	    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
+	    			</a>
+	    			<?php } echo '<strong>'.$product->info->name.'</strong>';
+	    			if(!empty($product->product_options))
+					{
+						$product->product_options = unserialize($product->product_options);
+						foreach ($product->product_options as $key => $value) {
+							echo "<p>{$key}: <strong>{$value}</strong></p>";
+						}
+					} ?>
 	    		</td>
 	    		<?php if($_SESSION['option']->useStorage) {?>
 	    		<td width="20%">
 	    			<?php if(isset($product->invoice)) {
 	    				echo $product->invoice->storage_name;
-	    				if($cartInfo->status_weight < 50){
+	    				if($cart->status_weight < 50){
 	    					echo $product->invoice->amount_free . 'од. ';
 	    					echo "<button onclick='showProductInvoices(this, ".$product->alias.', '.$product->product.', '.$product->id.")' class='right'><i class='fa fa-exchange'></i></button>";
 	    				}
@@ -45,7 +59,7 @@
 	    		<?php } ?>
 	    		<td id="productPrice-<?= $product->id ?>"><?= $product->price?> грн</td>
 	    		<td width="15%" >
-	    			<?php if($cartInfo->status_weight == 0){ ?>
+	    			<?php if($cart->status_weight == 0){ ?>
 	    			<form action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/changeProductQuantity'?>" method="POST">
 	    				<div class="input-group">
 							<input type="text" name="quantity" id="productQuantity-<?= $product->id ?>" class="form-control" value="<?= $product->quantity?>">
@@ -61,14 +75,14 @@
 	    			<?php } else echo $product->quantity; ?>
 	    		</td>
 	    		<td id="productTotalPrice-<?= $product->id ?>"><?= $product->price * $product->quantity?> грн</td>
-	    		<?php if($cartInfo->status_weight == 0){ ?>
+	    		<?php if($cart->status_weight == 0){ ?>
 	    		<td><button onclick="removeProduct(<?= $product->id?>, <?= $product->cart?>, <?= $product->price * $product->quantity?>)"><i class='fa fa-remove'></i></button></td>
 	    		<?php } ?>
 	    	</tr>
 	    	<?php } ?>
 	    	<tr>
 	    		<td colspan="6" class="text-right" >
-	    			<span id="totalPrice2"><?= $cartInfo->total ?></span><span> грн</span>
+	    			<span id="totalPrice2"><?= $cart->total ?></span><span> грн</span>
 	    		</td>
 	    	</tr>
 	    </tbody>

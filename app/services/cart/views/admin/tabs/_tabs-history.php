@@ -1,6 +1,6 @@
 <div class="clearfix">
-    <h4 class="left">Поточний статус: <?= $cartInfo->status_name?></h4>
-    <h4 class="right">Загальна сума: <?= $cartInfo->total?> грн</h4>
+    <h4 class="left">Поточний статус: <?= $cart->status_name?></h4>
+    <h4 class="right">Загальна сума: <?= $cart->total?> грн</h4>
 </div>
 <div class="table-responsive">
     <table class="table table-striped table-bordered nowrap" width="100%">
@@ -14,14 +14,14 @@
         </thead>
         <tbody>
             <tr>
-                <td><?= date('d.m.Y H:i',$cartInfo->date_add)?></td>
+                <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
                 <td>Не опрацьовано, не оплачено</td>
                 <td></td>
-                <td><?= $cartInfo->user_name?></td>
+                <td><?= $cart->user_name?></td>
             </tr>
-        	<?php if($cartHistory) foreach($cartHistory as $history) {?>
+        	<?php if($cart->history) foreach($cart->history as $history) {?>
         	<tr>
-                <td><?= date('d.m.Y H:i',$history->date)?></td>
+                <td><?= date('d.m.Y H:i', $history->date)?></td>
                 <td><?= $history->status_name?></td>
                 <td>
                     <span id="comment-<?= $history->id?>">
@@ -37,25 +37,27 @@
         </tbody>
     </table>
     
-    <?php if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0) {?>
+    <?php if($_SESSION['option']->useShipping && $cart->shipping_id > 0) {?>
         <legend>Доставка</legend>
-        <b>Служба доставки:</b> <?= $cartInfo->shipping->method_name ?> <br>
-        <?php if($cartInfo->shipping->method_site != '') { ?>
-            <b>Сайт:</b> <?= $cartInfo->shipping->method_site ?> <br>
-        <?php } if($cartInfo->shipping->address != '') { ?>
-            <b>Адреса:</b> <?= $cartInfo->shipping->address ?><br>
-        <?php } if($cartInfo->shipping->receiver != '') { ?>
-            <b>Отримувач:</b> <?= $cartInfo->shipping->receiver ?><br>
-        <?php } if($cartInfo->shipping->phone != '') { ?>
-            <b>Контактний телефон:</b> <?= $cartInfo->shipping->phone ?><br><br>
-    <?php } } ?>
+        <b>Служба доставки:</b> <?= $cart->shipping->method_name ?> <br>
+        <?php if($cart->shipping->method_site != '') { ?>
+            <b>Сайт:</b> <?= $cart->shipping->method_site ?> <br>
+        <?php } if($cart->shipping->address != '') { ?>
+            <b>Адреса:</b> <?= $cart->shipping->address ?><br>
+        <?php } if($cart->shipping->receiver != '') { ?>
+            <b>Отримувач:</b> <?= $cart->shipping->receiver ?><br>
+        <?php } if($cart->shipping->phone != '') { ?>
+            <b>Контактний телефон:</b> <?= $cart->shipping->phone ?><br><br>
+    <?php } }
 
+    if(!empty($cart->payment_name))
+        echo '<p>Платіжний механізм: <b>'.$cart->payment_name.'</b></p>';
 
-    <?php if($cartStatuses){ ?>
-    <legend>Управління замовленням</legend>
+    if($cartStatuses) { ?>
+    <legend>Керування замовленням</legend>
     <table class="table table-striped table-bordered nowrap" width="100%">
         <form action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/saveToHistory'?>" onsubmit="return saveToHistory()" method="POST" class="form-horizontal" >
-            <input type="hidden" name="cart" value="<?= $cartInfo->id?>">
+            <input type="hidden" name="cart" value="<?= $cart->id?>">
             <tbody>
                 <tr>
                     <th>Статус</th>

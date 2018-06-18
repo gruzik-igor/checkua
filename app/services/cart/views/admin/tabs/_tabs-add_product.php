@@ -1,5 +1,5 @@
 <div class="row">
-	<input type="hidden" id="userType" value="<?= isset($cartInfo->user_type) ? $cartInfo->user_type : $_SESSION['option']->newUserType ?>">
+	<input type="hidden" id="userType" value="<?= isset($cart->user_type) ? $cart->user_type : $_SESSION['option']->newUserType ?>">
 	<div class="col-md-5" id="newProduct" hidden>
 		<table class="table table-striped table-bordered nowrap" width="100%" id="cartAddProduct">
 			<tbody>
@@ -39,8 +39,8 @@
 
 	function getProduct () {
 		var article = $("#productArticle").val(),
-			cartId = <?= isset($cartInfo) ? $cartInfo->id : '""'?>,
-			userId = $("#userId").val() != undefined ? $("#userId").val() : false ;
+			cartId = <?= isset($cart) ? $cart->id : '""'?>,
+			userId = <?= isset($cart->user) ? $cart->user : 0 ?> ;
 			userType = $("#userType").val();
 
 		if(!article) return false;

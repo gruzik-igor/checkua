@@ -15,7 +15,6 @@ if($_SESSION['cart']->initJsStyle) {
 		<p></p>
 	</div>
 	<div class="row">
-		<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/checkout" method="POST">
 			<div class="col-md-8">
 				<?php $subtotal = 0;
 				if($products) foreach($products as $product) {
@@ -26,23 +25,20 @@ if($_SESSION['cart']->initJsStyle) {
 							<button type="button" class="close" onclick="cart.remove('<?= $product->key?>', this)" ><span>×</span><span class="sr-only">Close</span></button>
 						</div>
 						<?php if($product->info->photo) { ?>
-							<div class="col-md-3">
+							<div class="col-md-3 col-xs-4">
 								<a href="<?=SITE_URL.$product->info->link?>">
 									<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>">
 								</a>
 							</div>
 						<?php } ?>
-						<div class="col-md-<?=($product->info->photo) ? 8 : 11?>">
-							<h3><a href="<?=SITE_URL.$product->info->link?>"><?= $product->info->name ?></a></h3>
+						<div class="col-md-<?=($product->info->photo) ? 8 : 11?> col-xs-8">
+							<h3 class="lilmt-20"><a href="<?=SITE_URL.$product->info->link?>"><?= $product->info->name ?></a></h3>
 							<?php if(!empty($product->product_options))
-							{
-								$product->product_options = unserialize($product->product_options);
 								foreach ($product->product_options as $key => $value) {
 									echo "<p>{$key}: <strong>{$value}</strong></p>";
-								}
-							} ?>
+								} ?>
 							<p class="price"><?=$this->cart_model->priceFormat($product->price) ?></p>
-							<div class="input-group has-success col-md-3">
+							<div class="input-group has-success col-md-3 col-xs-8">
 								<div class="input-group-btn">
 									<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="-">-</button>
 								</div>
@@ -63,10 +59,9 @@ if($_SESSION['cart']->initJsStyle) {
 				<?php if($products) { ?>
 					<h3><?=$this->text('Попередня сума')?></h3>
 					<p class="subTotal price"><?=$this->cart_model->priceFormat($subtotal) ?></p>
-					<input type="submit" class="btn btn-warning" value="<?=$this->text('Оформити замовлення')?>">
+					<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/checkout" class="btn btn-warning"><?=$this->text('Оформити замовлення')?></a>
 				<?php } ?>
 			</div>
-		</form>
 	</div>
 </div>
 

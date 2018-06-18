@@ -14,8 +14,8 @@ class install
 	public $admin_ico = 'fa-shopping-cart';
 	public $version = "2.0";
 
-	public $options = array('useCheckBox' => 1, 'usePassword' => 1, 'newUserType' => 4);
-	public $options_type = array('useCheckBox' => 'bool', 'usePassword' => 'bool', 'newUserType' => 'number');
+	public $options = array('useCheckBox' => 1, 'usePassword' => 1, 'newUserType' => 4, 'price_format' => '');
+	public $options_type = array('useCheckBox' => 'bool', 'usePassword' => 'bool', 'newUserType' => 'number', 'price_format' => false);
 	public $options_title = array('useCheckBox' => 'Використовувати галочки', 'usePassword' => 'Пароль обов"язковий при ідентифікації', 'newUserType' => 'ID типу нового користувача');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
@@ -40,6 +40,20 @@ class install
 		$checkout['content'] = 1;
 		$checkout['name'] = 'Checkout';
 		$checkout['language'] = $checkout['title'] = $checkout['description'] = $checkout['keywords'] = $checkout['text'] = $checkout['list'] = $checkout['meta'] = NULL;
+		if($_SESSION['language'])
+			foreach ($_SESSION['all_languages'] as $language) {
+				$checkout['language'] = $language;
+				$this->db->insertRow('wl_ntkd', $checkout);
+			}
+		else
+			$this->db->insertRow('wl_ntkd', $checkout);
+
+		$checkout = array();
+		$checkout['alias'] = $alias;
+		$checkout['content'] = 2;
+		$checkout['name'] = $this->title;
+		$checkout['text'] = '<p>Дякуємо за замовлення. Очікуйте дзвінка менеджера</p>';
+		$checkout['language'] = $checkout['title'] = $checkout['description'] = $checkout['keywords'] = $checkout['list'] = $checkout['meta'] = NULL;
 		if($_SESSION['language'])
 			foreach ($_SESSION['all_languages'] as $language) {
 				$checkout['language'] = $language;
@@ -120,6 +134,21 @@ class install
 											 ('Відправлено', 'primary', 1, 20),
 											 ('Закрите', 'default', 1, 98),
 											 ('Скасоване', 'default', 1, 99);";
+		$this->db->executeQuery($query);
+
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_payment_simple` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `active` tinyint(1) NOT NULL,
+					  `name` text NOT NULL,
+					  `info` text,
+					  PRIMARY KEY (`id`),
+					  KEY `active` (`active`)
+					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
+		$this->db->executeQuery($query);
+
+		$query = "INSERT INTO `{$this->table_service}_payment_simple` (`id`, `active`, `name`, `info`) VALUES
+											(1, 1, 'Готівкою при отриманні', 'Оплата готівкою при доставці/отриманні товару.'),
+											(2, 0, 'Оплатити на рахунок за реквізитами', 'Реквізити оплати отримаєте листом на електронну скриньку');";
 		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (

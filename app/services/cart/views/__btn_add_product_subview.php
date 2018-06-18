@@ -1,4 +1,4 @@
-<?php $showSelectQuantity = true;
+<?php $showSelectQuantity = false;
 if($_SESSION['cart']->initJsStyle) {
 	if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
 		$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/cart.js';
@@ -11,13 +11,19 @@ $quantity = 1;
 $productKey = $product->wl_alias . '-' . $product->id;
 if(isset($product->storage_alias) && isset($product->storage_id) && $product->storage_id > 0)
 	$productKey .= '-' . $product->storage_alias . '-' . $product->storage_id;
-$options = '';
+$options = '[]';
 if(!empty($product->options))
 {
 	$options = array();
-	foreach ($product->options as $option) {
+	foreach ($product->options as $key => $option) {
 		if($option->toCart)
-			$options[] = $option->id;
+		{
+			$key_array = explode('-', $key);
+            if(isset($key_array[1]) && $key_array[1] == 'tkanyny')
+            	$options[] = 0;
+            else
+				$options[] = $option->id;
+		}
 	}
 	$options = '['.implode(',', $options).']';
 }
@@ -35,7 +41,7 @@ if(!empty($product->options))
 	        </div>
         <?php } ?>
         <div class="col-md-3">
-           <button type="button" class="btn addToCartBtn" onclick="cart.add(<?= "'".$productKey."', ".$quantity.", ".$options?>)"><?=$this->text('Додати до корзини')?></button>
+           <button type="button" class="btn addToCartBtn" onclick="cart.add(<?= "'".$productKey."', ".$quantity.", ".$options?>)"><i class="lil-add_shopping_cart"></i> <?=$this->text('Додати до корзини')?></button>
         </div>
     </div>
 </div>

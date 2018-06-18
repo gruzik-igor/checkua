@@ -55,6 +55,18 @@ class cart extends Controller {
 
                         if($this->data->uri(2) == 'print')
                             $this->load->view('detal_view', array('cart' => $cart, 'controls' => false));
+                        elseif($this->data->uri(2) == 'pay')
+                        {
+                            $cooperation_where['alias1'] = $_SESSION['alias']->id;
+                            $cooperation_where['type'] = 'payment';
+                            $ntkd = array('alias' => '#c.alias2', 'content' => 0);
+                            if($_SESSION['language'])
+                                $ntkd['language'] = $_SESSION['language'];
+                            $payments = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
+                                                    ->join('wl_ntkd', 'name, list as info', $ntkd)
+                                                    ->get('array');
+                            $this->load->page_view('pay_view', array('cart' => $cart, 'payments' => $payments));
+                        }
                         else
                             $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
                         exit;
@@ -66,10 +78,7 @@ class cart extends Controller {
                     $this->load->page_404(false);
             }
             else
-            {
-                header('HTTP/1.0 401 Unauthorized');
-                $this->load->notify_view(array('errors' => $this->text('Для перегляду замовлення спершу <a href="'.SITE_URL.'login">увійдіть</a>')));
-            }
+                $this->redirect('login');
         }
 
         $user_type = 0;
@@ -101,9 +110,10 @@ class cart extends Controller {
             }
 
             $this->load->smodel('cart_model');
-            $this->load->page_view('list_view', array('carts' => $this->cart_model->getCarts(array('user' => $user))));
+            $this->load->profile_view('list_view', array('orders' => $this->cart_model->getCarts(array('user' => $user))));
         }
-        $this->redirect('login');
+        else
+            $this->redirect('login');
     }
 
     public function addProduct()
@@ -129,23 +139,37 @@ class cart extends Controller {
                 if($product = $this->load->function_in_alias($wl_alias, '__get_Product', $id))
                 {
                     $product->key = $this->data->post('productKey');
+                    $product->name = html_entity_decode($product->name);
                     $product->product_alias = $wl_alias;
                     $product->product_id = $id;
                     $product->quantity = $this->data->post('quantity');
-                    $product->options = '';
+                    $product->product_options = array();
                     if(!empty($_POST['options']) && is_array($_POST['options']))
                     {
-                        $list = array();
+                        $list = $changePrice = array();
                         foreach ($_POST['options'] as $option) {
                             $option = explode(':', $option, 2);
                             if(count($option) == 2 && is_numeric($option[0]))
                             {
                                 if($info = $this->load->function_in_alias($wl_alias, '__get_Option_Info', $option[0]))
-                                    $list[$info->name] = htmlspecialchars($option[1], ENT_QUOTES);
+                                {
+                                    if(!empty($info->values))
+                                        foreach ($info->values as $value) {
+                                            if($value->id == $option[1])
+                                            {
+                                                $list[$info->name] = $value->name;
+                                                break;
+                                            }
+                                        }
+                                    if($info->changePrice)
+                                        $changePrice[$info->id] = $option[1];
+                                }
                             }
                         }
+                        if(!empty($changePrice))
+                            $product->price = $this->load->function_in_alias($wl_alias, '__get_Price_With_options', array('product' => $product->product_id, 'options' => $changePrice));
                         if(!empty($list))
-                            $product->options = serialize($list);
+                            $product->product_options = $list;
                     }
                     $product->storage_alias = $product->storage_invoice = 0;
                     if($storage_id)
@@ -385,72 +409,28 @@ class cart extends Controller {
         $this->redirect();
     }
 
-    function clientSignUp()
+    public function checkEmail()
     {
-        if(trim($this->data->post('name')) != '' && $this->data->post('email') && $this->data->post('password')){
-            $res = array('result' => false, 'message' => '');
-            $data = array();
-
-            $data['name'] = $name = $this->data->post('name');
-            $data['email'] = $email = $this->data->post('email');
-            $data['password'] = $password = $this->data->post('password');
-            $data['photo'] = '';
-
-            if($email){
-                $this->db->executeQuery("SELECT * FROM wl_users WHERE email = '{$email}'");
-
-                if($this->db->numRows() > 0){
-                    $res['message'] = 'Користувач з таким е-мейлом вже є';
-                } else {
-                    $res['result'] = true;
-                }
-
-                if($res['result'] == true){
-                    $this->load->library('mail');
-                    switch ($password) {
-                        case '2':
-                            $data['password'] = substr(hash('sha512',rand()),0,5);
-
-                            if($this->mail->sendTemplate('password_generate', $email, array('password' => $data['password']))){
-                                $res['message'] = '';
-                                $res['result'] = true;
-                            } else {
-                                $res['message'] = 'Помилка при відправленні е-мейла';
-                                $res['result'] = false;
-                            }
-                            break;
-
-                        default:
-                            if(strlen($password) < 5){
-                                $res['message'] = 'Пароль повинен містити не меньше 5 символів';
-                                $res['result'] = false;
-                            }
-                            break;
-                    }
-                }
-
-                if($res['result'] == true){
-                    $this->load->model('wl_user_model');
-                    if($user = $this->wl_user_model->add($data))
-                    {
-                        $info['auth_id'] = $user->auth_id;
-                        $info['email'] = $email;
-                        $info['name'] = $name;
-
-                        $this->mail->sendTemplate('signup/user_signup', $email, $info);
-                        $this->wl_user_model->login('email', $data['password']);
-                    }
-                    else {
-                        $res['message'] = 'Помилка при створені користувача';
-                        $res['result'] = false;
-                    }
-                }
-
-                header('Content-type: application/json');
-                echo json_encode($res);
-                exit;
+        $res = array('result' => false, 'message' => '');
+        if($email = $this->data->post('email'))
+        {
+            $this->load->model('wl_user_model');
+            $user;
+            if($this->wl_user_model->userExists($email, $user))
+            {
+                $res['result'] = true;
+                $res['email'] = $email;
+                $res['message'] = '<p>'.$this->text('Доброго дня,', 0);
+                if(!empty($user->name))
+                    $res['message'] .= ' <b>'.$user->name.'</b>';
+                $res['message'] .= '</p><p>';
+                $res['message'] .= $this->text('У магазині за Вашою email адресою <b>наявний персональний кабінет покупця</b>. <u>Ваші персональні дані - найвища цінність для нас!</u><p> Просимо вибачення за дискомфорт, та змушені просити Вас <b>ввести пароль</b>, який Ви отримали при здійсненні першої покупки <br>(знайдіть лист у Вашій електронній скринці з інформацією про першу покупку) або встановили його самостійно в процесі реєстрації. </p><p>Якщо не можете знайти/згадати пароль доступу до кабінету, пропонуємо скористатися процедурою відновлення паролю. </p><p>З повагою, адміністрація '.SITE_NAME).'</p>';
             }
         }
+        if($this->data->post('ajax') == true)
+            $this->load->json($res);
+        else
+            return $res;
     }
 
     public function confirm()
@@ -470,18 +450,27 @@ class cart extends Controller {
                 $new_user = false;
                 if(!$this->userIs())
                 {
+                    $check = $this->checkEmail();
+                    if($check['result'])
+                    {
+                        $_SESSION['notify'] = new stdClass();
+                        $_SESSION['notify']->error = $check['message'];
+                        $this->redirect();
+                    }
+
                     $this->load->model('wl_user_model');
                     $info = $additionall = array();
+                    $info['status'] = 1;
                     $info['email'] = $this->data->post('email');
                     $info['name'] = $this->data->post('name');
                     $info['photo'] = NULL;
-                    $info['password'] = 'cart-autoregister-'.time();
+                    $info['password'] = bin2hex(openssl_random_pseudo_bytes(4));
                     $additionall = array();
                     if(!empty($this->cart_model->additional_user_fields))
                         foreach ($this->cart_model->additional_user_fields as $key) {
                             $additionall[$key] = $this->data->post($key);
                         }
-                    if($user = $this->wl_user_model->add($info, $additionall, $_SESSION['option']->newUserType, false, 'cart autoregister'))
+                    if($user = $this->wl_user_model->add($info, $additionall, $_SESSION['option']->newUserType, true, 'cart autoregister'))
                         $this->wl_user_model->setSession($user);
                     $new_user = true;
                 }
@@ -500,7 +489,48 @@ class cart extends Controller {
 
                 if($cart = $this->cart_model->checkout($_SESSION['user']->id, $delivery))
                 {
+                    unset($_SESSION['cart']);
 
+                    $this->load->library('mail');
+
+                    $cart['date'] = date('d.m.Y H:i');
+                    $cart['user_name'] = $_SESSION['user']->name;
+                    $cart['user_email'] = $_SESSION['user']->email;
+                    $cart['user_phone'] = $_POST['phone'];
+                    $cart['new_user'] = $new_user;
+                    if($new_user)
+                        $cart['password'] = $info['password'];
+                    $cart['link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$cart['id'];
+                    $cart['admin_link'] = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$cart['id'];
+                    foreach ($products as $product) {
+                        $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                        $product->price = $this->cart_model->priceFormat($product->price);
+                        $product->sum = $this->cart_model->priceFormat($product->price * $product->quantity);
+                    }
+                    $cart['total_formatted'] = $this->cart_model->priceFormat($cart['total']);
+                    $cart['products'] = $products;
+                    $cart['delivery'] = $delivery['info'];
+                    $payment_method = $this->data->post('payment_method');
+                    $cart['payment'] = $this->cart_model->getPaymentName($payment_method);
+                    
+                    $this->mail->sendTemplate('checkout', $_SESSION['user']->email, $cart);
+                    $this->mail->sendTemplate('checkout_manager', SITE_EMAIL, $cart);
+
+                    if($payment_method > 0)
+                    {
+                        $payment = new stdClass();
+                        $payment->id = $cart['id'];
+                        $payment->total = $cart['total'];
+                        $payment->wl_alias = $_SESSION['alias']->id;
+                        $payment->return_url = $_SESSION['alias']->alias.'/'.$cart['id'];
+                        
+                        $this->load->function_in_alias($this->data->post('payment_method'), '__get_Payment', $payment);
+                    }
+                    else 
+                    {
+                        $this->wl_alias_model->setContent(2);
+                        $this->load->page_view('success_view');
+                    }
                 }
             }
             else
@@ -514,197 +544,11 @@ class cart extends Controller {
             $this->redirect($_SESSION['alias']->alias);
     }
 
-     function addInvoice()
-    {
-        $res = array('result' => false, 'message' => 'Помилка');
-        if(isset($_SESSION['cart']) && $_SESSION['cart']->subTotal > 0)
-        {
-            $cart = array();
-            $cart['user'] = $_SESSION['user']->id;
-            $cart['status'] = 1;
-            $cart['total'] = $_SESSION['cart']->subTotal;
-            // $cart['currency'] = $this->load->function_in_alias('currency', '__get_Currency', 'UAH');
-            $cart['date_add'] = $cart['date_edit'] = time();
-
-            if($_SESSION['option']->useShipping){
-                $cooperation_where['alias1'] = $_SESSION['alias']->id;
-                $cooperation_where['type'] = 'delivery';
-                $cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
-                if($cooperation)
-                {
-                    foreach ($cooperation as $shipping) {
-                        $delivery['user'] = $_SESSION['user']->id;
-                        $delivery['method'] = $_SESSION['cart']->shipping['shippingMethod'];
-                        $delivery['address'] = $_SESSION['cart']->shipping['shippingAddress'];
-                        $delivery['receiver'] = $_SESSION['cart']->shipping['shippingReceiver'];
-                        $delivery['phone'] = $_SESSION['cart']->shipping['shippingPhone'];
-
-                        $cart['shipping_id'] = $this->load->function_in_alias($shipping->alias2, '__set_Delivery_from_cart', $delivery);
-                        $cart['shipping_alias'] = $shipping->alias2;
-                        // $cart['shipping_price'] = $_SESSION['cart']->shipping['price'];
-
-                        break;
-                    }
-                }
-            }
-
-            if($this->db->insertRow('s_cart', $cart)){
-                $id = $this->db->getLastInsertedId();
-                $_SESSION['cart']->id = $id;
-
-                foreach ($_SESSION['cart']->products as $product) {
-                    $cartProduct = array();
-                    $cartProduct['cart'] = $id;
-                    $cartProduct['alias'] = $product['alias'];
-                    $cartProduct['storage_alias'] = isset($product['storageId']) ? $product['storageId'] : 0 ;
-                    $cartProduct['storage_invoice'] = isset($product['invoiceId']) ? $product['invoiceId'] : 0 ;
-                    $cartProduct['product'] = $product['productId'];
-                    $cartProduct['price'] = $product['price'];
-                    $cartProduct['price_in'] = $product['price_in'];
-                    $cartProduct['quantity'] = $product['quantity'];
-                    $cartProduct['user'] = $_SESSION['user']->id;
-                    $cartProduct['date'] = time();
-
-                    $cartProduct['additional'] = "";
-                    if ($product['additional']) {
-                        foreach ($product['additional'] as $key => $additional) {
-                            $cartProduct['additional'] .= $key.':'.$additional.';';
-                        }
-                    }
-
-                    $this->db->insertRow('s_cart_products', $cartProduct);
-                }
-
-                $where = array('field' => "phone", 'user' => "#c.user");
-                $this->db->select('s_cart as c', '*', $id);
-                $this->db->join('wl_users', 'name as user_name, email as user_email', '#c.user');
-                $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-                $this->db->join('s_cart_status', 'name as status_name, weight', '#c.status');
-                $orderInfo = $this->db->get();
-
-                $this->db->select('s_cart_products as cp', '*', $id, 'cart');
-                $where = array('alias' => "#cp.alias", 'content' => "#cp.product");
-                if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-                $this->db->join('wl_ntkd', 'name as product_name', $where);
-                $this->db->join('s_shopshowcase_products', 'article as product_article', "#cp.product");
-                $orderInfo->products = $this->db->get('array');
-
-                $info['id'] = $orderInfo->id;
-                $info['status'] = $orderInfo->status;
-                $info['status_name'] = $orderInfo->status_name;
-                $info['comment'] = "";
-                $info['date'] = date('d.m.Y H:i', $orderInfo->date_edit);
-                $info['user_name'] = $orderInfo->user_name;
-                $info['user_email'] = $orderInfo->user_email;
-                $info['user_phone'] = $orderInfo->user_phone;
-                $info['link'] = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$orderInfo->id;
-                $info['products'] = $orderInfo->products;
-                $info['productTotalPrice'] = $orderInfo->total;
-                $info['shipping'] = '';
-
-                if($_SESSION['option']->useShipping)
-                {
-                    $shipping = $this->load->function_in_alias($orderInfo->shipping_alias, '__get_delivery_info', $orderInfo->shipping_id);
-                    if($shipping)
-                        $info['shipping'] = '<h2><b>Доставка</b></h2>
-                                            <b>Служба доставки:</b> '.$shipping->method_name.' <br>
-                                            <b>Сайт:</b> '.$shipping->method_site.' <br>
-                                            <b>Адреса:</b> '.$shipping->address;
-                }
-
-                $info['table'] = '<table align="center" border="2" cellpadding="5" cellspacing="3" width="100%" style="border-collapse: collapse;">
-                    <thead><tr><th width="15%">Артикул</th><th width="60%">Продукт</th><th width="9%">Ціна</th><th width="9%">К-сть</th><th width="9%">Разом</th></tr></thead><tbody>';
-
-                foreach($info['products'] as $product){
-                    $info['table'] .=  '<tr>
-                                    <td>'. $product->product_article .'</td>
-                                    <td>'. $product->product_name .'</td>
-                                    <td>$'. $product->price .'</td>
-                                    <td>'. $product->quantity .'</td>
-                                    <td>$'. $product->price * $product->quantity .'</td>
-                                </tr>';
-                }
-
-                $info['table'] .= '<tr><td colspan="5" align="right">Сума: $'.$info['productTotalPrice'].'</td></tr></tbody></table>';
-
-                $this->load->library('mail');
-                $this->mail->sendTemplate('changed_cart_status', SITE_EMAIL, $info, $orderInfo->user_email, $orderInfo->user_name);
-
-                $this->wl_alias_model->setContent();
-
-                $res['result'] = true;
-                $res['message'] = html_entity_decode($_SESSION['alias']->text, ENT_QUOTES, 'utf-8');
-
-                if(!$_SESSION['option']->usePayments){
-                    unset($_SESSION['cart']);
-                }
-            }
-        }
-
-        header('Content-type: application/json');
-        echo json_encode($res);
-        exit;
-    }
-
-     function saveShipping()
-    {
-        if($this->userIs() && isset($_SESSION['cart']) && !empty($_POST)) {
-            $res = array('result' => false, 'subTotal' => $_SESSION['cart']->subTotal);
-
-            foreach ($_POST as $key => $value) {
-                $_SESSION['cart']->shipping[$key] = $this->data->post($key);
-            }
-
-            $cooperation_where['alias1'] = $_SESSION['alias']->id;
-            $cooperation_where['type'] = 'delivery';
-            $cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where);
-            if($cooperation)
-            {
-                foreach ($cooperation as $storage) {
-                    $_SESSION['cart']->shipping['method-info'] = $this->load->function_in_alias($storage->alias2, '__get_Method_info', $this->data->post('shippingMethod'));
-                    // $_SESSION['cart']->shipping['price'] = 0;
-
-                    // if($_SESSION['cart']->shipping['method-info']->price > 0)
-                    // {
-                    //     if($_SESSION['cart']->shipping['method-info']->price_from > 0)
-                    //     {
-                    //         $priceFrom = $this->getPrice($_SESSION['cart']->shipping['method-info']->price_from, $_SESSION['cart']->shipping['method-info']->price_currency_from);
-                    //         if($_SESSION['cart']->subTotal < $priceFrom)
-                    //         {
-                    //             $_SESSION['cart']->shipping['price'] = $this->getPrice($_SESSION['cart']->shipping['method-info']->price, $_SESSION['cart']->shipping['method-info']->price_currency);
-                    //         }
-                    //     }
-                    //     else
-                    //     {
-                    //         $_SESSION['cart']->shipping['price'] = $this->getPrice($_SESSION['cart']->shipping['method-info']->price, $_SESSION['cart']->shipping['method-info']->price_currency);
-                    //     }
-                    // }
-
-                    if($this->data->post('shippingDefault') == 1)
-                    {
-                        $this->load->function_in_alias($storage->alias2, '__set_Default_from_cart');
-                    }
-
-                    break;
-                }
-
-                // $res['subTotal'] += $_SESSION['cart']->shipping['price'];
-                $res['result'] = true;
-            }
-
-            header('Content-type: application/json');
-            echo json_encode($res);
-            exit;
-        }
-    }
-
     public function checkout()
     {
         $this->load->smodel('cart_model');
         if($products = $this->cart_model->getProductsInCart())
         {
-            $this->wl_alias_model->setContent(1);
-            
             $user_type = $subTotal = 0;
             if(isset($_SESSION['user']->type))
                 $user_type = $_SESSION['user']->type;
@@ -719,7 +563,16 @@ class cart extends Controller {
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
             }
-            $this->load->page_view('checkout_view', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+            $showPayment = true;
+            $payments = false;
+            if($status = $this->db->getAllDataById($this->cart_model->table('_status'), 10, 'weight'))
+                if($status->active)
+                    $showPayment = false;
+            if($showPayment)
+                $payments = $this->db->getAllDataByFieldInArray($this->cart_model->table('_payment_simple'), 1, 'active');
+
+            $this->wl_alias_model->setContent(1);
+            $this->load->page_view('checkout_view', array('products' => $products, 'showPayment' => $showPayment, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
         }
         else
             $this->redirect($_SESSION['alias']->alias);
@@ -727,26 +580,19 @@ class cart extends Controller {
 
     public function pay()
     {
-        if(isset($_POST['method']) && is_numeric($_POST['method']))
+        if(isset($_POST['method']) && is_numeric($_POST['method']) && isset($_POST['cart']) && is_numeric($_POST['cart']))
         {
-            if($_POST['method'] == 0)
+            if($cart = $this->db->getAllDataById('s_cart', $_POST['cart']))
             {
-                $cartId = $_SESSION['cart']->id;
-                unset($_SESSION['cart']);
-                $this->redirect('cart/'.$cartId);
-            }
-            elseif($_POST['method'] > 0)
-            {
-                if($cart = $this->db->getAllDataById('s_cart', $_SESSION['cart']->id))
-                {
-                    unset($_SESSION['cart']);
-                    $cart->return_url = $_SESSION['alias']->alias.'/'.$cart->id;
-                    $cart->wl_alias = $_SESSION['alias']->id;
+                $cart->return_url = $_SESSION['alias']->alias.'/'.$cart->id;
+                $cart->wl_alias = $_SESSION['alias']->id;
 
-                    $this->load->function_in_alias($this->data->post('method'), '__get_Payment', $cart);
-                } 
+                $this->load->function_in_alias($this->data->post('method'), '__get_Payment', $cart);
+                exit;
             }
         }
+        else
+            $this->redirect();
     }
 
     public function __show_btn_add_product($product)
@@ -755,6 +601,7 @@ class cart extends Controller {
             $this->load->view('__btn_add_product_subview', array('product' => $product));
         else
             echo "<p>Увага! Відсутня інформація про товар! (для генерації кнопки Додати товар до корзини)";
+        return true;
     }
 
     public function __show_minicart()
@@ -776,6 +623,13 @@ class cart extends Controller {
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
             }
         $this->load->view('__minicart_subview', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+        return true;
+    }
+
+    public function __get_user_orders($user)
+    {
+        $this->load->smodel('cart_model');
+        return $this->cart_model->getCarts(array('user' => $user));
     }
 
     public function __get_Search($content)

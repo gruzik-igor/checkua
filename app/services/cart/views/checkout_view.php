@@ -1,14 +1,15 @@
 <link rel="stylesheet" type="text/css" href="<?=SERVER_URL.'style/'.$_SESSION['alias']->alias.'/checkout.css'?>">
 <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
-<?php $_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/checkout.js'; 
-$_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js'; ?>
 
-<section class="section" id="cart-checkout">
+<div class="page-head content-top-margin">
 	<div class="container">
 		<div class="row">
 			<h1 class="col-md-12"><?=$_SESSION['alias']->name?></h1>
 		</div>
-
+	</div>
+</div>
+<section class="section" id="cart-checkout">
+	<div class="container">
 		<?php if(!empty($_SESSION['notify-Cart'])) { ?>
 		   <div class="alert alert-danger alert-dismissible  fade in">
 		        <span class="close" data-dismiss="alert">×</span>
@@ -16,15 +17,17 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 		        <?=$_SESSION['notify-Cart']->error?>
 		    </div>
 		<?php } ?>
-
 		<div class="row">
 
 			<?php if(!$this->userIs()) { ?>
 			<div class="col-md-6">
-				<div class="box">
-					<strong><?=$this->text('Вже купували?')?></strong> <a href="#" class="effect" data-slide-toggle=".checkout-login-form"><?=$this->text('Клікніть щоб увійти')?></a> <?=$this->text('- це заощадить Ваш час')?>
-					<p><?=$this->text('Якщо Ви новий покупець, перейдіть до розділів "Доставка та оплата"')?></p>
+				<div class="row">
+					<div class="box detalmargin">
+						<strong><?=$this->text('Вже купували?')?></strong> <a href="#" style="line-height: 1.3;color: #e74c3c;" class="effect" data-slide-toggle=".checkout-login-form"><?=$this->text('Клікніть щоб увійти')?></a> <?=$this->text('- це заощадить Ваш час')?>
+						<p><?=$this->text('Якщо Ви новий покупець, перейдіть до розділів "Доставка та оплата"')?></p>
+					</div>
 				</div>
+				
 			</div>
 
 			<div class="clearfix"></div>
@@ -46,6 +49,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 					    </div>
 					<?php } ?>
 					<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/login" method="POST" class="login-form inputs-border inputs-bg">
+						<p class="message"></p>
 						<div class="form-group">
 							<label for="email"><?=$this->text('email або телефон')?>*</label>
 							<input type="text" name="email" id="email" class="form-control" placeholder="<?=$this->text('email або телефон')?>*" value="<?=$this->data->re_post('email')?>">
@@ -91,9 +95,11 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 
 			<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/confirm" method="POST" class="checkout-form inputs-border inputs-bg">
 				<div class="col-md-6">
-					<div class="billing-field box">
-						<h3 class="title"><?=$this->text('Доставка')?></h3>
-
+					<div class="billing-field ">
+						<div class="row">
+							<h3 class="title mt0 detalmargin"><?=$this->text('Доставка')?></h3>
+						</div>
+						<div class="detalmargin">
 						<?php $cooperation_where = array();
 						$cooperation_where['alias1'] = $_SESSION['alias']->id;
 						$cooperation_where['type'] = 'delivery';
@@ -122,7 +128,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 					            <textarea class="form-control" name="shipping-address" placeholder="<?=$this->text('Поштовий індекс, м. Київ, вул. Київська 12, кв. 3')?>" rows="3"></textarea>
 					        </div>
 						<?php } ?>
-						
+						</div>
 						<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
 						<div class="form-group">
 							<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
@@ -147,9 +153,7 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 									        <tr class="item">
 									            <td class="product-name">
 									                <a href="<?=SITE_URL.$product->info->link?>"><?=$product->info->name?></a> <strong class="product-quantity">× <?= $product->quantity?></strong> 
-									                <?php if(!empty($product->product_options))
-													{
-														$product->product_options = unserialize($product->product_options); ?>
+									                <?php if(!empty($product->product_options)) { ?>
 														<table class="variation">
 										                    <tbody>
 										                    <?php foreach ($product->product_options as $key => $value) { ?>
@@ -192,42 +196,46 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 								</table><!-- /.review-order-table -->
 							</div>
 
-							<h2><?=$this->text('Оплата')?></h2>
-							<div id="payment" class="checkout-payment">
-							    <ul class="payment-methods">
-							        <li class="payment-method">
-							            <input id="payment_method_cheque" type="radio" name="payment_method" value="0" checked="checked">
-							            <label for="payment_method_cheque" class="radio" data-slide-toggle="#payment-cash" data-parent=".payment-methods"><?=$this->text('Готівкою при отриманні')?></label>
+							<?php if($showPayment) { ?>
+								<h2><?=$this->text('Оплата')?></h2>
+								<div id="payment" class="checkout-payment">
+								    <ul class="payment-methods">
+								    	<?php if($payments) foreach ($payments as $payment) { ?>
+								    		<li class="payment-method">
+									            <input id="payment_method_cod" type="radio" name="payment_method" value="-<?=$payment->id?>">
+									            <label for="payment_method_cod" class="radio" data-slide-toggle="#payment--<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
 
-							            <div class="payment-box" id="payment-cash">
-							                <p><?=$this->text('Оплата готівкою при доставці/отриманні товару.')?></p>
-							            </div>
-							        </li>
-							        <?php
-									$cooperation_where['alias1'] = $_SESSION['alias']->id;
-									$cooperation_where['type'] = 'payment';
-									$ntkd = array('alias' => '#c.alias2', 'content' => 0);
-									if($_SESSION['language'])
-										$ntkd['language'] = $_SESSION['language'];
-									$cooperation = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
-															->join('wl_ntkd', 'name, list', $ntkd)
-															->get('array');
-							        if($cooperation)
-							        {
-							            foreach ($cooperation as $payment) { ?>
-							            <li class="payment-method">
-								            <input id="payment_method_cod" type="radio" name="payment_method" value="<?=$payment->id?>">
-								            <label for="payment_method_cod" class="radio" data-slide-toggle="#payment-<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
+									            <div class="payment-box" id="payment--<?=$payment->id?>" style="display:none;">
+									                <p><?=htmlspecialchars_decode($payment->info)?></p>
+									            </div>
+									        </li>
+								    	<?php }
+								    	
+										$cooperation_where['alias1'] = $_SESSION['alias']->id;
+										$cooperation_where['type'] = 'payment';
+										$ntkd = array('alias' => '#c.alias2', 'content' => 0);
+										if($_SESSION['language'])
+											$ntkd['language'] = $_SESSION['language'];
+										$cooperation = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
+																->join('wl_ntkd', 'name, list as info', $ntkd)
+																->get('array');
+								        if($cooperation)
+								        {
+								            foreach ($cooperation as $payment) { ?>
+								            <li class="payment-method">
+									            <input id="payment_method_cod" type="radio" name="payment_method" value="<?=$payment->id?>">
+									            <label for="payment_method_cod" class="radio" data-slide-toggle="#payment-<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
 
-								            <div class="payment-box" id="payment-<?=$payment->id?>" style="display:none;">
-								                <p><?=htmlspecialchars_decode($payment->list)?></p>
-								            </div>
-								        </li>
-							            <?php }
-							        }
-									?>
-							    </ul>
-							</div>
+									            <div class="payment-box" id="payment-<?=$payment->id?>" style="display:none;">
+									                <p><?=htmlspecialchars_decode($payment->info)?></p>
+									            </div>
+									        </li>
+								            <?php }
+								        }
+										?>
+								    </ul>
+								</div>
+							<?php } ?>
 
 							<div class="text-right">
 					    		<button type="submit" class="btn btn-buy"><?=$this->text('Оформити замовлення')?></button>
@@ -240,6 +248,9 @@ $_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js';
 	</div>
 </section>
 <div id="divLoading"></div>
+
+<?php $_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/checkout.js'; 
+$_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js'; ?>
 
 <?php $this->load->library('facebook'); 
 if($_SESSION['option']->facebook_initialise){ ?>

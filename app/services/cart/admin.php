@@ -26,36 +26,47 @@ class cart extends Controller {
                 
         if(isset($_SESSION['alias']->name))
             $_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
-        if (method_exists($this, $method)) {
+        if (method_exists($this, $method))
+        {
             if(empty($data)) $data = null;
             return $this->$method($data);
-        } else {
-            $this->index($method);
         }
+        else
+            $this->index($method);
     }
 
-    function index($uri)
+    function index($id)
     {
         $this->load->smodel('cart_model');
 
-        if(is_numeric($uri))
+        if(is_numeric($id))
         {
-            $_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Замовлення #'.$uri => '');
-            $_SESSION['alias']->name .= '. Замовлення #'.$uri;
-
-            $cartInfo = $this->cart_model->getCartInfo($uri);
-            if($_SESSION['option']->useShipping && $cartInfo->shipping_id > 0)
+            if($cart = $this->cart_model->getById($id))
             {
-                $cartInfo->shipping = $this->load->function_in_alias($cartInfo->shipping_alias, '__get_delivery_info', $cartInfo->shipping_id);
+                $_SESSION['alias']->name .= '. Замовлення #'.$id;
+                $_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Замовлення #'.$id => '');
+
+                if($cart->products)
+                    foreach ($cart->products as $product) {
+                        $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                        if($product->storage_invoice)
+                            $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                    }
+
+                if($cart->shipping_id)
+                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+
+                $cart->payment_name = $this->cart_model->getPaymentName($cart->payment_alias);
+
+                $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight");
+
+                $this->load->admin_view('detal_view', array('cart' => $cart, 'cartStatuses' => $cartStatuses));
             }
-
-            $cartProducts = $this->getCartProducts($uri);
-
-            $cartHistory = $this->db->getQuery("SELECT h.*, s.name as status_name, u.name as user_name FROM `s_cart_history` as h LEFT JOIN `s_cart_status` as s ON h.status = s.id LEFT JOIN `wl_users` as u ON h.user = u.id WHERE h.cart = $uri", 'array');
-            $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cartInfo->status )  ORDER BY weight");
-
-            $this->load->admin_view('detal_view', array('cartInfo' => $cartInfo, 'cartProducts' => $cartProducts, 'cartHistory' => $cartHistory, 'cartStatuses' => $cartStatuses));
-        } else {
+            else
+                $this->load->page_404(false);
+        }
+        else
+        {
             $carts = false;
             if(!empty($_GET['id']))
             {
@@ -66,7 +77,7 @@ class cart extends Controller {
             {
                 $_SESSION['option']->paginator_per_page = 25;
 
-                $carts = $this->cart_model->getAllCarts();
+                $carts = $this->cart_model->getCarts();
             }
             $this->load->admin_view('index_view', array('carts' => $carts));
         }
@@ -85,44 +96,6 @@ class cart extends Controller {
         $carts = $this->cart_model->getAllCarts();
 
         $this->load->admin_view('all_view', array('carts' => $carts));
-    }
-
-    private function getCartProducts($id, $showInvoice = true)
-    {
-        $this->db->select('s_cart_products as cp', '*', $id, 'cart');
-        $where = array('alias' => "#cp.alias", 'content' => "#cp.product");
-        if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-        $this->db->join('wl_ntkd', 'name as product_name', $where);
-        $this->db->join('wl_aliases', 'alias as alias_name', "#cp.alias");
-        $this->db->join('s_shopshowcase_products', 'article as product_article', "#cp.product");
-        $cartProducts = $this->db->get('array');
-
-        if($showInvoice && $cartProducts){
-            foreach ($cartProducts as $product) {
-                $product->photo = false;
-                $photo = $this->db->select('wl_images', 'file_name', array('alias' => $product->alias, 'content' => $product->product))
-                                  ->join('wl_options', 'value as folder', array('alias' => $product->alias, 'name' => 'folder'))
-                                  ->limit(1)
-                                  ->order('position')
-                                  ->get('single');
-                
-                if($photo)
-                {
-                    $product->photo = IMG_PATH.$photo->folder.'/'.$product->product.'/admin_'.$photo->file_name;
-                }
-
-                if($_SESSION['option']->useStorage){
-                    if($product->storage_invoice > 0 && $product->storage_alias > 0)
-                    {
-                        $product->invoice = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', $product->storage_invoice);
-                    } else {
-                        $product->invoices = $this->getInvoicesByProduct($product->alias, $product->product);
-                    }
-                }
-            }
-        }
-
-        return $cartProducts;
     }
 
     private function getInvoicesByProduct($alias, $id)
@@ -249,7 +222,8 @@ class cart extends Controller {
     public function saveToHistory($pay = null)
     {
         $data = $cartUpdate = $info = array();
-        if($pay && isset($pay->cart_id)) {
+        if($pay && isset($pay->cart_id))
+        {
             $cartId = $data['cart'] = $pay->cart_id;
             if(isset($pay->cart_status))
                 $data['status'] = $cartUpdate['status'] = $pay->cart_status;
@@ -259,7 +233,9 @@ class cart extends Controller {
             $cartUpdate['payment_id'] = $pay->id;
             $data['comment'] = $pay->comment;
             $data['user'] = 0;
-        } else if(isset($_POST['cart'])) {
+        }
+        else if(isset($_POST['cart']) && is_numeric($_POST['cart']))
+        {
             $cartId = $data['cart'] = $this->data->post('cart');
             $data['status'] = $cartUpdate['status'] = $this->data->post('status') ? $this->data->post('status') : 1;
             $data['comment'] = $this->data->post('comment');
@@ -267,62 +243,62 @@ class cart extends Controller {
         }
         $data['date'] = $cartUpdate['date_edit'] = time();
 
-        if(!isset($cartId)) return false;
-        if($this->db->insertRow('s_cart_history', $data)){
-            if($this->db->updateRow('s_cart', $cartUpdate, $data['cart'])){
-                $where = array('field' => "phone", 'user' => "#c.user");
-                $this->db->select('s_cart as c', '*', $cartId);
-                $this->db->join('wl_users', 'name as user_name, email as user_email', '#c.user');
-                $this->db->join('wl_user_info', 'value as user_phone', $where, 'user');
-                $this->db->join('s_cart_status', 'name as status_name, weight', '#c.status');
-                $orderInfo = $this->db->get();
-                $orderInfo->products = $this->getCartProducts($cartId, false);
+        if(!isset($cartId))
+            return false;
 
+        $this->load->smodel('cart_model');
 
-                // if($orderInfo->weight >= 15 && $orderInfo->currency == 0)
-                // {
-                //     $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'UAH');
-                //     $this->db->updateRow('s_cart', array('currency' => $currency_USD), $data['cart']);
-                // }
+        if($this->db->insertRow($this->cart_model->table('_history'), $data))
+        {
+            $this->db->updateRow($this->cart_model->table(), $cartUpdate, $cartId);
 
-                $info['id'] = $orderInfo->id;
-                $info['status'] = $orderInfo->status;
-                $info['status_name'] = $orderInfo->status_name;
+            if($cart = $this->cart_model->getById($cartId))
+            {
+                if($cart->products)
+                    foreach ($cart->products as $product) {
+                        $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                        if($product->storage_invoice)
+                            $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                    }
+
+                if($cart->shipping_id)
+                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+
+                $cart->payment_name = $this->cart_model->getPaymentName($cart->payment_alias);
+
+                $this->load->library('mail');
+
+                $info['id'] = $cart->id;
+                $info['action'] = $cart->action;
+                $info['status'] = $cart->status;
+                $info['status_name'] = $cart->status_name;
+                $info['status_weight'] = $cart->status_weight;
                 $info['comment'] = $data['comment'];
-                $info['date'] = date('d.m.Y H:i', $orderInfo->date_edit);
-                $info['user_name'] = $orderInfo->user_name;
-                $info['user_email'] = $orderInfo->user_email;
-                $info['user_phone'] = $orderInfo->user_phone;
-                $info['link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$orderInfo->id;
-                $info['pay_link'] = SITE_URL.$_SESSION['alias']->alias.'/pay/'.$orderInfo->id;
-                $info['products'] = $orderInfo->products;
-                $info['productTotalPrice'] = $orderInfo->total;
-                $info['shipping'] = '';
-
-                if($_SESSION['option']->useShipping)
-                {
-                    $shipping = $this->load->function_in_alias($orderInfo->shipping_alias, '__get_delivery_info', $orderInfo->shipping_id);                
-                    if($shipping)
-                        $info['shipping'] = '<h2><b>Доставка</b></h2>
-                                            <b>Служба доставки:</b> '.$shipping->method_name.' <br>
-                                            <b>Сайт:</b> '.$shipping->method_site.' <br>
-                                            <b>Адреса:</b> '.$shipping->address;
+                $info['info'] = $cart->comment;
+                $info['date'] = date('d.m.Y H:i', $cart->date_edit);
+                $info['user_name'] = $cart->user_name;
+                $info['user_email'] = $cart->user_email;
+                $info['user_phone'] = $cart->user_phone;
+                $info['link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$info['id'];
+                $info['pay_link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$cart->id.'/pay';
+                $info['admin_link'] = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$info['id'];
+                foreach ($cart->products as $product) {
+                    $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                    $product->price = $this->cart_model->priceFormat($product->price);
+                    $product->sum = $this->cart_model->priceFormat($product->price * $product->quantity);
                 }
+                $info['total'] = $cart->total;
+                $info['total_formatted'] = $this->cart_model->priceFormat($info['total']);
+                $info['products'] = $cart->products;
+                $info['delivery'] = false;
+                if($cart->shipping_alias && $cart->shipping_id)
+                    $info['delivery'] = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+                
+                $this->mail->sendTemplate('change_status', $cart->user_email, $info);
 
-                $info['table'] = '<table align="center" border="2" cellpadding="5" cellspacing="3" width="100%" style="border-collapse: collapse;">
-                    <thead><tr><th width="15%">Артикул</th><th width="60%">Продукт</th><th width="9%">Ціна</th><th width="9%">К-сть</th><th width="9%">Разом</th></tr></thead><tbody>';
-
-                foreach($info['products'] as $product){
-                    $info['table'] .=  '<tr>
-                                    <td>'. $product->product_article .'</td>
-                                    <td>'. $product->product_name .'</td>
-                                    <td>'. $product->price .' грн</td>
-                                    <td>'. $product->quantity .'</td>
-                                    <td>'. $product->price * $product->quantity .' грн</td>
-                                </tr>';
-
-                    if($_SESSION['option']->useStorage)
-                    {
+                if($_SESSION['option']->useStorage)
+                    foreach($info['products'] as $product) {
+                    
                         if($product->quantity_reserved == 0 && $orderInfo->weight > 0 && $orderInfo->weight < 90)
                         {
                             $reserve = array('invoise' => $product->storage_invoice, 'amount' => $product->quantity);
@@ -351,19 +327,11 @@ class cart extends Controller {
                             }
                         }
                     }
-                }
-
-                $info['table'] .= '<tr><td colspan="5" align="right">Сума: '.$info['productTotalPrice'].' грн<br>'.$info['productTotalPrice'].' грн</b></td></tr></tbody></table>';
-
-
-                $this->load->library('mail');
-                $this->mail->sendTemplate('changed_cart_status', $orderInfo->user_email, $info);
             }
         }
 
-        if(isset($_POST['cart'])){
+        if(isset($_POST['cart']))
             $this->redirect('admin/cart/'.$cartId.'#tabs-history');
-        }
 
         return true;
     }
@@ -397,175 +365,54 @@ class cart extends Controller {
 
     private function getProduct($key, $id, $userType, $userId, $cartId)
     {
-        $cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias2');
-        $currency_USD = $this->load->function_in_alias('currency', '__get_Currency', 'UAH');
-
-        if($cooperation)
-        {
+        $where = array();
+        $where['alias2'] = $_SESSION['alias']->id;
+        $where['type'] = 'cart';
+        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $where))
             foreach ($cooperation as $shop) {
-                if($shop->type == 'cart')
+                if($key == 'article')
                 {
-                    if($key == 'article')
+                    $count_products = 0;
+                    $showStorages = true;
+
+                    if($products = $this->load->function_in_alias($shop->alias1, '__get_Products', array($key => '%'.$id)))
                     {
-                        $products = $this->load->function_in_alias($shop->alias1, '__get_Products', array($key => '%'.$id));
+                        foreach ($products as $product) {
+                            $count = 0;
 
-                        $analogs = $test = array();
-                        $count_products = 0;
-                        $showStorages = true;
+                            $invoice_where = array('id' => $product->id, 'user_type' => $userType);
 
-                        if($products){
-                            foreach ($products as $product) {
-                                $count = 0;
-                                if(isset($product->options['2-analohy']) && $product->options['2-analohy']->value != ''){
-                                    $productAnalogs = explode(';', $product->options['2-analohy']->value);
-                                    foreach ($productAnalogs as $analog) {
-                                        if(!in_array($analog, $analogs)) $analogs[] = $analog;
-                                    }
-                                }
-
-                                $invoice_where = array('id' => $product->id, 'user_type' => $userType);
-                                $invoices = $this->getInvoicesByProduct($product->wl_alias, $invoice_where);
-
-                                if($invoices)
+                                if($showStorages)
                                 {
-                                    foreach ($invoices as $invoice) {
-                                        if($invoice->amount_free > 0) {
-                                            if($showStorages)
-                                            {
-                                                echo("<h3>Оригінали та замінники</h3>");
-                                                echo('<div class="table-responsive"><table class="table table-condensed table-bordered">');
-                                                echo("<tr>");
-                                                echo("<td>Бренд</td>");
-                                                echo("<td>Артикул</td>");
-                                                echo("<td>Опис</td>");
-                                                echo("<td>Термін</td>");
-                                                echo("<td>Ціна USA</td>");
-                                                echo("<td>Ціна грн</td>");
-                                                echo("<td>Кількість</td>");
-                                                echo("<td></td>");
-                                                echo("</tr>");
-                                                $showStorages = false;
-                                            }
-                                            echo("<tr>");
-                                            if($count == 0){
-                                                echo "<td>". ((isset($product->options['1-vyrobnyk']) && $product->options['1-vyrobnyk']->value != '') ? nl2br($product->options['1-vyrobnyk']->value) : '')."</td>";
-                                                echo("<td>{$product->article}</td>");
-                                                echo "<td>".html_entity_decode($product->name)."</td>";
-                                                $count++;
-                                            } else echo "<td></td><td></td><td></td>";
-                                            echo("<td>{$invoice->storage_time}</td>");
-                                            echo("<td>\${$invoice->price_out}</td>");
-                                            $invoice->price_out_uah = round($invoice->price_out * $currency_USD, 2);
-                                            echo("<td>{$invoice->price_out_uah}</td>");
-                                            echo("<td>{$invoice->amount_free}</td>");
-                                            echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId'><input type='hidden' name='invoiceId' value='{$invoice->id}'><input type='hidden' name='storageId' value='{$invoice->storage}'><input type='hidden' name='cartId' value='{$cartId}'><input type='hidden' name='productId' value='{$invoice->product}' ><input type='hidden' name='price' value='{$invoice->price_out}'><input type='hidden' name='price_in' value='{$invoice->price_in}'><button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
-                                            echo("</tr>");
-                                            $count_products++;
-                                        }
-                                    }
-                                }
-                                else
-                                {
-                                    if($showStorages)
-                                    {
-                                        echo("<h3>Товари</h3>");
-                                        echo('<div class="table-responsive"><table class="table table-condensed table-bordered">');
-                                        echo("<tr>");
-                                        echo("<td>Артикул</td>");
-                                        echo("<td>Опис</td>");
-                                        echo("<td>Ціна</td>");
-                                        echo("<td></td>");
-                                        echo("</tr>");
-                                        $showStorages = false;
-                                    }
-
+                                    echo("<h3>Товари</h3>");
+                                    echo('<div class="table-responsive"><table class="table table-condensed table-bordered">');
                                     echo("<tr>");
-                                    echo("<td>{$product->article}</td>");
-                                    echo "<td><img src=".IMG_PATH. $product->admin_photo." width='90' alt=''> ".html_entity_decode($product->name)."</td>";
-                                    echo("<td>{$product->price} грн</td>");
-                                    echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId'><input type='hidden' name='cartId' value='{$cartId}'><input type='hidden' name='productId' value='{$product->id}'><input type='hidden' name='price' value='{$product->price}'><button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
+                                    echo("<td>Артикул</td>");
+                                    echo("<td>Опис</td>");
+                                    echo("<td>Ціна</td>");
+                                    echo("<td></td>");
                                     echo("</tr>");
-                                    $count_products++;
+                                    $showStorages = false;
                                 }
-                            }
-                            if(!$showStorages)
-                            {
-                                echo("</table></div>");
-                            }
-                            if($count_products == 0)
-                            {
-                                echo("<div class='alert alert-danger'>");
-                                echo("<h4>{$product->article} {$product->name}</h4>");
-                                echo("<p>Увага! Товар відсутній на складі.</p>");
-                                echo("</div>");
-                            }
-                            if(!empty($analogs))
-                            {
-                                $showStorages = true;
-                                foreach ($analogs as $analog) {
-                                    $analog = $this->load->function_in_alias($shop->alias1, '__get_Products', array($key => '%'.$analog));
-                                    if($analog)
-                                    {
-                                        foreach ($analog as $product) {
-                                            $count = 0;
-                                            if($shop->type == 'cart')
-                                            {
-                                                $invoice_where = array('id' => $product->id, 'user_type' => $userType);
-                                                $invoices = $this->getInvoicesByProduct($product->wl_alias, $invoice_where);
-                                                if($invoices)
-                                                {
-                                                    foreach ($invoices as $invoice) {
-                                                        if($invoice->amount_free > 0) {
-                                                            if($showStorages)
-                                                            {
-                                                                echo("<h3> Аналоги </h3>");
-                                                                echo('<div class="table-responsive"><table class="table table-condensed table-bordered">');
-                                                                echo("<tr>");
-                                                                echo("<td>Бренд</td>");
-                                                                echo("<td>Артикул</td>");
-                                                                echo("<td>Опис</td>");
-                                                                echo("<td>Термін</td>");
-                                                                echo("<td>Ціна USA</td>");
-                                                                echo("<td>Ціна грн</td>");
-                                                                echo("<td>Кількість</td>");
-                                                                echo("<td></td>");
-                                                                echo("</tr>");
-                                                                $showStorages = false;
-                                                            }
-                                                            echo("<tr>");
-                                                            if($count == 0){
-                                                                echo "<td>". ((isset($product->options['1-vyrobnyk']) && $product->options['1-vyrobnyk']->value != '') ? nl2br($product->options['1-vyrobnyk']->value) : '')."</td>";
-                                                                echo("<td>{$product->article}</td>");
-                                                                echo "<td>".html_entity_decode($product->name)."</td>";
-                                                                $count++;
-                                                            } else echo "<td></td><td></td><td></td>";
-                                                            echo("<td>{$invoice->storage_time}</td>");
-                                                            echo("<td>\${$invoice->price_out}</td>");
-                                                            $invoice->price_out_uah = round($invoice->price_out * $currency_USD, 2);
-                                                            echo("<td title='1 USD = {$currency_USD} грн'>{$invoice->price_out_uah}</td>");
-                                                            echo("<td>{$invoice->amount_free}</td>");
-                                                            echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId' /> <input type='hidden' name='invoiceId' value='{$invoice->id}' /><input type='hidden' name='storageId' value='{$invoice->storage}' /><input type='hidden' name='cartId' value='{$cartId}' /> <input type='hidden' name='productId' value='{$invoice->product}' /><input type='hidden' name='price' value='{$invoice->price_out}' /><input type='hidden' name='price_in' value='{$invoice->price_in}'> <button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
-                                                            echo("</tr>");
-                                                            $count_products++;
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                                if(!$showStorages)
-                                {
-                                    echo("</table></div>");
-                                }
-                            }
-                        }
 
-                        if($products) return true;
+                                echo("<tr>");
+                                echo("<td>{$product->article}</td>");
+                                if(!empty($product->admin_photo))
+                                    echo "<td><img src=".IMG_PATH. $product->admin_photo." width='90' alt=''> ".html_entity_decode($product->name)."</td>";
+                                else
+                                    echo("<td></td>");
+                                echo("<td>{$product->price} грн</td>");
+                                echo("<td><form method='post' action='".SITE_URL."admin/{$_SESSION['alias']->alias}/addProduct'><input type='hidden' value='{$userId}' name='userId'><input type='hidden' name='cartId' value='{$cartId}'><input type='hidden' name='productId' value='{$product->id}'><input type='hidden' name='price' value='{$product->price}'><button type='submit' class='btn btn-sm btn-warning'>Додати</button></form></td>");
+                                echo("</tr>");
+                                $count_products++;
+
+                        }
+                        echo("</table></div>");
+
+                        return true;
                     }
                 }
             }
-        }
         return false;
     }
 
@@ -578,23 +425,26 @@ class cart extends Controller {
 
         $data['storage_alias'] = $this->data->post('storageId') ? $this->data->post('storageId') : 0;
         $data['storage_invoice'] = $this->data->post('invoiceId') ? $this->data->post('invoiceId') : 0;
-        $data['product'] = $this->data->post('productId');
-        $data['quantity'] = 1;
+        $data['product_id'] = $this->data->post('productId');
+        $data['quantity'] = $data['quantity_wont'] = 1;
+        $data['quantity_returned'] = $data['discount'] = 0;
         $data['price'] = $this->data->post('price');
         $data['price_in'] = $this->data->post('price_in') ? $this->data->post('price_in') : 0;
-        $data['alias'] = $this->db->getQuery("SELECT wl_alias FROM `s_shopshowcase_products` WHERE `id` = {$data['product']} ")->wl_alias;
+        $data['product_alias'] = $this->db->getQuery("SELECT wl_alias FROM `s_shopshowcase_products` WHERE `id` = {$data['product_id']} ")->wl_alias;
         $data['user'] = $this->data->post('userId') === 'false' ? $_SESSION['user']->id : $this->data->post('userId');
-        $data['additional'] = '';
+        $data['product_options'] = '';
         $data['date'] = time();
 
-        if(!isset($data['cart'])){
-            $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => 0, 'status' => 1, 'date_add' => $data['date'], 'date_edit' => $data['date']));
-            $data['cart'] = $this->db->getLastInsertedId();
+        $updateRow = true;
+        if(!isset($data['cart']))
+        {
+            $data['cart'] = $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => $data['price'], 'status' => 1, 'date_add' => $data['date'], 'date_edit' => $data['date']));
+            $updateRow = false;
         }
 
-        if($this->db->insertRow('s_cart_products', $data)){
+        $this->db->insertRow('s_cart_products', $data);
+        if($updateRow)
             $this->db->executeQuery("UPDATE `s_cart` SET `total` = `total` + {$data['price']}, `date_edit` = {$data["date"]} WHERE `id` = {$data['cart']}");
-        }
 
         $this->redirect('admin/cart/'.$data['cart'].'#tabs-products');
     }

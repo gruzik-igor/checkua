@@ -61,6 +61,7 @@ class cart_model
 			foreach ($this->additional_user_fields as $key => $field) {
 				$this->db->join('wl_user_info as ui_'.$key, 'value as user_'.$field, array('field' => $field, 'user' => "#c.user"));
 			}
+		$this->db->group('id', 'c');
 		$this->db->order('date_add DESC', 'c');
 
 		if(isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
@@ -69,13 +70,17 @@ class cart_model
 			if(isset($_GET['page']) && is_numeric($_GET['page']) && $_GET['page'] > 1) {
 				$start = ($_GET['page'] - 1) * $_SESSION['option']->paginator_per_page;
 			}
-			$_SESSION['option']->paginator_total = $this->db->getCount($this->table(), $_SESSION['alias']->id);
-
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
 		$carts = $this->db->get('array', false);
-		$_SESSION['option']->paginator_total = $this->db->get('count');
+		if($carts)
+			$_SESSION['option']->paginator_total = $this->db->get('count');
+		else
+		{
+			$_SESSION['option']->paginator_total = 0;
+			$this->db->clear();
+		}
 
 		return $carts;
 	}
@@ -103,7 +108,8 @@ class cart_model
 					$cart->action = $this->getActionByStatus($cart->status_weight, false);
 					$cart->history = $this->db->select($this->table('_history') .' as h', '*', $cart->id, 'cart')
 												->join($this->table('_status'), 'name as status_name', '#h.status')
-												->order('date DESC')
+												->join('wl_users', 'name as user_name', '#h.user')
+												->order('date ASC')
 												->get('array');
 				}
 				return $cart;
@@ -123,6 +129,7 @@ class cart_model
 			{
 				foreach ($products as $product) {
 					$product->key = $product->id;
+					$product->product_options = unserialize($product->product_options);
 				}
 				return $products;
 			}
@@ -159,7 +166,10 @@ class cart_model
 		$cart_product['user'] = ($user == 0) ? $_SESSION['user']->id : $user;
 		$cart_product['product_alias'] = $product->wl_alias;
 		$cart_product['product_id'] = $product->id;
-		$cart_product['product_options'] = $product->options;
+		if(empty($product->product_options))
+			$cart_product['product_options'] = '';
+		else
+			$cart_product['product_options'] = serialize($product->product_options);
 		$cart_product['storage_alias'] = $product->storage_alias;
 		$cart_product['storage_invoice'] = $product->storage_invoice;
 		if($inCart = $this->db->getAllDataById($this->table('_products'), $cart_product))
@@ -200,24 +210,26 @@ class cart_model
 		$cart['status'] = 1;
 		$cart['shipping_alias'] = (isset($delivery['shipping_alias'])) ? $delivery['shipping_alias'] : 0;
 		$cart['shipping_id'] = (isset($delivery['shipping_id'])) ? $delivery['shipping_id'] : 0;
-		$cart['payment_alias'] = $cart['payment_id'] = 0;
+		$cart['payment_alias'] = $this->data->post('payment_method');
+		$cart['payment_id'] = 0;
 		$cart['total'] = $this->getSubTotalInCart($user, false);
 		$cart['comment'] = $this->data->post('comment');
 		$cart['date_add'] = $cart['date_edit'] = time();
 		$cart_id = $this->db->insertRow($this->table(), $cart);
+		$cart['id'] = $cart_id;
 
 		$where = array('user' => $user, 'cart' => 0);
 		$this->db->updateRow($this->table('_products'), array('cart' => $cart_id), $where);
 
-		return $cart_id;
+		return $cart;
 	}
 
-	public function updateAdditionalUserFields($user)
+	public function updateAdditionalUserFields($user_id)
 	{
 		if(!empty($this->additional_user_fields))
 		{
 			$exist = array();
-			if($infos = $this->db->getAllDataByFieldInArray('wl_user_info', $_SESSION['user']->id, 'user'))
+			if($infos = $this->db->getAllDataByFieldInArray('wl_user_info', $user_id, 'user'))
 				foreach ($infos as $info) {
 					if(isset($exist[$info->field]))
 						$exist[$info->field][] = $info->value;
@@ -231,26 +243,53 @@ class cart_model
                 	{
                 		if(!in_array($value, $exist[$key]))
                 		{
-                			$data = array('user' => $_SESSION['user']->id, 'date' => time());
+                			$data = array('user' => $user_id, 'date' => time());
 							$data['field'] = $key;
 							$data['value'] = $value;
                 			$this->db->insertRow('wl_user_info', $data);
                 		}
                 	}
+                	else
+                	{
+                		$data = array('user' => $user_id, 'date' => time());
+						$data['field'] = $key;
+						$data['value'] = $value;
+	        			$this->db->insertRow('wl_user_info', $data);
+                	}
                 }
             }
 		}
 		
-		$user = $this->db->select('wl_users as u', 'name', $_SESSION['user']->id)->get();
-		if(empty($user->name))
-            $this->db->updateRow('wl_users', array('name' => $delivery['receiver']), $_SESSION['user']->id);
+		$user = $this->db->select('wl_users as u', 'name', $user_id)->get();
+		if(empty($user->name) && isset($_POST['receiver']))
+            $this->db->updateRow('wl_users', array('name' => $this->data->post('receiver')), $_SESSION['user']->id);
         
         return true;
 	}
 
+	public function getPaymentName($payment_id)
+	{
+		if($payment_id > 0)
+		{
+			$where = array('content' => 0);
+	        $where['alias'] = $payment_id;
+	        if($_SESSION['language'])
+	            $where['language'] = $_SESSION['language'];
+	        if($payment = $this->db->getAllDataById('wl_ntkd', $where))
+	            return $payment->name;
+	    }
+	    else
+	    {
+	    	if($payment = $this->db->getAllDataById($this->table('_payment_simple'), -$payment_id))
+	            return $payment->name;
+	    }
+	    return false;
+	}
+
 	public function priceFormat($price)
 	{
-		$text = "$" .round($price, 2);
+		$text = round($price, 2) .' грн';
+		// $text = "$" .round($price, 2);
 		return $text;
 	}
 

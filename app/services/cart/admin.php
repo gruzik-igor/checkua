@@ -213,6 +213,17 @@ class cart extends Controller {
                 $total = $this->db->getQuery("SELECT SUM(quantity * price) as totalPrice FROM `s_cart_products` WHERE `cart` = $cartId")->totalPrice;
 
                 $this->db->executeQuery("UPDATE `s_cart` SET `total` = {$total}, `date_edit` = $date WHERE `id` = $cartId");
+
+                if(!empty($_POST['toHistory']))
+                {
+                    $toHistory = array();
+                    $toHistory['cart'] = $cartId;
+                    $toHistory['user'] = $_SESSION['user']->id;
+                    $toHistory['comment'] = $this->data->post('toHistory');
+                    $toHistory['comment'] .= $quantity;
+                    $toHistory['date'] = time();
+                    $this->db->insertRow('s_cart_history', $toHistory);
+                }
             }
         }
 

@@ -67,6 +67,13 @@
 							<input type="hidden" name="id" value="<?= $product->id ?>">
 							<input type="hidden" name="storageId" value="<?= $product->storage_alias ?>">
 							<input type="hidden" name="invoiceId" value="<?= $product->storage_invoice ?>">
+							<?php $toHistory = '';
+							if(!empty($product->info->article))
+								$toHistory = $product->info->article.' ';
+							$toHistory .= $product->info->name.' ';
+							$toHistory .= '. Зміна кількості з '.$product->quantity.' на ';
+								?>
+							<input type="hidden" name="toHistory" value="<?= $toHistory ?>">
 							<span class="input-group-btn">
 	    						<button type="submit" class="btn btn-secondary"><i class='fa fa-save'></i></button>
 	    					</span>

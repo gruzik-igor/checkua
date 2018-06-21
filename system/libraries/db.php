@@ -341,7 +341,11 @@ class Db {
                     elseif($value != '' || $value == 0)
                     {
                         $value = $this->sanitizeString($value);
-                        if($value[0] == '%')
+                        if($value == '0')
+                            $where .= " = 0 AND ";
+                        elseif($value == '')
+                            $where .= " = '' AND ";
+                        elseif($value[0] == '%')
                             $where .= " LIKE '{$value}%' AND ";
                         elseif($value[0] == '@')
                         {

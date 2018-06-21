@@ -63,6 +63,9 @@
                                     url: '<?=SITE_URL?>signup/facebook',
                                     type: 'POST',
                                     data: {
+                                    <?php if(isset($_GET['redirect']) || $this->data->re_post('redirect')) { 
+                                        echo 'redirect: "'.$this->data->re_post('redirect', $this->data->get('redirect')).'",';
+                                    } ?>
                                         accessToken: accessToken,
                                         ajax: true
                                     },
@@ -131,6 +134,9 @@
 
                 <div class="col-md-12 text-center" id="clientError"></div>
                 <form action="<?=SITE_URL?>login/process" method="POST" class="margin-bottom-0">
+                    <?php if(isset($_GET['redirect']) || $this->data->re_post('redirect')) { ?>
+                        <input type="hidden" name="redirect" value="<?=$this->data->re_post('redirect', $this->data->get('redirect'))?>">
+                    <?php } ?>
                     <div class="form-group m-b-20">
                         <input type="email" name="email" value="<?=$this->data->re_post('email')?>" class="form-control input-lg" placeholder="Email" required />
                     </div>
@@ -173,7 +179,11 @@
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-2.jpg" alt="" /></a></li>
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-3.jpg" alt="" /></a></li>
             <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-4.jpg" alt="" /></a></li>
-            <li><a href="#" data-click="change-bg"><img src="<?=SITE_URL?>style/admin/login-bg/bg-6.jpg" alt="" /></a></li>
+
+            <?php require_once SYS_PATH.'libraries'.DIRSEP.'is_mobile.php'; 
+            if(is_mobile() == false)
+                echo '<li><a href="#" data-click="change-bg"><img src="'.SITE_URL.'style/admin/login-bg/bg-6.jpg" alt="" /></a></li>';
+            ?>
         </ul>
     </div>
     <!-- end page container -->

@@ -14,9 +14,9 @@ class install
 	public $admin_ico = 'fa-shopping-cart';
 	public $version = "2.0";
 
-	public $options = array('useCheckBox' => 1, 'usePassword' => 1, 'newUserType' => 4, 'price_format' => '');
+	public $options = array('useCheckBox' => 0, 'newUserType' => 4, 'price_format' => '');
 	public $options_type = array('useCheckBox' => 'bool', 'usePassword' => 'bool', 'newUserType' => 'number', 'price_format' => false);
-	public $options_title = array('useCheckBox' => 'Використовувати галочки', 'usePassword' => 'Пароль обов"язковий при ідентифікації', 'newUserType' => 'ID типу нового користувача');
+	public $options_title = array('useCheckBox' => 'Використовувати галочки', 'newUserType' => 'ID типу нового користувача');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',

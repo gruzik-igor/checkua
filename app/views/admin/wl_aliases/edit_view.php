@@ -43,7 +43,7 @@
 									<td>ADMIN вага сортування</td>
 									<td><input type="number" name="admin_order" value="<?=$this->data->re_post('admin_order', $alias->admin_order)?>" class="form-control"></td>
 								</tr>
-							<?php } if(isset($options)) foreach ($options as $option) { ?>
+							<?php } if(isset($options)) foreach ($options as $option) if($option->type) { ?>
 								<tr>
 									<td><?=$option->title?></td>
 									<td>
@@ -112,14 +112,14 @@
 	            </div>
 	            <div class="panel-body">
 	            	<?php
-	            	$options = $this->db->getAllDataByFieldInArray('wl_options', array('alias' => -$alias->id));
-	            	if($options){
+	            	$optionsAdditionall = $this->db->getAllDataByFieldInArray('wl_options', array('alias' => -$alias->id));
+	            	if($optionsAdditionall){
 	            		$_SESSION['alias']->js_load[] = 'assets/white-lion/wl_aliases-delete-option.js'; 
 	            	?>
 						<table class="table table-striped table-bordered">
 							<tbody>
 								<?php 
-								foreach ($options as $opt) {
+								foreach ($optionsAdditionall as $opt) {
 									if($opt->name == 'sub-menu') { 
 										$menu = unserialize($opt->value);
 								?>

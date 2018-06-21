@@ -288,11 +288,21 @@ class cart_model
 
 	public function priceFormat($price)
 	{
-		$text = round($price, 2) .' грн';
-		// $text = "$" .round($price, 2);
+		if(!is_array($_SESSION['option']->price_format) && !empty($_SESSION['option']->price_format))
+			$_SESSION['option']->price_format = unserialize($_SESSION['option']->price_format);
+
+		$before = $after = '';
+		$round = 2;
+		if(isset($_SESSION['option']->price_format['before']))
+			$before = $_SESSION['option']->price_format['before'];
+		if(isset($_SESSION['option']->price_format['after']))
+			$after = $_SESSION['option']->price_format['after'];
+		if(isset($_SESSION['option']->price_format['round']))
+			$round = $_SESSION['option']->price_format['round'];
+
+		$text = $before . round($price, $round) . $after;
 		return $text;
 	}
-
 
 }
 

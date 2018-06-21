@@ -1,5 +1,10 @@
 <link rel="stylesheet" type="text/css" href="<?=SERVER_URL.'style/'.$_SESSION['alias']->alias.'/checkout.css'?>">
 <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
+<?php $jss = array('assets/jquery-ui/ui/minified/jquery-ui.min.js', 'js/'.$_SESSION['alias']->alias.'/checkout.js');
+foreach ($jss as $js) {
+	if(!in_array($js, $_SESSION['alias']->js_load))
+		$_SESSION['alias']->js_load[] = $js;
+} ?>
 
 <div class="page-head content-top-margin">
 	<div class="container">
@@ -11,19 +16,21 @@
 <section class="section" id="cart-checkout">
 	<div class="container">
 		<?php if(!empty($_SESSION['notify-Cart'])) { ?>
-		   <div class="alert alert-danger alert-dismissible  fade in">
-		        <span class="close" data-dismiss="alert">×</span>
-		        <h4><?=(isset($_SESSION['notify-Cart']->title)) ? $_SESSION['notify-Cart']->title : $this->text('Помилка!')?></h4>
-		        <?=$_SESSION['notify-Cart']->error?>
-		    </div>
+			<div class="col-md-12">
+			   <div class="alert alert-danger alert-dismissible  fade in">
+			        <span class="close" data-dismiss="alert">×</span>
+			        <h4><?=(isset($_SESSION['notify-Cart']->title)) ? $_SESSION['notify-Cart']->title : $this->text('Помилка!')?></h4>
+			        <?=$_SESSION['notify-Cart']->error?>
+			    </div>
+			</div>
 		<?php } ?>
 		<div class="row">
 
 			<?php if(!$this->userIs()) { ?>
 			<div class="col-md-6">
 				<div class="row">
-					<div class="box detalmargin">
-						<strong><?=$this->text('Вже купували?')?></strong> <a href="#" style="line-height: 1.3;color: #e74c3c;" class="effect" data-slide-toggle=".checkout-login-form"><?=$this->text('Клікніть щоб увійти')?></a> <?=$this->text('- це заощадить Ваш час')?>
+					<div class="box boxLogo">
+						<strong><?=$this->text('Вже купували?')?></strong> <a href="#" class="effect" data-slide-toggle=".checkout-login-form"><?=$this->text('Клікніть щоб увійти')?></a> <?=$this->text('- це заощадить Ваш час')?>
 						<p><?=$this->text('Якщо Ви новий покупець, перейдіть до розділів "Доставка та оплата"')?></p>
 					</div>
 				</div>
@@ -64,7 +71,7 @@
 						</div>
 						<p><?=$this->text('Швидкий вхід:')?></p>
 						<div class="form-group">
-							<button class="facebookSignUp" onclick="facebookSignUp()">Facebook <i class="fa fa-facebook-square fa-lg pull-right" aria-hidden="true"></i></button>
+							<button class="facebookSignUp" onclick="return facebookSignUp()">Facebook <i class="fa fa-facebook-square fa-lg pull-right" aria-hidden="true"></i></button>
 						</div>
 					</form>
 				</div>
@@ -85,21 +92,23 @@
 			</div>
 			*/ }
 			if(!empty($_SESSION['notify']->success)) { ?>
-			    <div class="alert alert-success fade in">
-			        <span class="close" data-dismiss="alert">×</span>
-			        <i class="fa fa-check fa-2x pull-left"></i>
-			        <h4><?=$_SESSION['notify']->success?></h4>
-			    </div>
+				<div class="col-md-12">
+				    <div class="alert alert-success fade in">
+				        <span class="close" data-dismiss="alert">×</span>
+				        <i class="fa fa-check fa-2x pull-left"></i>
+				        <h4><?=$_SESSION['notify']->success?></h4>
+				    </div>
+				</div>
 			<?php } unset($_SESSION['notify']); ?>
 			<div class="clearfix"></div>
 
 			<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/confirm" method="POST" class="checkout-form inputs-border inputs-bg">
 				<div class="col-md-6">
-					<div class="billing-field ">
+					<div class="billing-field">
 						<div class="row">
-							<h3 class="title mt0 detalmargin"><?=$this->text('Доставка')?></h3>
+							<h3 class="title mt0"><?=$this->text('Доставка')?></h3>
 						</div>
-						<div class="detalmargin">
+
 						<?php $cooperation_where = array();
 						$cooperation_where['alias1'] = $_SESSION['alias']->id;
 						$cooperation_where['type'] = 'delivery';
@@ -128,10 +137,12 @@
 					            <textarea class="form-control" name="shipping-address" placeholder="<?=$this->text('Поштовий індекс, м. Київ, вул. Київська 12, кв. 3')?>" rows="3"></textarea>
 					        </div>
 						<?php } ?>
-						</div>
-						<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
-						<div class="form-group">
-							<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
+						
+						<div class="row">
+							<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
+							<div class="form-group">
+								<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
+							</div>
 						</div>
 					</div>
 				</div>
@@ -153,20 +164,18 @@
 									        <tr class="item">
 									            <td class="product-name">
 									                <a href="<?=SITE_URL.$product->info->link?>"><?=$product->info->name?></a> <strong class="product-quantity">× <?= $product->quantity?></strong> 
-									                <?php if(!empty($product->product_options)) { ?>
-														<table class="variation">
-										                    <tbody>
-										                    <?php foreach ($product->product_options as $key => $value) { ?>
-										                    <tr>
-									                            <th class="variation-size"><?=$key?>:</th>
-									                            <td class="variation-size">
-									                                <p><?=$value?></p>
-									                            </td>
-									                        </tr>
-														<?php } ?>
-															</tbody>
-									                	</table>
-													<?php } ?>
+									                <?php $p = '';
+													if(!empty($product->info->article)) {
+														$p .= $this->text('Артикул', 0).": <strong>{$product->info->article}</strong>";
+													} if(!empty($product->product_options))
+														foreach ($product->product_options as $key => $value) {
+															if(!empty($p))
+																$p .= ', ';
+															$p .= "{$key}: <strong>{$value}</strong>";
+														}
+													if(!empty($p))
+														echo "<p>{$p}</p>";
+													?>
 									            </td>
 									            <td class="product-total">
 									                <span class="amount" title="<?=$product->priceFormat ?> × <?= $product->quantity?>"><?=$this->cart_model->priceFormat($product->price * $product->quantity) ?></span>
@@ -221,10 +230,14 @@
 																->get('array');
 								        if($cooperation)
 								        {
-								            foreach ($cooperation as $payment) { ?>
+								            foreach ($cooperation as $payment) {
+								            	$checked = '';
+								            	if(count($cooperation) == 1 && empty($payments))
+								            		$checked = 'checked';
+								            	?>
 								            <li class="payment-method">
-									            <input id="payment_method_cod" type="radio" name="payment_method" value="<?=$payment->id?>">
-									            <label for="payment_method_cod" class="radio" data-slide-toggle="#payment-<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
+									            <input id="payment_method_cod-<?=$payment->id?>" type="radio" name="payment_method" value="<?=$payment->id?>" <?=$checked?>>
+									            <label for="payment_method_cod-<?=$payment->id?>" class="radio" data-slide-toggle="#payment-<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
 
 									            <div class="payment-box" id="payment-<?=$payment->id?>" style="display:none;">
 									                <p><?=htmlspecialchars_decode($payment->info)?></p>
@@ -237,8 +250,9 @@
 								</div>
 							<?php } ?>
 
+							<a href="<?=SITE_URL.$_SESSION['alias']->alias?>" class="btn btn-buy btn-warning pull-left">Back</a>
 							<div class="text-right">
-					    		<button type="submit" class="btn btn-buy"><?=$this->text('Оформити замовлення')?></button>
+					    		<button type="submit" class="btn btn-buy" onclick="divLoading.style.display='block'"><?=$this->text('Оформити замовлення')?></button>
 					    	</div>
 						</div>
 					</div>
@@ -248,9 +262,6 @@
 	</div>
 </section>
 <div id="divLoading"></div>
-
-<?php $_SESSION['alias']->js_load[] = 'js/'.$_SESSION['alias']->alias.'/checkout.js'; 
-$_SESSION['alias']->js_load[] = 'assets/jquery-ui/ui/minified/jquery-ui.min.js'; ?>
 
 <?php $this->load->library('facebook'); 
 if($_SESSION['option']->facebook_initialise){ ?>

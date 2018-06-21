@@ -139,7 +139,7 @@ class cart extends Controller {
                 if($product = $this->load->function_in_alias($wl_alias, '__get_Product', $id))
                 {
                     $product->key = $this->data->post('productKey');
-                    $product->name = html_entity_decode($product->name);
+                    $product->name = html_entity_decode($product->name, ENT_QUOTES, 'utf-8');
                     $product->product_alias = $wl_alias;
                     $product->product_id = $id;
                     $product->quantity = $this->data->post('quantity');
@@ -161,7 +161,7 @@ class cart extends Controller {
                                                 break;
                                             }
                                         }
-                                    if($info->changePrice)
+                                    if(isset($info->changePrice) && $info->changePrice)
                                         $changePrice[$info->id] = $option[1];
                                 }
                             }
@@ -196,6 +196,7 @@ class cart extends Controller {
                 }
             }
         }
+        unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
         $this->load->json($res);
     }
 
@@ -396,9 +397,9 @@ class cart extends Controller {
                     }
 
                     if(date('H') > 18 || date('H') < 6)
-                        $_SESSION['notify']->success = $this->text('Доброго вечора, <strong>'.$_SESSION['user']->name.'</strong>! Дякуємо що повернулися');
+                        $_SESSION['notify']->success = $this->text('Доброго вечора').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
                     else
-                        $_SESSION['notify']->success = $this->text('Доброго дня, <strong>'.$_SESSION['user']->name.'</strong>! Дякуємо що повернулися');
+                        $_SESSION['notify']->success = $this->text('Доброго дня').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
                 }
                 else
                     $_SESSION['notify']->error = $this->text('Неправильно введено email/телефон або пароль');
@@ -547,6 +548,22 @@ class cart extends Controller {
     public function checkout()
     {
         $this->load->smodel('cart_model');
+
+        if(!empty($_SESSION['cart']->products) && $this->userIs())
+        {
+            foreach ($_SESSION['cart']->products as $product) {
+                $this->cart_model->addProduct($product, $_SESSION['user']->id);
+            }
+            $_SESSION['cart']->products = NULL;
+
+            if(date('H') > 18 || date('H') < 6)
+                $_SESSION['notify']->success = $this->text('Доброго вечора').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
+            else
+                $_SESSION['notify']->success = $this->text('Доброго дня').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
+        }
+
+        
+
         if($products = $this->cart_model->getProductsInCart())
         {
             $user_type = $subTotal = 0;

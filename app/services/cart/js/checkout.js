@@ -25,10 +25,10 @@ $("form.checkout-form input[type=email]").on("change", function() {
     })
 });
 
-// $("[data-slide-toggle]").on("click", function(a) {
-//     a.preventDefault(), $target = $($(this).data("slide-toggle")), parent = $(this).attr("data-parent"),
-//         parent && $(this).parents(parent).find("[data-slide-toggle]").each(function(a, b) { $($(b).data("slide-toggle")).slideUp() }), $target.slideToggle()
-// });
+$("[data-slide-toggle]").on("click", function(a) {
+    a.preventDefault(), $target = $($(this).data("slide-toggle")), parent = $(this).attr("data-parent"),
+        parent && $(this).parents(parent).find("[data-slide-toggle]").each(function(a, b) { $($(b).data("slide-toggle")).slideUp() }), $target.slideToggle()
+});
 $(".checkbox[data-slide-toggle], .radio[data-slide-toggle]").on("click", function(a) { query = $(this).hasClass("checkbox") ? "checkbox" : "radio", $input = $(this).parent().find('>input[type="' + query + '"]'), "radio" == query && $('[name="' + $input.attr("name") + '"]').attr("checked", !1).prop("checked", !1), $input.attr("checked") ? $input.attr("checked", !1).prop("checked", !1) : $input.attr("checked", !0).prop("checked", !0) });
 
 function facebookSignUp() {
@@ -70,4 +70,5 @@ function facebookSignUp() {
         }
 
     }, { scope: 'email' });
+    return false;
 }

@@ -36,6 +36,15 @@ class wl_language_words extends Controller {
     	}
     }
 
+    public function delete()
+    {
+        if($_SESSION['user']->admin == 1 && $this->data->post('id') > 0)
+        {
+            $this->db->deleteRow('wl_language_words', $this->data->post('id'));
+            $this->db->deleteRow('wl_language_values', $this->data->post('id'), 'word');
+        }
+    }
+
     public function changeType()
     {
     	if($_SESSION['user']->admin == 1 && $this->data->post('word') > 0 && $this->data->post('type') > 0)

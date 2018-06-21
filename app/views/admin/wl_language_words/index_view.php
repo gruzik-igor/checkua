@@ -51,7 +51,7 @@
 									foreach ($words as $word) {
 										if($word->alias == $alias->id){
 											echo("<tr>");
-												echo("<td id=\"word-{$word->id}\" class=\"alias-{$alias->id}\"><b>{$word->word}</b></td>");
+												echo("<td id=\"word-{$word->id}\" class=\"alias-{$alias->id}\"><button class='btn btn-xs btn-danger' onClick='deleteWord({$word->id}, \"{$word->word}\")'>x</button> <b>{$word->word}</b></td>");
 												if($_SESSION['language'])
 												{												
 													foreach ($_SESSION['all_languages'] as $language) {
@@ -151,6 +151,37 @@
             	$('#saveing').css("display", "none");
             }
         });
+	}
+	function deleteWord (id, word) {
+		if(confirm('Підтвердіть видалення фрази "'+word+'" зі всіма перекладами. Увага! Відновити неможливо!'))
+		{
+			$('#saveing').css("display", "block");
+	        $.ajax({
+	            url: "<?=SITE_URL?>admin/wl_language_words/delete",
+	            type: 'POST',
+	            data: {
+	            	id: id,
+	                json: true
+	            },
+	            success: function(res){
+	                if(res['result'] == false){
+	                    $.gritter.add({title:"Помилка!", text:res['error']});
+	                } else {
+	                	$.gritter.add({title:'Видалення фрази', text:'Фразу <b>"'+word+'"</b> успішно видалено!'});
+	                	$('#word-'+id).parent().slideUp();
+	                }
+	                $('#saveing').css("display", "none");
+	            },
+	            error: function(){
+	                $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
+	                $('#saveing').css("display", "none");
+	            },
+	            timeout: function(){
+	            	$.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
+	            	$('#saveing').css("display", "none");
+	            }
+	        });
+	    }
 	}
 	function changeType (id, e) {
 		$('#saveing').css("display", "block");

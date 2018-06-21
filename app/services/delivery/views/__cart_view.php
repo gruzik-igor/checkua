@@ -27,14 +27,19 @@
 <input type="hidden" name="delivery_alias" value="<?=$_SESSION['alias']->id?>">
 
 <div class="row">
-    <div class="form-group">
-        <label for="shipping-method"><?=$this->text('Служба доставки')?></label>
-        <select name="shipping-method" id="shipping-method" class="form-control" required onchange="changeInfo(this)">
-            <?php if($methods) foreach ($methods as $method) { ?>
-                <option value="<?=$method->id?>" <?php if($delivery->method && $delivery->method == $method->id){ echo 'selected'; $info = $method->info; } ?> ><?=$method->name?></option>
-            <?php } ?>
-        </select>
-    </div>
+    <?php if($methods) {
+        if(count($methods) > 1) { ?>
+        <div class="form-group">
+            <label for="shipping-method"><?=$this->text('Служба доставки')?></label>
+            <select name="shipping-method" id="shipping-method" class="form-control" required onchange="changeInfo(this)">
+                <?php foreach ($methods as $method) { ?>
+                    <option value="<?=$method->id?>" <?php if($delivery->method && $delivery->method == $method->id){ echo 'selected'; $info = $method->info; } ?> ><?=$method->name?></option>
+                <?php } ?>
+            </select>
+        </div>
+    <?php } else { ?>
+        <input type="hidden" name="shipping-method" value="<?=$methods[0]->id?>">
+    <?php } } ?>
 
     <div class="alert alert-warning" id="shipping-info" <?=(empty($info)) ? 'style="display:none"':''?>>
         <?=$info?>
@@ -47,7 +52,7 @@
 
     <div class="form-group <?= isset($city) || isset($anotherCity) ? '' : 'hidden' ?>" id="novaPoshtaDepartments" >
         <label><?=$this->text('Відділення')?></label>
-        <select class="form-control <?= isset($city) ? '' : 'hidden' ?>" name="shipping-department" id="shipping-department" <?= $noCity ? '' : 'required' ?>>
+        <select class="form-control <?= isset($city) ? '' : 'hidden' ?>" name="shipping-department" id="shipping-department" <?= isset($city) ? 'required' : '' ?>>
             <?php if(isset($city)) { ?>
             <option disabled value=""><?=$this->text('Виберіть відділення')?></option>
             <?php foreach(json_decode($warehouse_by_city, true)[trim(htmlspecialchars_decode($city[0], ENT_QUOTES))] as $department) { $department = '№'.$department['number'] .' : '. $department['address']; ?>
@@ -87,7 +92,9 @@
         </div>
     <?php } ?>
 
-    <div class="form-group">
+    <input type="hidden" name="shipping-default" id="shipping-default" value="1" checked> 
+
+    <?php /*<div class="form-group">
         <input type="checkbox" name="shipping-default" id="shipping-default" value="1" checked> 
         <label class="checkbox" for="shipping-default"><?=$this->text('Використовувати ці дані, як інформацію по доставці за замовчуванням')?></label>
     </div>
@@ -97,7 +104,7 @@
         <label class="checkbox" for="shipping-agree">
         <span class="delivagree"><?=$this->text('Я ознайомився з термінами доставки')?></span>
         </label>
-    </div>
+    </div> */ ?>
 </div>
 
 <script>

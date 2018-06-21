@@ -553,6 +553,22 @@ class cart extends Controller {
 
         $this->json($res);
     }
+
+    public function __tab_profile($user_id)
+    {   
+        if(!isset($_SESSION['option']->paginator_per_page) || $_SESSION['option']->paginator_per_page < 5)
+            $_SESSION['option']->paginator_per_page = 20;
+        $this->load->smodel('cart_model');
+        ob_start();
+        $this->load->view('admin/__tab_profile', array('orders' => $this->cart_model->getCarts(array('user' => $user_id))));
+        $tab = new stdClass();
+        $tab->key = $_SESSION['alias']->alias;
+        $tab->name = $_SESSION['alias']->name;
+        $tab->content = ob_get_contents();
+        ob_end_clean();
+        return $tab;
+    }
+
 }
 
 ?>

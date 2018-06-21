@@ -62,6 +62,16 @@ class install
 		else
 			$this->db->insertRow('wl_ntkd', $checkout);
 
+		$alias1 = -1;
+		if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__tab_profile'), 'alias1'))
+			$alias1 = $actions[0]->alias1 - 1;
+		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__tab_profile'));
+
+		$alias1 = -1;
+		if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__link_profile'), 'alias1'))
+			$alias1 = $actions[0]->alias1 - 1;
+		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__link_profile'));
+
 		return true;
 	}
 

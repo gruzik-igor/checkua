@@ -554,6 +554,32 @@ class cart extends Controller {
         $this->json($res);
     }
 
+    public function save_price_format()
+    {
+        if($_SESSION['user']->type == 1 && $this->data->post('service'))
+        {
+            $price_format = array('before' => '', 'after' => '', 'round' => 2);
+            $price_format['before'] = htmlspecialchars($_POST['before']);
+            $price_format['after'] = htmlspecialchars($_POST['after']);
+            $price_format['round'] = $this->data->post('round');
+            $value = serialize($price_format);
+
+            $where = array('alias' => $_SESSION['alias']->id, 'name' => 'price_format');
+            $where['service'] = $this->data->post('service');
+            if($option = $this->db->getAllDataById('wl_options', $where))
+            {
+                if($option->value != $value)
+                    $this->db->updateRow('wl_options', array('value' => $value), $option->id);
+            }
+            else
+            {
+                $where['value'] = $value;
+                $this->db->insertRow('wl_options', $where);
+            }
+        }
+        $this->redirect();
+    }
+
     public function __tab_profile($user_id)
     {   
         if(!isset($_SESSION['option']->paginator_per_page) || $_SESSION['option']->paginator_per_page < 5)

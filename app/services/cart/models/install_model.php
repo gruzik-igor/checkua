@@ -146,9 +146,11 @@ class install
 											 ('Скасоване', 'default', 1, 99);";
 		$this->db->executeQuery($query);
 
-		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_payment_simple` (
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_payments` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `active` tinyint(1) NOT NULL,
+					  `wl_alias` int(11) NULL,
+					  `active` tinyint(1) NULL,
+					  `position` int(11) NULL,
 					  `name` text NOT NULL,
 					  `info` text,
 					  PRIMARY KEY (`id`),
@@ -156,9 +158,22 @@ class install
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
-		$query = "INSERT INTO `{$this->table_service}_payment_simple` (`id`, `active`, `name`, `info`) VALUES
-											(1, 1, 'Готівкою при отриманні', 'Оплата готівкою при доставці/отриманні товару.'),
-											(2, 0, 'Оплатити на рахунок за реквізитами', 'Реквізити оплати отримаєте листом на електронну скриньку');";
+		$query = "INSERT INTO `{$this->table_service}_payments` (`id`, `wl_alias`, `active`, `position`, `name`, `info`) VALUES
+											(1, 0, 1, 1, 'Готівкою при отриманні', 'Оплата готівкою при доставці/отриманні товару.'),
+											(2, 0, 0, 2, 'Оплатити на рахунок за реквізитами', 'Реквізити оплати отримаєте листом на електронну скриньку');";
+		$this->db->executeQuery($query);
+
+		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_shipping` (
+					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `wl_alias` int(11) NULL,
+					  `active` tinyint(1) NULL,
+					  `position` int(11) NULL,
+					  `type` tinyint(1) NULL,
+					  `name` text NOT NULL,
+					  `info` text,
+					  PRIMARY KEY (`id`),
+					  KEY `active` (`active`)
+					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (

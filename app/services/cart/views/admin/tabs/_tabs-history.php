@@ -37,7 +37,7 @@
         </tbody>
     </table>
     
-    <?php if($_SESSION['option']->useShipping && $cart->shipping_id > 0) {?>
+    <?php if($cart->shipping_id > 0) {?>
         <legend>Доставка</legend>
         <b>Служба доставки:</b> <?= $cart->shipping->method_name ?> <br>
         <?php if($cart->shipping->method_site != '') { ?>

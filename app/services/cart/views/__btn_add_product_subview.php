@@ -1,4 +1,4 @@
-<?php $showSelectQuantity = false;
+<?php $showSelectQuantity = true;
 if($_SESSION['cart']->initJsStyle) {
 	if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
 		$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/cart.js';

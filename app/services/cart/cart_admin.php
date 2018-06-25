@@ -1,22 +1,14 @@
 <?php
 
-class cart extends Controller {
+class cart_admin extends Controller {
 
     function __construct()
     {
         parent::__construct();
-        $_SESSION['option']->useShipping = 0;
-        $_SESSION['option']->usePayments = 0;
         $_SESSION['option']->useStorage = 0;
-        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
-            foreach ($cooperation as $row) {
-                if($row->type == 'delivery')
-                    $_SESSION['option']->useShipping = 1;
-                elseif($row->type == 'payment')
-                    $_SESSION['option']->usePayments = 1;
-                elseif($row->type == 'storage')
-                    $_SESSION['option']->useStorage = 1;
-            }
+        $useStorageWhere = array('alias1' => $_SESSION['alias']->id, 'type' => 'storage');
+        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $useStorageWhere))
+            $_SESSION['option']->useStorage = 1;
     }
 
     function _remap($method, $data = array())
@@ -578,6 +570,21 @@ class cart extends Controller {
             }
         }
         $this->redirect();
+    }
+
+    public function settings()
+    {
+        $uri = $this->data->uri(3);
+        if($uri == 'shipping')
+        {
+
+        }
+        elseif($uri == 'payments')
+        {
+
+        }
+        else
+            $this->load->page_404(false);
     }
 
     public function __tab_profile($user_id)

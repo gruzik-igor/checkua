@@ -7,7 +7,7 @@
 
 */
 
-class faq extends Controller {
+class faq_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

@@ -2,16 +2,15 @@
 
 /*
 
- 	Service "paypal 1.0"
+ 	Service "Privat24 1.1"
 	for WhiteLion 1.0
 
 */
 
-class paypal extends Controller {
+class privat24_admin extends Controller {
 				
     function _remap($method, $data = array())
     {
-        $this->wl_alias_model->setContent();
     	$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
         if (method_exists($this, $method)) {
         	if(empty($data)) $data = null;
@@ -23,10 +22,11 @@ class paypal extends Controller {
 
     public function index($uri)
     {
-    	$this->load->smodel('paypal_model');
+    	$this->load->smodel('privat24_model');
     	if(is_numeric($uri))
     	{
-    		if($payment = $this->paypal_model->getPayment($uri))
+    		$payment = $this->privat24_model->getPayment($uri);
+    		if($payment)
     		{
     			$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Оплата #'.$uri => '');
 				$_SESSION['alias']->name .= '. Оплата #'.$uri;
@@ -38,7 +38,7 @@ class paypal extends Controller {
     	else
     	{
             $_SESSION['option']->paginator_per_page = 50;
-	    	$this->load->admin_view('list_view', array('payments' => $this->paypal_model->getPayments()));
+	    	$this->load->admin_view('list_view', array('payments' => $this->privat24_model->getPayments()));
     	}
     }
 	

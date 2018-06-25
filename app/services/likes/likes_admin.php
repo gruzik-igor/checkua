@@ -1,6 +1,6 @@
 <?php
 
-class likes extends Controller {
+class likes_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

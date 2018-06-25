@@ -300,14 +300,31 @@ class Loader {
 
 		if(is_object($alias))
 		{
+			if($_SESSION['alias']->id == $alias->id)
+			{
+				$service = $alias->alias;
+				if($alias->service)
+				{
+					$service = $_SESSION['alias']->service;
+					if($admin)
+						$service .= '_admin';
+				}
+
+				if(isset($this->$service) && is_object($this->$service))
+				{
+					if(is_callable(array($this->$service, '_remap')))
+						return $this->$service->_remap($method, $data);
+					else if(is_callable(array($this->$service, $method)))
+						return $this->$service->$method($data);
+					return false;
+				}
+			}
+
 			if(empty($this->wl_aliases[$alias->id]) || empty($this->wl_aliases[$alias->alias]))
 			{
 				$this->wl_aliases[$alias->id] = clone $alias;
 				$this->wl_aliases[$alias->alias] = clone $alias;
 			}
-
-			// if($admin && !$this->userCan($alias->alias))
-			// 	return false;
 
 			if(empty($_SESSION['alias-cache'][$_SESSION['alias']->id]))
 			{
@@ -332,20 +349,21 @@ class Loader {
 					$_SESSION['service'] = $_SESSION['alias-cache'][$alias->id]->service;
 				}
 				
-				if($admin == false)
+				$service = $alias->alias;
+				if($alias->service)
 				{
-					$service = $alias->alias;
-					if($alias->service)
-						$service = $_SESSION['alias']->service;
-					if(isset($this->$service) && is_object($this->$service))
-					{
-						$_SESSION['alias']->alias_from = $old_alias;
-						if(is_callable(array($this->$service, '_remap')))
-							$rezult = $this->$service->_remap($method, $data);
-						else if(is_callable(array($this->$service, $method)))
-							$rezult = $this->$service->$method($data);
-						unset($_SESSION['alias']->alias_from);
-					}
+					$service = $_SESSION['alias']->service;
+					if($admin)
+						$service .= '_admin';
+				}
+				if(isset($this->$service) && is_object($this->$service))
+				{
+					$_SESSION['alias']->alias_from = $old_alias;
+					if(is_callable(array($this->$service, '_remap')))
+						$rezult = $this->$service->_remap($method, $data);
+					else if(is_callable(array($this->$service, $method)))
+						$rezult = $this->$service->$method($data);
+					unset($_SESSION['alias']->alias_from);
 				}
 			}
 			else
@@ -367,7 +385,10 @@ class Loader {
 						$service = $_SESSION['alias']->service;
 						$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';
 						if($admin)
-							$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.'admin.php';
+						{
+							$service .= '_admin';
+							$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'_admin.php';
+						}
 					}
 				}
 				else

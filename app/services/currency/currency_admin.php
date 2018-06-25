@@ -7,7 +7,7 @@
 
 */
 
-class currency extends Controller {
+class currency_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

@@ -2,12 +2,12 @@
 
 /*
 
- 	Service "Shop Showcase 2.2"
+ 	Service "Shop Parts 1.0"
 	for WhiteLion 1.0
 
 */
 
-class shopparts extends Controller {
+class shopparts_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

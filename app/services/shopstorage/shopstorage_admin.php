@@ -7,7 +7,7 @@
 
 */
 
-class shopstorage extends Controller {
+class shopstorage_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

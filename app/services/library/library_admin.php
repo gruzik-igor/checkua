@@ -7,7 +7,7 @@
 
 */
 
-class library extends Controller {
+class library_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

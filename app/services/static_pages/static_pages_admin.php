@@ -1,6 +1,6 @@
 <?php
 
-class static_pages extends Controller {
+class static_pages_admin extends Controller {
 				
     function _remap($method, $data = array())
     {

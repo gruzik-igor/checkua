@@ -568,23 +568,225 @@ class cart_admin extends Controller {
                 $where['value'] = $value;
                 $this->db->insertRow('wl_options', $where);
             }
+
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Формат виводу ціни оновлено';
         }
         $this->redirect();
     }
 
     public function settings()
     {
+        $this->load->smodel('cart_model');
         $uri = $this->data->uri(3);
-        if($uri == 'shipping')
+        if(empty($uri))
         {
-
+            $_SESSION['alias']->name .= '. Налаштування';
+            $shippings = $this->cart_model->getShippings();
+            $payments = $this->cart_model->getPayments();
+            $this->load->admin_view('settings/index_view', array('shippings' => $shippings, 'payments' => $payments));
         }
-        elseif($uri == 'payments')
+        elseif($uri == 'shipping')
         {
-
+            $id = $this->data->uri(4);
+            $shipping = false;
+            if(is_numeric($id))
+            {
+                $_SESSION['alias']->name .= '. Налаштування доставки #'.$id;
+                $shipping = $this->cart_model->getShippings(array('id' => $id));
+                if($shipping)
+                    $shipping = $shipping[0];
+                else
+                    $this->load->page_404(false);
+            }
+            else if(empty($id))
+                $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
+            else if($id == 'add')
+                $_SESSION['alias']->name .= '. Додати просту доставку';
+            else
+                $this->load->page_404(false);
+            $this->load->admin_view('settings/shipping_view', array('shipping' => $shipping));
+        }
+        elseif($uri == 'payment')
+        {
+            $id = $this->data->uri(4);
+            $payment = false;
+            if(is_numeric($id))
+            {
+                $_SESSION['alias']->name .= '. Налаштування оплати #'.$id;
+                $payment = $this->cart_model->getPayments(array('id' => $id));
+                if($payment)
+                    $payment = $payment[0];
+                else
+                    $this->load->page_404(false);
+            }
+            else if(empty($id))
+                $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
+            else if($id == 'add')
+                $_SESSION['alias']->name .= '. Додати просту оплату';
+            else
+                $this->load->page_404(false);
+            $this->load->admin_view('settings/payment_view', array('payment' => $payment));
         }
         else
             $this->load->page_404(false);
+    }
+
+    public function settings_change_position()
+    {
+        $res = array('result' => false);
+        if(isset($_POST['id']) && is_numeric($_POST['position']))
+        {
+            $id = explode('-', $_POST['id']);
+            if(count($id) == 2 && in_array($id[0], array('shipping', 'payment')) && is_numeric($id[1]))
+            {
+                $this->load->smodel('cart_model');
+                $this->load->model('wl_position_model');
+
+                $this->wl_position_model->table = $this->cart_model->table('_payments');
+                if($id[0] == 'shipping')
+                    $this->wl_position_model->table = $this->cart_model->table('_shipping');
+                $newposition = $_POST['position'] + 1;
+                
+                if($this->wl_position_model->change($id[1], $newposition))
+                    $res['result'] = true;
+            }
+        }
+        $this->load->json($res);
+    }
+
+    public function settings_change_active()
+    {
+        $res = array('result' => false);
+        if(isset($_POST['id']) && is_numeric($_POST['active']))
+        {
+            $id = explode('-', $_POST['id']);
+            if(count($id) == 2 && in_array($id[0], array('shipping', 'payment')) && is_numeric($id[1]))
+            {
+                $this->load->smodel('cart_model');
+
+                $table = $this->cart_model->table('_payments');
+                if($id[0] == 'shipping')
+                    $table = $this->cart_model->table('_shipping');
+
+                $active = ($_POST['active'] > 0) ? 1 : 0;
+                
+                if($this->db->updateRow($table, array('active' => $active), $id[1]))
+                    $res['result'] = true;
+            }
+        }
+        $this->load->json($res);
+    }
+
+    public function save_shipping()
+    {
+        if(is_numeric($_POST['id']))
+        {
+            $this->load->smodel('cart_model');
+            $shipping = array('wl_alias' => 0, 'active' => 0);
+            $shipping['type'] = $this->data->post('type');
+            $shipping['active'] = ($_POST['active'] > 0 || $_POST['id'] == 0) ? 1 : 0;
+            if($_SESSION['language'])
+            {
+                $name = $info = array();
+                foreach ($_SESSION['all_languages'] as $lang) {
+                    $name[$lang] = $this->data->post('name_'.$lang);
+                    $info[$lang] = $this->data->post('info_'.$lang);
+                }
+                $shipping['name'] = serialize($name);
+                $shipping['info'] = serialize($info);
+            }
+            else
+            {
+                $shipping['name'] = $this->data->post('name');
+                $shipping['info'] = $this->data->post('info');
+            }
+
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Оплату оновлено';
+
+            if($_POST['id'] == 0)
+            {
+                $_SESSION['notify']->success = 'Оплату додано';
+                $shipping['position'] = $this->db->getCount($this->cart_model->table('_shipping')) + 1;
+                $this->db->insertRow($this->cart_model->table('_shipping'), $shipping);
+            }
+            else
+                $this->db->updateRow($this->cart_model->table('_shipping'), $shipping, $_POST['id']);
+        }
+        $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
+    }
+
+    public function delete_shipping()
+    {
+        if(is_numeric($_POST['id']))
+        {
+            $this->load->smodel('cart_model');
+
+            if($shipping = $this->db->getAllDataById($this->cart_model->table('_shipping'), $_POST['id']))
+            {
+                $this->db->deleteRow($this->cart_model->table('_shipping'), $shipping->id);
+                $this->db->executeQuery("UPDATE `{$this->cart_model->table('_shipping')}` SET `position` = position - 1 WHERE `position` > '{$shipping->position}'");
+                if($shipping->wl_alias)
+                    $this->db->deleteRow('wl_aliases_cooperation', array('alias1' => $_SESSION['alias']->id, 'alias2' => $shipping->id, 'type' => 'shipping'));
+            }
+        }
+        $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
+    }
+
+    public function save_payment()
+    {
+        if(is_numeric($_POST['id']))
+        {
+            $this->load->smodel('cart_model');
+            $payment = array('wl_alias' => 0, 'active' => 0);
+            $payment['active'] = ($_POST['active'] > 0 || $_POST['id'] == 0) ? 1 : 0;
+            if($_SESSION['language'])
+            {
+                $name = $info = array();
+                foreach ($_SESSION['all_languages'] as $lang) {
+                    $name[$lang] = $this->data->post('name_'.$lang);
+                    $info[$lang] = $this->data->post('info_'.$lang);
+                }
+                $payment['name'] = serialize($name);
+                $payment['info'] = serialize($info);
+            }
+            else
+            {
+                $payment['name'] = $this->data->post('name');
+                $payment['info'] = $this->data->post('info');
+            }
+
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Оплату оновлено';
+
+            if($_POST['id'] == 0)
+            {
+                $_SESSION['notify']->success = 'Оплату додано';
+                $payment['position'] = $this->db->getCount($this->cart_model->table('_payments')) + 1;
+                $this->db->insertRow($this->cart_model->table('_payments'), $payment);
+            }
+            else
+                $this->db->updateRow($this->cart_model->table('_payments'), $payment, $_POST['id']);
+        }
+        $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
+    }
+
+    public function delete_payment()
+    {
+        if(is_numeric($_POST['id']))
+        {
+            $this->load->smodel('cart_model');
+
+            if($payment = $this->db->getAllDataById($this->cart_model->table('_payments'), $_POST['id']))
+            {
+                $this->db->deleteRow($this->cart_model->table('_payments'), $payment->id);
+                $this->db->executeQuery("UPDATE `{$this->cart_model->table('_payments')}` SET `position` = position - 1 WHERE `position` > '{$payment->position}'");
+                if($payment->wl_alias)
+                    $this->db->deleteRow('wl_aliases_cooperation', array('alias1' => $_SESSION['alias']->id, 'alias2' => $payment->id, 'type' => 'payment'));
+            }
+        }
+        $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
     }
 
     public function __tab_profile($user_id)

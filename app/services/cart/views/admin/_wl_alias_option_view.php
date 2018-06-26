@@ -1,5 +1,5 @@
 <div class="col-md-6">
-	<div class="panel panel-inverse panel-info" data-sortable-id="form-stuff-1">
+	<div class="panel panel-inverse panel-info">
 	    <div class="panel-heading">
 	        <h4 class="panel-title">Формат виводу ціни (<strong>Перед ціною</strong> <i>ціна (число)</i> <strong>Після ціни</strong>)</h4>
 	    </div>

@@ -286,6 +286,182 @@ class cart_model
 	    return false;
 	}
 
+	public function getShippings($where = array())
+	{
+		$where_ntkd = array('alias' => '#s.wl_alias', 'content' => 0);
+		if($_SESSION['language'])
+			$where_ntkd['language'] = $_SESSION['language'];
+		$this->db->select($this->table('_shipping').' as s', '*', $where)
+				->join('wl_aliases', 'alias', '#s.wl_alias')
+				->join('wl_ntkd', 'name as shipping_name, list as shipping_info', $where_ntkd)
+				->order('position');
+		if($shippings = $this->db->get('array'))
+		{
+			$shippings_ids = array();
+			foreach ($shippings as $shipping) {
+				if($shipping->wl_alias > 0)
+				{
+					if(!in_array($shipping->wl_alias, $shippings_ids))
+        				$shippings_ids[] = $shipping->wl_alias;
+					$shipping->name = $shipping->shipping_name;
+					$shipping->info = $shipping->shipping_info;
+					unset($shipping->shipping_name, $shipping->shipping_info);
+				}
+				else if($_SESSION['language'] && empty($where['id']))
+				{
+					@$name = unserialize($shipping->name);
+					if(isset($name[$_SESSION['language']]))
+						$shipping->name = $name[$_SESSION['language']];
+					else if(is_array($name))
+						$shipping->name = array_shift($name);
+					@$info = unserialize($shipping->info);
+					if(isset($info[$_SESSION['language']]))
+						$shipping->info = $info[$_SESSION['language']];
+					else if(is_array($info))
+						$shipping->info = array_shift($info);
+				}
+			}
+			if(empty($where))
+			{
+				$cooperation_where = array();
+				$cooperation_where['alias1'] = $_SESSION['alias']->id;
+				$cooperation_where['type'] = 'shipping';
+		        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
+		        	foreach ($cooperation as $shipping) {
+		        		if (!in_array($shipping->alias2, $shippings_ids)) {
+		        			$s = new stdClass();
+		        			$insert = array();
+		        			$insert['wl_alias'] = $s->wl_alias = $where_ntkd['alias'] = $shippings_ids[] = $shipping->alias2;
+		        			$insert['active'] = $s->active = $insert['type'] = $s->type = 0;
+		        			$insert['position'] = $s->position = count($shippings) + 1;
+		        			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
+		        			$s->id = $this->db->insertRow($this->table('_shipping'));
+		        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
+		        			{
+		        				$s->name = $ntkd->name;
+		        				$s->info = $ntkd->list;
+		        			}
+		        			$shippings[] = $s;
+		        		}
+		        	}
+	        }
+	        return $shippings;
+	    }
+        else if(empty($where))
+		{
+			$cooperation_where = $shippings = array();
+			$cooperation_where['alias1'] = $_SESSION['alias']->id;
+			$cooperation_where['type'] = 'shipping';
+	        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
+	        	foreach ($cooperation as $shipping) {
+        			$s = new stdClass();
+        			$insert = array();
+        			$insert['wl_alias'] = $s->wl_alias = $where_ntkd['alias'] = $shipping->alias2;
+        			$insert['active'] = $s->active = $insert['type'] = $s->type = 0;
+        			$insert['position'] = $s->position = count($shippings) + 1;
+        			$insert['name'] = $s->name = $insert['info'] = $s->info = 0;
+        			$s->id = $this->db->insertRow($this->table('_shipping'));
+        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
+        			{
+        				$s->name = $ntkd->name;
+        				$s->info = $ntkd->list;
+        			}
+        			$shippings[] = $s;
+	        	}
+	        if(!empty($shippings))
+	        	return $shippings;
+        }
+		return false;
+	}
+
+	public function getPayments($where=array())
+	{
+		$where_ntkd = array('alias' => '#p.wl_alias', 'content' => 0);
+		if($_SESSION['language'])
+			$where_ntkd['language'] = $_SESSION['language'];
+		$this->db->select($this->table('_payments').' as p', '*', $where)
+				->join('wl_aliases', 'alias', '#p.wl_alias')
+				->join('wl_ntkd', 'name as payment_name, list as payment_info', $where_ntkd)
+				->order('position');
+		if($payments = $this->db->get('array'))
+		{
+			$payments_ids = array();
+			foreach ($payments as $pay) {
+				if($pay->wl_alias > 0)
+				{
+					if(!in_array($pay->wl_alias, $payments_ids))
+        				$payments_ids[] = $pay->wl_alias;
+					$pay->name = $pay->payment_name;
+					$pay->info = $pay->payment_info;
+					unset($pay->payment_name, $pay->payment_info);
+				}
+				else if($_SESSION['language'] && empty($where['id']))
+				{
+					@$name = unserialize($pay->name);
+					if(isset($name[$_SESSION['language']]))
+						$pay->name = $name[$_SESSION['language']];
+					else if(is_array($name))
+						$pay->name = array_shift($name);
+					@$info = unserialize($pay->info);
+					if(isset($info[$_SESSION['language']]))
+						$pay->info = $info[$_SESSION['language']];
+					else if(is_array($info))
+						$pay->info = array_shift($info);
+				}
+			}
+			if(empty($where))
+			{
+				$cooperation_where = array();
+				$cooperation_where['alias1'] = $_SESSION['alias']->id;
+				$cooperation_where['type'] = 'payment';
+		        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
+		        	foreach ($cooperation as $pay) {
+		        		if (!in_array($pay->alias2, $payments_ids)) {
+		        			$s = new stdClass();
+		        			$insert = array();
+		        			$insert['wl_alias'] = $s->wl_alias = $where_ntkd['alias'] = $payments_ids[] = $pay->alias2;
+		        			$insert['active'] = $s->active = 0;
+		        			$insert['position'] = $s->position = count($payments) + 1;
+		        			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
+		        			$s->id = $this->db->insertRow($this->table('_payments'));
+		        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
+		        			{
+		        				$s->name = $ntkd->name;
+		        				$s->info = $ntkd->list;
+		        			}
+		        			$payments[] = $s;
+		        		}
+		        	}
+	        }
+	        return $payments;
+	    }
+        else if(empty($where))
+		{
+			$cooperation_where = $payments = array();
+			$cooperation_where['alias1'] = $_SESSION['alias']->id;
+			$cooperation_where['type'] = 'payment';
+	        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
+	        	foreach ($cooperation as $pay) {
+        			$s = new stdClass();
+        			$insert = array();
+        			$insert['wl_alias'] = $s->wl_alias = $where_ntkd['alias'] = $pay->alias2;
+        			$insert['active'] = $s->active = 0;
+        			$insert['position'] = $s->position = count($payments) + 1;
+        			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
+        			$s->id = $this->db->insertRow($this->table('_payments'));
+        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
+        			{
+        				$s->name = $ntkd->name;
+        				$s->info = $ntkd->list;
+        			}
+        			$payments[] = $s;
+	        	}
+	        if(!empty($payments))
+	        	return $payments;
+        }
+		return false;
+	}
+
 	public function priceFormat($price)
 	{
 		if(!is_array($_SESSION['option']->price_format) && !empty($_SESSION['option']->price_format))

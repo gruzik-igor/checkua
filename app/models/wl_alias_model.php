@@ -34,6 +34,7 @@ class wl_alias_model
 			{
 				$options_where['service'][] = $alias->service;
 				$_SESSION['alias']->service = $alias->service_name;
+				$_SESSION['service']->id = $alias->service;
 				$_SESSION['service']->name = $alias->service_name;
 				$_SESSION['service']->table = $alias->service_table;
 			}

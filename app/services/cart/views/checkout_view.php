@@ -69,10 +69,13 @@ foreach ($jss as $js) {
 							<a href="<?=SITE_URL?>reset" class="effect pull-right"><?=$this->text('Забув пароль?')?></a>
 							<button type="submit" class="btn btn-warning"><?=$this->text('Увійти')?></button>
 						</div>
-						<p><?=$this->text('Швидкий вхід:')?></p>
-						<div class="form-group">
-							<button class="facebookSignUp" onclick="return facebookSignUp()">Facebook <i class="fa fa-facebook-square fa-lg pull-right" aria-hidden="true"></i></button>
-						</div>
+						<?php $this->load->library('facebook'); 
+						if($_SESSION['option']->facebook_initialise){ ?>
+							<p><?=$this->text('Швидкий вхід:')?></p>
+							<div class="form-group">
+								<button class="facebookSignUp" onclick="return facebookSignUp()">Facebook <i class="fa fa-facebook-square fa-lg pull-right" aria-hidden="true"></i></button>
+							</div>
+						<?php } ?>
 					</form>
 				</div>
 			</div>
@@ -112,13 +115,11 @@ foreach ($jss as $js) {
 							<div class="form-group">
 						        <input type="text" name="name" class="form-control" id="loginName" placeholder="<?=$this->text('Ім\'я Прізвище')?>" required>
 						    </div>
-							<div class="row">
-					            <div class="form-group col-sm-6">
-					                <div class="required">
-					                    <input type="email" name="email" class="form-control" placeholder="Email" required>
-					                </div>
-					            </div>
-					        </div>
+				            <div class="form-group">
+				                <div class="required">
+				                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+				                </div>
+				            </div>
 					    <?php }
 					    if($shippings)
 					    	require_once '__shippings_subview.php';
@@ -224,8 +225,7 @@ foreach ($jss as $js) {
 </section>
 <div id="divLoading"></div>
 
-<?php $this->load->library('facebook'); 
-if($_SESSION['option']->facebook_initialise){ ?>
+<?php if($_SESSION['option']->facebook_initialise){ ?>
 	<script>
 		window.fbAsyncInit = function() {
 			

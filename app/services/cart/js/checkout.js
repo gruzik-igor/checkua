@@ -12,7 +12,8 @@ function changeShipping(el) {
     else
         $("#shipping-info").slideUp();
 
-    $("#shipping-cities, #shipping-departments, #shipping-address, #Shipping_to_cart").addClass('hidden');
+    $('#Shipping_to_cart').html('');
+    $("#shipping-cities, #shipping-departments, #shipping-address").addClass('hidden');
     $("#shipping-cities input, #shipping-departments input, #shipping-address textarea, #Shipping_to_cart input, #Shipping_to_cart textarea").attr('required', '');
 
     shippingType = shippingsTypes[active_shipping_method];
@@ -29,15 +30,8 @@ function changeShipping(el) {
             complete: function() {
                 $("div#divLoading").removeClass('show');
             },
-            success: function(res) {
-                if (res.result == true)
-                {
-                    $('#Shipping_to_cart').html(res.html);
-                }
-                else
-                {
-                    $('.checkout-login-form').slideUp();
-                }
+            success: function(html) {
+                $('#Shipping_to_cart').html(html);
             }
         })
     }

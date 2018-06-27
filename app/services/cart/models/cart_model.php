@@ -43,7 +43,7 @@ class cart_model
 	public function getStatuses($active = true)
 	{
 		if($active)
-			return $this->db->getAllDataByFieldInArray($this->table('_status', 1, 'active'));
+			return $this->db->getAllDataByFieldInArray($this->table('_status'), 1, 'active');
 		else
 			return $this->db->getAllData($this->table('_status'));
 	}
@@ -155,7 +155,7 @@ class cart_model
 	{
 		if(!empty($where))
 			return $this->db->select($this->table('_products') .' as p', '*', $where)
-							->join($this->table(), 'status, shipping_alias, shipping_id, payment_alias, payment_id, total, comment, date_add, date_edit', '#p.cart')
+							->join($this->table(), 'status, shipping_id, shipping_info, payment_alias, payment_id, total, comment, date_add, date_edit', '#p.cart')
 							->get();
 		return false;
 	}
@@ -267,6 +267,7 @@ class cart_model
         return true;
 	}
 
+//????????????????????????????????
 	public function getPaymentName($payment_id)
 	{
 		if($payment_id > 0)
@@ -336,7 +337,7 @@ class cart_model
 		        			$insert['active'] = $s->active = $insert['type'] = $s->type = 0;
 		        			$insert['position'] = $s->position = count($shippings) + 1;
 		        			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
-		        			$s->id = $this->db->insertRow($this->table('_shipping'));
+		        			$s->id = $this->db->insertRow($this->table('_shipping'), $insert);
 		        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
 		        			{
 		        				$s->name = $ntkd->name;
@@ -361,7 +362,7 @@ class cart_model
         			$insert['active'] = $s->active = $insert['type'] = $s->type = 0;
         			$insert['position'] = $s->position = count($shippings) + 1;
         			$insert['name'] = $s->name = $insert['info'] = $s->info = 0;
-        			$s->id = $this->db->insertRow($this->table('_shipping'));
+        			$s->id = $this->db->insertRow($this->table('_shipping'), $insert);
         			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
         			{
         				$s->name = $ntkd->name;
@@ -441,7 +442,7 @@ class cart_model
 		        			$insert['active'] = $s->active = 0;
 		        			$insert['position'] = $s->position = count($payments) + 1;
 		        			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
-		        			$s->id = $this->db->insertRow($this->table('_payments'));
+		        			$s->id = $this->db->insertRow($this->table('_payments'), $insert);
 		        			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
 		        			{
 		        				$s->name = $ntkd->name;
@@ -466,7 +467,7 @@ class cart_model
         			$insert['active'] = $s->active = 0;
         			$insert['position'] = $s->position = count($payments) + 1;
         			$insert['name'] = $s->name = $insert['info'] = $s->info = '';
-        			$s->id = $this->db->insertRow($this->table('_payments'));
+        			$s->id = $this->db->insertRow($this->table('_payments'), $insert);
         			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
         			{
         				$s->name = $ntkd->name;

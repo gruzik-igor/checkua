@@ -416,7 +416,7 @@ class cart extends Controller {
         if($email = $this->data->post('email'))
         {
             $this->load->model('wl_user_model');
-            $user;
+            $user = new stdClass();
             if($this->wl_user_model->userExists($email, $user))
             {
                 $res['result'] = true;
@@ -642,15 +642,13 @@ class cart extends Controller {
 
     public function get_Shipping_to_cart()
     {
-        $res = array('result' => false);
         if($id = $this->data->post('shipping'))
         {
             $this->load->smodel('cart_model');
             $userShipping = $this->cart_model->getUserShipping();
             if($shipping = $this->cart_model->getShippings(array('id' => $id, 'active' => 1)))
-                $res['html'] = $this->load->function_in_alias($shipping->wl_alias, '__get_Shipping_to_cart', $userShipping);
+                $this->load->function_in_alias($shipping[0]->wl_alias, '__get_Shipping_to_cart', $userShipping);
         }
-        $this->load->json($res);
     }
 
     public function __show_btn_add_product($product)

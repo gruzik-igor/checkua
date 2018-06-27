@@ -1,0 +1,19 @@
+Service "NovaPoshta.ua 1.0"
+for WhiteLion 1.0
+
+Author: Ostap Matskiv
+Date 1.0   : 27.06.2018
+
+Description: Доставка NovaPoshta.ua для сервісу cart
+Options: NULL
+
+Public links:
+	/index			page 404
+	/__get_Search	повертає об'єкт пошуку - завжди false
+
+Private links (admin access):
+	/index		перелік всіх квитанцій (нові згори)
+	/index/id 	перегляд квитанції детально
+
+Versions:
+	1.0 	Основа сервісу

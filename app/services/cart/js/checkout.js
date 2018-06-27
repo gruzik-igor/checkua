@@ -1,4 +1,73 @@
+$("#shipping-cities input").autocomplete({ source: cities });
+
+function changeShipping(el) {
+
+    active_shipping_method = $(el).val();
+
+    if(shippingsInformation[active_shipping_method] != '')
+    {
+        $("#shipping-info").text(shippingsInformation[active_shipping_method]);
+        $("#shipping-info").slideDown();
+    }
+    else
+        $("#shipping-info").slideUp();
+
+    $("#shipping-cities, #shipping-departments, #shipping-address, #Shipping_to_cart").addClass('hidden');
+    $("#shipping-cities input, #shipping-departments input, #shipping-address textarea, #Shipping_to_cart input, #Shipping_to_cart textarea").attr('required', '');
+
+    shippingType = shippingsTypes[active_shipping_method];
+    if(shippingType == '0')
+    {
+        $("#divLoading").addClass('show');
+        $.ajax({
+            url: SITE_URL + 'cart/get_Shipping_to_cart',
+            type: 'POST',
+            data: {
+                shipping: active_shipping_method,
+                ajax: true
+            },
+            complete: function() {
+                $("div#divLoading").removeClass('show');
+            },
+            success: function(res) {
+                if (res.result == true)
+                {
+                    $('#Shipping_to_cart').html(res.html);
+                }
+                else
+                {
+                    $('.checkout-login-form').slideUp();
+                }
+            }
+        })
+    }
+    else if(shippingType == '1')
+    {
+        $("#shipping-cities, #shipping-address").removeClass('hidden');
+        $("#shipping-cities input, #shipping-address textarea").attr('required', 'required');
+    }
+    else if(shippingType == '2')
+    {
+        $("#shipping-cities, #shipping-departments").removeClass('hidden');
+        $("#shipping-cities input, #shipping-departments input").attr('required', 'required');
+    }
+}
+
+$("form.checkout-form input[name=recipient]").on("change", function() {
+    if($(this).val() == 'other')
+    {
+        $("#recipientOtherName, #recipientOtherPhone").attr('required', 'required');
+        $("#recipientOtherName, #recipientOtherPhone").attr('disabled', false);
+    }
+    else
+    {
+        $("#recipientOtherName, #recipientOtherPhone").attr('required', false);
+        $("#recipientOtherName, #recipientOtherPhone").attr('disabled', 'disabled');
+    }
+});
+
 $("form.checkout-form input[type=email]").on("change", function() {
+    $("#divLoading").addClass('show');
     $.ajax({
         url: SITE_URL + 'cart/checkEmail',
         type: 'POST',

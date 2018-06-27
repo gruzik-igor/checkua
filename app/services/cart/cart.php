@@ -562,8 +562,6 @@ class cart extends Controller {
                 $_SESSION['notify']->success = $this->text('Доброго дня').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
         }
 
-        
-
         if($products = $this->cart_model->getProductsInCart())
         {
             $user_type = $subTotal = 0;
@@ -586,10 +584,13 @@ class cart extends Controller {
                 if($status->active)
                     $showPayment = false;
             if($showPayment)
-                $payments = $this->db->getAllDataByFieldInArray($this->cart_model->table('_payment_simple'), 1, 'active');
+                $payments = $this->cart_model->getPayments(array('active' => 1));
+
+            $shippings = $this->cart_model->getShippings(array('active' => 1));
+            $userShipping = $this->cart_model->getUserShipping();
 
             $this->wl_alias_model->setContent(1);
-            $this->load->page_view('checkout_view', array('products' => $products, 'showPayment' => $showPayment, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+            $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
         }
         else
             $this->redirect($_SESSION['alias']->alias);
@@ -610,6 +611,19 @@ class cart extends Controller {
         }
         else
             $this->redirect();
+    }
+
+    public function get_Shipping_to_cart()
+    {
+        $res = array('result' => false);
+        if($id = $this->data->post('shipping'))
+        {
+            $this->load->smodel('cart_model');
+            $userShipping = $this->cart_model->getUserShipping();
+            if($shipping = $this->cart_model->getShippings(array('id' => $id, 'active' => 1)))
+                $res['html'] = $this->load->function_in_alias($shipping->wl_alias, '__get_Shipping_to_cart', $userShipping);
+        }
+        $this->load->json($res);
     }
 
     public function __show_btn_add_product($product)

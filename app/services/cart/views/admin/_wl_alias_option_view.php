@@ -1,6 +1,9 @@
 <div class="col-md-6">
 	<div class="panel panel-inverse panel-info">
 	    <div class="panel-heading">
+	    	<div class="panel-heading-btn">
+            	<a href="<?= SITE_URL.'admin/'.$alias->alias?>/settings" class="btn btn-warning btn-xs"><i class="fa fa-cogs"></i> До налаштування доставки та оплати</a>
+            </div>
 	        <h4 class="panel-title">Формат виводу ціни (<strong>Перед ціною</strong> <i>ціна (число)</i> <strong>Після ціни</strong>)</h4>
 	    </div>
 	    <div class="panel-body">

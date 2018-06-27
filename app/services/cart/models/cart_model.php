@@ -301,6 +301,7 @@ class cart_model
 			foreach ($shippings as $shipping) {
 				if($shipping->wl_alias > 0)
 				{
+					$shipping->type = 0;
 					if(!in_array($shipping->wl_alias, $shippings_ids))
         				$shippings_ids[] = $shipping->wl_alias;
 					$shipping->name = $shipping->shipping_name;
@@ -371,6 +372,23 @@ class cart_model
 	        if(!empty($shippings))
 	        	return $shippings;
         }
+		return false;
+	}
+
+	public function getUserShipping($user = 0)
+	{
+		if(isset($_SESSION['user']->id))
+		{
+			if($user == 0)
+			{
+				$userShipping = new stdClass();
+				$userShipping->userName = $_SESSION['user']->name;
+				$userShipping->method = 0;
+				$userShipping->userPhone = 123;
+				$userShipping->city = $userShipping->department = $userShipping->address = '';
+				return $userShipping;
+			}
+		}
 		return false;
 	}
 

@@ -94,6 +94,9 @@
     <div class="col-md-12">
         <div class="panel panel-inverse panel-info">
             <div class="panel-heading">
+                <div class="panel-heading-btn">
+                    <a href="<?= SITE_URL.'admin/wl_aliases/'.$_SESSION['alias']->alias?>" class="btn btn-warning btn-xs"><i class="fa fa-cogs"></i> Додаткові налаштування</a>
+                </div>
                 <h4 class="panel-title">Формат виводу ціни (<strong>Перед ціною</strong> <i>ціна (число)</i> <strong>Після ціни</strong>)</h4>
             </div>
             <div class="panel-body">

@@ -1,6 +1,6 @@
 <link rel="stylesheet" type="text/css" href="<?=SERVER_URL.'style/'.$_SESSION['alias']->alias.'/checkout.css'?>">
 <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
-<?php $jss = array('assets/jquery-ui/ui/minified/jquery-ui.min.js', 'js/'.$_SESSION['alias']->alias.'/checkout.js');
+<?php $jss = array('assets/jquery-ui/ui/minified/jquery-ui.min.js', 'js/'.$_SESSION['alias']->alias.'/cities.js', 'js/'.$_SESSION['alias']->alias.'/checkout.js');
 foreach ($jss as $js) {
 	if(!in_array($js, $_SESSION['alias']->js_load))
 		$_SESSION['alias']->js_load[] = $js;
@@ -17,7 +17,7 @@ foreach ($jss as $js) {
 	<div class="container">
 		<?php if(!empty($_SESSION['notify-Cart'])) { ?>
 			<div class="col-md-12">
-			   <div class="alert alert-danger alert-dismissible  fade in">
+			   <div class="alert alert-danger alert-dismissible fade in">
 			        <span class="close" data-dismiss="alert">×</span>
 			        <h4><?=(isset($_SESSION['notify-Cart']->title)) ? $_SESSION['notify-Cart']->title : $this->text('Помилка!')?></h4>
 			        <?=$_SESSION['notify-Cart']->error?>
@@ -105,38 +105,29 @@ foreach ($jss as $js) {
 			<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/confirm" method="POST" class="checkout-form inputs-border inputs-bg">
 				<div class="col-md-6">
 					<div class="billing-field">
-						<div class="row">
-							<h3 class="title mt0"><?=$this->text('Доставка')?></h3>
-						</div>
-
-						<?php $cooperation_where = array();
-						$cooperation_where['alias1'] = $_SESSION['alias']->id;
-						$cooperation_where['type'] = 'delivery';
-				        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $cooperation_where))
-				            $this->load->function_in_alias($cooperation[0]->alias2, '__get_Shipping_to_cart');
-				        else { ?>
-					        <div class="form-group">
-								<input type="text" name="name" class="form-control" placeholder="<?=$this->text('Ім\'я Прізвище отримувача')?>" required>
-							</div>
-
+						<?php if(!$this->userIs()) { ?>
 							<div class="row">
-								<div class="form-group col-sm-6">
-									<div class="required">
-										<input type="email" name="email" class="form-control" placeholder="Email" required>
-									</div>
-								</div>
-								<div class="form-group col-sm-6">
-									<div class="required">
-										<input type="phone" name="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
-									</div>
-								</div>
+								<h3 class="title mt0"><?=$this->text('Покупець')?></h3>
 							</div>
-
 							<div class="form-group">
-					            <label><?=$this->text('Адреса доставки')?></label>
-					            <textarea class="form-control" name="shipping-address" placeholder="<?=$this->text('Поштовий індекс, м. Київ, вул. Київська 12, кв. 3')?>" rows="3"></textarea>
+						        <input type="text" name="name" class="form-control" id="shipping-receiver" placeholder="<?=$this->text('Ім\'я Прізвище')?>" value="<?= isset($delivery->receiver) ? $delivery->receiver : '' ?>" required>
+						    </div>
+							<div class="row">
+					            <div class="form-group col-sm-6">
+					                <div class="required">
+					                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+					                </div>
+					            </div>
+					            <div class="form-group col-sm-6">
+					                <div class="required">
+					                    <input type="text" name="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
+					                </div>
+					            </div>
 					        </div>
-						<?php } ?>
+					    <?php }
+					    if($shippings)
+					    	require_once '__shippings_subview.php';
+					    ?>
 						
 						<div class="row">
 							<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
@@ -205,37 +196,14 @@ foreach ($jss as $js) {
 								</table><!-- /.review-order-table -->
 							</div>
 
-							<?php if($showPayment) { ?>
+							<?php if($payments) { ?>
 								<h2><?=$this->text('Оплата')?></h2>
 								<div id="payment" class="checkout-payment">
 								    <ul class="payment-methods">
-								    	<?php if($payments) foreach ($payments as $payment) { ?>
+								    	<?php if($payments) foreach ($payments as $payment) {
+											$checked = (count($payments) == 1) ? 'checked' : '';
+								    		?>
 								    		<li class="payment-method">
-									            <input id="payment_method_cod" type="radio" name="payment_method" value="-<?=$payment->id?>">
-									            <label for="payment_method_cod" class="radio" data-slide-toggle="#payment--<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
-
-									            <div class="payment-box" id="payment--<?=$payment->id?>" style="display:none;">
-									                <p><?=htmlspecialchars_decode($payment->info)?></p>
-									            </div>
-									        </li>
-								    	<?php }
-								    	
-										$cooperation_where['alias1'] = $_SESSION['alias']->id;
-										$cooperation_where['type'] = 'payment';
-										$ntkd = array('alias' => '#c.alias2', 'content' => 0);
-										if($_SESSION['language'])
-											$ntkd['language'] = $_SESSION['language'];
-										$cooperation = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
-																->join('wl_ntkd', 'name, list as info', $ntkd)
-																->get('array');
-								        if($cooperation)
-								        {
-								            foreach ($cooperation as $payment) {
-								            	$checked = '';
-								            	if(count($cooperation) == 1 && empty($payments))
-								            		$checked = 'checked';
-								            	?>
-								            <li class="payment-method">
 									            <input id="payment_method_cod-<?=$payment->id?>" type="radio" name="payment_method" value="<?=$payment->id?>" <?=$checked?>>
 									            <label for="payment_method_cod-<?=$payment->id?>" class="radio" data-slide-toggle="#payment-<?=$payment->id?>" data-parent=".payment-methods"><?=$payment->name?></label>
 
@@ -243,14 +211,12 @@ foreach ($jss as $js) {
 									                <p><?=htmlspecialchars_decode($payment->info)?></p>
 									            </div>
 									        </li>
-								            <?php }
-								        }
-										?>
+								    	<?php } ?>
 								    </ul>
 								</div>
 							<?php } ?>
 
-							<a href="<?=SITE_URL.$_SESSION['alias']->alias?>" class="btn btn-buy btn-warning pull-left">Back</a>
+							<a href="<?=SITE_URL.$_SESSION['alias']->alias?>" class="btn btn-buy btn-warning pull-left"><?=$this->text('До корзини')?></a>
 							<div class="text-right">
 					    		<button type="submit" class="btn btn-buy" onclick="divLoading.style.display='block'"><?=$this->text('Оформити замовлення')?></button>
 					    	</div>

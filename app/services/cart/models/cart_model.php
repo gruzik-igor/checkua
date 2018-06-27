@@ -208,8 +208,8 @@ class cart_model
 		$cart = array();
 		$cart['user'] = $user;
 		$cart['status'] = 1;
-		$cart['shipping_alias'] = (isset($delivery['shipping_alias'])) ? $delivery['shipping_alias'] : 0;
-		$cart['shipping_id'] = (isset($delivery['shipping_id'])) ? $delivery['shipping_id'] : 0;
+		$cart['shipping_id'] = (isset($delivery['id'])) ? $delivery['id'] : 0;
+		$cart['shipping_info'] = (!empty($delivery['info'])) ? serialize($delivery['info']) : '';
 		$cart['payment_alias'] = $this->data->post('payment_method');
 		$cart['payment_id'] = 0;
 		$cart['total'] = $this->getSubTotalInCart($user, false);

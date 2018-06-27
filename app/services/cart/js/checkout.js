@@ -56,13 +56,13 @@ function changeShipping(el) {
 $("form.checkout-form input[name=recipient]").on("change", function() {
     if($(this).val() == 'other')
     {
-        $("#recipientOtherName, #recipientOtherPhone").attr('required', 'required');
-        $("#recipientOtherName, #recipientOtherPhone").attr('disabled', false);
+        $("#recipientOtherName").attr('required', 'required');
+        $("#recipientOtherName").attr('disabled', false);
     }
     else
     {
-        $("#recipientOtherName, #recipientOtherPhone").attr('required', false);
-        $("#recipientOtherName, #recipientOtherPhone").attr('disabled', 'disabled');
+        $("#recipientOtherName").attr('required', false);
+        $("#recipientOtherName").attr('disabled', 'disabled');
     }
 });
 
@@ -89,6 +89,7 @@ $("form.checkout-form input[type=email]").on("change", function() {
             else
             {
                 $('.checkout-login-form').slideUp();
+                $('#recipientOtherName').val($('#loginName').val());
             }
         }
     })

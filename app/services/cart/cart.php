@@ -483,10 +483,37 @@ class cart extends Controller {
                         $this->cart_model->addProduct($product, $_SESSION['user']->id);
                     }
 
-                $delivery = array();
-                if($delivery_alias = $this->data->post('delivery_alias'))
-                    if(is_numeric($delivery_alias))
-                        $delivery = $this->load->function_in_alias($delivery_alias, '__set_Shipping_from_cart');
+                $delivery = array('id' => 0, 'recipient' => 'buyer', 'info' => '');
+                if($shippingId = $this->data->post('shipping-method'))
+                    if(is_numeric($shippingId))
+                        if($shipping = $this->db->getAllDataById($this->cart_model->table('_shipping'), array('id' => $shippingId, 'active' => 1)))
+                        {
+                            if($shipping->wl_alias)
+                                $delivery['info'] = $this->load->function_in_alias($shipping->wl_alias, '__set_Shipping_from_cart');
+                            else
+                            {
+                                $delivery['id'] = $shipping->id;
+                                $info = array();
+                                if($city = $this->data->post('shipping-city'))
+                                    $info['city'] = $city;
+                                if($department = $this->data->post('shipping-department'))
+                                    $info['department'] = $department;
+                                if($address = $this->data->post('shipping-address'))
+                                    $info['address'] = $address;
+                                $delivery['info'] = $info;
+                            }
+
+                            $delivery['info']['phone'] = $_POST['phone'];
+                            if($recipient = $this->data->post('recipient'))
+                                if($recipient == 'other')
+                                {
+                                    $delivery['info']['recipient'] = 'other';
+                                    if($name = $this->data->post('recipient-other-name'))
+                                        $delivery['info']['recipient-other-name'] = $name;
+                                }
+                            if($delivery['info']['recipient'] = 'buyer')
+                                $delivery['info']['recipient-other-name'] = $_SESSION['user']->name;
+                        }
 
                 if($cart = $this->cart_model->checkout($_SESSION['user']->id, $delivery))
                 {

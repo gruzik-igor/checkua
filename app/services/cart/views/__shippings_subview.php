@@ -62,7 +62,7 @@ if(count($shippings) > 1) { ?>
 	</div>
 	<div class="form-group col-sm-6">
 		<div class="required">
-			<input type="phone" name="recipient-other-phone" id="recipientOtherPhone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" value="<?= $userShipping && $userShipping->userPhone ? $userShipping->userPhone : '' ?>" disabled>
+			<input type="phone" name="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" value="<?= $userShipping && $userShipping->userPhone ? $userShipping->userPhone : '' ?>" required>
 		</div>
 	</div>
 </div>

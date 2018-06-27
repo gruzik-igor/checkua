@@ -110,17 +110,12 @@ foreach ($jss as $js) {
 								<h3 class="title mt0"><?=$this->text('Покупець')?></h3>
 							</div>
 							<div class="form-group">
-						        <input type="text" name="name" class="form-control" id="shipping-receiver" placeholder="<?=$this->text('Ім\'я Прізвище')?>" value="<?= isset($delivery->receiver) ? $delivery->receiver : '' ?>" required>
+						        <input type="text" name="name" class="form-control" id="loginName" placeholder="<?=$this->text('Ім\'я Прізвище')?>" required>
 						    </div>
 							<div class="row">
 					            <div class="form-group col-sm-6">
 					                <div class="required">
 					                    <input type="email" name="email" class="form-control" placeholder="Email" required>
-					                </div>
-					            </div>
-					            <div class="form-group col-sm-6">
-					                <div class="required">
-					                    <input type="text" name="phone" class="form-control" placeholder="<?=$this->text('+380********* (Контактний номер)')?>" required>
 					                </div>
 					            </div>
 					        </div>

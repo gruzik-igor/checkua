@@ -67,10 +67,10 @@ class install
 			$alias1 = $actions[0]->alias1 - 1;
 		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__tab_profile'));
 
-		$alias1 = -1;
-		if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__link_profile'), 'alias1'))
-			$alias1 = $actions[0]->alias1 - 1;
-		$this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__link_profile'));
+		// $alias1 = -1;
+		// if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__link_profile'), 'alias1'))
+		// 	$alias1 = $actions[0]->alias1 - 1;
+		// $this->db->insertRow('wl_aliases_cooperation', array('alias1' => $alias1, 'alias2' => $alias, 'type' => '__link_profile'));
 
 		return true;
 	}
@@ -91,8 +91,8 @@ class install
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
 					  `user` int(11) NOT NULL,
 					  `status` int(2) NOT NULL,
-					  `shipping_alias` int(11) NULL,
 					  `shipping_id` int(11) NULL,
+					  `shipping_info` text NULL,
 					  `payment_alias` int(11) NULL,
 					  `payment_id` int(11) NULL,
 					  `total` float UNSIGNED NOT NULL,

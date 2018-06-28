@@ -22,10 +22,7 @@ if($data['new_user'] && !empty($data['password']))
 if(!empty($data['delivery']))
 {
 	$message .= '<h3><b>Доставка</b></h3>';
-	$message .= '<p><b>'.$data['delivery']->method_name.'</b> '.$data['delivery']->method_site;
-	if(!empty($data['delivery']->address) && $data['delivery']->department < 2)
-		$message .= '<br><b>'.$data['delivery']->address.'</b>';
-	$message .= '</p>';
+	$message .= '<p>'.$data['delivery'].'</p>';
 }
 
 if(!empty($data['payment']))

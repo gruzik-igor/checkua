@@ -29,11 +29,14 @@ class novaposhta extends Controller {
     	return false;
     }
 
-    public function __get_delivery_info($id)
+    public function __get_info($info)
     {
-        return  $this->db->select($_SESSION['service']->table.'_carts as d', '*', $id)
-                            ->join($_SESSION['service']->table.'_methods', 'name as method_name, site as method_site, department', '#d.method')
-                            ->get('single');
+        $text = '';
+        if(!empty($info['city']))
+            $text .= $this->text('Місто').': '.$info['city'];
+        if(!empty($info['department']))
+            $text .= ' '.$this->text('Відділення').': '.$info['department'];
+        return $text;
     }
 
     public function __get_Shipping_to_cart($userShipping)
@@ -56,33 +59,19 @@ class novaposhta extends Controller {
 
     public function __set_Shipping_from_cart()
     {
-        $data = array();
-        $data['user'] = $_SESSION['user']->id;
-        $data['method'] = $this->data->post('shipping-method');
-        $data['address'] = $this->data->post('shipping-city');
-        if($department = $this->data->post('shipping-department'))
-            $data['address'] .= ': '.$department;
-        if($department = $this->data->post('shipping-department-other'))
-            $data['address'] .= ': '.$department;
-        if($address = $this->data->post('shipping-address'))
-            $data['address'] .= '. '.$address;
-        $data['receiver'] = $this->data->post('name');
-        $data['phone'] = $this->data->post('phone');
-
-        if($this->data->post('shipping-default') == 1)
+        $info = array('text' => '');
+        $info['info'] = array('city' => '', 'department' => '');
+        if($city = $this->data->post('shipping-city'))
         {
-            if($default = $this->db->getAllDataById($_SESSION['service']->table.'_users', $_SESSION['user']->id, 'user'))
-                $this->db->updateRow($_SESSION['service']->table.'_users', $data, $default->id);
-            else
-                $this->db->insertRow($_SESSION['service']->table.'_users', $data);
+            $info['info']['city'] = $city;
+            $info['text'] .= $this->text('Місто').': '.$city;
         }
-
-        $data['comment'] = NULL;
-
-        $delivery = array('shipping_alias' => $_SESSION['alias']->id);
-        $delivery['shipping_id'] = $this->db->insertRow($_SESSION['service']->table.'_carts', $data);
-        $delivery['info'] = $this->__get_delivery_info($delivery['shipping_id']);
-        return $delivery;
+        if($department = $this->data->post('shipping-novaposhta'))
+        {
+            $info['info']['department'] = $department;
+            $info['text'] .= ' '.$this->text('Відділення').': '.$department;
+        }
+        return $info;
     }
 
 }

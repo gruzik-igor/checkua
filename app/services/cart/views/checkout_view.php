@@ -113,13 +113,13 @@ foreach ($jss as $js) {
 								<h3 class="title mt0"><?=$this->text('Покупець')?></h3>
 							</div>
 							<div class="form-group">
-						        <input type="text" name="name" class="form-control" id="loginName" placeholder="<?=$this->text('Ім\'я Прізвище')?>" required>
-						    </div>
-				            <div class="form-group">
 				                <div class="required">
-				                    <input type="email" name="email" class="form-control" placeholder="Email" required>
+				                    <input type="email" name="email" value="<?=$this->data->re_post('email')?>" class="form-control" placeholder="Email" required>
 				                </div>
 				            </div>
+							<div class="form-group">
+						        <input type="text" name="name" value="<?=$this->data->re_post('name')?>" class="form-control" id="loginName" placeholder="<?=$this->text('Ім\'я Прізвище')?>" required>
+						    </div>
 					    <?php }
 					    if($shippings)
 					    	require_once '__shippings_subview.php';
@@ -128,7 +128,7 @@ foreach ($jss as $js) {
 						<div class="row">
 							<h3 class="title"><?=$this->text('Побажання до замовлення')?></h3>
 							<div class="form-group">
-								<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"></textarea>
+								<textarea name="comment" class="form-control" placeholder="<?=$this->text('Побажання до замовлення, наприклад щодо доставки')?>" rows="5"><?=$this->data->re_post('comment')?></textarea>
 							</div>
 						</div>
 					</div>
@@ -225,7 +225,7 @@ foreach ($jss as $js) {
 </section>
 <div id="divLoading"></div>
 
-<?php if($_SESSION['option']->facebook_initialise){ ?>
+<?php if(!$this->userIs() && $_SESSION['option']->facebook_initialise){ ?>
 	<script>
 		window.fbAsyncInit = function() {
 			

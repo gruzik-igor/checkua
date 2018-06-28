@@ -46,9 +46,13 @@ class cart_admin extends Controller {
                     }
 
                 if($cart->shipping_id)
-                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_info', $cart->shipping_id);
 
-                $cart->payment_name = $this->cart_model->getPaymentName($cart->payment_alias);
+                $cart->payment = false;
+                if($cart->payment_alias)
+                    $cart->payment = $this->load->function_in_alias($cart->payment_alias, '__get_info', $cart->payment_id);
+                else if($cart->payment_id)
+                    $cart->payment = $this->cart_model->getPayments(array('id' => $cart->payment_id));
 
                 $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight");
 
@@ -266,8 +270,6 @@ class cart_admin extends Controller {
 
                 if($cart->shipping_id)
                     $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
-
-                $cart->payment_name = $this->cart_model->getPaymentName($cart->payment_alias);
 
                 $this->load->library('mail');
 

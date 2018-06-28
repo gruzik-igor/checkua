@@ -27,8 +27,7 @@ $message .= '<p><b>'.$data['user_name'].'</b><br> '.$data['user_email'].', '.$da
 if(!empty($data['delivery']))
 {
 	$message .= '<h3><b>Доставка</b></h3>';
-	$message .= '<p><b>'.$data['delivery']->method_name.'</b> '.$data['delivery']->method_site.'<br>';
-	$message .= '<b>'.$data['delivery']->address.'</b></p>';
+	$message .= '<p>'.$data['delivery'].'</p>';
 }
 
 if(!empty($data['info']))

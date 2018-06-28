@@ -1,27 +1,44 @@
 <div class="form-group" id="shipping-novaposhta" >
     <label><?=$this->text('Відділення')?></label>
-    <select name="shipping-novaposhta" class="form-control" required></select>
+    <select name="shipping-novaposhta" class="form-control" required>
+        <option selected disabled value="">Введіть місто</option>
+    </select>
 </div>
 
+<?php $novaposhta_selected = $this->data->re_post('shipping-novaposhta');
+if(empty($novaposhta_selected) && $userShipping && $userShipping->department)
+    $novaposhta_selected = $userShipping->department; ?>
 <script>
     var warehouse_by_city = <?= $warehouse_by_city ?>;
+    var novaposhta_selected = '<?=$novaposhta_selected?>';
 
-<?php if(isset($_POST['ajax'])) { ?>
-    $("#shipping-cities").removeClass('hidden');
-    $("#shipping-cities input").attr('required', 'required');
+    function initShipping() {
+        $("#shipping-cities").removeClass('hidden');
+        $("#shipping-cities input").attr('required', 'required');
 
-    $("#shipping-cities").autocomplete({
-        source: cities,
-        select: function (event, ui) {
-            var address = ui.item.value;
+        $("#shipping-cities input").autocomplete({
+            source: cities,
+            select: function (event, ui) {
+                var address = ui.item.value;
 
-            $("#shipping-novaposhta").empty().append('<option selected disabled="" value="">Виберіть відділення</option>');
+                $("#shipping-novaposhta select").empty().append('<option selected disabled="" value="">Виберіть відділення</option>');
+                $.each(warehouse_by_city[address], function(i, p) {
+                     $("#shipping-novaposhta select").append($('<option></option>').val('№'+p.number+' : '+p.address).html('№'+p.number+' : '+p.address));
+                });
+            }
+        });
+
+        var address = $("#shipping-cities input").val();
+        if(address != '')
+        {
+            $("#shipping-novaposhta select").empty().append('<option selected disabled="" value="">Виберіть відділення</option>');
             $.each(warehouse_by_city[address], function(i, p) {
-                 $("#shipping-novaposhta").append($('<option></option>').val('№'+p.number+' : '+p.address).html('№'+p.number+' : '+p.address));
+                var value = '№'+p.number+' : '+p.address;
+                if(value == novaposhta_selected)
+                    $("#shipping-novaposhta select").append($('<option></option>').val(value).html(value).attr('selected', 'selected'));
+                else
+                    $("#shipping-novaposhta select").append($('<option></option>').val(value).html(value));
             });
         }
-    });
-<?php }
-else
-    $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = 'js/'.$_SESSION['alias']->alias.'/shipping.js'; ?>
+    }
 </script>

@@ -203,15 +203,20 @@ class cart_model
 		}
 	}
 
-	public function checkout($user, $delivery = array())
+	public function checkout($user, $delivery = array(), $payment = false)
 	{
 		$cart = array();
 		$cart['user'] = $user;
 		$cart['status'] = 1;
 		$cart['shipping_id'] = (isset($delivery['id'])) ? $delivery['id'] : 0;
 		$cart['shipping_info'] = (!empty($delivery['info'])) ? serialize($delivery['info']) : '';
-		$cart['payment_alias'] = $this->data->post('payment_method');
-		$cart['payment_id'] = 0;
+		$cart['payment_alias'] = $cart['payment_id'] = 0;
+		if($payment)
+		{
+			$cart['payment_alias'] = $payment->wl_alias;
+			if($payment->wl_alias == 0)
+				$cart['payment_id'] = $payment->id;
+		}
 		$cart['total'] = $this->getSubTotalInCart($user, false);
 		$cart['comment'] = $this->data->post('comment');
 		$cart['date_add'] = $cart['date_edit'] = time();
@@ -265,26 +270,6 @@ class cart_model
             $this->db->updateRow('wl_users', array('name' => $this->data->post('receiver')), $_SESSION['user']->id);
         
         return true;
-	}
-
-//????????????????????????????????
-	public function getPaymentName($payment_id)
-	{
-		if($payment_id > 0)
-		{
-			$where = array('content' => 0);
-	        $where['alias'] = $payment_id;
-	        if($_SESSION['language'])
-	            $where['language'] = $_SESSION['language'];
-	        if($payment = $this->db->getAllDataById('wl_ntkd', $where))
-	            return $payment->name;
-	    }
-	    else
-	    {
-	    	if($payment = $this->db->getAllDataById($this->table('_payment_simple'), -$payment_id))
-	            return $payment->name;
-	    }
-	    return false;
 	}
 
 	public function getShippings($where = array())
@@ -381,12 +366,25 @@ class cart_model
 		if(isset($_SESSION['user']->id))
 		{
 			if($user == 0)
+				$user = $_SESSION['user']->id;
+			$this->db->select($this->table(), 'shipping_id as method, shipping_info as info', $user, 'user')
+					->join('wl_users', 'name as userName', $user)
+					->join('wl_user_info', 'value as userPhone', array('user' => $user, 'field' => 'phone'))
+					->order('id DESC')
+					->limit(1);
+			if($userShipping = $this->db->get())
 			{
-				$userShipping = new stdClass();
-				$userShipping->userName = $_SESSION['user']->name;
-				$userShipping->method = 0;
-				$userShipping->userPhone = 123;
 				$userShipping->city = $userShipping->department = $userShipping->address = '';
+				if(!empty($userShipping->info))
+				{
+					$info = unserialize($userShipping->info);
+					if(!empty($info['city']))
+						$userShipping->city = $info['city'];
+					if(!empty($info['department']))
+						$userShipping->department = $info['department'];
+					if(!empty($info['address']))
+						$userShipping->address = $info['address'];
+				}
 				return $userShipping;
 			}
 		}

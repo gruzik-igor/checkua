@@ -440,10 +440,12 @@ class cart extends Controller {
         if($products = $this->cart_model->getProductsInCart())
         {
             $this->load->library('validator');
-            $this->validator->setRules($this->text('Ім\'я Прізвище'), $this->data->post('name'), 'required|5..50');
             $this->validator->setRules($this->text('Контактний номер'), $this->data->post('phone'), 'required|phone');
             if(!$this->userIs())
+            {
                 $this->validator->setRules($this->text('email'), $this->data->post('email'), 'required|email');
+                $this->validator->setRules($this->text('Ім\'я Прізвище'), $this->data->post('name'), 'required|5..50');
+            }
 
             if($this->validator->run())
             {
@@ -483,39 +485,55 @@ class cart extends Controller {
                         $this->cart_model->addProduct($product, $_SESSION['user']->id);
                     }
 
-                $delivery = array('id' => 0, 'recipient' => 'buyer', 'info' => '');
+                $delivery = array('id' => 0, 'recipient' => '', 'info' => '', 'text');
                 if($shippingId = $this->data->post('shipping-method'))
                     if(is_numeric($shippingId))
                         if($shipping = $this->db->getAllDataById($this->cart_model->table('_shipping'), array('id' => $shippingId, 'active' => 1)))
                         {
+                            $delivery['id'] = $shipping->id;
                             if($shipping->wl_alias)
-                                $delivery['info'] = $this->load->function_in_alias($shipping->wl_alias, '__set_Shipping_from_cart');
+                            {
+                                $info = $this->load->function_in_alias($shipping->wl_alias, '__set_Shipping_from_cart');
+                                if(!empty($info['info']))
+                                    $delivery['info'] = $info['info'];
+                                if(!empty($info['text']))
+                                    $delivery['text'] = $info['text'];
+                            }
                             else
                             {
-                                $delivery['id'] = $shipping->id;
                                 $info = array();
                                 if($city = $this->data->post('shipping-city'))
+                                {
                                     $info['city'] = $city;
+                                    $delivery['text'] .= $this->text('Місто').': '.$city;
+                                }
                                 if($department = $this->data->post('shipping-department'))
+                                {
                                     $info['department'] = $department;
+                                    $delivery['text'] .= ' '.$this->text('Відділення').': '.$department;
+                                }
                                 if($address = $this->data->post('shipping-address'))
+                                {
                                     $info['address'] = $address;
+                                    $delivery['text'] .= '<br>'.$this->text('Адреса').': '.$address;
+                                }
                                 $delivery['info'] = $info;
                             }
 
+                            $recipient = $this->data->post('recipient');
                             $delivery['info']['phone'] = $_POST['phone'];
-                            if($recipient = $this->data->post('recipient'))
-                                if($recipient == 'other')
-                                {
-                                    $delivery['info']['recipient'] = 'other';
-                                    if($name = $this->data->post('recipient-other-name'))
-                                        $delivery['info']['recipient-other-name'] = $name;
-                                }
-                            if($delivery['info']['recipient'] = 'buyer')
-                                $delivery['info']['recipient-other-name'] = $_SESSION['user']->name;
+                            if(empty($recipient))
+                                $recipient = $_SESSION['user']->name;
+                            $delivery['info']['recipient'] = $recipient;
+                            $delivery['text'] .= '<br><br>'.$this->text('Отримувач').': '.$recipient.', '.$delivery['info']['phone'];
                         }
 
-                if($cart = $this->cart_model->checkout($_SESSION['user']->id, $delivery))
+                $payment = false;
+                if($payment_method = $this->data->post('payment_method'))
+                    if($payment = $this->cart_model->getPayments(array('id' => $payment_method, 'active' => 1)))
+                        $payment = $payment[0];
+
+                if($cart = $this->cart_model->checkout($_SESSION['user']->id, $delivery, $payment))
                 {
                     unset($_SESSION['cart']);
 
@@ -537,22 +555,21 @@ class cart extends Controller {
                     }
                     $cart['total_formatted'] = $this->cart_model->priceFormat($cart['total']);
                     $cart['products'] = $products;
-                    $cart['delivery'] = $delivery['info'];
-                    $payment_method = $this->data->post('payment_method');
-                    $cart['payment'] = $this->cart_model->getPaymentName($payment_method);
+                    $cart['delivery'] = $delivery['text'];
+                    $cart['payment'] = $payment ? $payment->name : '';
                     
                     $this->mail->sendTemplate('checkout', $_SESSION['user']->email, $cart);
                     $this->mail->sendTemplate('checkout_manager', SITE_EMAIL, $cart);
 
-                    if($payment_method > 0)
+                    if($payment && $payment->wl_alias > 0)
                     {
-                        $payment = new stdClass();
-                        $payment->id = $cart['id'];
-                        $payment->total = $cart['total'];
-                        $payment->wl_alias = $_SESSION['alias']->id;
-                        $payment->return_url = $_SESSION['alias']->alias.'/'.$cart['id'];
+                        $pay = new stdClass();
+                        $pay->id = $cart['id'];
+                        $pay->total = $cart['total'];
+                        $pay->wl_alias = $_SESSION['alias']->id;
+                        $pay->return_url = $_SESSION['alias']->alias.'/'.$cart['id'];
                         
-                        $this->load->function_in_alias($this->data->post('payment_method'), '__get_Payment', $payment);
+                        $this->load->function_in_alias($payment->wl_alias, '__get_Payment', $pay);
                     }
                     else 
                     {

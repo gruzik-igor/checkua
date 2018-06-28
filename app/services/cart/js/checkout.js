@@ -1,4 +1,6 @@
 $("#shipping-cities input").autocomplete({ source: cities });
+if (typeof initShipping === "function")
+    initShipping();
 
 function changeShipping(el) {
 
@@ -29,6 +31,8 @@ function changeShipping(el) {
             },
             complete: function() {
                 $("div#divLoading").removeClass('show');
+                if (typeof initShipping === "function")
+                    initShipping();
             },
             success: function(html) {
                 $('#Shipping_to_cart').html(html);
@@ -46,19 +50,6 @@ function changeShipping(el) {
         $("#shipping-cities input, #shipping-departments input").attr('required', 'required');
     }
 }
-
-$("form.checkout-form input[name=recipient]").on("change", function() {
-    if($(this).val() == 'other')
-    {
-        $("#recipientOtherName").attr('required', 'required');
-        $("#recipientOtherName").attr('disabled', false);
-    }
-    else
-    {
-        $("#recipientOtherName").attr('required', false);
-        $("#recipientOtherName").attr('disabled', 'disabled');
-    }
-});
 
 $("form.checkout-form input[type=email]").on("change", function() {
     $("#divLoading").addClass('show');
@@ -83,10 +74,16 @@ $("form.checkout-form input[type=email]").on("change", function() {
             else
             {
                 $('.checkout-login-form').slideUp();
-                $('#recipientOtherName').val($('#loginName').val());
+                if($('#recipientName').val() == '')
+                    $('#recipientName').val($('#loginName').val());
             }
         }
     })
+});
+
+$("#loginName").on("change", function() {
+    if($('#recipientName').val() == '')
+        $('#recipientName').val($('#loginName').val());
 });
 
 $("[data-slide-toggle]").on("click", function(a) {

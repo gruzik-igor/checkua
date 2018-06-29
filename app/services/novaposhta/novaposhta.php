@@ -33,9 +33,9 @@ class novaposhta extends Controller {
     {
         $text = '';
         if(!empty($info['city']))
-            $text .= $this->text('Місто').': '.$info['city'];
+            $text .= $this->text('Місто').': <b>'.$info['city'].'</b>';
         if(!empty($info['department']))
-            $text .= ' '.$this->text('Відділення').': '.$info['department'];
+            $text .= ', '.$this->text('Відділення').': <b>'.$info['department'].'</b>';
         return $text;
     }
 

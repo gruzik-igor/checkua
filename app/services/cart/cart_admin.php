@@ -45,10 +45,19 @@ class cart_admin extends Controller {
                             $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
                     }
 
-                if($cart->shipping_id)
-                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_info', $cart->shipping_id);
-
-                $cart->payment = false;
+                $cart->shipping = $cart->payment = false;
+                if($cart->shipping_id && !empty($cart->shipping_info))
+                {
+                    $cart->shipping_info = unserialize($cart->shipping_info);
+                    if($cart->shipping = $this->cart_model->getShippings(array('id' => $cart->shipping_id)))
+                    {
+                        $cart->shipping = $cart->shipping[0];
+                        $cart->shipping->text = '';
+                        if($cart->shipping->wl_alias)
+                            $cart->shipping->text = $this->load->function_in_alias($cart->shipping->wl_alias, '__get_info', $cart->shipping_info);  
+                    }
+                }
+                
                 if($cart->payment_alias)
                     $cart->payment = $this->load->function_in_alias($cart->payment_alias, '__get_info', $cart->payment_id);
                 else if($cart->payment_id)

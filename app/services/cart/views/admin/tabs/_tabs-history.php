@@ -15,7 +15,7 @@
         <tbody>
             <tr>
                 <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
-                <td>Не опрацьовано, не оплачено</td>
+                <td>Заявка</td>
                 <td></td>
                 <td><?= $cart->user_name?></td>
             </tr>
@@ -37,18 +37,25 @@
         </tbody>
     </table>
     
-    <?php if($cart->shipping_id > 0) {?>
-        <legend>Доставка</legend>
-        <b>Служба доставки:</b> <?= $cart->shipping->method_name ?> <br>
-        <?php if($cart->shipping->method_site != '') { ?>
-            <b>Сайт:</b> <?= $cart->shipping->method_site ?> <br>
-        <?php } if($cart->shipping->address != '') { ?>
-            <b>Адреса:</b> <?= $cart->shipping->address ?><br>
-        <?php } if($cart->shipping->receiver != '') { ?>
-            <b>Отримувач:</b> <?= $cart->shipping->receiver ?><br>
-        <?php } if($cart->shipping->phone != '') { ?>
-            <b>Контактний телефон:</b> <?= $cart->shipping->phone ?><br><br>
-    <?php } }
+    <?php if($cart->shipping_id) {
+        echo "<legend>Доставка</legend>";
+        echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
+        if(!empty($cart->shipping->text))
+            echo "<p>{$cart->shipping->text}</p>";
+        else
+        {
+            if(!empty($cart->shipping_info['city']))
+                echo "<p>Місто: <b>{$cart->shipping_info['city']}</b> </p>";
+            if(!empty($cart->shipping_info['department']))
+                echo "<p>Відділення: <b>{$cart->shipping_info['department']}</b> </p>";
+            if(!empty($cart->shipping_info['address']))
+                echo "<p>Адреса: <b>{$cart->shipping_info['address']}</b> </p>";
+        }
+        if(!empty($cart->shipping_info['recipient']))
+            echo "<p>Отримувач: <b>{$cart->shipping_info['recipient']}</b> </p>";
+        if(!empty($cart->shipping_info['phone']))
+            echo "<p>Контактний телефон: <b>{$cart->shipping_info['phone']}</b> </p>";
+    }
 
     if(!empty($cart->payment_name))
         echo '<p>Платіжний механізм: <b>'.$cart->payment_name.'</b></p>';
@@ -141,7 +148,7 @@
     }
 
     function saveToHistory() {
-        if(confirm('Ви впевнені, що хочете змінити статус?')){
+        if(confirm('Ви впевнені, що хочете оновити статус?')){
             return true;
         }
         return false;

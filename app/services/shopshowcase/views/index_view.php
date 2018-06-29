@@ -5,7 +5,7 @@
 			{
 				$i = 0;
 				echo('<div class="row illustration-v2 margin-bottom-30">');
-				foreach ($groups as $group) {
+				foreach ($groups as $g) {
 					if($i % 4 == 0)
 					{
 						echo('</div>');
@@ -14,12 +14,12 @@
 			?>
 					<div class="col-md-3">
 						<div class="product-img product-img-brd">
-							<a href="<?=SITE_URL.$group->link?>">
-								<?php if($group->photo) {?>
-								<img class="full-width img-responsive" src="<?=IMG_PATH.$group->mmg_photo?>" alt="<?=$group->name .' '. SITE_NAME?>">
+							<a href="<?=SITE_URL.$g->link?>">
+								<?php if($g->photo) {?>
+								<img class="full-width img-responsive" src="<?=IMG_PATH.$g->mmg_photo?>" alt="<?=$g->name .' '. SITE_NAME?>">
 								<?php } ?>
 							</a>
-							<a class="product-review" href="<?=SITE_URL.$group->link?>"><h4 style="padding: 5px 0 40px"><?=$group->name?></h4></a>
+							<a class="product-review" href="<?=SITE_URL.$g->link?>"><h4 style="padding: 5px 0 40px"><?=$g->name?></h4></a>
 						</div>
 					</div>
 			<?php
@@ -55,7 +55,9 @@
 			<input type="hidden" name="show" value="<?=(isset($_GET['show'])) ? $this->data->get('show') : ''?>">
 			<input type="hidden" name="sort" value="<?=(isset($_GET['sort'])) ? $this->data->get('sort') : ''?>">
 			<input type="hidden" name="per_page" value="<?=(isset($_GET['per_page'])) ? $this->data->get('per_page') : ''?>">
-			<?php $filters = $this->shop_model->getOptionsToGroup($group);
+			<?php $filters = false;
+			if(isset($group))
+			 	$filters = $this->shop_model->getOptionsToGroup($group->id);
 
 			if($filters)
 			{

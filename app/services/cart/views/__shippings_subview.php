@@ -91,7 +91,11 @@ var shippingsTypes = {
 };
 var shippingsInformation = {
     <?php if($shippings) foreach ($shippings as $method)
+    {
+        $method->info = nl2br($method->info);
+        $method->info = preg_replace("/[\n\r]/","", $method->info); 
         echo "\"$method->id\"" . ' : ' . ($method->info != '' ? "\"$method->info\"" : '""')  . ', ';
+    }
     ?>
 };
 </script>

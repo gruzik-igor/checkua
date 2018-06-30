@@ -258,6 +258,11 @@ class shop_model {
 			$where['#p.old_price'] = '>0';
 			$where['+#p.old_price'] = '> p.price';
 		}
+		if(isset($_GET['price_min']) && is_numeric($_GET['price_min']) && $_GET['price_min'] > 1)
+			$where['#p.price'] = '>='.$this->data->get('price_min');
+		if(isset($_GET['price_max']) && is_numeric($_GET['price_max']) && $_GET['price_max'] > 1)
+			$where['+#p.price'] = '<='.$this->data->get('price_max');
+
 		if($active && $_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
 			$where['#g.active'] = 1;
 
@@ -433,6 +438,12 @@ class shop_model {
 
 		        	$product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
 		        	$product->price = ceil($product->price);
+
+		        	if($_SESSION['option']->currency)
+		        	{
+			        	$product->price *= $_SESSION['option']->currency;
+			        	$product->old_price *= $_SESSION['option']->currency;
+			        }
 	        	}
 				
 				if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 1)

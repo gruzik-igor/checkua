@@ -14,12 +14,13 @@ class shopshowcase extends Controller {
     function __construct()
     {
         parent::__construct();
-        $_SESSION['option']->useCart = 0;
+        $_SESSION['option']->currency = 1;
         if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
             foreach ($cooperation as $row) {
-                if($row->type == 'cart')
+                if($row->type == 'currency')
                 {
-                    $_SESSION['option']->useCart = 1;
+                	if($currency = $this->load->function_in_alias($row->alias2, '__get_Currency', 'USD'))
+                    	$_SESSION['option']->currency = $currency;
                     break;
                 }
             }

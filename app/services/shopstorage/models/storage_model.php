@@ -50,7 +50,8 @@ class storage_model
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 		$this->db->join('wl_ntkd', 'name as storage_name, list as storage_time', array('alias' => $_SESSION['alias']->id, 'content' => 0));
-		$this->db->join($this->table('_markup'), 'markup', array('storage' => $_SESSION['alias']->id, 'user_type' => $user_type));
+		if($_SESSION['option']->markUpByUserTypes)
+			$this->db->join($this->table('_markup'), 'markup', array('storage' => $_SESSION['alias']->id, 'user_type' => $user_type));
 		$invoises = $this->db->get('array', false);
 		$_SESSION['option']->paginator_total = $this->db->get('count');
 		if($invoises && $user_type >= 0 && $_SESSION['option']->markUpByUserTypes)

@@ -172,40 +172,37 @@ class shopstorage_admin extends Controller {
 		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => 'admin/'.$_SESSION['alias']->alias, 'Налаштування' => '');
 		$_SESSION['alias']->name = 'Керування ' . $storage->name;
 
-		$alias = $this->db->getAllDataById('wl_aliases', $_SESSION['alias']->id);
 		$options = null;
-        if($alias->options > 0)
-        {
-            $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$alias->service}' AND alias = '0'");
-            if($this->db->numRows() > 0){
-                $options_all = $this->db->getRows('array');
-                foreach ($options_all as $option) {
+
+        $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$_SESSION['service']->id}' AND alias = '0'");
+        if($this->db->numRows() > 0){
+            $options_all = $this->db->getRows('array');
+            foreach ($options_all as $option) {
+                $options[$option->name] = new stdClass();
+                $options[$option->name]->name = $option->name;
+                $options[$option->name]->value = $option->value;
+                $options[$option->name]->type = 'text';
+                $options[$option->name]->title = $option->name;
+            }
+        } 
+        $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$_SESSION['service']->id}' AND alias = '{$_SESSION['alias']->id}'");
+        if($this->db->numRows() > 0){
+            $options_all = $this->db->getRows('array');
+            foreach ($options_all as $option)
+            {
+                if(isset($options[$option->name])) $options[$option->name]->value = $option->value;
+                else
+                {
                     $options[$option->name] = new stdClass();
                     $options[$option->name]->name = $option->name;
                     $options[$option->name]->value = $option->value;
                     $options[$option->name]->type = 'text';
                     $options[$option->name]->title = $option->name;
                 }
-            } 
-            $this->db->executeQuery("SELECT * FROM wl_options WHERE service = '{$alias->service}' AND alias = '{$alias->id}'");
-            if($this->db->numRows() > 0){
-                $options_all = $this->db->getRows('array');
-                foreach ($options_all as $option)
-                {
-                    if(isset($options[$option->name])) $options[$option->name]->value = $option->value;
-                    else
-                    {
-                        $options[$option->name] = new stdClass();
-                        $options[$option->name]->name = $option->name;
-                        $options[$option->name]->value = $option->value;
-                        $options[$option->name]->type = 'text';
-                        $options[$option->name]->title = $option->name;
-                    }
-                }
-            } 
+            }
         }
 
-        if($alias->service > 0)
+        if($_SESSION['alias']->service > 0)
         {
             $path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'models/install_model.php';
             if(file_exists($path)){

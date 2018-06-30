@@ -14,14 +14,14 @@ class install
 	public $admin_ico = 'fa-qrcode';
 	public $version = "1.1";
 
-	public $options = array('productUseArticle' => 0, 'deleteIfZero' => 0, 'markUpByUserTypes' => 0);
+	public $options = array('productUseArticle' => 1, 'deleteIfZero' => 0, 'markUpByUserTypes' => 0);
 	public $options_type = array('productUseArticle' => 'bool', 'deleteIfZero' => 'bool', 'markUpByUserTypes' => 'bool');
 	public $options_title = array('productUseArticle' => 'Використання товарами зовнішнього артикулу', 'deleteIfZero' => 'Видаляти прихідні квитанції по закінченню залишків', 'markUpByUserTypes' => 'Націнка відносно рівня користувача');
 	public $options_admin = array (
 					'word:product_to' => 'товару',
 					'word:product' => 'товар'
 				);
-	public $sub_menu = array("add" => "Додати карточку товару", "options" => "Властивості");
+	public $sub_menu = array("add" => "Прихід товару", "options" => "Властивості");
 
 	public $cooperation_index = 2;
 	public $cooperation_types = array('storage' => 'Склад');
@@ -90,14 +90,14 @@ class install
 	{
 		$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
-					  `name` text NOT NULL,
+					  `name` text NULL,
 					  `currency` varchar(3) NOT NULL DEFAULT 'USD',
-					  `updateRows` TEXT NOT NULL,
-					  `updateCols` TEXT NOT NULL,
-					  `markup` int(11) NOT NULL,
+					  `updateRows` TEXT NULL,
+					  `updateCols` TEXT NULL,
+					  `markup` int(11) NULL,
 					  `date_add` int(11) NOT NULL,
 					  `user_add` int(11) NOT NULL,
-					  `active` tinyint(1) NOT NULL,
+					  `active` tinyint(1) NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
@@ -108,9 +108,7 @@ class install
 					  `storage` int(11) NOT NULL,
 					  `product` int(11) NOT NULL,
 					  `price_in` float UNSIGNED NOT NULL,
-					  `price_out` float UNSIGNED NOT NULL,
-					  `currency_in` tinyint(2) NOT NULL,
-					  `currency_out` tinyint(2) NOT NULL,
+					  `price_out` text NULL,
 					  `amount` int(11) NOT NULL,
 					  `amount_reserved` int(11) NOT NULL,
 					  `date_in` int(11) NOT NULL,

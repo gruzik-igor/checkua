@@ -27,7 +27,7 @@ $message .= '<p><b>'.$data['user_name'].'</b><br> '.$data['user_email'].', '.$da
 if(!empty($data['delivery']))
 {
 	$message .= '<h3><b>Доставка</b></h3>';
-	$message .= '<p>'.$data['delivery'].'</p>';
+	$message .= $data['delivery'];
 }
 
 if(!empty($data['info']))

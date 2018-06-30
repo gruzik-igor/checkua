@@ -63,7 +63,7 @@ class cart_admin extends Controller {
                 else if($cart->payment_id)
                     $cart->payment = $this->cart_model->getPayments(array('id' => $cart->payment_id));
 
-                $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight");
+                $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
 
                 $this->load->admin_view('detal_view', array('cart' => $cart, 'cartStatuses' => $cartStatuses));
             }
@@ -277,9 +277,6 @@ class cart_admin extends Controller {
                             $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
                     }
 
-                if($cart->shipping_id)
-                    $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
-
                 $this->load->library('mail');
 
                 $info['id'] = $cart->id;
@@ -305,8 +302,31 @@ class cart_admin extends Controller {
                 $info['total_formatted'] = $this->cart_model->priceFormat($info['total']);
                 $info['products'] = $cart->products;
                 $info['delivery'] = false;
-                if($cart->shipping_alias && $cart->shipping_id)
-                    $info['delivery'] = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+                if($cart->shipping_id && !empty($cart->shipping_info))
+                {
+                    $cart->shipping_info = unserialize($cart->shipping_info);
+                    if($cart->shipping = $this->cart_model->getShippings(array('id' => $cart->shipping_id)))
+                    {
+                        $cart->shipping = $cart->shipping[0];
+                        $cart->shipping->text = '';
+                        if($cart->shipping->wl_alias)
+                            $cart->shipping->text = $this->load->function_in_alias($cart->shipping->wl_alias, '__get_info', $cart->shipping_info);
+                        else
+                        {
+                            if(!empty($cart->shipping_info['city']))
+                                $cart->shipping->text .= "<p>Місто: <b>{$cart->shipping_info['city']}</b> </p>";
+                            if(!empty($cart->shipping_info['department']))
+                                $cart->shipping->text .= "<p>Відділення: <b>{$cart->shipping_info['department']}</b> </p>";
+                            if(!empty($cart->shipping_info['address']))
+                                $cart->shipping->text .= "<p>Адреса: <b>{$cart->shipping_info['address']}</b> </p>";
+                        }
+                        if(!empty($cart->shipping_info['recipient']))
+                            $cart->shipping->text .= "<p>Отримувач: <b>{$cart->shipping_info['recipient']}</b> </p>";
+                        if(!empty($cart->shipping_info['phone']))
+                            $cart->shipping->text .= "<p>Контактний телефон: <b>{$cart->shipping_info['phone']}</b> </p>";
+                        $info['delivery'] = $cart->shipping->text;
+                    }
+                }
                 
                 $this->mail->sendTemplate('change_status', $cart->user_email, $info);
 

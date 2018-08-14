@@ -51,7 +51,10 @@ class wl_user_model {
      */
     public function add($info = array(), $additionall = array(), $new_user_type = 4, $set_password = true, $comment = '')
     {
-    	$status = $this->db->getAllDataById('wl_user_status', 2);
+        $status = 2;
+        if(!empty($info['status']))
+            $status = $info['status'];
+    	$status = $this->db->getAllDataById('wl_user_status', $status);
         if(!$set_password)
             $status = $this->db->getAllDataById('wl_user_status', $status->next);
 
@@ -94,7 +97,10 @@ class wl_user_model {
             $data['photo'] = $user->photo = $info['photo'];
 	    	$data['type'] = $user->type = $new_user_type;
 	    	$data['status'] = $user->status = $status->id;
-	    	$data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
+	    	if($set_password)
+                $data['auth_id'] = $user->auth_id = md5($info['name'].'|'.$info['password'].'|'.$user->email);
+            else
+                $data['auth_id'] = $user->auth_id = '';
     		$data['registered'] = $user->registered = time();
             $data['last_login'] = $user->last_login = 0;
 
@@ -157,20 +163,18 @@ class wl_user_model {
      * Метод перевіряє чи емейл існує в базі.
      * Використовується при реєстрації.
      */
-    public function userExists($email = '')
+    public function userExists($email = '', &$user = false)
     {
         $email = $this->db->sanitizeString($email);
-        $this->db->executeQuery("SELECT `email`, `type`, `status` FROM `wl_users` WHERE `email` = '{$email}'");
-        if($this->db->numRows() == 1){
-            $user = $this->db->getRows();
-            if($user->status == 3){
+        $user = $this->db->getQuery("SELECT `email`, `name`, `type`, `status` FROM `wl_users` WHERE `email` = '{$email}'", 'single');
+        if($user)
+        {
+            if($user->status == 3)
                 $this->user_errors = 'Користувач із даною адресою заблокований!';
-            } elseif($user->type == 5){
+            elseif($user->type == 5)
                 return false;
-            } else $this->user_errors = 'Користувач з таким е-мейлом вже є!';
-            return true;
-        } else if($this->db->numRows() > 1) {
-            $this->user_errors = 'Така емейл адреса користувача вже існує.';
+            else
+                $this->user_errors = 'Користувач з таким е-мейлом вже є!';
             return true;
         }
 

@@ -489,19 +489,27 @@ class cart_admin extends Controller {
         if($this->data->post('userInfo')){
             $info = $this->data->post('userInfo');
 
-            $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `name` LIKE '%{$info}%' OR `email` LIKE '%{$info}%'", 'array');
-            if(!$user)
+            $userIds = '';
+            if($byUserInfo = $this->db->getAllDataByFieldInArray('wl_user_info', array('value' => '%'.$info)))
             {
-              $this->db->executeQuery("SELECT user FROM `wl_user_info` WHERE `field` = 'phone' AND `value` LIKE '%{$info}%'");
-                if($this->db->numRows() == 1){
-                    $userId = $this->db->getRows();
-                    $user = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `id` = $userId->user", 'array');
-                    $res['result'] = true;
-                    $res['user'] = $user;
+                $ids = array();
+                $userIds = 'OR id IN(';
+                foreach ($byUserInfo as $row) {
+                    if(!in_array($row->user, $ids))
+                    {
+                        $ids[] = $row->user;
+                        $userIds .= $row->user.',';
+                    }
                 }
-            } else {
+                $userIds = substr($userIds, 0, -1);
+                $userIds .= ')';
+            }
+
+            $users = $this->db->getQuery("SELECT id,email,name,type FROM `wl_users` WHERE `name` LIKE '%{$info}%' OR `email` LIKE '%{$info}%' {$userIds}", 'array');
+            if($users)
+            {
                 $res['result'] = true;
-                $res['user'] = $user;
+                $res['user'] = $users;
             }
             $this->json($res);
         }
@@ -524,49 +532,30 @@ class cart_admin extends Controller {
                 if($email)
                 {
                     $this->db->executeQuery("SELECT * FROM wl_users WHERE email = '{$email}'");
-
-                    if($this->db->numRows() > 0){
+                    if($this->db->numRows() > 0)
                         $res['message'] = 'Користувач з таким е-мейлом вже є';
-                    } else {
+                    else
                         $res['result'] = true;
-                    }
                 }
                 if($phone && $res['message'] == '')
                 {
                     $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `field` = 'phone' AND `value` = '{$phone}'");
-
                     if($this->db->numRows() > 0)
                     {
                         $res['message'] = 'Користувач з таким телефоном вже є';
                         $res['result'] = false;
                     }
-                    else $res['result'] = true;
+                    else
+                        $res['result'] = true;
                 }
             }
 
-
             if($res['result'] == true)
             {
-                $data['password'] = substr(hash('sha512',rand()),0,5);
-                $sendTemplate = true;
-
-                if(empty($data['email']))
-                {
-                    $data['email'] = $userInfo['phone'];
-                    $sendTemplate = false;
-                }
-
+                $comment = 'by manager ('.$_SESSION['user']->id.') '.$_SESSION['user']->name;
                 $this->load->model('wl_user_model');
-                if($user = $this->wl_user_model->add($data, $userInfo))
-                {
-                    if($sendTemplate)
-                    {
-                        $this->load->library('mail');
-                        $this->mail->sendTemplate('password_generate', $data['email'], array('password' => $data['password']));
-                    }
-
+                if($user = $this->wl_user_model->add($data, $userInfo, $_SESSION['option']->newUserType, false, $comment))
                     $res['id'] = $user->id;
-                }
                 else {
                     $res['message'] = 'Помилка при створені користувача';
                     $res['result'] = false;

@@ -6,13 +6,6 @@
  * Підключаємо всі необхідні файли і створюєм обєкт route
  */
 
-if(empty($_POST) && isset($_SERVER["REQUEST_URI"][0]) && isset($_SERVER["REQUEST_URI"][1]) && $_SERVER["REQUEST_URI"][0] == '/' && $_SERVER["REQUEST_URI"][1] == '/')
-{
-	header ('HTTP/1.1 301 Moved Permanently');
-	header ('Location: '. substr($_SERVER["REQUEST_URI"], 1));
-	exit;
-}
-
 if(empty($_SESSION['user'])) 
 {
 	$_SESSION['user'] = new stdClass();
@@ -201,6 +194,19 @@ else
 	}
 }
 
+$url = $_SERVER["REQUEST_URI"];
+if(empty($_POST) && isset($url[0]) && is_int(stripos($url, '//')))
+{
+	$url = preg_replace("#(?<!^http:)/{2,}#i", "/", $url);
+	$last = substr($url, -1, 1);
+	if($last == '/')
+		$url = substr($url, 0, -1);
+	if($url[0] == '/')
+		$url = substr($url, 1);
+	header ('HTTP/1.1 301 Moved Permanently');
+	header ('Location: '. SITE_URL.$url);
+	exit;
+}
 if(isset($_GET['request']))
 {
 	$last = substr($_GET['request'], -1, 1);

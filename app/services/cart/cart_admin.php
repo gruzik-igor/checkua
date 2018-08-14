@@ -820,6 +820,46 @@ class cart_admin extends Controller {
         $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
     }
 
+    public function reNew()
+    {
+        if(!$_SESSION['user']->admin)
+        {
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->errors = 'Повернути до статусу "Нове замовлення" може виключно адміністратор';
+            $this->redirect('#tabs-history');
+        }
+        if(empty($_POST['password']))
+        {
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->errors = 'Невірний пароль для підтвердження повернення до статусу "Нове замовлення"';
+            $this->redirect('#tabs-history');
+        }
+        else
+        {
+            $this->load->model('wl_user_model');
+            $manager = $this->wl_user_model->getInfo($_SESSION['user']->id, false);
+            $password = $this->wl_user_model->getPassword($_SESSION['user']->id, $manager->email, $_POST['password']);
+            if($password != $manager->password)
+            {
+                $_SESSION['notify'] = new stdClass();
+                $_SESSION['notify']->errors = 'Невірний пароль для підтвердження повернення статусу "Нове замовлення"';
+                $this->redirect('#tabs-history');
+            }
+        }
+        if($id = $this->data->post('cart'))
+        {
+            $this->db->updateRow('s_cart', array('status' => 1), $id);
+            $data = array();
+            $data['cart'] = $id;
+            $data['status'] = 1;
+            $data['user'] = $_SESSION['user']->id;
+            $data['comment'] = 'Повернено до стану "Нове замовлення"';
+            $data['date'] = time();
+            $this->db->insertRow('s_cart_history', $data);
+        }
+        $this->redirect('#tabs-history');
+    }
+
     public function __tab_profile($user_id)
     {   
         if(!isset($_SESSION['option']->paginator_per_page) || $_SESSION['option']->paginator_per_page < 5)

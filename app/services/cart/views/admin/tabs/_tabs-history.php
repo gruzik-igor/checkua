@@ -81,13 +81,53 @@
                     <td><textarea name="comment" class="form-control" rows="5"></textarea></td>
                 </tr>
                 <tr>
-                    <th></th>
-                    <td><input type="submit" class="btn btn-md btn-success" value="Зберегти"></td>
-                </tr>
+                        <th></th>
+                        <td>
+                            <input type="submit" class="btn btn-md btn-success" value="Зберегти">
+                            <?php if($cart->status > 1) { ?>
+                                <button type="button" class="btn btn-md btn-warning pull-right" data-toggle='modal' data-target='#reNew'>Перевести до статусу "Нове замовлення"</button>
+                            <?php } ?>
+                        </td>
+                    </tr>
             </tbody>
         </form>
     </table>
+    <?php } else if($cart->status > 1) { ?>
+        <button type="button" class="btn btn-md btn-warning pull-right" data-toggle='modal' data-target='#reNew'>Перевести до статусу "Нове замовлення"</button>
     <?php } ?>
+</div>
+
+<div class="modal fade" id="reNew" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" style="margin: 15% auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+            <h4 class="modal-title">Перевести до статусу "Нове замовлення"</h4>
+            </div>
+            <form action="<?=SITE_URL?>admin/cart/reNew" method="post">
+                <div class="modal-body">
+                    <p>Увага! Ви підтверджуєте переведення замовлення до статусу "<strong>Нова, Не опрацьовано, не оплачено</strong>"?</p>
+                    <p>Буде зроблено запис до історії замовлення, розблокується можливість редагувати вміст замовлення.</p>
+                    <div class="row">
+                        <div class="col-md-3">
+                            <strong>Пароль підтвердження переведення до нового замовлення</strong>
+                        </div>
+                        <div class="col-md-9">
+                            <input type="password" name="password" required class="form-control" placeholder="Пароль підтвердження переведення до нового замовлення">
+                        </div>
+                    </div>
+                    
+                </div>
+                <div class="modal-footer">
+                    <div class="pull-left">
+                        <input type="hidden" name="cart" value="<?=$cart->id?>">
+                        <button type="submit" class="btn btn-warning">Зберегти</button>
+                    </div>
+                    <button type="button" class="btn btn-success" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span> Скасувати</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 
 <div class="modal fade" id="commentModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
@@ -148,7 +188,7 @@
     }
 
     function saveToHistory() {
-        if(confirm('Ви впевнені, що хочете оновити статус?')){
+        if(confirm('Ви впевнені, що хочете змінити статус?')){
             return true;
         }
         return false;

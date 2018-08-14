@@ -15,11 +15,17 @@
 $subject = $data['status_name'].': Замовлення # '.$data['id'].' від '.$data['date'] . ' '.SITE_NAME;
 $message = '<html><head><title>Замовлення #'.$data['id']. ' '.SITE_NAME.'</title></head><body><p>Доброго дня <b>'.$data['user_name'].'</b>!</p><h1>Замовлення #'.$data['id'].' від '.$data['date'].'</h1><p>Оновлену інформацію по Вашому замовлення представлено нижче:</p>';
 
-$message .= '<h3><b>Поточний статус: </b>'.$data['status_name'].'</h3>';
-$message .= '<p><b>Оновлено: </b>'.$data['date'];
 if($data["comment"] != '')
-	$message .= "<br><b>Супроводжуюча інформація:</b> {$data["comment"]}";
-$message .= '</p>';
+	$message .= '---------------------------------------------------------------';
+$message .= '<h3><b>Поточний статус: </b>'.$data['status_name'].'</h3>';
+// $message .= '<p><b>Оновлено: </b>'.$data['date'];
+if($data["comment"] != '')
+{
+	$message .= "<h4>{$data["comment"]}</h4>";
+
+	$message .= '---------------------------------------------------------------';
+}
+$message .= '<br>';
 
 $message .= '<h3><b>Покупець</b></h3>';
 $message .= '<p><b>'.$data['user_name'].'</b><br> '.$data['user_email'].', '.$data['user_phone'].'</p>';

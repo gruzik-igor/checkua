@@ -305,6 +305,7 @@ CREATE TABLE IF NOT EXISTS `wl_mail_history` (
 DROP TABLE IF EXISTS `wl_mail_templates`;
 CREATE TABLE IF NOT EXISTS `wl_mail_templates` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` text NULL,
   `from` text,
   `to` text,
   `multilanguage` tinyint(1) DEFAULT NULL,

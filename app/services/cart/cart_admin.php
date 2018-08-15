@@ -453,9 +453,8 @@ class cart_admin extends Controller {
     public function addProduct()
     {
         $data = array();
-        if($this->data->post('cartId') != ''){
+        if($this->data->post('cartId') > 0)
             $data['cart'] = $this->data->post('cartId');
-        }
 
         $data['storage_alias'] = $this->data->post('storageId') ? $this->data->post('storageId') : 0;
         $data['storage_invoice'] = $this->data->post('invoiceId') ? $this->data->post('invoiceId') : 0;
@@ -472,7 +471,7 @@ class cart_admin extends Controller {
         $updateRow = true;
         if(!isset($data['cart']))
         {
-            $data['cart'] = $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => $data['price'], 'status' => 1, 'date_add' => $data['date'], 'date_edit' => $data['date']));
+            $data['cart'] = $this->db->insertRow('s_cart', array('user' => $data['user'], 'total' => $data['price'], 'status' => 0, 'date_add' => $data['date'], 'date_edit' => $data['date']));
             $updateRow = false;
         }
 
@@ -480,7 +479,7 @@ class cart_admin extends Controller {
         if($updateRow)
             $this->db->executeQuery("UPDATE `s_cart` SET `total` = `total` + {$data['price']}, `date_edit` = {$data["date"]} WHERE `id` = {$data['cart']}");
 
-        $this->redirect('admin/cart/'.$data['cart'].'#tabs-products');
+        $this->redirect('admin/'.$_SESSION['alias']->alias.'/'.$data['cart'].'#tabs-products');
     }
 
     public function findUser()
@@ -524,23 +523,21 @@ class cart_admin extends Controller {
 
             $data['name'] = $name = $this->data->post('name');
             $data['email'] = $email = $this->data->post('email');
-            $data['photo'] = 0;
+            $data['photo'] = NULL;
             $userInfo['phone'] = $phone = $this->data->post('phone');
 
             if($email || $phone)
             {
                 if($email)
                 {
-                    $this->db->executeQuery("SELECT * FROM wl_users WHERE email = '{$email}'");
-                    if($this->db->numRows() > 0)
+                    if($this->db->getAllDataById('wl_users', $email, 'email'))
                         $res['message'] = 'Користувач з таким е-мейлом вже є';
                     else
                         $res['result'] = true;
                 }
                 if($phone && $res['message'] == '')
                 {
-                    $this->db->executeQuery("SELECT * FROM `wl_user_info` WHERE `field` = 'phone' AND `value` = '{$phone}'");
-                    if($this->db->numRows() > 0)
+                    if($this->db->getAllDataByFieldInArray('wl_user_info', array('field' => 'phone', 'value' => $phone)))
                     {
                         $res['message'] = 'Користувач з таким телефоном вже є';
                         $res['result'] = false;
@@ -552,10 +549,20 @@ class cart_admin extends Controller {
 
             if($res['result'] == true)
             {
+                $setPassword = false;
+                if($email)
+                {
+                    $setPassword = true;
+                    $data['password'] = bin2hex(openssl_random_pseudo_bytes(4));
+                }
                 $comment = 'by manager ('.$_SESSION['user']->id.') '.$_SESSION['user']->name;
                 $this->load->model('wl_user_model');
-                if($user = $this->wl_user_model->add($data, $userInfo, $_SESSION['option']->newUserType, false, $comment))
+                if($user = $this->wl_user_model->add($data, $userInfo, $_SESSION['option']->newUserType, $setPassword, $comment))
+                {
+                    if($email)
+                        $this->db->updateRow('wl_users', array('reset_key' => $data['password']), $user->id);
                     $res['id'] = $user->id;
+                }
                 else {
                     $res['message'] = 'Помилка при створені користувача';
                     $res['result'] = false;
@@ -564,6 +571,65 @@ class cart_admin extends Controller {
         }
 
         $this->json($res);
+    }
+
+    public function finishAddCart()
+    {
+        if($cartId = $this->data->post('cart'))
+        {
+            $this->load->smodel('cart_model');
+            if($cart = $this->cart_model->getById($cartId))
+            {
+                if($cart->status == 0)
+                {
+                    $this->db->updateRow($this->cart_model->table(), array('status' => 1, 'date_edit' => time()), $cartId);
+
+                    if(!empty($cart->user_email))
+                    {
+                        if($cart->products)
+                            foreach ($cart->products as $product) {
+                                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                                if($product->storage_invoice)
+                                    $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                            }
+
+                        $this->load->library('mail');
+
+                        $info['id'] = $cart->id;
+                        $info['action'] = $cart->action;
+                        $info['status'] = $cart->status;
+                        $info['status_name'] = $cart->status_name;
+                        $info['status_weight'] = $cart->status_weight;
+                        $info['date'] = date('d.m.Y H:i', $cart->date_edit);
+                        $info['user_name'] = $cart->user_name;
+                        $info['user_email'] = $cart->user_email;
+                        $info['user_phone'] = $cart->user_phone;
+                        $info['link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$info['id'];
+                        $info['pay_link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$cart->id.'/pay';
+                        foreach ($cart->products as $product) {
+                            $product->price = $this->cart_model->priceFormat($product->price);
+                            $product->sum = $this->cart_model->priceFormat($product->price * $product->quantity);
+                        }
+                        $info['total'] = $cart->total;
+                        $info['total_formatted'] = $this->cart_model->priceFormat($info['total']);
+                        $info['products'] = $cart->products;
+                        $info['delivery'] = $info['new_user'] = false;
+                        if($cart->shipping_alias && $cart->shipping_id)
+                            $info['delivery'] = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
+                        $user = $this->db->getAllDataById('wl_users', $cart->user);
+                        if(!empty($user->reset_key) && $user->last_login == 0)
+                        {
+                            $info['new_user'] = true;
+                            $info['password'] = $user->reset_key;
+                            $this->db->updateRow('wl_users', array('reset_key' => ''), $user->id);
+                        }
+                        
+                        $this->mail->sendTemplate('checkout', $cart->user_email, $info);
+                    }
+                }
+            }
+        }
+        $this->redirect();
     }
 
     public function save_price_format()

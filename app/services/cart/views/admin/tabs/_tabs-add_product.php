@@ -39,7 +39,7 @@
 
 	function getProduct () {
 		var article = $("#productArticle").val(),
-			cartId = <?= isset($cart) ? $cart->id : '""'?>,
+			cartId = <?= isset($cart) ? $cart->id : 0?>,
 			userId = <?= isset($cart->user) ? $cart->user : '$("#userId").val()' ?> ;
 			userType = $("#userType").val();
 

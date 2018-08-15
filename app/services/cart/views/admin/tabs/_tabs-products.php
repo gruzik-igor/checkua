@@ -94,6 +94,14 @@
 	    	</tr>
 	    </tbody>
     </table>
+
+    <?php if($cart->status == 0) { ?>
+    	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'?>finishAddCart" method="post">
+    		<input type="" name="cart" value="<?=$cart->id?>">
+    		<button class="btn btn-sm btn-warning pull-right">Сформувати замовлення</button>
+    		<div class="clearfix"></div>
+    	</form>
+    <?php } ?>
 </div>
 <?php require_once '_tabs-add_product.php'; ?>
 

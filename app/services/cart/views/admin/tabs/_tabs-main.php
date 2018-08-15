@@ -7,7 +7,10 @@
 			</tr>
     		<tr>
 				<th>Покупець</th>
-				<td><a href="<?=SITE_URL?>admin/wl_users/<?= $cart->user_email?>" class="btn btn-success btn-xs"><?= $cart->user_name?></a></td>
+				<td><?php if($cart->user) { ?>
+						<a href="<?=SITE_URL?>admin/wl_users/<?= ($cart->user_email) ? $cart->user_email : $cart->user?>" class="btn btn-success btn-xs"><?= ($cart->user_name) ? $cart->user_name : 'Гість'?></a>
+					<?php } else echo "Гість"; ?>
+				</td>
 			</tr>
     		<tr>
 				<th>Тип покупця</th>

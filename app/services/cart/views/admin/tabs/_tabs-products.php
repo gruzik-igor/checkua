@@ -25,20 +25,58 @@
 	    		<?php if(!empty($product->info->article)) { ?>
 	    			<td><a href="<?=SITE_URL.$product->info->link?>" target="_blank"><?= $product->info->article ?></a></td>
 	    		<?php } ?>
+
 	    		<td>
-	    			<?php if($product->info->photo) { ?>
-	    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
-	    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
-	    			</a>
-	    			<?php } echo '<strong>'.$product->info->name.'</strong>';
+	    			<?php if($cart->action == 'new' && !empty($product->info->options)) { ?>
+	    				<button type="button" class="btn btn-xs btn-info right" onclick="$('#edit-product-options-<?=$product->id?>').slideToggle()">Редагувати</button>
+	    			<?php } if($product->info->photo) { ?>
+		    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
+		    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
+		    			</a>
+	    			<?php }
+	    			echo '<strong>'.$product->info->name.'</strong>';
 	    			if(!empty($product->product_options))
 					{
 						$product->product_options = unserialize($product->product_options);
 						foreach ($product->product_options as $key => $value) {
 							echo "<p>{$key}: <strong>{$value}</strong></p>";
 						}
-					} ?>
+					} 
+					if(!empty($cart->action == 'new' && !empty($product->info->options))){
+					?>
+					<div class="clearfix"></div>
+					<form class="form-horizontal m-t-10" id="edit-product-options-<?=$product->id?>" style="display: none;" action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/updateproductoptions'?>" method="post">
+						<input type="hidden" name="cart" value="<?=$cart->id?>">
+						<input type="hidden" name="productRow" value="<?=$product->id?>">
+						<?php foreach ($product->info->options as $option) {
+							if($option->toCart) { ?>
+							<div class="form-group">
+		                        <label class="col-md-5 control-label"><strong><?=$option->name?></strong>
+		                        	<?=($option->changePrice) ? '<br><small>Випливає на ціну</small>' : ''?>
+		                        </label>
+		                        <div class="col-md-7">
+		                        	<select name="option-<?=$option->id?>" class="form-control" required>
+		                        		<?php foreach ($option->value as $value) {
+		                        			$selected = '';
+		                        			if(isset($product->product_options[$option->name]) && $product->product_options[$option->name] == $value->name)
+		                        				$selected = 'selected';
+		                        			echo "<option value='{$value->id}' {$selected}>{$value->name}</option>";
+		                        		} ?>
+		                        	</select>
+		                        </div>
+		                    </div>	
+						<?php } } ?>
+						<div class="form-group">
+	                        <label class="col-md-5 control-label"></label>
+	                        <div class="col-md-7">
+	                            <button type="submit" class="btn btn-sm btn-success">Зберегти</button>
+	                            <button type="button" class="btn btn-sm btn-info m-r-10" onclick="$(this).closest('form').slideUp()">Скасувати</button>
+	                        </div>
+	                    </div>
+					</form>
+					<?php } ?>
 	    		</td>
+
 	    		<?php if($_SESSION['option']->useStorage) {?>
 	    		<td width="20%">
 	    			<?php if(isset($product->invoice)) {
@@ -57,7 +95,9 @@
 	    			<?php } else echo "Товару немає на складі" ?>
 	    		</td>
 	    		<?php } ?>
+
 	    		<td id="productPrice-<?= $product->id ?>"><?= $product->price?> грн</td>
+
 	    		<td width="15%" >
 	    			<?php if($cart->status_weight == 0){ ?>
 	    			<form action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/changeProductQuantity'?>" method="POST">
@@ -81,7 +121,9 @@
 	    			</form>
 	    			<?php } else echo $product->quantity; ?>
 	    		</td>
+
 	    		<td id="productTotalPrice-<?= $product->id ?>"><?= $product->price * $product->quantity?> грн</td>
+
 	    		<?php if($cart->status_weight == 0){ ?>
 	    		<td><button onclick="removeProduct(<?= $product->id?>, <?= $product->cart?>, <?= $product->price * $product->quantity?>)"><i class='fa fa-remove'></i></button></td>
 	    		<?php } ?>

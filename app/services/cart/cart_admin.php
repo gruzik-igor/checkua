@@ -129,6 +129,66 @@ class cart_admin extends Controller {
         return $productInvoices;
     }
 
+    public function updateproductoptions()
+    {
+        if($cartId = $this->data->post('cart'))
+        {
+            if($cart = $this->db->getAllDataById('s_cart', $cartId))
+            {
+                if($product = $this->db->getAllDataById('s_cart_products', $this->data->post('productRow')))
+                {
+                    if($product->cart == $cartId)
+                    {
+                        $price = 0;
+                        $list = $changePrice = array();
+                        foreach ($_POST as $row => $rowValue) {
+                            $row = explode('-', $row);
+                            if(count($row) == 2 && $row[0] == 'option' && is_numeric($row[1]) && is_numeric($rowValue))
+                            {
+                                if($info = $this->load->function_in_alias($product->product_alias, '__get_Option_Info', $row[1]))
+                                {
+                                    if(!empty($info->values))
+                                        foreach ($info->values as $value) {
+                                            if($value->id == $rowValue)
+                                            {
+                                                $list[$info->name] = $value->name;
+                                                break;
+                                            }
+                                        }
+                                    if(isset($info->changePrice) && $info->changePrice)
+                                        $changePrice[$info->id] = $rowValue;
+                                }
+                            }
+                        }
+                        if(!empty($changePrice))
+                            $price = $this->load->function_in_alias($product->product_alias, '__get_Price_With_options', array('product' => $product->product_id, 'options' => $changePrice));
+                        if(!empty($list))
+                        {
+                            $update = array();
+                            $product_options = serialize($list);
+                            if($product->product_options != $product_options)
+                                $update['product_options'] = $product_options;
+                            if($product->price != $price && $price > 0)
+                                $update['price'] = $price;
+                            if(!empty($update))
+                            {
+                                $this->db->updateRow('s_cart_products', $update, $product->id);
+                                if($product->price != $price && $price > 0)
+                                {
+                                    $sum = $this->db->getQuery("SELECT SUM(`price`) as total FROM `s_cart_products` WHERE `cart`=".$cart->id);
+                                    if($sum->total != $cart->total)
+                                        $this->db->updateRow('s_cart', array('total' => $sum->total), $cart->id);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            
+        }
+        $this->redirect();
+    }
+
     public function remove()
     {
         $res = array('result' => false);

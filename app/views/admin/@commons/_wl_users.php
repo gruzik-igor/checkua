@@ -13,7 +13,7 @@
                 if($_SESSION['user']->admin == 1) $link = SITE_URL.'admin/wl_users/'.$user->email;
         ?>
             <li <?= $count == 4 ? 'style="clear:both"' : ''?>>
-                <a href="<?=$link?>"><img src="<?= ($user->photo > 0)? IMG_PATH.'profile/'.$user->id.'.jpg' : SERVER_URL.'style/admin/images/user-'.$user->type.'.jpg'  ?>" alt="<?=$user->name?>"></a>
+                <a href="<?=$link?>"><img src="<?= ($user->photo)? IMG_PATH.'profile/'.$user->photo : SERVER_URL.'style/admin/images/user-'.$user->type.'.jpg'  ?>" alt="<?=$user->name?>"></a>
                 <h4 class="username text-ellipsis">
                     <?=$user->name?>
                     <small><?=date('d.m.Y H:i', $user->registered)?></small>

@@ -11,6 +11,7 @@ class wl_user_model {
      * В цю властивість записуються всі помилки.
      */
     public $user_errors = '';
+    public $new_user_type = 4; // Ід типу новозареєстрованого користувача
 
     /*
      * Отримуємо дані користувача з бази даних
@@ -49,14 +50,16 @@ class wl_user_model {
      * set_password (bool) чи встановлювати пароль до профілю (класична реєстрація - так, швидка зі соц. мереж - ні). також впливає на статус новозареєстрованого користувача (класична - 2, швидка наступний після 2)
      * comment (text) службовий коментар у реєстр
      */
-    public function add($info = array(), $additionall = array(), $new_user_type = 4, $set_password = true, $comment = '')
+    public function add($info = array(), $additionall = array(), $new_user_type = 0, $set_password = true, $comment = '')
     {
         $status = 2;
         if(!empty($info['status']))
             $status = $info['status'];
     	$status = $this->db->getAllDataById('wl_user_status', $status);
-        if(!$set_password)
+        if(!$set_password && $status->next > 0)
             $status = $this->db->getAllDataById('wl_user_status', $status->next);
+        if($new_user_type == 0)
+            $new_user_type = $this->new_user_type;
 
     	$user = $this->db->getAllDataById('wl_users', $info['email'], 'email');
         if($user)
@@ -77,20 +80,22 @@ class wl_user_model {
 		    		$this->db->register('signup', $comment, $user->id);
         	}
             elseif(!$set_password)
-            {
                 $this->user_errors = 'Користувач з таким е-мейлом вже є!';
-                return $user;
-            }
         	else
     		{
     			$this->user_errors = 'Користувач з таким е-мейлом вже є!';
     			return false;
     		}
+            $user->info = array();
+            if($info = $this->db->getAllDataByFieldInArray('wl_user_info', $user->id, 'user'))
+                foreach ($info as $i) {
+                    $user->info[$i->field] = $i->value;
+                }
         }
         else
         {
         	$user = new stdClass();
-        	$data = array();
+        	$data = $user->info = array();
             $data['alias'] = $user->alias = $this->makeAlias($info['name']);
         	$data['email'] = $user->email = $info['email'];
 	    	$data['name'] = $user->name = $info['name'];
@@ -114,28 +119,25 @@ class wl_user_model {
                     $this->db->updateRow('wl_users', array('password' => $password), $user->id);
                 }
 
-                if($comment == 'by facebook' && $additionall['facebook'])
-                {
-                     $this->uploadFacebookPhoto($additionall['facebook'], $user->id);
-                }
-
 	    		$this->db->register('signup', $comment, $user->id);
 	    	}
         }
         if($user)
         {
             $user->load = $status->load;
-            $user->info = array();
         	if(!empty($additionall))
 			{
 				foreach ($additionall as $key => $value) {
-					$info = array();
-					$info['user'] = $user->id;
-					$info['field'] = $key;
-					$info['value'] = $value;
-					$info['date'] = time();
-					$this->db->insertRow('wl_user_info', $info);
-                    $user->info[$key] = $value;
+                    if(empty($user->info[$key]))
+                    {
+    					$info = array();
+    					$info['user'] = $user->id;
+    					$info['field'] = $key;
+    					$info['value'] = $value;
+    					$info['date'] = time();
+    					$this->db->insertRow('wl_user_info', $info);
+                        $user->info[$key] = $value;
+                    }
 				}
 			}
 			return $user;
@@ -209,7 +211,14 @@ class wl_user_model {
 		{
 			$user = $this->db->getAllDataById('wl_users', $this->data->post('email'), 'email');
 			if($user)
+            {
 				$password = $this->getPassword($user->id, $user->email, $password, $sequred);
+                if($user->password != $password) {
+                    $this->db->register('login_bad', 'User IP: '.$this->data->userIP(), $user->id);
+                    $this->user_errors = 'Пароль невірний';
+                    return false;
+                }
+            }
 		}
 		else
 		{
@@ -217,18 +226,11 @@ class wl_user_model {
 			$this->db->select('wl_user_info as ui', 'value as password', $where);
 			$this->db->join('wl_users', '*', '#ui.user');
 			$user = $this->db->get('single');
-
-            if($user)
-                $password = $this->getPassword($user->id, $user->email, $this->data->post('password'), $sequred);
 		}
         
 		if($user && $password != '')
 		{
             $status = $this->db->getAllDataById('wl_user_status', $user->status);
-			if($user->password != $password) {
-				$this->user_errors = 'Пароль невірний.';
-				return false;
-			}
 
 			if(isset($_SESSION['facebook_id']) && $this->data->post('facebook') == $_SESSION['facebook_id'] && $_SESSION['facebook_id'] > 0)
 			{
@@ -264,7 +266,8 @@ class wl_user_model {
 			}
 			else
 				$this->user_errors = 'Користувач заблокований! Зверніться до адміністрації на email '.SITE_EMAIL;
-		} else
+		}
+        else
 			$this->user_errors = 'Невірна пошта чи пароль.';
 		return false;
     }
@@ -322,6 +325,9 @@ class wl_user_model {
         $_SESSION['user']->email = $user->email;
         $_SESSION['user']->status = $user->status;
         $_SESSION['user']->type = $user->type;
+        $_SESSION['user']->photo = NULL;
+        if(!empty($user->photo))
+            $_SESSION['user']->photo = IMG_PATH.'profile/'.$user->photo;
         $_SESSION['user']->permissions = array('wl_users', 'wl_ntkd', 'wl_images', 'wl_video');
 
         if($user->type == 1)
@@ -348,17 +354,39 @@ class wl_user_model {
         return true;
 	}
 
-    public function uploadFacebookPhoto($facebookId, $userId)
+    public function setPhotoByLink($from, $userId = 0, $updateSession = true)
     {
-        $facebookPhoto = 'https://graph.facebook.com/'.$facebookId.'/picture?width=9999';
+        if($userId == 0)
+            $userId = $_SESSION['user']->id;
 
-        $path = IMG_PATH.'profile/';
-        if(strlen($path) > strlen(SITE_URL)) $path = substr($path, strlen(SITE_URL));
-        $photoName = $userId.'.jpg';
+        $path = IMG_PATH;
+        $path = substr($path, strlen(SITE_URL));
+        $path = substr($path, 0, -1);
+        if(!is_dir($path))
+        {
+            if(mkdir($path, 0777) == false)
+                return false;
+        }
+        $path .= '/profile';
+        if(!is_dir($path))
+        {
+            if(mkdir($path, 0777) == false)
+                return false;
+        }
+        $path .= '/';
+        $photoName = $userId;
+        $photoName .= '-'.md5($userId.time());
+        $ext = explode('.', $from);
+        $photoName .= '.'.end($ext);
 
-        file_put_contents($path.$photoName, file_get_contents($facebookPhoto));
-
-        $this->db->updateRow('wl_users', array('photo' => $photoName), $userId); 
+        if(file_put_contents($path.$photoName, file_get_contents($from)))
+        {
+            $this->db->updateRow('wl_users', array('photo' => $photoName), $userId);
+            if($updateSession && isset($_SESSION['user']->photo))
+                $_SESSION['user']->photo = $path.$photoName;
+            return $photoName;
+        }
+        return false;
     }
 	
 }

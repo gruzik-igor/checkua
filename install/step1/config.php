@@ -5,6 +5,7 @@
 $config['autoload'] = array('db', 'data');
 $config['recaptcha'] = array('public' => 'RECAPTCHA_PUBLIC_KEY', 'secret' => 'RECAPTCHA_SECRET_KEY');
 $config['facebook'] = array('appId' => 'FACEBOOK_APP_ID', 'secret' => 'FACEBOOK_SECRET_KEY');
+$config['googlesignin'] = array('clientId' => 'GOOGLE_CLIENT_ID', 'secret' => 'GOOGLE_API_SECRET');
 
 /**
  * Параметри для з'єднання до БД

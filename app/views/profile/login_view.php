@@ -114,7 +114,7 @@
                                 <?php if($_SESSION['option']->facebook_initialise) { ?>
                                     <button type="button" onclick="facebookSignUp()" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> <?=$this->text('Увійти через ')?>facebook</button>
                                 <?php } if($this->googlesignin->clientId) { ?>
-                                    <div class="g-signin2 m-t-20" data-width="match_parent" data-longtitle="true" data-onsuccess="onSignIn"></div>
+                                    <div class="g-signin2 m-t-20" data-width="match_parent" data-longtitle="true" data-onsuccess="googleSignIn"></div>
                                 <?php } ?>
                             </div>
                         </div>

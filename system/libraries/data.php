@@ -18,6 +18,7 @@
  * Версія 1.3 (06.12.2016) Додано get_link() - формування лінку за GET зі змінами
  * Версія 1.3.1 (20.01.2017) Функцію make() перейменовано на prepare()
  * Версія 1.3.2 (14.09.2017) Fix get_link(): коректно працює із масивами в get
+ * Версія 1.3.3 (05.09.2018) Add userIP()
  */
 
 class Data {
@@ -272,6 +273,17 @@ class Data {
 	        }
 	        rmdir($dir);
     	}
+    }
+
+    public function userIP()
+    {
+    	if (!empty($_SERVER['HTTP_CLIENT_IP']))
+		    return $_SERVER['HTTP_CLIENT_IP'];
+		elseif (!empty($_SERVER['HTTP_X_FORWARDED_FOR']))
+		    return $_SERVER['HTTP_X_FORWARDED_FOR'];
+		else
+		    return $_SERVER['REMOTE_ADDR'];
+		return false;
     }
 
 }

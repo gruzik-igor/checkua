@@ -492,6 +492,17 @@ class Loader {
 		return $word;
 	}
 
+	public function js($link='')
+	{
+		if(is_array($link))
+			foreach ($link as $js) {
+				if(!in_array($js, $_SESSION['alias']->js_load) && $js != '')
+					$_SESSION['alias']->js_load[] = $js;
+			}
+		else if(!in_array($link, $_SESSION['alias']->js_load) && $link != '')
+			$_SESSION['alias']->js_load[] = $link;
+	}
+
 	/**
 	 * Створюємо об'єкти і зберігаємо в реєстрі
 	 *

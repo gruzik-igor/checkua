@@ -58,10 +58,14 @@ class cart_admin extends Controller {
                     }
                 }
                 
-                if($cart->payment_alias)
+                if($cart->payment_alias && $cart->payment_id)
                     $cart->payment = $this->load->function_in_alias($cart->payment_alias, '__get_info', $cart->payment_id);
                 else if($cart->payment_id)
+                {
                     $cart->payment = $this->cart_model->getPayments(array('id' => $cart->payment_id));
+                    if($cart->payment)
+                        $cart->payment = $cart->payment[0];
+                }
 
                 $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
 
@@ -285,7 +289,7 @@ class cart_admin extends Controller {
                     $toHistory['cart'] = $cartId;
                     $toHistory['user'] = $_SESSION['user']->id;
                     $toHistory['comment'] = $this->data->post('toHistory');
-                    $toHistory['comment'] .= $quantity;
+                    $toHistory['comment'] .= ' '.$quantity;
                     $toHistory['date'] = time();
                     $this->db->insertRow('s_cart_history', $toHistory);
                 }
@@ -885,7 +889,7 @@ class cart_admin extends Controller {
         if(is_numeric($_POST['id']))
         {
             $this->load->smodel('cart_model');
-            $payment = array('wl_alias' => 0, 'active' => 0);
+            $payment = array('active' => 0);
             $payment['active'] = ($_POST['active'] > 0 || $_POST['id'] == 0) ? 1 : 0;
             if($_SESSION['language'])
             {
@@ -909,6 +913,7 @@ class cart_admin extends Controller {
             if($_POST['id'] == 0)
             {
                 $_SESSION['notify']->success = 'Оплату додано';
+                $payment['wl_alias'] = 0;
                 $payment['position'] = $this->db->getCount($this->cart_model->table('_payments')) + 1;
                 $this->db->insertRow($this->cart_model->table('_payments'), $payment);
             }

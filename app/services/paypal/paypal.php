@@ -48,6 +48,25 @@ class paypal extends Controller {
     	return true;
     }
 
+    public function __get_info($payment_id=0)
+    {
+        if($payment_id)
+        {
+            $this->load->smodel('paypal_model');
+            if($pay = $this->paypal_model->getPayment($payment_id))
+            {
+                $this->wl_alias_model->setContent();
+                $pay->name = $_SESSION['alias']->name;
+                $pay->info = 'Сума: <b>'.$pay->amount.' '.$pay->currency_code.'</b> </p>';
+                $pay->info .= '<p>Статус оплати: <b>'.$pay->status.'</b> від <b>'.date('d.m.Y H:i', $pay->date_edit).'</b> </p>';
+                $pay->info .= '<p>Відповідь банку: <b>'.$pay->comment.'</b> </p>';
+                $pay->info .= '<p>Заявку на оплату сформовано: <b>'.date('d.m.Y H:i', $pay->date_add).'</b>';
+                $pay->admin_link = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$pay->id;
+                return $pay;
+            }
+        }
+        return false;
+    }
 }
 
 ?>

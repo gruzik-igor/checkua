@@ -408,8 +408,26 @@ class cart_model
 				{
 					if(!in_array($pay->wl_alias, $payments_ids))
         				$payments_ids[] = $pay->wl_alias;
-					$pay->name = $pay->payment_name;
-					$pay->info = $pay->payment_info;
+        			if(empty($pay->name))
+						$pay->name = $pay->payment_name;
+					elseif($_SESSION['language'])
+					{
+						@$name = unserialize($pay->name);
+						if(isset($name[$_SESSION['language']]))
+							$pay->name = $name[$_SESSION['language']];
+						else if(is_array($name))
+							$pay->name = array_shift($name);
+					}
+					if(empty($pay->info))
+						$pay->info = $pay->payment_info;
+					elseif($_SESSION['language'])
+					{
+						@$info = unserialize($pay->info);
+						if(isset($info[$_SESSION['language']]))
+							$pay->info = $info[$_SESSION['language']];
+						else if(is_array($info))
+							$pay->info = array_shift($info);
+					}
 					unset($pay->payment_name, $pay->payment_info);
 				}
 				else if($_SESSION['language'] && empty($where['id']))

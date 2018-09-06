@@ -16,7 +16,7 @@
             <tr>
                 <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
                 <td>Заявка</td>
-                <td></td>
+                <td><?= $cart->comment?> </td>
                 <td><?= $cart->user_name?></td>
             </tr>
         	<?php if($cart->history) foreach($cart->history as $history) {?>
@@ -57,8 +57,17 @@
             echo "<p>Контактний телефон: <b>{$cart->shipping_info['phone']}</b> </p>";
     }
 
-    if(!empty($cart->payment_name))
-        echo '<p>Платіжний механізм: <b>'.$cart->payment_name.'</b></p>';
+    if(!empty($cart->payment->name))
+    {
+        echo "<legend>Оплата</legend>";
+        echo '<p>Платіжний механізм: <b>'.$cart->payment->name.'</b></p>';
+        echo "<p>{$cart->payment->info}</p>";
+        if(!empty($cart->payment->admin_link))
+            echo "<a href='{$cart->payment->admin_link}' class='btn btn-info btn-xs'>Повна інформація по оплаті</a>";
+    }
+
+    if(!empty($cart->comment))
+        echo "<div class='alert alert-warning'><h4>Побажання до замовлення</h4>{$cart->comment}</div>";
 
     if($cartStatuses) { ?>
     <legend>Керування замовленням</legend>
@@ -188,7 +197,7 @@
     }
 
     function saveToHistory() {
-        if(confirm('Ви впевнені, що хочете змінити статус?')){
+        if(confirm('Ви впевнені, що хочете оновити статус?')){
             return true;
         }
         return false;

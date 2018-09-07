@@ -23,8 +23,21 @@ class Search extends Controller {
 					$start = $this->data->get('page') * $_SESSION['option']->paginator_per_page;
 				}
 
+				$find = array();
 				foreach ($search_data as $search)
 				{
+					if(isset($find[$search->alias_id]))
+					{
+						if(in_array($search->content, $find[$search->alias_id]))
+							continue;
+						else
+							$find[$search->alias_id][] = $search->content;
+					}
+					else
+					{
+						$find[$search->alias_id] = array();
+						$find[$search->alias_id][] = $search->content;
+					}
 					$result = $this->load->function_in_alias($search->alias_id, '__get_Search', $search->content, true);
 					if($result)
 					{

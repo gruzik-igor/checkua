@@ -274,7 +274,7 @@ class wl_alias_model
 			$_SESSION['alias']->description = $this->getShortText($_SESSION['alias']->list);
     }
 
-    private function getShortText($text, $len = 155)
+    private function getShortText($text, $len = 230)
     {
         $text = strip_tags(html_entity_decode($text));
         if(mb_strlen($text, 'UTF-8') > $len)

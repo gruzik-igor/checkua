@@ -65,9 +65,9 @@
 							<div class="col-md-4">
 		                        <input type="text" onChange="save('keywords', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->keywords?>" class="form-control">
 		                    </div>
-		                    <label class="col-md-2 control-label m-t-5">description: (max 155)</label>
+		                    <label class="col-md-2 control-label m-t-5">description: (max 230)</label>
 							<div class="col-md-10 m-t-5">
-		                        <input class="form-control" onChange="save('description', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->description?>" maxlength="155">
+		                        <input class="form-control" onChange="save('description', this, '<?=$lang?>')" value="<?=$ntkd[$lang]->description?>" maxlength="230">
 		                    </div>
 		                </div>
 		                <?php $where = array('alias' => $alias->id, 'content' => $content, 'language' => $lang);
@@ -145,9 +145,9 @@
 				<div class="col-md-4">
                     <input type="text" onChange="save('keywords', this)" value="<?=$ntkd->keywords?>" class="form-control">
                 </div>
-                <label class="col-md-2 control-label m-t-5">description: (max 155)</label>
+                <label class="col-md-2 control-label m-t-5">description: (max 230)</label>
 				<div class="col-md-10 m-t-5">
-                    <input class="form-control" onChange="save('description', this)" value="<?=$ntkd->description?>" maxlength="155">
+                    <input class="form-control" onChange="save('description', this)" value="<?=$ntkd->description?>" maxlength="230">
                 </div>
             </div>
             <?php $where = array('alias' => $alias->id, 'content' => $content);

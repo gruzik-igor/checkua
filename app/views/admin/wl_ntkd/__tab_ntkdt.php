@@ -68,8 +68,8 @@ else
 	</div>
 	<div class="input-group">
 	    <span class="input-group-addon">description</span>
-	    <input type="text" value="<?=$ntkd->description?>" class="form-control" placeholder="<?=$ntkd->list?>" onChange="save('description', this <?=$language_attr?>)" maxlength="155">
-	    <span class="input-group-addon">max: 155</span>
+	    <input type="text" value="<?=$ntkd->description?>" class="form-control" placeholder="<?=$ntkd->list?>" onChange="save('description', this <?=$language_attr?>)" maxlength="230">
+	    <span class="input-group-addon">max: 230</span>
 	</div>
 	<div class="input-group">
 	    <span class="input-group-addon">meta (додатково)</span>

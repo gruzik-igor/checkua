@@ -143,7 +143,16 @@ class Reset extends Controller {
 		}
 	}
 
-	public function __get_Search($content = 0)
+	public function __get_SiteMap_Links()
+    {
+        $row = array();
+        $row['link'] = $_SESSION['alias']->alias;
+        $row['alias'] = $_SESSION['alias']->id;
+        $row['content'] = 0;
+        return array($row);
+    }
+
+    public function __get_Search($content = 0)
     {
     	$search = new stdClass();
 		$search->id = $_SESSION['alias']->id;

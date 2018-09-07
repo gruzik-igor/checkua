@@ -9,21 +9,21 @@
     <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
     <meta content="" name="description" />
     <meta content="" name="author" />
-    <link rel="shortcut icon" href="<?=IMG_PATH?>ico.jpg">
+    <link rel="shortcut icon" href="<?=SERVER_URL?>favicon.ico">
 
     <!-- ================== BEGIN BASE CSS STYLE ================== -->
-    <link href="http://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
-    <link href="<?=SITE_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>style/admin/animate.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>style/admin/style.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
-    <link href="<?=SITE_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
+    <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,400,600,700" rel="stylesheet">
+    <link href="<?=SERVER_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>assets/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>style/admin/animate.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>style/admin/style.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>style/admin/style-responsive.min.css" rel="stylesheet" />
+    <link href="<?=SERVER_URL?>style/admin/theme/default.css" rel="stylesheet" id="theme" />
     <!-- ================== END BASE CSS STYLE ================== -->
 
     <!-- ================== BEGIN BASE JS ================== -->
-    <script src="<?=SITE_URL?>assets/pace/pace.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/pace/pace.min.js"></script>
     <!-- ================== END BASE JS ================== -->
 </head>
 <body class="pace-top">
@@ -136,22 +136,22 @@
     <!-- end page container -->
 
     <!-- ================== BEGIN BASE JS ================== -->
-    <script src="<?=SITE_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
-    <script src="<?=SITE_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
-    <script src="<?=SITE_URL?>assets/jquery-ui/ui/minified/jquery-ui.min.js"></script>
-    <script src="<?=SITE_URL?>assets/bootstrap/js/bootstrap.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/jquery/jquery-1.9.1.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/jquery/jquery-migrate-1.1.0.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/jquery-ui/ui/minified/jquery-ui.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/bootstrap/js/bootstrap.min.js"></script>
     <!--[if lt IE 9]>
-        <script src="<?=SITE_URL?>assets/crossbrowserjs/html5shiv.js"></script>
-        <script src="<?=SITE_URL?>assets/crossbrowserjs/respond.min.js"></script>
-        <script src="<?=SITE_URL?>assets/crossbrowserjs/excanvas.min.js"></script>
+        <script src="<?=SERVER_URL?>assets/crossbrowserjs/html5shiv.js"></script>
+        <script src="<?=SERVER_URL?>assets/crossbrowserjs/respond.min.js"></script>
+        <script src="<?=SERVER_URL?>assets/crossbrowserjs/excanvas.min.js"></script>
     <![endif]-->
-    <script src="<?=SITE_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
-    <script src="<?=SITE_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
+    <script src="<?=SERVER_URL?>assets/slimscroll/jquery.slimscroll.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/jquery-cookie/jquery.cookie.js"></script>
     <!-- ================== END BASE JS ================== -->
 
     <!-- ================== BEGIN PAGE LEVEL JS ================== -->
-    <script src="<?=SITE_URL?>assets/color-admin/login-v2.min.js"></script>
-    <script src="<?=SITE_URL?>assets/color-admin/apps.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/color-admin/login-v2.min.js"></script>
+    <script src="<?=SERVER_URL?>assets/color-admin/apps.min.js"></script>
     <!-- ================== END PAGE LEVEL JS ================== -->
 
     <script>

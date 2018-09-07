@@ -3,6 +3,7 @@
 class cart_model
 {
 	public $additional_user_fields = array('phone');
+	private $productsCountInCart = false;
 
 	public function table($sufix = '', $useAliasTable = false)
 	{
@@ -118,6 +119,13 @@ class cart_model
 		return false;
 	}
 
+	public function getProductsCountInCart()
+	{
+		if($this->productsCountInCart === false)
+			$this->getProductsInCart();
+		return $this->productsCountInCart;
+	}
+
 	public function getProductsInCart($user = 0)
 	{
 		if(isset($_SESSION['user']->id))
@@ -129,13 +137,18 @@ class cart_model
 			{
 				foreach ($products as $product) {
 					$product->key = $product->id;
-					$product->product_options = unserialize($product->product_options);
+					if(!is_array($product->product_options) && !empty($product->product_options))
+						$product->product_options = unserialize($product->product_options);
 				}
+				$this->productsCountInCart = count($products);
 				return $products;
 			}
 		}
 		elseif(isset($_SESSION['cart']->products))
+		{
+			$this->productsCountInCart = count($_SESSION['cart']->products);
 			return $_SESSION['cart']->products;
+		}
 		return false;
 	}
 
@@ -172,6 +185,7 @@ class cart_model
 			$cart_product['product_options'] = serialize($product->product_options);
 		$cart_product['storage_alias'] = $product->storage_alias;
 		$cart_product['storage_invoice'] = $product->storage_invoice;
+
 		if($inCart = $this->db->getAllDataById($this->table('_products'), $cart_product))
 		{
 			$update = array();

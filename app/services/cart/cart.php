@@ -169,7 +169,11 @@ class cart extends Controller {
                         if(!empty($changePrice))
                             $product->price = $this->load->function_in_alias($wl_alias, '__get_Price_With_options', array('product' => $product->product_id, 'options' => $changePrice));
                         if(!empty($list))
+                        {
                             $product->product_options = $list;
+                            $list = serialize($list);
+                            $product->key .= '-'.md5($list);
+                        }
                     }
                     $product->storage_alias = $product->storage_invoice = 0;
                     if($storage_id)
@@ -190,8 +194,23 @@ class cart extends Controller {
                     else
                         $_SESSION['cart']->products[$product->key] = $product;
                     $product->priceFormat = $this->cart_model->priceFormat($product->price);
-                    $res['product'] = $product;
+                    $openProduct = new stdClass();
+                    $openProduct->key = $product->key;
+                    $openProduct->priceFormat = $product->priceFormat;
+                    $openProduct->quantity = $product->quantity;
+                    $openProduct->admin_photo = $product->admin_photo;
+                    $openProduct->link = $product->link;
+                    $openProduct->name = $product->name;
+                    $openProduct->product_options = '';
+                    if(!empty($product->product_options))
+                        foreach ($product->product_options as $key => $value) {
+                            if(!empty($openProduct->product_options))
+                                $openProduct->product_options .= '<br>';
+                            $openProduct->product_options .= $key.': '.$value;
+                        }
+                    $res['product'] = $openProduct;
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                    $res['productsCountInCart'] = $this->cart_model->getProductsCountInCart();
                     $res['result'] = true;
                 }
             }

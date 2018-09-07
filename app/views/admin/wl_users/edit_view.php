@@ -21,8 +21,8 @@
 $additionall_tabs = array();
 if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => '<0', 'type' => '__tab_profile'), 'alias1'))
     foreach ($actions as $action) {
-        $tab = $this->load->function_in_alias($action->alias2, '__tab_profile', $user->id, true);
-        $additionall_tabs[$tab->key] = clone $tab;
+        if($tab = $this->load->function_in_alias($action->alias2, '__tab_profile', $user->id, true))
+            $additionall_tabs[$tab->key] = clone $tab;
     }
 ?>
 

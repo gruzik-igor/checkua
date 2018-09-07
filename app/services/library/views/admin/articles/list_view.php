@@ -76,6 +76,10 @@
 							<?php } } ?>
                         </tbody>
                     </table>
+                    <?php
+$this->load->library('paginator');
+echo $this->paginator->get();
+?>
                 </div>
             </div>
         </div>

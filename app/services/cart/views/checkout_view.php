@@ -1,10 +1,7 @@
 <link rel="stylesheet" type="text/css" href="<?=SERVER_URL.'style/'.$_SESSION['alias']->alias.'/checkout.css'?>">
 <link href="<?=SERVER_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
 <?php $jss = array('assets/jquery-ui/ui/minified/jquery-ui.min.js', 'js/'.$_SESSION['alias']->alias.'/cities.js', 'js/'.$_SESSION['alias']->alias.'/checkout.js');
-foreach ($jss as $js) {
-	if(!in_array($js, $_SESSION['alias']->js_load))
-		$_SESSION['alias']->js_load[] = $js;
-} ?>
+$this->load->js($jss); ?>
 
 <div class="page-head content-top-margin">
 	<div class="container">
@@ -225,7 +222,7 @@ foreach ($jss as $js) {
 </section>
 <div id="divLoading"></div>
 
-<?php if(!$this->userIs() && $_SESSION['option']->facebook_initialise){ ?>
+<?php if(!$this->userIs() && !empty($_SESSION['option']->facebook_initialise) && $_SESSION['option']->facebook_initialise){ ?>
 	<script>
 		window.fbAsyncInit = function() {
 			

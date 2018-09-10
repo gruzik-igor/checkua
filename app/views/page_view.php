@@ -57,6 +57,13 @@
 		var SITE_URL = '<?=SITE_URL?>';
 	    $(document).ready(function() {
 	        App.init();
+	        <?php
+			if(!empty($_SESSION['alias']->js_init)) {
+				foreach ($_SESSION['alias']->js_init as $js) {
+					echo $js.'; ';
+				}
+			}
+			?>
 	    });
 	</script>
 	<?php

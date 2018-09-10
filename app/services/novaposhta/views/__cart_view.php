@@ -7,7 +7,8 @@
 
 <?php $novaposhta_selected = $this->data->re_post('shipping-novaposhta');
 if(empty($novaposhta_selected) && $userShipping && $userShipping->department)
-    $novaposhta_selected = $userShipping->department; ?>
+    $novaposhta_selected = $userShipping->department; 
+$this->load->js_init('initShipping()'); ?>
 <script>
     var warehouse_by_city = <?= $warehouse_by_city ?>;
     var novaposhta_selected = '<?=$novaposhta_selected?>';

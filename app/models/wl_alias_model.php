@@ -39,6 +39,9 @@ class wl_alias_model
 				$_SESSION['service']->table = $alias->service_table;
 			}
 			$options_where['alias'][] = $alias->id;
+
+			if(isset($_SESSION['alias-cache'][$alias->id]))
+				$_SESSION['alias-cache'][$alias->id]->alias->js_load = $_SESSION['alias-cache'][$alias->id]->alias->js_init  = array();
 		}
 
 		if($options = $this->db->getAllDataByFieldInArray('wl_options', $options_where, 'service, alias'))
@@ -73,6 +76,8 @@ class wl_alias_model
 		$_SESSION['alias']->description = $_SESSION['alias']->keywords = $_SESSION['alias']->text = $_SESSION['alias']->list = $_SESSION['alias']->meta = '';
 		$_SESSION['alias']->audios = $_SESSION['alias']->image = $_SESSION['alias']->images = $_SESSION['alias']->videos = false;
 		$_SESSION['alias']->js_plugins = $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumbs = array();
+		if(isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
+			$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias->js_load = $_SESSION['alias-cache'][$_SESSION['alias']->id]->alias->js_init  = array();
 
 		$options_where['service'] = $options_where['alias'] = array(0);
 		if($page->service > 0)

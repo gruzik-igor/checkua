@@ -327,18 +327,16 @@ class Loader {
 			}
 
 			if(empty($_SESSION['alias-cache'][$_SESSION['alias']->id]))
-			{
 				$_SESSION['alias-cache'][$_SESSION['alias']->id] = new stdClass();
-				$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
-				if(isset($_SESSION['option']))
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
-				else
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
-				if(isset($_SESSION['service']))
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
-				else
-					$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
-			}
+			$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias = clone $_SESSION['alias'];
+			if(isset($_SESSION['option']))
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = clone $_SESSION['option'];
+			else
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->options = null;
+			if(isset($_SESSION['service']))
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = clone $_SESSION['service'];
+			else
+				$_SESSION['alias-cache'][$_SESSION['alias']->id]->service = null;
 
 			if(isset($_SESSION['alias-cache'][$alias->id]))
 			{
@@ -496,11 +494,68 @@ class Loader {
 	{
 		if(is_array($link))
 			foreach ($link as $js) {
-				if(!in_array($js, $_SESSION['alias']->js_load) && $js != '')
-					$_SESSION['alias']->js_load[] = $js;
+				if($js != '')
+				{
+					if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
+					{
+						if(!in_array($js, $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load))
+							$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = $js;
+					}
+					else
+					{
+						if(!in_array($js, $_SESSION['alias']->js_load))
+							$_SESSION['alias']->js_load[] = $js;
+					}
+				}
+				
 			}
-		else if(!in_array($link, $_SESSION['alias']->js_load) && $link != '')
-			$_SESSION['alias']->js_load[] = $link;
+		else if($link != '')
+		{
+			if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
+			{
+				if(!in_array($link, $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load))
+					$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_load[] = $link;
+			}
+			else
+			{
+				if(!in_array($link, $_SESSION['alias']->js_load))
+					$_SESSION['alias']->js_load[] = $link;
+			}
+		}
+	}
+
+	public function js_init($link='')
+	{
+		if(is_array($link))
+			foreach ($link as $js) {
+				if($js != '')
+				{
+					if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
+					{
+						if(!in_array($js, $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_init))
+							$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_init[] = $js;
+					}
+					else
+					{
+						if(!in_array($js, $_SESSION['alias']->js_init))
+							$_SESSION['alias']->js_init[] = $js;
+					}
+				}
+				
+			}
+		else if($link != '')
+		{
+			if(isset($_SESSION['alias']->alias_from) && $_SESSION['alias']->alias_from != $_SESSION['alias']->id)
+			{
+				if(!in_array($link, $_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_init))
+					$_SESSION['alias-cache'][$_SESSION['alias']->alias_from]->alias->js_init[] = $link;
+			}
+			else
+			{
+				if(!in_array($link, $_SESSION['alias']->js_init))
+					$_SESSION['alias']->js_init[] = $link;
+			}
+		}
 	}
 
 	/**

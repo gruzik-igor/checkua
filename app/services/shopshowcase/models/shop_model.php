@@ -559,6 +559,8 @@ class shop_model {
 					$where_ntkd['content'] = "#-pg.group";
         			$this->db->join('wl_ntkd', 'name', $where_ntkd);
 					if($product->group = $this->db->get('array'))
+					{
+						$setBreadcrumbs = true;
 			            foreach ($product->group as $g) {
 			            	if($g->active)
 			            		$product->active = $g->active;
@@ -566,7 +568,27 @@ class shop_model {
 			            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($list, $g->parent, $g->alias);
 			            	else
 			            		$g->link = $_SESSION['alias']->alias . '/' . $g->alias;
+			            	if(isset($_SESSION['alias']->breadcrumbs) && isset($_SERVER['HTTP_REFERER']) && $g->link == str_replace(SITE_URL, '', $_SERVER['HTTP_REFERER']))
+			            	{
+			            		$setBreadcrumbs = false;
+			            		$parents = $this->makeParents($list, $g->id, $product->parents);
+								$link = $_SESSION['alias']->alias . '/';
+								foreach ($parents as $parent) {
+									$link .= $parent->alias .'/';
+									$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+								}
+			            	}
 			            }
+			            if(isset($_SESSION['alias']->breadcrumbs) && $setBreadcrumbs)
+			            {
+			            	$parents = $this->makeParents($list, $product->group[0]->id, $product->parents);
+							$link = $_SESSION['alias']->alias . '/';
+							foreach ($parents as $parent) {
+								$link .= $parent->alias .'/';
+								$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+							}
+			            }
+			        }
 				}
 			}
 			if($all_info)

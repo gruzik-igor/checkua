@@ -470,9 +470,11 @@ class library_model {
 		{
 			$options = $this->db->getRows('array');
 			foreach ($options as $option) if($option->value != '') {
-				@$article_options[$option->id]->id = $option->id;
+				$article_options[$option->id] = new stdClass();
+				$article_options[$option->id]->id = $option->id;
 				$article_options[$option->id]->alias = $option->alias;
 				$article_options[$option->id]->filter = $option->filter;
+				$article_options[$option->id]->value = $option->value;
 				$where = array();
 				$where['option'] = $option->id;
 				if($_SESSION['language']) $where['language'] = $_SESSION['language'];

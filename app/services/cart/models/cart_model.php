@@ -304,8 +304,26 @@ class cart_model
 					$shipping->type = 0;
 					if(!in_array($shipping->wl_alias, $shippings_ids))
         				$shippings_ids[] = $shipping->wl_alias;
-					$shipping->name = $shipping->shipping_name;
-					$shipping->info = $shipping->shipping_info;
+					if(empty($shipping->name))
+						$shipping->name = $shipping->payment_name;
+					elseif($_SESSION['language'])
+					{
+						@$name = unserialize($shipping->name);
+						if(isset($name[$_SESSION['language']]))
+							$shipping->name = $name[$_SESSION['language']];
+						else if(is_array($name))
+							$shipping->name = array_shift($name);
+					}
+					if(empty($shipping->info))
+						$shipping->info = $shipping->payment_info;
+					elseif($_SESSION['language'])
+					{
+						@$info = unserialize($shipping->info);
+						if(isset($info[$_SESSION['language']]))
+							$shipping->info = $info[$_SESSION['language']];
+						else if(is_array($info))
+							$shipping->info = array_shift($info);
+					}
 					unset($shipping->shipping_name, $shipping->shipping_info);
 				}
 				else if($_SESSION['language'] && empty($where['id']))

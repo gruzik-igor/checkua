@@ -619,6 +619,7 @@ class cart extends Controller {
             }
             $_SESSION['cart']->products = NULL;
 
+            $_SESSION['notify'] = new stdClass();
             if(date('H') > 18 || date('H') < 6)
                 $_SESSION['notify']->success = $this->text('Доброго вечора').', <strong>'.$_SESSION['user']->name.'</strong>! '.$this->text('Дякуємо що повернулися');
             else

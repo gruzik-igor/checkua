@@ -833,7 +833,7 @@ class cart_admin extends Controller {
         if(is_numeric($_POST['id']))
         {
             $this->load->smodel('cart_model');
-            $shipping = array('wl_alias' => 0, 'active' => 0);
+            $shipping = array('active' => 0);
             $shipping['type'] = $this->data->post('type');
             $shipping['active'] = ($_POST['active'] > 0 || $_POST['id'] == 0) ? 1 : 0;
             if($_SESSION['language'])
@@ -858,6 +858,7 @@ class cart_admin extends Controller {
             if($_POST['id'] == 0)
             {
                 $_SESSION['notify']->success = 'Оплату додано';
+                $shipping['wl_alias'] = 0;
                 $shipping['position'] = $this->db->getCount($this->cart_model->table('_shipping')) + 1;
                 $this->db->insertRow($this->cart_model->table('_shipping'), $shipping);
             }

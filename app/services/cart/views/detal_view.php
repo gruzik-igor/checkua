@@ -40,14 +40,33 @@
 					<h1 class="col-md-12"><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
 					<p><strong><?= $cart->user_name .", " . $cart->user_email ?></strong></p>
 					<p>Статус замовлення: <strong><?= $cart->status_name ?></strong></p>
-				<?php } if($cart->shipping_id) { ?>
-    				<p><?= $cart->shipping->method_name ?><?= ($cart->shipping->method_site) ? ', '. $cart->shipping->method_site : '' ?></p>
-    				<p><?= $cart->shipping->address ?></p>
-    				<p><?= $cart->shipping->receiver .", " . $cart->shipping->phone ?></p>
-				<?php } ?>
+				<?php }
+				if($cart->shipping_id) {
+			        echo "<legend>Доставка</legend>";
+			        echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
+			        if(!empty($cart->shipping->text))
+			            echo "<p>{$cart->shipping->text}</p>";
+			        else
+			        {
+			            if(!empty($cart->shipping_info['city']))
+			                echo "<p>Місто: <b>{$cart->shipping_info['city']}</b> </p>";
+			            if(!empty($cart->shipping_info['department']))
+			                echo "<p>Відділення: <b>{$cart->shipping_info['department']}</b> </p>";
+			            if(!empty($cart->shipping_info['address']))
+			                echo "<p>Адреса: <b>{$cart->shipping_info['address']}</b> </p>";
+			        }
+			        if(!empty($cart->shipping_info['recipient']))
+			        {
+			            echo "<p>Отримувач: <b>{$cart->shipping_info['recipient']}</b> ";
+			            if(!empty($cart->shipping_info['phone']))
+			            	echo " <b>{$cart->shipping_info['phone']}</b>";
+			        	echo "</p>";
+			        }
+			    } ?>
 				<hr>
 				</div>
 			</div>
+			
 			<?php if($cart->products) foreach($cart->products as $product) { //print_r($product); ?>
 				<div class="row">
 					<?php if($product->info->photo) { ?>

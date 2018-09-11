@@ -29,58 +29,83 @@ class cart extends Controller {
 
     public function index()
     {
-        $this->wl_alias_model->setContent();
         $this->load->smodel('cart_model');
 
         if($id = $this->data->uri(1))
         {
-            if(isset($_SESSION['user']->id))
+            if(is_numeric($id))
             {
-                if($cart = $this->cart_model->getById($id))
+                if(isset($_SESSION['user']->id))
                 {
-                    $_SESSION['alias']->name = $this->text('Замовлення №').$id;
-                    if($cart->user == $_SESSION['user']->id || $this->userCan())
+                    if($cart = $this->cart_model->getById($id))
                     {
-                        $_SESSION['alias']->breadcrumbs = array($this->text('До всіх замовлень') => $_SESSION['alias']->alias.'/my', $this->text('Замовлення №').$id => '');
+                        $this->wl_alias_model->setContent($id);
+                        $_SESSION['alias']->name = $_SESSION['alias']->title = $this->text('Замовлення №').$id;
+                        if($cart->user == $_SESSION['user']->id || $this->userCan())
+                        {
+                            $_SESSION['alias']->breadcrumbs = array($this->text('До всіх замовлень') => $_SESSION['alias']->alias.'/my', $this->text('Замовлення №').$id => '');
 
-                        if($cart->products)
-                            foreach ($cart->products as $product) {
-                                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
-                                if($product->storage_invoice)
-                                    $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                            if($cart->products)
+                                foreach ($cart->products as $product) {
+                                    $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                                    if($product->storage_invoice)
+                                        $product->storage = $this->load->function_in_alias($product->product_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $product->user_type));
+                                }
+
+                            $cart->shipping = $cart->payment = false;
+                            if($cart->shipping_id && !empty($cart->shipping_info))
+                            {
+                                $cart->shipping_info = unserialize($cart->shipping_info);
+                                if($cart->shipping = $this->cart_model->getShippings(array('id' => $cart->shipping_id)))
+                                {
+                                    $cart->shipping = $cart->shipping[0];
+                                    $cart->shipping->text = '';
+                                    if($cart->shipping->wl_alias)
+                                        $cart->shipping->text = $this->load->function_in_alias($cart->shipping->wl_alias, '__get_info', $cart->shipping_info);  
+                                }
+                            }
+                            
+                            if($cart->payment_alias && $cart->payment_id)
+                                $cart->payment = $this->load->function_in_alias($cart->payment_alias, '__get_info', $cart->payment_id);
+                            else if($cart->payment_id)
+                            {
+                                $cart->payment = $this->cart_model->getPayments(array('id' => $cart->payment_id));
+                                if($cart->payment)
+                                    $cart->payment = $cart->payment[0];
                             }
 
-                        if($cart->shipping_id)
-                            $cart->shipping = $this->load->function_in_alias($cart->shipping_alias, '__get_delivery_info', $cart->shipping_id);
-
-                        if($this->data->uri(2) == 'print')
-                            $this->load->view('detal_view', array('cart' => $cart, 'controls' => false));
-                        elseif($this->data->uri(2) == 'pay')
-                        {
-                            $cooperation_where['alias1'] = $_SESSION['alias']->id;
-                            $cooperation_where['type'] = 'payment';
-                            $ntkd = array('alias' => '#c.alias2', 'content' => 0);
-                            if($_SESSION['language'])
-                                $ntkd['language'] = $_SESSION['language'];
-                            $payments = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
-                                                    ->join('wl_ntkd', 'name, list as info', $ntkd)
-                                                    ->get('array');
-                            $this->load->page_view('pay_view', array('cart' => $cart, 'payments' => $payments));
+                            if($this->data->uri(2) == 'print')
+                                $this->load->view('detal_view', array('cart' => $cart, 'controls' => false));
+                            elseif($this->data->uri(2) == 'pay')
+                            {
+                                $cooperation_where['alias1'] = $_SESSION['alias']->id;
+                                $cooperation_where['type'] = 'payment';
+                                $ntkd = array('alias' => '#c.alias2', 'content' => 0);
+                                if($_SESSION['language'])
+                                    $ntkd['language'] = $_SESSION['language'];
+                                $payments = $this->db->select('wl_aliases_cooperation as c', 'alias2 as id', $cooperation_where)
+                                                        ->join('wl_ntkd', 'name, list as info', $ntkd)
+                                                        ->get('array');
+                                $this->load->page_view('pay_view', array('cart' => $cart, 'payments' => $payments));
+                            }
+                            else
+                                $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
+                            exit;
                         }
                         else
-                            $this->load->page_view('detal_view', array('cart' => $cart, 'controls' => true));
-                        exit;
+                            $this->load->notify_view(array('errors' => $this->text('Немає прав для перегляду даного замовлення.')));
                     }
                     else
-                        $this->load->notify_view(array('errors' => $this->text('Немає прав для перегляду даного замовлення.')));
+                        $this->load->page_404(false);
                 }
                 else
-                    $this->load->page_404(false);
+                    $this->redirect('login');
             }
             else
-                $this->redirect('login');
+                $this->load->page_404();
         }
 
+        $this->wl_alias_model->setContent();
         $user_type = 0;
         if(isset($_SESSION['user']->type))
             $user_type = $_SESSION['user']->type;

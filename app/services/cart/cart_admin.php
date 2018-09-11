@@ -87,6 +87,14 @@ class cart_admin extends Controller {
                 $_SESSION['option']->paginator_per_page = 25;
 
                 $carts = $this->cart_model->getCarts();
+                if($carts)
+                    foreach ($carts as $cart) {
+                        if($cart->products)
+                            foreach ($cart->products as $product) {
+                                $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
+                                break;
+                            }
+                    }
             }
             $this->load->admin_view('index_view', array('carts' => $carts));
         }

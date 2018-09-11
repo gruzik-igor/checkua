@@ -76,7 +76,12 @@ class cart_model
 
 		$carts = $this->db->get('array', false);
 		if($carts)
+		{
 			$_SESSION['option']->paginator_total = $this->db->get('count');
+			foreach ($carts as $cart) {
+				$cart->products = $this->db->getAllDataByFieldInArray($this->table('_products'), $cart->id, 'cart');
+			}
+		}
 		else
 		{
 			$_SESSION['option']->paginator_total = 0;

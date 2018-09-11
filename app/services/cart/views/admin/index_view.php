@@ -29,17 +29,21 @@
                         <thead>
                             <tr>
                             	<th>ID</th>
-                            	<th></th>
+                            	<th>Статус</th>
+                            	<th>Товар</th>
                             	<th>Покупець</th>
-                            	<th>Контактний номер</th>
-								<th>Статус</th>
 								<th>Загальна сума</th>
-								<th>Дата заявки</th>
-								<th>Дата обробки</th>
                             </tr>
                         </thead>
                         <tbody>
-						<?php if(!empty($carts)){ foreach($carts as $cart){ 
+						<?php if(!empty($carts)){ $activeDay = false;
+							foreach($carts as $cart){ 
+								$day = date('d.m.Y', $cart->date_add);
+								if($activeDay != $day)
+								{
+									echo "<tr><th colspan=5>{$day}</th></tr>";
+									$activeDay = $day;
+								}
 							$color = 'default';
 							switch ($cart->status) {
 								case 1:
@@ -57,15 +61,46 @@
 									break;
 							}
 							?>
-						<tr>
-							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>"><?=$cart->id?></a></td>
-							<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">Детальніше</a></td>
-							<td><?= ($cart->user_name != '') ? $cart->user_name : 'Гість'?></td>
-							<td><?= $cart->user_phone?></td>
-							<td><?= $cart->status_name?></td>
-							<td><?= $cart->total?> грн</td>
-							<td><?= date('d.m.Y H:i', $cart->date_add)?></td>
-							<td><?= $cart->date_edit > 0 ? date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
+						<tr class="<?=$color?>">
+							<td title="<?= date('d.m.Y H:i', $cart->date_add)?>">
+								<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs"><?=$cart->id?></a>
+								<br>
+								<?= date('H:i', $cart->date_add)?>
+							</td>
+							<td><strong><?= $cart->status_name?></strong> <?= $cart->date_edit > 0 ? '<br>від '.date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
+							<td><?php if($cart->products)
+                            foreach ($cart->products as $product) {
+                            	if($product->info->photo) { ?>
+					    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
+					    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
+					    			</a>
+				    			<?php } if(!empty($product->info->article)) { ?>
+					    			<a href="<?=SITE_URL.$product->info->link?>" target="_blank"><?= $product->info->article ?></a> <br>
+					    		<?php } 
+	    						echo '<strong>'.$product->info->name.'</strong>';
+	    						if(!empty($product->product_options))
+								{
+									$product->product_options = unserialize($product->product_options);
+									$opttext = '';
+									foreach ($product->product_options as $key => $value) {
+										$opttext .= "{$key}: <strong>{$value}</strong>, ";
+									}
+									$opttext = substr($opttext, 0, -2);
+									echo "<p>{$opttext}</p>";
+								}
+								else
+									echo "<br><br>";
+	    						break;
+	    					} if(count($cart->products) > 1) { ?>
+	    						<p><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">+ <?=count($cart->products) - 1?> товар</a></p>
+	    					<?php } ?>
+							</td>
+							<td>
+								<strong><?= ($cart->user_name != '') ? $cart->user_name : 'Гість'?></strong>
+								<br>
+								<?= $cart->user_phone?>
+							</td>
+							<th><?= $cart->total?> грн</th>
 						</tr>
 						<?php } } else { ?>
 							<tr>
@@ -75,7 +110,7 @@
 						</tbody>
 					</table>
 				</div>
-				<?php
+				<?php print_r($cart);
                 $this->load->library('paginator');
                 echo $this->paginator->get();
                 ?>

@@ -119,7 +119,7 @@
 	            		$g->link = SITE_URL.'admin/'.$_SESSION['alias']->alias . '/' . parentsLink($parents, $list, $g->parent, $g->alias);
 	            		if($parents)
 	            		{
-	            			rsort($parents);
+	            			krsort ($parents);
 	            			foreach ($parents as $parent) {
 	            				$link = SITE_URL.'admin/'.$_SESSION['alias']->alias . '/' . makeLink($list, $list[$parent]->parent, $list[$parent]->alias);
 	            				echo "<a href=\"{$link}\" target=\"_blank\">{$list[$parent]->name}</a>/";
@@ -220,7 +220,7 @@
 					if($option->sufix != '') echo " ({$option->sufix})";
 					echo('</label> <div class="col-md-9">');
 
-					if($option->toCart && $option->type_name != 'checkbox')
+					if($option->toCart && $option->type_name != 'checkbox' && $option->type_name != 'checkbox-select2')
 					{
 						echo 'Обирає клієнт перед додачею в корзину (для ручного керування оберіть тип властивісті checkbox): ';
 						$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';

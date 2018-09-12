@@ -373,17 +373,20 @@ class shop_model {
 	        }
 	        if(!$getProductOptions)
 	        {
-	        	if($mainOptions = $this->db->getAllDataByFieldInArray($this->table('_options'), array('alias' => $_SESSION['alias']->id, 'main' => 1)))
+	        	if($mainOptions = $this->db->getAllDataByFieldInArray($this->table('_options'), array('wl_alias' => $_SESSION['alias']->id, 'main' => 1)))
 	        	{
 	        		$ids = array();
 	        		foreach ($mainOptions as $o) {
 	        			$ids[] = $o->id;
-	        			$main_options_Alias[$o->id] = $o->alias;
+	        			$o->alias = explode('-', $o->alias);
+	        			if($o->alias[0] == $o->id)
+	        				array_shift($o->alias);
+	        			$main_options_Alias[$o->id] = implode('_', $o->alias);
 	        		}
 	        		$where = array('option' => '#po.value');
 	        		if($_SESSION['language'])
 	        			$where['language'] = $_SESSION['language'];
-			        $options = $this->db->select($this->table('_product_options'). ' as po', 'product', array('product' => $products_ids, 'option' => $ids))
+			        $options = $this->db->select($this->table('_product_options'). ' as po', 'option, product', array('product' => $products_ids, 'option' => $ids))
 		            						->join($this->table('_options_name'), 'name', $where)->get('array');
 		            if($options)
 		            	foreach ($options as $opt) {

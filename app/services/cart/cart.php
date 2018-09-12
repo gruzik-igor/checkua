@@ -618,7 +618,7 @@ class cart extends Controller {
                     else 
                     {
                         $this->wl_alias_model->setContent(2);
-                        $this->load->page_view('success_view');
+                        $this->load->page_view('success_view', array('cart' => $cart));
                     }
                 }
             }

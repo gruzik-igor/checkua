@@ -194,7 +194,7 @@ $this->load->js($jss); ?>
 								<div id="payment" class="checkout-payment">
 								    <ul class="payment-methods">
 								    	<?php if($payments) foreach ($payments as $payment) {
-											$checked = (count($payments) == 1) ? 'checked' : '';
+											$checked = ($payments[0]->id == $payment->id) ? 'checked' : '';
 								    		?>
 								    		<li class="payment-method">
 									            <input id="payment_method_cod-<?=$payment->id?>" type="radio" name="payment_method" value="<?=$payment->id?>" <?=$checked?>>

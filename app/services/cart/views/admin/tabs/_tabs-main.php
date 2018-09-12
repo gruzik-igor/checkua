@@ -40,10 +40,6 @@
 				<th>Дата останньої операції (обробки)</th>
 				<td><?= $cart->date_edit > 0 ? date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
 			</tr>
-			<tr>
-				<th>Поточний статус заявки</th>
-				<td><?= $cart->status_name ?></td>
-			</tr>
     	</tbody>
     </table>
 </div>

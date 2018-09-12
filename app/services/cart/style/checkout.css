@@ -211,17 +211,11 @@ input[type=radio]:not(.browser-default):checked+label.radio {
     margin-top: 20px;
 }
 
-#divLoading
-{
+#divLoading {
     display : none;
-}
-
-#divLoading.show
-{
-    display : block;
     position : fixed;
     z-index: 1001;
-    background-image : url('../style/icon-loading.gif');
+    background-image : url('icon-loading.gif');
     background-color:#f9f8eb;
     opacity : 0.7;
     background-repeat : no-repeat;
@@ -230,6 +224,10 @@ input[type=radio]:not(.browser-default):checked+label.radio {
     bottom : 0;
     right : 0;
     top : 0;
+}
+
+#divLoading.show {
+    display : block;
 }
 
 .facebookSignUp {

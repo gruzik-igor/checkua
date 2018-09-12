@@ -39,7 +39,8 @@
     
     <?php if($cart->shipping_id) {
         echo "<legend>Доставка</legend>";
-        echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
+        if(!empty($cart->shipping->name))
+            echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
         if(!empty($cart->shipping->text))
             echo "<p>{$cart->shipping->text}</p>";
         else

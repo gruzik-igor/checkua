@@ -27,11 +27,11 @@
 		    <meta charset="utf-8">
 		    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 			<meta name="viewport" content="width=device-width, maximum-scale=1, initial-scale=1, user-scalable=0" />
-			<link href="<?=SITE_URL?>assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+			<link href="<?=SERVER_URL?>assets/bootstrap/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
 		</head>
 
 		<body onload="window.print();">
-		<center><img src="<?=SITE_URL?>images/skif.png" style="padding-top: 15px; width: 150px;"></center>
+		<center><img src="<?=SERVER_URL?>style/images/logo.png" style="padding-top: 15px; width: 150px;"></center>
 <?php } ?>
 		<div class="container">
 		    <div class="row">

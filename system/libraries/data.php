@@ -144,7 +144,7 @@ class Data {
 
 	public function get_link($new_key = '', $new_value = '')
 	{
-		$link = SITE_URL . $_GET['request'];
+		$link = SERVER_URL . $_GET['request'];
 		if(($new_key != '' && $new_value != '') || count($_GET) > 1)
 		{
         	$link .= '?';

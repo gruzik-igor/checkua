@@ -216,6 +216,7 @@ class shopshowcase extends Controller {
 			elseif(isset($id['article'])) $id = $id['article'];
 		}
 		$this->load->smodel('shop_model');
+		unset($_SESSION['alias']->breadcrumbs);
 		return $this->shop_model->getProduct($id, $key);
 	}
 

@@ -1008,18 +1008,21 @@ class shop_model {
 
 	public function makeParents($all, $parent, $parents)
 	{
-		$group = clone $all[$parent];
-		if(empty($group->name))
+		if(isset($all[$parent]))
 		{
-			$where = '';
-	        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
-	        $ntkd = $this->db->getQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
-	    	if(is_object($ntkd))
-	    		$group->name = $ntkd->name;
-	    }
-    	array_unshift ($parents, $group);
-		if($all[$parent]->parent > 0)
-			$parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
+			$group = clone $all[$parent];
+			if(empty($group->name))
+			{
+				$where = '';
+		        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
+		        $ntkd = $this->db->getQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
+		    	if(is_object($ntkd))
+		    		$group->name = $ntkd->name;
+		    }
+	    	array_unshift ($parents, $group);
+			if($all[$parent]->parent > 0)
+				$parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
+		}
 		return $parents;
 	}
 

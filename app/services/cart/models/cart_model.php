@@ -78,9 +78,23 @@ class cart_model
 		if($carts)
 		{
 			$_SESSION['option']->paginator_total = $this->db->get('count');
+			$ids = array();
 			foreach ($carts as $cart) {
-				$cart->products = $this->db->getAllDataByFieldInArray($this->table('_products'), $cart->id, 'cart');
+				$cart->products = false;
+				$ids[] = $cart->id;
 			}
+			if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), array('cart' => $ids), 'cart'))
+				foreach ($carts as $cart) {
+					foreach ($products as $p) {
+						if($p->cart == $cart->id)
+						{
+							if(!is_array($cart->products))
+								$cart->products = array();
+							$cart->products[] = $p;
+						}
+					}
+				}
+			unset($products);
 		}
 		else
 		{

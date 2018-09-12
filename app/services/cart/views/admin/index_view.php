@@ -2,7 +2,7 @@
 	<div class="row search-row">
         <form>
             <div class="col-lg-8 col-sm-8 search-col">
-                <input type="text" name="id" class="form-control" placeholder="№ Замовлення" value="<?=$this->data->get('id')?>" required="required">
+                <input type="number" name="id" class="form-control" placeholder="№ Замовлення" value="<?=$this->data->get('id')?>" required="required">
             </div>
             <div class="col-lg-4 col-sm-4 search-col">
                 <button class="btn btn-primary btn-search btn-block"><i class="fa fa-search"></i><strong> Знайти</strong></button>

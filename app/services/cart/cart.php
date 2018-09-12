@@ -494,7 +494,7 @@ class cart extends Controller {
             if($this->validator->run())
             {
                 $_POST['phone'] = $this->validator->getPhone($_POST['phone']);
-                $new_user = false;
+                $new_user = $new_user_password = false;
                 if(!$this->userIs())
                 {
                     $check = $this->checkEmail();
@@ -511,7 +511,7 @@ class cart extends Controller {
                     $info['email'] = $this->data->post('email');
                     $info['name'] = $this->data->post('name');
                     $info['photo'] = NULL;
-                    $info['password'] = bin2hex(openssl_random_pseudo_bytes(4));
+                    $info['password'] = $new_user_password = bin2hex(openssl_random_pseudo_bytes(4));
                     $additionall = array();
                     if(!empty($this->cart_model->additional_user_fields))
                         foreach ($this->cart_model->additional_user_fields as $key) {
@@ -588,8 +588,8 @@ class cart extends Controller {
                     $cart['user_email'] = $_SESSION['user']->email;
                     $cart['user_phone'] = $_POST['phone'];
                     $cart['new_user'] = $new_user;
-                    if($new_user)
-                        $cart['password'] = $info['password'];
+                    if($new_user && $new_user_password)
+                        $cart['password'] = $new_user_password;
                     $cart['link'] = SITE_URL.$_SESSION['alias']->alias.'/'.$cart['id'];
                     $cart['admin_link'] = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$cart['id'];
                     foreach ($products as $product) {

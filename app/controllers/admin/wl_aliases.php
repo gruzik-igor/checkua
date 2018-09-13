@@ -378,6 +378,11 @@ class wl_aliases extends Controller {
                         }
 
                         $reserved = array('id', 'service', 'alias', 'name', 'admin_ico', 'admin_order');
+                        if(!empty($install) && !empty($install->options_type))
+                            foreach ($install->options_type as $key => $value) {
+                                if(empty($value))
+                                    $reserved[] = $key;
+                            }
                         foreach ($options as $key => $value)
                             if(!in_array($key, $reserved))
                             {

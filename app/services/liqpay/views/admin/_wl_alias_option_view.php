@@ -35,7 +35,7 @@
 			if(!$isset) { ?>
 				<div class="alert alert-warning">
 			        <i class="fa fa-exclamation-triangle fa-2x pull-left"></i>
-			        <h4>Увага! Додайте до LiqPal Загальне налаштування <strong>save_successPayStatusToCart</strong> зі значенням <strong>0</strong></h4>
+			        <h4>Увага! Додайте до LiqPal Загальне налаштування <strong>successPayStatusToCart</strong> зі значенням <strong>0</strong></h4>
 			    </div>
 			<?php } ?>
 		</div>

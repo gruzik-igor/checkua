@@ -989,6 +989,36 @@ class cart_admin extends Controller {
         $this->redirect('#tabs-history');
     }
 
+    public function delete()
+    {
+        if($_SESSION['user']->admin && !empty($_POST['id']) && !empty($_POST['password']))
+        {
+            $_SESSION['notify'] = new stdClass();
+            $this->load->model('wl_user_model');
+            $admin = $this->wl_user_model->getInfo(0, false);
+            $password = $this->wl_user_model->getPassword($_SESSION['user']->id, $_SESSION['user']->email, $_POST['password']);
+            if($password == $admin->password)
+            {
+                if(is_numeric($_POST['id']) && $_POST['id'] > 0)
+                {
+                    $this->db->deleteRow('s_cart', $_POST['id']);
+                    $this->db->deleteRow('s_cart_history', $_POST['id'], 'cart');
+                    $this->db->deleteRow('s_cart_products', $_POST['id'], 'cart');
+
+                    $this->db->register('profile_data', 'Замовлення #'.$_POST['id'].' видалено');
+
+                    $_SESSION['notify']->success = 'Замовлення #'.$_POST['id'].' видалено';
+                    $this->redirect('admin/'.$_SESSION['alias']->alias);
+                }
+                else
+                    $_SESSION['notify']->errors = 'error $_POST[id]='.$_POST['id'];
+            }
+            else
+                $_SESSION['notify']->errors = 'Невірний пароль адміністратора';
+        }
+        $this->redirect();
+    }
+
     public function __tab_profile($user_id)
     {   
         if(!isset($_SESSION['option']->paginator_per_page) || $_SESSION['option']->paginator_per_page < 5)

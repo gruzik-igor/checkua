@@ -43,3 +43,21 @@
     	</tbody>
     </table>
 </div>
+
+<button onClick="$('#uninstall-form').slideToggle()" class="btn btn-danger btn-xs">Видалити замовлення #<?=$cart->id?></button>
+<?php if($_SESSION['user']->admin) { ?>
+	<div id="uninstall-form" class="alert alert-danger fade in m-t-10" style="display: none;">
+        <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete" method="POST">
+			<h4><i class="fa fa-trash pull-left"></i> Видалити замовлення #<?=$cart->id?>?</h4>
+			<input type="hidden" name="id" value="<?=$cart->id?>">
+			<div class="form-group">
+			    <label class="col-md-3 control-label">Пароль адміністратора для підтвердження</label>
+			    <div class="col-md-9">
+			        <input type="password" name="password" required placeholder="Пароль адміністратора (Ваш пароль)" class="form-control">
+			    </div>
+			</div>
+			<input type="submit" value="Видалити" class="btn btn-danger">
+			<button type="button" style="margin-left:25px" onClick="$('#uninstall-form').slideToggle()" class="btn btn-info">Скасувати</button>
+        </form>
+  </div>
+<?php } ?>

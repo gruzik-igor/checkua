@@ -49,13 +49,15 @@ class shopshowcase extends Controller {
 					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
 				if($_SESSION['option']->ProductUseArticle && mb_strlen($product->article) > mb_strlen($_SESSION['alias']->name))
-					$_SESSION['alias']->name = substr($_SESSION['alias']->name, 0, (strlen($product->article) + 1) * -1);
+				{
+					$product->name = str_replace($product->article, '', $product->name);
+					$_SESSION['alias']->name = str_replace($product->article, '', $_SESSION['alias']->name);
+				}
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				$_SESSION['alias']->breadcrumbs = '';
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
 			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)
@@ -65,37 +67,16 @@ class shopshowcase extends Controller {
 				$group = clone $product;
 				unset($product);
 
-				$this->wl_alias_model->setContent(($group->id * -1));
-				$group->parents = array();
-				if($group->parent > 0 && !empty($this->shop_model->allGroups))
-				{
-					$list = array();
-		            foreach ($this->shop_model->allGroups as $Group) {
-		            	$list[$Group->id] = clone $Group;
-		            }
-					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
-					print_r($group->parents);
-					$link = $_SESSION['alias']->alias;
-					foreach ($group->parents as $parent) {
-						$link .= '/'.$parent->alias;
-						$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
-					}
-					$group->link = $link;
-				}
-				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
-
+				$this->wl_alias_model->setContent(-$group->id);
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-
 				$subgroups = $this->shop_model->getGroups($group->id);
-
 				$products = $this->shop_model->getProducts($group->id);
-
-				$filters = false;//$this->shop_model->getOptionsToGroup($group);
-
+				
+				$filters = $this->shop_model->getOptionsToGroup($group);
 				$filterExists = false;
 				if($filters)
 				{

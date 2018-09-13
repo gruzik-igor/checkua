@@ -2,6 +2,8 @@
 
 class shop_model {
 
+	public $allGroups = false;
+
 	public function table($sufix = '', $useAliasTable = false)
 	{
 		if($useAliasTable)
@@ -51,19 +53,53 @@ class shop_model {
 
 		if($_SESSION['option']->useGroups)
 		{
-			$group = false;
-			$parent = 0;
-			array_shift($url);
-			foreach ($url as $uri) {
-				$group = $this->getGroupByAlias($uri, $parent);
-				if($group)
-					$parent = $group->id;
-				else
-					$group = false;
-			}
+			if(empty($this->allGroups))
+    		{
+    			$where = array();
+    			$where['wl_alias'] = $_SESSION['alias']->id;
+				$where['active'] = 1;
+				$this->db->select($this->table('_groups') .' as g', '*', $where);
 
-			$type = 'group';
-			return $group;
+				$where_ntkd['alias'] = $_SESSION['alias']->id;
+				$where_ntkd['content'] = "#-g.id";
+				if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+				$this->db->join('wl_ntkd', "name", $where_ntkd);
+				$this->allGroups = $this->db->get('array');
+    		}
+            if($this->allGroups)
+            {
+            	foreach ($this->allGroups as $g) {
+	            	$list[$g->id] = clone $g;
+	            }
+
+				$group = false;
+				$parent = 0;
+				array_shift($url);
+				foreach ($url as $uri) {
+					$group = false;
+					foreach ($this->allGroups as $g) {
+						if($g->alias == $uri && $g->parent == $parent)
+						{
+							$parent = $g->id;
+							$group = $g;
+							break;
+						}
+					}
+				}
+				if($group)
+					if($photo = $this->getProductPhoto(-$group->id))
+		        	{
+						if($sizes = $this->db->getAliasImageSizes())
+							foreach ($sizes as $resize) {
+								$resize_name = $resize->prefix.'_photo';
+								$group->$resize_name = $_SESSION['option']->folder.'/-'.$group->id.'/'.$resize->prefix.'_'.$photo->file_name;
+							}
+						$group->photo = $_SESSION['option']->folder.'/-'.$group->id.'/'.$photo->file_name;
+		        	}
+
+				$type = 'group';
+				return $group;
+			}
 		}
 
 		return false;
@@ -919,7 +955,7 @@ class shop_model {
 					$Group->photo = $_SESSION['option']->folder.'/-'.$Group->id.'/'.$photo->file_name;
             	}
             }
-            if($parent < 0)
+            if($parent < 0 && empty($this->allGroups))
         		$this->allGroups = $categories;
             return $categories;
 		}

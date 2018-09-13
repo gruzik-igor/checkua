@@ -67,14 +67,14 @@ class shopshowcase extends Controller {
 
 				$this->wl_alias_model->setContent(($group->id * -1));
 				$group->parents = array();
-				if($group->parent > 0)
+				if($group->parent > 0 && !empty($this->shop_model->allGroups))
 				{
 					$list = array();
-		            $groups = $this->db->getAllDataByFieldInArray($this->shop_model->table('_groups'), $_SESSION['alias']->id, 'wl_alias');
-		            foreach ($groups as $Group) {
+		            foreach ($this->shop_model->allGroups as $Group) {
 		            	$list[$Group->id] = clone $Group;
 		            }
 					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
+					print_r($group->parents);
 					$link = $_SESSION['alias']->alias;
 					foreach ($group->parents as $parent) {
 						$link .= '/'.$parent->alias;
@@ -82,19 +82,19 @@ class shopshowcase extends Controller {
 					}
 					$group->link = $link;
 				}
+				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				$_SESSION['alias']->breadcrumbs[$_SESSION['alias']->name] = '';
 
 				$subgroups = $this->shop_model->getGroups($group->id);
 
 				$products = $this->shop_model->getProducts($group->id);
 
-				$filters = $this->shop_model->getOptionsToGroup($group);
+				$filters = false;//$this->shop_model->getOptionsToGroup($group);
 
 				$filterExists = false;
 				if($filters)
@@ -111,7 +111,7 @@ class shopshowcase extends Controller {
 				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters, 'filterExists' => $filterExists));
 			}
 			else
-				$this->load->page_404(false);
+				$this->load->page_404();
 		}
 		else
 		{

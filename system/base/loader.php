@@ -384,8 +384,8 @@ class Loader {
 						$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'.php';
 						if($admin)
 						{
-							$service .= '_admin';
 							$model_path = APP_PATH.'services'.DIRSEP.$service.DIRSEP.$service.'_admin.php';
+							$service .= '_admin';
 						}
 					}
 				}

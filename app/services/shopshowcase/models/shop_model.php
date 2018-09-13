@@ -636,26 +636,24 @@ class shop_model {
 
 						foreach ($similars as $key => $similar) {
 							$this->db->select('s_shopshowcase_products', 'id, alias, article', $similar->product);
-							$product->similarProducts[$key] = $similarProduct = $this->db->get();
-							$product->similarProducts[$key]->photo = false;
+							if($similarProduct = $this->db->get())
+							{
+								$product->similarProducts[$key] = $similarProduct;
+								$product->similarProducts[$key]->photo = false;
 
-							if(isset($similars_photos[$similarProduct->id]))
-			            	{
-			            		$photo = $similars_photos[$similarProduct->id];
-								if($sizes)
-									foreach ($sizes as $resize) {
-										$resize_name = $resize->prefix.'_photo';
-										$product->similarProducts[$key]->$resize_name = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$resize->prefix.'_'.$photo->file_name;
-									}
-								$product->similarProducts[$key]->photo = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$photo->file_name;
-			            	}
-
-			            	$similarProductColor = $this->db->select($this->table('_product_options').' as po', 'value', array('product' => $similarProduct->id, 'option' => 3))
-										 ->join($this->table('_options_name'), 'name as color_name', array('option' => '#po.value', 'language' => $_SESSION['language']))
-										 ->limit(1)
-										 ->get();
-
-							$product->similarProducts[$key]->color = @$similarProductColor->color_name;
+								if(isset($similars_photos[$similarProduct->id]))
+				            	{
+				            		$photo = $similars_photos[$similarProduct->id];
+									if($sizes)
+										foreach ($sizes as $resize) {
+											$resize_name = $resize->prefix.'_photo';
+											$product->similarProducts[$key]->$resize_name = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$resize->prefix.'_'.$photo->file_name;
+										}
+									$product->similarProducts[$key]->photo = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$photo->file_name;
+				            	}
+							}
+							else
+								$this->db->deleteRow($this->table('_products_similar'), $similar->id);
 						}
 					}
 				}

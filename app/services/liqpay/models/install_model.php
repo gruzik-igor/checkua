@@ -5,17 +5,17 @@ class install
 	public $service = null;
 	
 	public $name = "liqpay";
-	public $title = "liqpay";
+	public $title = "LiqPay";
 	public $description = "Сервіс оплати Visa/Mastercard через LiqPay PrivatBank";
 	public $group = "shop";
 	public $table_service = "s_liqpay";
 	public $multi_alias = 0;
 	public $order_alias = 1;
 	public $admin_ico = 'fa-cc-visa';
-	public $version = "1.0";
+	public $version = "1.1";
 
-	public $options = array('public_key' => '', 'private_key' => '', 'useMarkUp' => 0, 'markUp' => 2.75, 'testPay' => 1);
-	public $options_type = array('public_key' => 'text', 'private_key' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number', 'testPay' => 'bool');
+	public $options = array('public_key' => '', 'private_key' => '', 'useMarkUp' => 0, 'markUp' => 2.75, 'testPay' => 1, 'successPayStatusToCart' => 0);
+	public $options_type = array('public_key' => 'text', 'private_key' => 'text', 'useMarkUp' => 'bool', 'markUp' => 'number', 'testPay' => 'bool', 'successPayStatusToCart' => false);
 	public $options_title = array('public_key' => 'Публічний ключ', 'private_key' => 'Приватний ключ', 'useMarkUp' => 'Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)', 'markUp' => 'Націнка у %', 'testPay' => 'Тестовий платіж');
 	public $options_admin = array ();
 	public $sub_menu = array();
@@ -56,7 +56,6 @@ class install
 					  `cart_id` int(11) NOT NULL,
 					  `amount` float NOT NULL,
 					  `murkup` float NOT NULL,
-					  `currency` int(11) NOT NULL,
 					  `status` text NOT NULL,
 					  `details` text NOT NULL,
 					  `comment` text NOT NULL,

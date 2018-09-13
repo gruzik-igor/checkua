@@ -1,7 +1,8 @@
-Service "LiqPay 1.0"
+Service "LiqPay 1.1"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 1.1   : 13.09.2018
 Date 1.0   : 20.06.2017
 
 Description: Сервіс оплати Visa/Mastercard через LiqPay PrivatBank
@@ -10,6 +11,7 @@ Options:
 	password	(text)		Пароль мерчанта у LiqPay
 	useMarkUp	(bool)		Використовувати націнку. Комісію оплачує клієнт (націнено на ціну квитанції - незаконно!)
 	markUp		(number)	Націнка у %
+	successPayStatusToCart 	(hidden => number) 	Статус замовлення у корзині після успішної оплати
 
 Public links:
 	/index			page 404
@@ -20,6 +22,8 @@ Public links:
 Private links (admin access):
 	/index		перелік всіх квитанцій (нові згори)
 	/index/id 	перегляд квитанції детально
+	/save_successPayStatusToCart 	зберегти налаштування статусу замовлення
 
 Versions:
 	1.0 	На основі сервісу Privat24 1.1
+	1.1 	Додано Option[successPayStatusToCart], видалено поле currency (банк підтримує оплату виключно в UAH)

@@ -1,7 +1,19 @@
+<?php if($_SESSION['option']->testPay) { ?>
+	<div class="alert alert-warning">
+        <i class="fa fa-exclamation-triangle fa-2x pull-left"></i>
+        <h4>Увага! LiqPal працює у тестовому режимі!</h4>
+    </div>
+<?php } ?>
+
 <div class="row">
     <div class="col-md-12">
         <div class="panel panel-inverse">
             <div class="panel-heading">
+            	<?php if($_SESSION['user']->admin) { ?>
+	            	<div class="panel-heading-btn">
+	                    <a href="<?= SITE_URL.'admin/wl_aliases/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування</a>
+	                </div>
+	            <?php } ?>
                 <h4 class="panel-title"><?=$_SESSION['alias']->name?>. Список всіх оплат</h4>
             </div>
             <div class="panel-body">
@@ -10,13 +22,13 @@
                         <thead>
                             <tr>
                                 <th>Квитанція №</th>
-								<th>Дата</th>
-								<th>Магазин</th>
+                                <th>Статус</th>
+								<th>Оновлено</th>
+								<th>Замовлення</th>
 								<th>Сума</th>
 								<?php if($_SESSION['option']->useMarkUp) { ?>
 									<th>Націнка</th>
 								<?php } ?>
-								<th>Статус</th>
 								<th>Деталі</th>
                             </tr>
                         </thead>
@@ -25,15 +37,15 @@
                         	if(!empty($payments)) { 
                         		foreach($payments as $pay) { ?>
 									<tr>
-										<td>#<?=$pay->id?> <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$pay->id?>" class="btn btn-info btn-xs">Детальніше</a>
+										<td><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$pay->id?>" class="btn btn-info btn-xs">Квитанція #<?=$pay->id?></a>
 										</td>
+										<th><?=$pay->status?></th>
 										<td><?=date("d.m.Y H:i", $pay->date_edit)?></td>
-										<td><?=$pay->cart_alias_name?> <a href="<?=SITE_URL.'admin/'.$pay->cart_alias_name.'/'.$pay->cart_id?>" class="btn btn-info btn-xs">до замовлення</a></td>
-										<td><b><?=$pay->amount?></b></td>
+										<td><a href="<?=SITE_URL.'admin/'.$pay->cart_alias_name.'/'.$pay->cart_id?>" class="btn btn-info btn-xs">Замовлення <?=$pay->cart_id?></a></td>
+										<th><?=$pay->amount?> UAH</th>
 										<?php if($_SESSION['option']->useMarkUp) { ?>
 											<td><?=$pay->markup?></td>
 										<?php } ?>
-										<td><?=$pay->status?></td>
 										<td><?=$pay->details?></td>
 									</tr>
 							<?php } } ?>

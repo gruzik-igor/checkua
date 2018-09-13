@@ -744,6 +744,12 @@ class cart extends Controller {
         return true;
     }
 
+    public function __get_cart_statuses()
+    {
+        $this->load->smodel('cart_model');
+        return $this->cart_model->getStatuses();
+    }
+
     public function __get_user_orders($user)
     {
         $this->load->smodel('cart_model');

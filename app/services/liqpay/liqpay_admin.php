@@ -41,6 +41,31 @@ class liqpay_admin extends Controller {
 	    	$this->load->admin_view('list_view', array('payments' => $this->liqpay_model->getPayments()));
     	}
     }
+
+    public function save_successPayStatusToCart()
+    {
+        if($_SESSION['user']->type == 1 && $this->data->post('service'))
+        {
+            $value = $this->data->post('status');
+
+            $where = array('alias' => $_SESSION['alias']->id, 'name' => 'successPayStatusToCart');
+            $where['service'] = $this->data->post('service');
+            if($option = $this->db->getAllDataById('wl_options', $where))
+            {
+                if($option->value != $value)
+                    $this->db->updateRow('wl_options', array('value' => $value), $option->id);
+            }
+            else
+            {
+                $where['value'] = $value;
+                $this->db->insertRow('wl_options', $where);
+            }
+
+            $_SESSION['notify'] = new stdClass();
+            $_SESSION['notify']->success = 'Статус замовлення у корзині після успішної оплати оновлено';
+        }
+        $this->redirect();
+    }
 	
 }
 

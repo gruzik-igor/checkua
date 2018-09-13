@@ -165,7 +165,7 @@
 						</div>
 					<?php } else { ?>
 						<div class="note note-info">
-							<h4>Налаштування відсутні!</h4>
+							<h4>Налаштування відсутні! <a href="<?=SITE_URL?>admin/wl_aliases/add_admin_option/<?=$alias->alias?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати налаштування</a></h4>
 						</div>
 					<?php } ?>
 	            </div>

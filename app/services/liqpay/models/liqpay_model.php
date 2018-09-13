@@ -17,7 +17,6 @@ class liqpay_model
 			$pay['amount'] = $cart->total;
 			$pay['murkup'] = 0;
 		}
-		$pay['currency'] = 0;
 		$pay['status'] = 'new';
 		$pay['details'] = "Оплата замовлення #{$cart->id}";
 		$pay['date_add'] = $pay['date_edit'] = time();
@@ -55,6 +54,9 @@ class liqpay_model
 							$pay->date_edit = $update['date_edit'] = time();
 							$update['signature'] = $this->signature($pay);
 							$this->db->updateRow($_SESSION['service']->table, $update, $pay->id);
+
+							if(isset($_SESSION['option']->successPayStatusToCart) && $_SESSION['option']->successPayStatusToCart > 0)
+								$pay->cart_status = $_SESSION['option']->successPayStatusToCart;
 
 							return $pay;
 						}
@@ -102,7 +104,7 @@ class liqpay_model
 
 	private function signature($pay)
 	{
-		return sha1($pay->id.'LiQpaY'.$pay->alias.$pay->cart_alias.$pay->amount.$pay->currency.$pay->comment.$pay->status.$pay->details.$pay->cart_id.$pay->date_add.$pay->murkup.md5($pay->date_edit.SYS_PASSWORD));
+		return sha1($pay->id.'LiQpaY'.$pay->alias.$pay->cart_alias.$pay->amount.'UAH'.$pay->comment.$pay->status.$pay->details.$pay->cart_id.$pay->date_add.$pay->murkup.md5($pay->date_edit.SYS_PASSWORD));
 	}
 
 }

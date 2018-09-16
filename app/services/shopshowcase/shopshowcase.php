@@ -75,21 +75,17 @@ class shopshowcase extends Controller {
 				}
 				$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
-				
-				$filters = $this->shop_model->getOptionsToGroup($group);
-				$filterExists = false;
+
+				if(!$group->haveChild)
+					$filters = $this->shop_model->getOptionsToGroup($group);
+				else
+					$filters = false;
 				if($filters)
-				{
 					foreach ($filters as $filter) {
 						usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
-						if(!empty($filter->values)){
-							$filterExists = true;
-							break;
-						}
 					}
-				}
 
-				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters, 'filterExists' => $filterExists));
+				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters));
 			}
 			else
 				$this->load->page_404();

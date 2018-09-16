@@ -3,6 +3,7 @@
 class shop_model {
 
 	public $allGroups = false;
+	private $productsIdInGroup = false;
 
     public function init()
     {
@@ -190,6 +191,7 @@ class shop_model {
 							if($order[0] == 'position')
 								$this->db->order(trim($_SESSION['option']->productOrder));
 
+							$start = -1;
 							if(count($_GET) == 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 							{
 								$start = 0;
@@ -203,11 +205,18 @@ class shop_model {
 
 							if($products = $this->db->get('array', false))
 							{
-								$_SESSION['option']->paginator_total = $_SESSION['paginatorForBrands'] = $this->db->get('count');
+								if($start >= 0)
+									$_SESSION['option']->paginator_total = $this->db->get('count');
+								else
+									$_SESSION['option']->paginator_total = count($products);
 								$this->db->clear();
 								$where['id'] = array();
+								if($_SESSION['option']->paginator_total <= count($products))
+									$this->productsIdInGroup = array();
 								foreach ($products as $product) {
 									array_push($where['id'], $product->product);
+									if($this->productsIdInGroup)
+										$this->productsIdInGroup[] = $product->product;
 								}
 							}
 							else
@@ -231,28 +240,28 @@ class shop_model {
 					if($option)
 					{
 						$list_where['option'] = $option->id;
-						if(!empty($where['id'])) $list_where['product'] = $where['id'];
+						if(!empty($where['id']))
+							$list_where['product'] = $where['id'];
 						$where['id'] = array();
 						foreach ($_GET[$key] as $value) if(is_numeric($value)) {
 							if($option->type == 8 || $option->type == 12) //checkbox || checkbox-select2
 							{
 								$list_where['value'] = '%'.$value;
-								$list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $list_where);
-								if($list)
+								if($list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $list_where))
 									foreach ($list as $p) {
 										$p->value = explode(',', $p->value);
 										if(in_array($value, $p->value)) array_push($where['id'], $p->product);
 									}
-							} else {
+							}
+							else
+							{
 								$list_where['value'] = $value;
-								$list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $list_where);
-								if($list)
+								if($list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $list_where))
 									foreach ($list as $p) {
 										array_push($where['id'], $p->product);
 									}
 							}
 						}
-
 						if(empty($where['id']))
 							return false;
 					}
@@ -260,7 +269,10 @@ class shop_model {
 			}
 			if(isset($_GET['name']) && $_GET['name'] != '')
 			{
-				$products = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => '>0', 'name' => '%'.$this->data->get('name')));
+				$content = '>0';
+				if(!empty($where['id']))
+					$content = $where['id'];
+				$products = $this->db->getAllDataByFieldInArray('wl_ntkd', array('alias' => $_SESSION['alias']->id, 'content' => $content, 'name' => '%'.$this->data->get('name')));
 				if(!empty($products))
 				{
 					if(!isset($where['id']))
@@ -365,7 +377,12 @@ class shop_model {
 		if($products = $this->db->get('array', false))
         {
         	if(empty($_SESSION['option']->paginator_total) || count($_GET) > 1)
-				$_SESSION['option']->paginator_total = $this->db->get('count');
+        	{
+        		if(count($products) < $_SESSION['option']->paginator_per_page)
+					$_SESSION['option']->paginator_total = count($products);
+				else
+					$_SESSION['option']->paginator_total = $this->db->get('count');
+        	}
 			$this->db->clear();
 
         	if($_SESSION['option']->useGroups && empty($this->allGroups))
@@ -698,11 +715,6 @@ class shop_model {
 						}
 					}
 				}
-
-        		$name = ($_SESSION['option']->ProductUseArticle) ? $product->article  .' - ': '';
-        		$name .= $product->name;
-        		if(isset($_SESSION['alias']->breadcrumbs))
-        			$_SESSION['alias']->breadcrumbs[$name] = '';
         	}
             return $product;
 		}
@@ -1056,6 +1068,16 @@ class shop_model {
 		
 		if($group)
 		{
+			$group->haveChild = false;
+			if(empty($this->allGroups))
+				foreach ($this->allGroups as $g) {
+					if($g->parent == $group->id)
+					{
+						$group->haveChild = true;
+						break;
+					}
+				}
+
 			if(isset($_SESSION['alias']->breadcrumbs) && empty($_SESSION['alias']->breadcrumbs))
         	{
         		$where = array();
@@ -1098,10 +1120,11 @@ class shop_model {
 		return $group;
 	}
 
-	// Потребує оптимізації
 	public function getOptionsToGroup($group = 0, $filter = true)
 	{
 		$products = false;
+		if(empty($this->allGroups))
+			$this->init();
 		if($group === 0)
 		{
 			$where['group'] = 0;
@@ -1111,60 +1134,45 @@ class shop_model {
 		}
 		elseif(is_numeric($group))
 		{
-			if(!empty($this->allGroups))
-				foreach ($this->allGroups as $g) {
-					if($g->id == $group)
-					{
-						$group = clone $g;
-						break;
-					}
-				}
+			if(isset($this->allGroups[$group]))
+				$group = $this->allGroups[$group];
 			else
-				$group = $this->db->getAllDataById($this->table('_groups'), $group);
-			if($group == false) return false;
+				return false;
 		}
-
 		if($_SESSION['option']->useGroups && $group->id > 0)
 		{
-			if($_SESSION['option']->ProductMultiGroup)
+			if(empty($this->productsIdInGroup))
 			{
-				$products_id = $this->db->getAllDataByFieldInArray($this->table('_product_group'), $group->id, 'group');
-				if($products_id)
-					foreach ($products_id as $product) {
-						$products[] = $product->product;
-					}
+				if($_SESSION['option']->ProductMultiGroup)
+				{
+					$products_id = $this->db->getAllDataByFieldInArray($this->table('_product_group'), array('group' => $group->id, 'active' => 1));
+					if($products_id)
+						foreach ($products_id as $product) {
+							$products[] = $product->product;
+						}
+				}
+				else
+				{
+					$products_id = $this->db->getAllDataByFieldInArray($this->table('_products'), array('group' => $group->id, 'active' => 1));
+					if($products_id)
+						foreach ($products_id as $product) {
+							$products[] = $product->id;
+						}
+				}
 			}
 			else
-			{
-				$products_id = $this->db->getAllDataByFieldInArray($this->table('_products'), $group->id, 'group');
-				if($products_id)
-					foreach ($products_id as $product) {
-						$products[] = $product->id;
-					}
-			}
+				$products = $this->productsIdInGroup;
 		}
 
     	if($filter && ($group->id > 0 && $products || $group->id == 0) || !$filter)
     	{
-    		$where['group'] = array(0);
-			array_push($where['group'], $group->id);
+    		$where['group'] = array(0, $group->id);
 			if($group->parent > 0)
-			{
-				array_push($where['group'], $group->id);
 				while ($group->parent > 0) {
-					if(!empty($this->allGroups))
-						foreach ($this->allGroups as $g) {
-							if($g->id == $group->parent)
-							{
-								$group = clone $g;
-								break;
-							}
-						}
-					else
-						$group = $this->db->getAllDataById($this->table('_groups'), $group->parent);
+					if(isset($this->allGroups[$group->parent]))
+						$group = $this->allGroups[$group->parent];
 					array_push($where['group'], $group->id);
 				}
-			}
 			$where['wl_alias'] = $_SESSION['alias']->id;
 			$where['filter'] = 1;
 			$where['active'] = 1;
@@ -1178,9 +1186,36 @@ class shop_model {
 
 			if($options)
 			{
-				$to_delete_options = array();
+				$to_delete_options = $opt_ids = array();
+				if($products)
+				{
+			        foreach ($options as $option)
+			        	$opt_ids[] = $option->id;
+			        $where = array('option' => $opt_ids);
+			        $where['product'] = $products;
+			        $list_product_options = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $where);
+	    			if(!$list_product_options)
+	    				return false;
+	    		}
 		        foreach ($options as $i => $option) {
-		        	unset($where['product'], $where['value']);
+		        	if(!empty($list_product_options))
+		        	{
+			        	$next = true;
+			        	foreach ($list_product_options as $row) {
+			        		if($row->option == $option->id)
+			        		{
+			        			$next = false;
+			        			break;
+			        		}
+			        	}
+			        	if($next)
+			        	{
+			        		if($filter)
+			        			$to_delete_options[] = $i;
+			        		continue;
+			        	}
+			        }
+
 		        	$where = array('option' => '#o.id');
 		        	if($_SESSION['language'])
 		        		$where['language'] = $_SESSION['language'];
@@ -1190,43 +1225,67 @@ class shop_model {
 
 					if(!empty($option->values))
 		    		{
-		    			$to_delete_values = array();
-		    			$where = array();
-		    			if($products) $where['product'] = $products;
-		    			foreach ($option->values as $i => $value) {
-		    				$where['option'] = $option->id;
-		    				if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2' )
-		    				{
-		    					$count = 0;
-								$where['value'] = '%'.$value->id;
-			        			$list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $where);
-			        			if($list)
-			        				foreach ($list as $key) {
-			        					$key->value = explode(',', $key->value);
-			        					if(in_array($value->id, $key->value)) $count++;
-			        				}
-		    				}
-		    				else
-		    				{
-		    					$where['value'] = $value->id;
-		        				$count = $this->db->getCount($this->table('_product_options'), $where);
-		    				}
-
-		        			$value->count = $count;
-		        			if(!$count && $filter)
-		        				$to_delete_values[] = $i;
-		        		}
-		        		if(!empty($to_delete_values) && $filter)
-		        		{
-		        			rsort($to_delete_values);
-		        			foreach ($to_delete_values as $i) {
-		        				unset($option->values[$i]);
-		        			}
-		        		}
+		    			if(!empty($list_product_options))
+		    			{
+		    				foreach ($option->values as $i => $value) {
+			    				$count = 0;
+			    				if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2' )
+			    				{
+			    					foreach ($list_product_options as $row) {
+				        				if($row->option == $option->id)
+				        				{
+				        					if(!is_array($row->value))
+				        						$row->value = explode(',', $row->value);
+				        					if(in_array($value->id, $row->value))
+			        							$count++;
+				        				}
+				        			}
+			    				}
+			    				else
+			    				{
+			    					foreach ($list_product_options as $row) {
+				        				if($row->option == $option->id && $row->value == $value->id)
+				        					$count++;
+				        			}
+			    				}
+			    				$option->values[$i]->count = $count;
+			    				if(!$count && $filter)
+			        				unset($option->values[$i]);
+			        		}
+		    			}
+		    			else
+		    			{
+		    				$where = array();
+			    			if($products)
+			    				$where['product'] = $products;
+			    			foreach ($option->values as $i => $value) {
+			    				$where['option'] = $option->id;
+			    				if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2' )
+			    				{
+			    					$count = 0;
+									$where['value'] = '%'.$value->id;
+				        			$list = $this->db->getAllDataByFieldInArray($this->table('_product_options'), $where);
+				        			if($list)
+				        				foreach ($list as $key) {
+				        					$key->value = explode(',', $key->value);
+				        					if(in_array($value->id, $key->value)) $count++;
+				        				}
+			    				}
+			    				else
+			    				{
+			    					$where['value'] = $value->id;
+			        				$count = $this->db->getCount($this->table('_product_options'), $where);
+			    				}
+								$option->values[$i]->count = $count;
+			        			if(!$count && $filter)
+			        				unset($option->values[$i]);
+			        		}
+			        	}
 		    		}
 		    		elseif($filter)
 		    			$to_delete_options[] = $i;
 		        }
+		        				
 		        if(!empty($to_delete_options))
         		{
         			rsort($to_delete_options);

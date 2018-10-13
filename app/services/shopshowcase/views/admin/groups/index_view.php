@@ -28,8 +28,6 @@
 								<th>Група</th>
 								<th>Адреса</th>
 								<th>Востаннє редаговано</th>
-								<th>Автор</th>
-								<th>Стан</th>
 								<th>Змінити порядок</th>
                             </tr>
                         </thead>
@@ -61,13 +59,11 @@
 										$pl = 15 * $level + 5;
 										$ml = 10 * $level;
 										foreach ($list as $g) if($g->parent == $parent) { ?>
-											<tr>
+											<tr <?=($g->active)?'':'class="danger" title="Група відключена"'?>>
 												<td style="padding-left: <?=$pl?>px"><?=$g->id?></td>
 												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
-												<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$g->link?>">/<?=$_SESSION['alias']->alias.'/'.$g->link?></a></td>
-												<td><?=date("d.m.Y H:i", $g->date_edit)?></td>
-												<td><a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
-												<td style="background-color:<?=($g->active == 1)?'green':'red'?>;color:white"><?=($g->active == 1)?'активний':'відключено'?></td>
+												<td><a href="<?=SITE_URL.$g->link?>">/<?=$g->link?></a></td>
+												<td><?=date("d.m.Y H:i", $g->date_edit)?> <a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
 												<td style="padding: 1px 5px;">
 													<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 														<input type="hidden" name="id" value="<?=$g->id?>">

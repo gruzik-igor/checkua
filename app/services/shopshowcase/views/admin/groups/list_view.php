@@ -3,12 +3,24 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group<?=($parent)?'?parent='.$parent:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
-                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/groups?all'?>" class="btn btn-success btn-xs">Всі групи деревом</a>
-                	<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group<?=($group)?'?parent='.$group->id:''?>" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
+                	<?php if($group) { ?>
+				    	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$group->id?>-<?=$group->alias?>" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> Редагувати групу</a>
+				    <?php } ?>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/groups?all'?>" class="btn btn-success btn-xs">Всі групи деревом</a></a>
                 </div>
-                <h4 class="panel-title">Керування групами <?=$_SESSION['admin_options']['word:products_to_all']?></h4>
+                <h4 class="panel-title"><?=($group) ? $group->name : 'Керування групами'?></h4>
             </div>
+            <?php if($group) { ?>
+                <div class="panel-heading">
+        			<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups" class="btn btn-info btn-xs">Кореневі групи</a> 
+					<?php if(!empty($group->parents))
+						foreach ($group->parents as $parent) {
+							echo '<a href="'.SITE_URL.'admin/'.$_SESSION['alias']->alias.'/groups/'.$parent->id.'-'.$parent->alias.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
+						} ?>
+					<span class="btn btn-warning btn-xs"><?=$group->name?></span>
+	            </div>
+	        <?php } ?>
 
             <?php
             if(isset($_SESSION['notify'])) { 
@@ -26,23 +38,19 @@
 								<th>Група</th>
 								<th>Адреса</th>
 								<th>Востаннє редаговано</th>
-								<th>Автор</th>
-								<th>Стан</th>
 								<th>Змінити порядок</th>
                             </tr>
                         </thead>
                         <tbody>
 							<?php foreach ($groups as $g) { ?>
-							<tr>
+							<tr <?=($g->active)?'':'class="danger" title="Група відключена"'?>>
 								<td><?=$g->id?></td>
 								<td>
-									<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a>
+									<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=$g->name?></a>
 									<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$g->id?>-<?=$g->alias?>" class="btn btn-info btn-xs"><i class="fa fa-edit"></i> Редагувати</a>
 								</td>
-								<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$g->link?>">/<?=$_SESSION['alias']->alias.'/'.$g->link?></a></td>
-								<td><?=date("d.m.Y H:i", $g->date_edit)?></td>
-								<td><a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
-								<td style="background-color:<?=($g->active == 1)?'green':'red'?>;color:white"><?=($g->active == 1)?'активний':'відключено'?></td>
+								<td><a href="<?=SITE_URL.$g->link?>">/<?=$g->link?></a></td>
+								<td><?=date("d.m.Y H:i", $g->date_edit)?> <a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
 								<td style="padding: 1px 5px;">
 									<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 										<input type="hidden" name="id" value="<?=$g->id?>">
@@ -57,9 +65,13 @@
             </div>
             <?php } else { ?>
             	<div class="note note-info">
-					<h4>Увага! В налаштуваннях адреси не створено жодної групи!</h4>
+					<h4><?=($group)?'В даній групі відсутні підгрупи':'Увага! В магазині відсутні групи!'?></h4>
 					<p>
-					    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning"><i class="fa fa-plus"></i> Додати групу</a>
+					    <a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group<?=($group)?'?parent='.$group->id:''?>" class="btn btn-warning"><i class="fa fa-plus"></i> Додати <?=($group)?'під':''?>групу</a>
+					    <?php if($group) { ?>
+					    	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$group->id?>-<?=$group->alias?>" class="btn btn-info"><i class="fa fa-edit"></i> Редагувати групу</a>
+					    	<a href="<?=SITE_URL.'admin/'.$group->link?>" class="btn btn-success"><i class="fa fa-list"></i> До товарів групи</a>
+					    <?php } ?>
 	                </p>
 				</div>
 			<?php } ?>

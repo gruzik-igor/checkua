@@ -466,14 +466,28 @@ class shopshowcase_admin extends Controller {
 		$this->load->smodel('groups_model');
 		$id = $this->data->uri(3);
 		$id = explode('-', $id);
-		if(is_numeric($id[0]))
-			$this->edit_group($id[0]);
-		else
+		if($id[0] == 'edit' && is_numeric($id[1]))
+			$this->edit_group($id[1]);
+		elseif(is_numeric($id[0]))
+		{
+			$groups = $this->groups_model->getGroups($id[0], false);
+			$_SESSION['alias']->name = 'Групи '.$_SESSION['admin_options']['word:products_to_all'];
+			$_SESSION['alias']->breadcrumb = array('Групи' => '');
+			$this->load->admin_view('groups/list_view', array('groups' => $groups, 'parent' => $id[0]));
+		}
+		elseif(isset($_GET['all']))
 		{
 			$groups = $this->groups_model->getGroups(-1, false);
 			$_SESSION['alias']->name = 'Групи '.$_SESSION['admin_options']['word:products_to_all'];
 			$_SESSION['alias']->breadcrumb = array('Групи' => '');
 			$this->load->admin_view('groups/index_view', array('groups' => $groups));
+		}
+		else
+		{
+			$groups = $this->groups_model->getGroups(0, false);
+			$_SESSION['alias']->name = 'Групи '.$_SESSION['admin_options']['word:products_to_all'];
+			$_SESSION['alias']->breadcrumb = array('Групи' => '');
+			$this->load->admin_view('groups/list_view', array('groups' => $groups, 'parent' => 0));
 		}
 	}
 

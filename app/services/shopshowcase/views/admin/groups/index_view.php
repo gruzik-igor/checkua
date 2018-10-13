@@ -5,6 +5,8 @@
             	<div class="panel-heading-btn">
                 	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
 					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:options_to_all']?></a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/groups'?>" class="btn btn-success btn-xs">Список по групно</a>
+                	<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                 </div>
                 <h4 class="panel-title">Керування групами <?=$_SESSION['admin_options']['word:products_to_all']?></h4>
             </div>
@@ -61,7 +63,7 @@
 										foreach ($list as $g) if($g->parent == $parent) { ?>
 											<tr>
 												<td style="padding-left: <?=$pl?>px"><?=$g->id?></td>
-												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
+												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
 												<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$g->link?>">/<?=$_SESSION['alias']->alias.'/'.$g->link?></a></td>
 												<td><?=date("d.m.Y H:i", $g->date_edit)?></td>
 												<td><a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>

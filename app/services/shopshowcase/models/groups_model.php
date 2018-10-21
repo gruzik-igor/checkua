@@ -79,45 +79,6 @@ class groups_model {
 		return false;
 	}
 
-	public function getGroups_v1($parent = 0, $active = true)
-	{
-		$where = array('wl_alias' => $_SESSION['alias']->id);
-		if($active) $where['active'] = 1;
-		if($parent >= 0) $where['parent'] = $parent;
-		$this->db->select($this->table() .' as c', '*', $where);
-		$where_ntkd['alias'] = $_SESSION['alias']->id;
-		$where_ntkd['content'] = "#-c.id";
-		if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
-		$this->db->join('wl_ntkd', "name", $where_ntkd);
-		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
-		$this->db->order($_SESSION['option']->groupOrder);
-
-		$categories = $this->db->get('array');
-		if($categories)
-		{
-            $list = array();
-            if($parent >= 0)
-            {
-	            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
-	            foreach ($groups as $Group) {
-	            	$list[$Group->id] = clone $Group;
-	            }
-	        }
-	        else
-	        	foreach ($categories as $Group) {
-	            	$list[$Group->id] = clone $Group;
-	            }
-
-            foreach ($categories as $Group) {
-            	$Group->link = $Group->alias;
-            	if($Group->parent > 0) {
-            		$Group->link = $this->getLink($list, $Group->parent, $Group->alias);
-            	}
-            }
-		}
-		return $categories;
-	}
-
 	public function getByAlias($alias, $parent = 0)
 	{
 		$where['wl_alias'] = $_SESSION['alias']->id;

@@ -46,7 +46,10 @@ if($_SESSION['option']->useGroups && $groups)
                 while ($parent != 0) {
                     if(!in_array($parent, $options_parents))
                         array_unshift($options_parents, $parent);
-                    $parent = $list[$parent]->parent;
+                    if(isset($list[$parent]))
+                      $parent = $list[$parent]->parent;
+                    else
+                      break;
                 }
             }
         }
@@ -83,10 +86,11 @@ foreach ($options_parents as $option_id) {
     }
 }
 
-$storages = array();
+$storages = $marketing = array();
 if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
     foreach ($cooperation as $c) {
         if($c->type == 'storage') $storages[] = $c->alias2;
+        if($c->type == 'marketing') $marketing[] = $this->load->function_in_alias($c->alias2, '__tab_product', $product, true);
     }
 ?>
 <div class="row">
@@ -134,6 +138,8 @@ if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', 
             <a href="#tab-main" data-toggle="tab" aria-expanded="true">Загальні дані</a></li>
           <?php if($changePriceTab) { ?>
             <li><a href="#tab-changePrice" data-toggle="tab" aria-expanded="true">Керування ціною</a></li>
+          <?php } if(!empty($marketing)) foreach($marketing as $tab) { ?>
+            <li><a href="#tab-<?=$tab->key?>" data-toggle="tab" aria-expanded="true"><?=$tab->name?></a></li>
           <?php } if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
           	<li><a href="#tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
           <?php } } else { ?>
@@ -159,7 +165,10 @@ if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', 
             <div class="tab-pane fade" id="tab-changePrice">
               <?php require 'edit_tabs/tab-changePrice.php'; ?>
             </div>
-          <?php } if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
+          <?php } if(!empty($marketing))
+              foreach($marketing as $tab) {
+                echo('<div class="tab-pane fade" id="tab-'.$tab->key.'">'.$tab->content.'</div>');
+           } if($_SESSION['language']) { foreach ($_SESSION['all_languages'] as $lang) { ?>
             <div class="tab-pane fade" id="tab-<?=$lang?>">
               <?php require 'edit_tabs/tab-ntkd.php'; ?>
             </div>
@@ -199,7 +208,7 @@ if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', 
   var CONTENT_ID = <?=$_SESSION['alias']->content?>;
   var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
   var PHOTO_FILE_NAME = '<?=$product->alias?>';
-  var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
+  var PHOTO_TITLE = '<?=htmlentities($_SESSION['alias']->name, ENT_QUOTES, 'utf-8')?>';
   var ADDITIONAL_TABLE = '<?=$ADDITIONAL_TABLE?>';
   var ADDITIONAL_TABLE_ID = <?=$ADDITIONAL_TABLE_ID?>;
   var ADDITIONAL_FIELDS = '<?=$ADDITIONAL_FIELDS?>';

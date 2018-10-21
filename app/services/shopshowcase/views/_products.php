@@ -39,7 +39,7 @@ function get($get_parametras, $key, $value = '')
 ?>
 <div class="row">
 	<div class="col-md-3 filter-by-block md-margin-bottom-60">
-		<h1>Фільтр</h1>
+		<h1><?=$this->text('Фільтр')?></h1>
 		<form>
 		<input type="hidden" name="show" value="<?=(isset($_GET['show'])) ? $this->data->get('show') : ''?>">
 		<input type="hidden" name="sort" value="<?=(isset($_GET['sort'])) ? $this->data->get('sort') : ''?>">
@@ -86,14 +86,14 @@ function get($get_parametras, $key, $value = '')
 
 		?>
 
-		<button type="submit" class="btn-u btn-brd btn-brd-hover btn-u-lg btn-u-sea-shop btn-block">Відфільтрувати</button>
+		<button type="submit" class="btn-u btn-brd btn-brd-hover btn-u-lg btn-u-sea-shop btn-block"><?=$this->text('Відфільтрувати')?></button>
 		</form>
 	</div>
 
 	<div class="col-md-9">
 		<div class="row margin-bottom-5">
 			<div class="col-sm-4 result-category">
-				<h2>Знайдено</h2>
+				<h2><?=$this->text('Знайдено')?></h2>
 				<small class="shop-bg-red badge-results">
 					<?php
 					if(isset($_SESSION['option']->paginator_total))
@@ -114,7 +114,7 @@ function get($get_parametras, $key, $value = '')
 						<a href="<?=get($get_parametras, 'show', 'list')?>"><i class="fa fa-th-list"></i></a>
 					</li>
 					<li class="sort-list-btn">
-						<h3>Сортувати за :</h3>
+						<h3><?=$this->text('Сортувати за')?> :</h3>
 						<div class="btn-group">
 							<?php $sort = array('' => 'Авто', 'price_up' => 'Ціна ↑', 'price_down' => 'Ціна ↓', 'article' => 'Артикулом'); ?>
 							<button type="button" class="btn btn-default dropdown-toggle" data-toggle="dropdown">
@@ -169,7 +169,7 @@ function get($get_parametras, $key, $value = '')
 									<span class="title-price shop-red"><?=$product->price * $currency?> грн</span>
 								</div>
 								<p class="margin-bottom-20"><?=$product->list?></p>
-								<a href="<?=SITE_URL.$product->link?>" class="btn-u btn-u-sea-shop">Детальніше</a>
+								<a href="<?=SITE_URL.$product->link?>" class="btn-u btn-u-sea-shop"><?=$this->text('Детальніше')?></a>
 							</div>
 						</div>
 					</div>
@@ -194,10 +194,10 @@ function get($get_parametras, $key, $value = '')
 									</a>
 								<?php } ?>
 								<a class="product-review" href="<?=SITE_URL.$product->link?>" title="Артикул: <?=$product->article?> <?=$product->name?>">#<?=$product->article?></a>
-								<a class="add-to-cart" href="<?=SITE_URL.$product->link?>"><i class="fa fa-shopping-cart"></i>Детальніше</a>
+								<a class="add-to-cart" href="<?=SITE_URL.$product->link?>"><i class="fa fa-shopping-cart"></i><?=$this->text('Детальніше')?></a>
 								<!-- Все, що додано менш ніж 2 тижні тому - новинка -->
 								<?php if (($product->date_add + 1209600) > time()) { ?>
-									<div class="shop-rgba-dark-green rgba-banner">Новинка!</div>
+									<div class="shop-rgba-dark-green rgba-banner"><?=$this->text('Новинка!')?></div>
 								<?php } ?>
 							</div>
 							<div class="product-description product-description-brd margin-bottom-30">

@@ -302,9 +302,19 @@ class shop_model {
 			$where['+#p.old_price'] = '> p.price';
 		}
 		if(isset($_GET['price_min']) && is_numeric($_GET['price_min']) && $_GET['price_min'] > 1)
-			$where['#p.price'] = '>='.$this->data->get('price_min');
+		{
+			$price_min = $this->data->get('price_min');
+			if($_SESSION['option']->currency)
+	        	$price_min /= $_SESSION['option']->currency;
+			$where['#p.price'] = '>='.$price_min;
+		}
 		if(isset($_GET['price_max']) && is_numeric($_GET['price_max']) && $_GET['price_max'] > 1)
-			$where['+#p.price'] = '<='.$this->data->get('price_max');
+		{
+			$price_max = $this->data->get('price_max');
+			if($_SESSION['option']->currency)
+	        	$price_max /= $_SESSION['option']->currency;
+			$where['+#p.price'] = '<='.$price_max;
+		}
 
 		if($active && $_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && isset($where['group']))
 			$where['#g.active'] = 1;
@@ -378,7 +388,7 @@ class shop_model {
         {
         	if(empty($_SESSION['option']->paginator_total) || count($_GET) > 1)
         	{
-        		if(count($products) < $_SESSION['option']->paginator_per_page)
+        		if(count($products) < $_SESSION['option']->paginator_per_page && empty($_GET['page']))
 					$_SESSION['option']->paginator_total = count($products);
 				else
 					$_SESSION['option']->paginator_total = $this->db->get('count');
@@ -495,14 +505,17 @@ class shop_model {
 		        		$product->old_price *= $product->markup;
 		        	}
 
-		        	$product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
-		        	$product->price = ceil($product->price);
+		        	// $product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
+		        	// $product->price = ceil($product->price);
 
 		        	if($_SESSION['option']->currency)
 		        	{
 			        	$product->price *= $_SESSION['option']->currency;
 			        	$product->old_price *= $_SESSION['option']->currency;
 			        }
+
+			        $product->price = $this->formatPrice($product->price);
+			        $product->old_price = $this->formatPrice($product->old_price);
 	        	}
 				
 				if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 1)
@@ -585,8 +598,17 @@ class shop_model {
 	        		$product->old_price *= $product->markup;
 	        	}
 
-	        	$product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
-	        	$product->price = ceil($product->price);
+	        	// $product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
+	        	// $product->price = ceil($product->price);
+
+	        	if($_SESSION['option']->currency)
+	        	{
+		        	$product->price *= $_SESSION['option']->currency;
+		        	$product->old_price *= $_SESSION['option']->currency;
+		        }
+
+		        $product->price = $this->formatPrice($product->price);
+		        $product->old_price = $this->formatPrice($product->old_price);
         	}
 
 			$product->parents = array();
@@ -1359,6 +1381,11 @@ class shop_model {
 		$data['count_per_day'] = 1;
 		$this->db->insertRow($this->table('_search_history'), $data);
 		return true;
+	}
+
+	public function formatPrice($price)
+	{
+		return round($price * 20) / 20;
 	}
 
 }

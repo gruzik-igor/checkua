@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.5"
+ 	Service "Shop Showcase 2.6"
 	for WhiteLion 1.0
 
 */
@@ -335,8 +335,30 @@ class shopshowcase_admin extends Controller {
 
 	public function export()
 	{
-		$this->load->smodel('groups_model');
-		$this->load->admin_view('products/export_view', array('groups' => $this->groups_model->getGroups(-1)));
+		if(isset($_GET['active']) && empty($_SESSION['option']->exportKey))
+		{
+			$password = bin2hex(openssl_random_pseudo_bytes(4));
+            $password = sha1($_SESSION['alias']->alias . md5($password) . SYS_PASSWORD);
+            $option = array();
+            $option['service'] = $_SESSION['service']->id;
+            $option['alias'] = $_SESSION['alias']->id;
+            $option['name'] = 'exportKey';
+            $option['value'] = $password;
+            if($this->db->insertRow('wl_options', $option))
+            {
+            	$_SESSION['notify'] = new stdClass();
+            	$_SESSION['notify']->success = "Ключ безпеки для експорту товарів: <strong>{$password}</strong>";
+            }
+            $this->redirect();
+		}
+		$_SESSION['alias']->name = 'Експорт товарів';
+		if(isset($_GET['groups']) && !empty($_SESSION['option']->exportKey))
+		{
+			$this->load->smodel('groups_model');
+			$this->load->admin_view('export/groups_view', array('groups' => $this->groups_model->getGroups(-1)));
+		}
+		else
+			$this->load->admin_view('export/index_view');
 	}
 
 	public function saveOption()

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.5"
+ 	Service "Shop Showcase 2.6"
 	for WhiteLion 1.0
 
 */
@@ -10,20 +10,24 @@
 class shopshowcase extends Controller {
 
 	private $groups = array();
+	private $marketing = array();
 
     function __construct()
     {
         parent::__construct();
         $_SESSION['option']->currency = 1;
+        unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
+
         if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
-            foreach ($cooperation as $row) {
-                if($row->type == 'currency')
-                {
-                	if($currency = $this->load->function_in_alias($row->alias2, '__get_Currency', 'USD'))
-                    	$_SESSION['option']->currency = $currency;
-                    break;
-                }
-            }
+        	foreach ($cooperation as $c) {
+        		if($c->type == 'currency')
+        		{
+		        	if($currency = $this->load->function_in_alias($c->alias2, '__get_Currency', 'USD'))
+		            	$_SESSION['option']->currency = $currency;
+		        }
+		        if($c->type == 'marketing')
+		        	$this->marketing[] = $c->alias2;
+	        }
     }
 
     function _remap($method, $data = array())
@@ -58,6 +62,12 @@ class shopshowcase extends Controller {
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
+
+				if(!empty($this->marketing))
+					foreach ($this->marketing as $marketingAliasId) {
+						$product->currency = $_SESSION['option']->currency;
+						$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+					}
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
 			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)
@@ -72,6 +82,21 @@ class shopshowcase extends Controller {
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
+					if(!empty($this->marketing))
+						foreach ($products as $product) {
+							foreach ($this->marketing as $marketingAliasId) {
+								$product->currency = $_SESSION['option']->currency;
+								$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+							}
+						}
+					if($filters = $this->shop_model->getOptionsToGroup($group))
+						foreach ($filters as $filter) {
+							usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
+							if(!empty($filter->values)){
+								$filterExists = true;
+								break;
+							}
+						}
 				}
 				$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
@@ -192,9 +217,21 @@ class shopshowcase extends Controller {
 			if(isset($id['id'])) $id = $id['id'];
 			elseif(isset($id['article'])) $id = $id['article'];
 		}
+		$_SESSION['alias']->breadcrumbs = NULL;
 		$this->load->smodel('shop_model');
-		unset($_SESSION['alias']->breadcrumbs);
-		return $this->shop_model->getProduct($id, $key);
+		$product = $this->shop_model->getProduct($id, $key);
+
+		if(!empty($this->marketing) && $product)
+			foreach ($this->marketing as $marketingAliasId) {
+				$product->currency = $_SESSION['option']->currency;
+				$product->price_before = $product->price;
+				$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+				$product->price = $this->shop_model->formatPrice($product->price);
+				$product->old_price = $this->shop_model->formatPrice($product->old_price);
+				$product->discount = $product->price_before - $product->price;
+			}
+
+		return $product;
 	}
 
 	public function __get_Products($data = array())
@@ -213,7 +250,17 @@ class shopshowcase extends Controller {
 		if(isset($data['getProductOptions']) && $data['getProductOptions'] == true) $getProductOptions = true;
 
 		$this->load->smodel('shop_model');
-		return $this->shop_model->getProducts($group, $noInclude, $active, $getProductOptions);
+		$products = $this->shop_model->getProducts($group, $noInclude, $active, $getProductOptions);
+		if(!empty($this->marketing) && $products)
+			foreach ($products as $product) {
+				foreach ($this->marketing as $marketingAliasId) {
+					$product->currency = $_SESSION['option']->currency;
+					$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+					$product->price = $this->shop_model->formatPrice($product->price);
+					$product->old_price = $this->shop_model->formatPrice($product->old_price);
+				}
+			}
+		return $products;
 	}
 
 	public function ajaxGetProducts()
@@ -245,6 +292,46 @@ class shopshowcase extends Controller {
 				$this->load->json(array('price' => $this->shop_model->getProductPriceWithOptions($product, $_POST['options']), 'product' => $product));
 			}
 		}
+	}
+
+	public function exportyml()
+	{
+		if(isset($_GET['key']) && !empty($_SESSION['option']->exportKey) && $_SESSION['option']->exportKey == $_GET['key'])
+		{
+			$this->load->library('ymlgenerator');
+			$this->load->smodel('export_model');
+			$this->export_model->init();
+			$products = $groups = array();
+
+			$checkedGroups = -1;
+	        if(!empty($_GET['group']) && is_numeric($_GET['group']))
+	            $checkedGroups = $_GET['group'];
+        
+	        if($groups = $this->export_model->getGroups($checkedGroups))
+	        {
+	            if($checkedGroups > 0)
+	            {
+	                $checkedGroups = array();
+	                foreach ($groups as $group) {
+	                    $checkedGroups[] = $group->id;
+	                }
+	            }
+	        }
+	        $products = $this->export_model->getProducts($checkedGroups);
+
+	        if(!empty($this->marketing))
+				foreach ($this->marketing as $marketingAliasId) {
+					$config = array('all' => true, 'products' => $products);
+					if($_SESSION['option']->currency)
+						$config['currency'] = $_SESSION['option']->currency;
+					$products = $this->load->function_in_alias($marketingAliasId, '__get_Products', $config);
+				}
+	  //       echo "<pre>";
+	  //       print_r($products);
+			// exit;
+			$this->ymlgenerator->createYml($products, $groups);
+		}
+		exit;
 	}
 
 	public function __get_Groups($parent = 0)

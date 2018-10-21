@@ -20,15 +20,15 @@
             </div>
             <?php if(!empty($group)) { ?>
                 <div class="panel-heading">
-	            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
-						<?php if(!empty($group->parents)) {
-							$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
-							foreach ($group->parents as $parent) { 
-								$link .= '/'.$parent->alias;
-								echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
-							}
-						} ?>
-						<span class="btn btn-warning btn-xs"><?=$_SESSION['alias']->name?></span> 
+            		<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><?=$group->alias_name?></a> 
+					<?php if(!empty($group->parents)) {
+						$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
+						foreach ($group->parents as $parent) { 
+							$link .= '/'.$parent->alias;
+							echo '<a href="'.$link.'" class="btn btn-info btn-xs">'.$parent->name.'</a> ';
+						}
+					} ?>
+					<span class="btn btn-warning btn-xs"><?=$_SESSION['alias']->name?></span> 
 	            </div>
 	        <?php } ?>
             <div class="panel-body">

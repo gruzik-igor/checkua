@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Storage 1.1"
+ 	Service "Shop product price per amount 1.1"
 	for WhiteLion 1.0
 
 */

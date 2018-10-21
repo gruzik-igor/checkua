@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 0;
 	public $admin_ico = 'fa-qrcode';
-	public $version = "1.0";
+	public $version = "1.1";
 
 	public $options = array('markUpByUserTypes' => 0);
 	public $options_type = array('markUpByUserTypes' => 'bool');

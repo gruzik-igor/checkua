@@ -1,14 +1,12 @@
-Service "Shop Storage 1.1"
+Service "Shop product price per amount 1.1"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
-Date 1.1   : 25.04.2017
-Date 1.0   : 26.02.2016
+Date 1.1   : 21.10.2018
+Date 1.0   : 20.08.2018
 
-Description: Склад товарів для shopshopcase i cart.
+Description: Маркетинговий модуль для shopshopcase i cart. Встановлює можливість давати декілька цін. Зміни ціни від кількості
 Options:
-	productUseArticle	(0, 1)		Використання товарами зовнішнього артикулу
-	deleteIfZero		(0, 1)		Видаляти прихідні квитанції по закінченню залишків
 	markUpByUserTypes	(0, 1)		Націнка відносно рівня користувача
 
 Path photos after uploading:
@@ -17,61 +15,19 @@ Path photos after uploading:
 SEO not use
 
 Tables:
-	shopstorage		склади з налаштуванням
-		`id` int(11) AUTO_INCREMENT співпадає з ід головного аліасу
-		  `name` text
-		  `currency` varchar(3) DEFAULT 'USD',
-		  `updateRows` TEXT
-		  `updateCols` TEXT
-		  `markup` int(11)
-		  `date_add` int(11)
-		  `user_add` int(11)
-		  `active` tinyint(1)
-	shopstorage_products 	перелік опцій, що доступні для товарів. Присвоюються групам із успадкуванням
-		`id` int(11) AUTO_INCREMENT,
-		  `storage` int(11)
-		  `product` int(11)
-		  `price_in` float UNSIGNED
-		  `price_out` float UNSIGNED
-		  `currency_in` tinyint(2)
-		  `currency_out` tinyint(2)
-		  `amount` int(11)
-		  `amount_reserved` int(11)
-		  `date_in` int(11)
-		  `date_out` int(11)
-		  `manager_add` int(11)
-		  `date_add` int(11)
-		  `manager_edit` int(11)
-		  `date_edit` int(11)
-	shopstorage_updates 	архів оновлень
-		`id` int(11) AUTO_INCREMENT,
-		  `storage` int(11)
-		  `file` int(11)
-		  `price_for_1` float UNSIGNED
-		  `currency` varchar(3)
-		  `inserted` int(11)
-		  `updated` int(11)
-		  `deleted` int(11)
-		  `manager` int(11)
-		  `date` int(11)
-
-	if options['markUpByUserTypes'] > 0
-	shopstorage_markup 	націнка
-		`id` int(11) AUTO_INCREMENT,
-		  `storage` int(11)
-		  `user_type` tinyint(2)
-		  `markup` int(11)
+	s_ppa		ціна товару відносно кількості
+		`id` int(11) NOT NULL AUTO_INCREMENT,
+			  `product_alias` int(11),
+			  `product_id` int(11),
+			  `price` TEXT NULL 	serialize price array [int $from => float $price]
 
 Public links:
 	/index() - page_404
 	/__get_Search()				повертає об'єкт пошуку: return false
-	/__get_Invoices_to_Product()повертає наявність та пропозиції товару
-	/__get_Invoice()			вся інформація по пропозиції
-	/__set_Reserve()			Зарезервувати товар за номером Invoice
-	/__set_Book()				Списати товар за номером Invoice
+	/__get_Product()			повертає інформацію по одному товару
+	/__get_Products()			вся інформація по пропозиції
 
 
 Versions:
 	1.0 	Основа сервісу
-	1.1		Розширене керування імпортом. Додано автонацінку. Покращено юзабіліті.
-			Уніфіковано імпорт з переведенням налаштувань у БД
+	1.1		Додано групове отримання інформації. Оптимізовано під експорт

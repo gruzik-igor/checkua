@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop product price per amount 1.0"
+ 	Service "Shop product price per amount 1.1"
 	for WhiteLion 1.0
 
 */
@@ -29,10 +29,24 @@ class price_per_amount extends Controller {
     	return false;
     }
 
-	public function __get_Product($product)
+    public function __get_Product($product)
+    {
+        $this->load->smodel('ppa_model');
+        return $this->ppa_model->getProduct($product);
+    }
+
+	public function __get_Products($products)
 	{
 		$this->load->smodel('ppa_model');
-		return $this->ppa_model->getProduct($product);
+        $all = $currency = false;
+        if(isset($products['all']) && isset($products['products']))
+        {
+            $all = true;
+            if(isset($products['currency']))
+                $currency = $products['currency'];
+            $products = $products['products'];
+        }
+		return $this->ppa_model->getProducts($products, $currency, $all);
 	}
 	
 }

@@ -59,6 +59,58 @@ class ppa_model
 		return $product;
 	}
 
+	public function getProducts($products, $currency, $all)
+	{
+		if(is_array($products) && is_object($products[0]))
+		{
+			$where = array();
+			if(isset($products[0]->wl_alias))
+			{
+				$where['product_alias'] = $products[0]->wl_alias;
+				if(!$all)
+				{
+					$where['product_id'] = array();
+					foreach ($products as $product) {
+						$where['product_id'][] = $product->id;
+					}
+				}
+			}
+			else if(isset($products[0]->product_alias))
+			{
+				$where['product_alias'] = $products[0]->product_alias;
+				if(!$all)
+				{
+					$where['product_id'] = array();
+					foreach ($products as $product) {
+						$where['product_id'][] = $product->product_id;
+					}
+				}
+			}
+			if(!empty($where))
+			{
+				if($marketings = $this->db->getAllDataByFieldInArray($this->table(), $where))
+					foreach ($products as $product) {
+						foreach ($marketings as $marketing) {
+							if($marketing->product_id == $product->id)
+							{
+								$prices = unserialize($marketing->price);
+								ksort ($prices);
+								if($currency && is_numeric($currency) && $currency > 0)
+									foreach ($prices as $from => &$price)
+										$price *= $currency;
+								else if(!empty($product->currency))
+									foreach ($prices as $from => &$price)
+										$price *= $product->currency;
+								$product->prices = $prices;
+								break;
+							}
+						}
+					}
+			}
+		}
+		return $products;
+	}
+
 	public function save($id = 0)
 	{
 		$prices = array();

@@ -135,7 +135,7 @@ class Paginator {
             }
 
             if($pages > 1){
-                $link = SITE_URL . $_GET['request'];
+                $link = SERVER_URL . $_GET['request'];
                 $link .= '?';
                 foreach ($_GET as $key => $value) {
                     if($key != 'request' && $key != 'page'){

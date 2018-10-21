@@ -160,7 +160,7 @@
                             <?php if($_SESSION['language']) { ?>
                                 <ul class="nav nav-tabs">
                                     <?php foreach ($_SESSION['all_languages'] as $lang) { ?>
-                                        <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#language-tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
+                                        <li class="<?=($_SESSION['language'] == $lang) ? 'active' : ''?>"><a href="#article-tab-<?=$lang?>" data-toggle="tab" aria-expanded="true"><?=$lang?></a></li>
                                     <?php } ?>
                                 </ul>
                                 <div class="tab-content">
@@ -177,7 +177,7 @@
                                                 }
                                             }
                                         ?>
-                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="language-tab-<?=$lang?>">
+                                        <div class="tab-pane fade <?=($_SESSION['language'] == $lang) ? 'active in' : ''?> form-horizontal" id="article-tab-<?=$lang?>">
                                             <table>
                                                 <div class="form-group">
                                                     <label class="col-md-2 control-label">Title</label>

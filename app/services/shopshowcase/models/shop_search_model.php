@@ -3,7 +3,24 @@
 class shop_search_model
 {
 
-	private $all_groups = NULL;
+	public $allGroups = false;
+
+    public function init()
+    {
+		if($_SESSION['option']->useGroups && empty($this->allGroups))
+		{
+			$where = array();
+			$where['wl_alias'] = $_SESSION['alias']->id;
+			$this->db->select($this->table('_groups') .' as g', 'id, alias, parent, active', $where);
+			if($list = $this->db->get('array'))
+			{
+				foreach ($list as $g) {
+	            	$this->allGroups[$g->id] = clone $g;
+	            }
+	            unset($list);
+	        }
+		}
+    }
 
 	public function table($sufix = '')
 	{
@@ -67,21 +84,32 @@ class shop_search_model
 				{
 					$search->additional = array();
 
-					$list = array();
-					if($this->all_groups === NULL)
-						$this->all_groups = $this->db->getAllData($this->table('_groups'));
-		            if($this->all_groups) 
-		            	foreach ($this->all_groups as $g) {
-			            	$list[$g->id] = clone $g;
-			            }
+					if($_SESSION['option']->useGroups && empty($this->allGroups))
+        				$this->init();
 
 					if($_SESSION['option']->ProductMultiGroup == 0 && $product->group > 0)
 					{
-						$parents = $this->makeParents($list, $product->group, array());
 						$link = $_SESSION['alias']->alias .'/';
-						foreach ($parents as $parent) {
-							$link .= $parent->alias .'/';
-							$search->additional[$link] = $parent->name;
+						if($parents = $this->makeParents($product->group, array()))
+						{
+							$where_ntkd['alias'] = $_SESSION['alias']->id;
+							$where_ntkd['content'] = array();
+							foreach ($parents as $parent)
+								$where_ntkd['content'][] = -$parent->id;
+							if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+							$this->db->select('wl_ntkd', 'name, content', $where_ntkd);
+							$names = $this->db->get('array');
+						
+							foreach ($parents as $parent) {
+								foreach ($names as $name) {
+									if($name->content == -$parent->id)
+									{
+										$link .= $parent->alias .'/';
+										$search->additional[$link] = $name->name;
+										break;
+									}
+								}
+							}
 						}
 						$search->link = $link . $product->alias;
 					}
@@ -91,7 +119,7 @@ class shop_search_model
 				            foreach ($groups as $g) {
 			            		$link = $_SESSION['alias']->alias .'/';
 			            		if($g->parent > 0)
-			            			$link .= $this->makeLink($list, $g->parent, $g->alias);
+			            			$link .= $this->makeLink($g->parent, $g->alias);
 			            		else
 			            			$link .= $g->alias;
 			            		$search->additional[$link] = $g->name;
@@ -145,19 +173,30 @@ class shop_search_model
 				{
 					$search->additional = array();
 
-					$list = array();
-					if($this->all_groups === NULL)
-						$this->all_groups = $this->db->getAllData($this->table('_groups'));
-		            if($this->all_groups)
-		            	foreach ($this->all_groups as $g) {
-			            	$list[$g->id] = clone $g;
-			            }
+					if($_SESSION['option']->useGroups && empty($this->allGroups))
+        				$this->init();
 
-	            	$parents = $this->makeParents($list, $group->parent, array());
-					$link = $_SESSION['alias']->alias .'/';
-					foreach ($parents as $parent) {
-						$link .= $parent->alias .'/';
-						$search->additional[$link] = $parent->name;
+        			$link = $_SESSION['alias']->alias .'/';
+					if($parents = $this->makeParents($group->parent, array()))
+					{
+						$where_ntkd['alias'] = $_SESSION['alias']->id;
+						$where_ntkd['content'] = array();
+						foreach ($parents as $parent)
+							$where_ntkd['content'][] = -$parent->id;
+						if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+						$this->db->select('wl_ntkd', 'name, content', $where_ntkd);
+						$names = $this->db->get('array');
+					
+						foreach ($parents as $parent) {
+							foreach ($names as $name) {
+								if($name->content == -$parent->id)
+								{
+									$link .= $parent->alias .'/';
+									$search->additional[$link] = $name->name;
+									break;
+								}
+							}
+						}
 					}
 					$search->link = $link . $group->alias;
 				}
@@ -167,26 +206,87 @@ class shop_search_model
 		return $search;
 	}
 
-	private function makeParents($all, $parent, $parents)
+	private function makeParents($parent, $parents)
 	{
-		$group = clone $all[$parent];
-		$where = '';
-        if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
-        $this->db->executeQuery("SELECT `name` FROM `wl_ntkd` WHERE `alias` = '{$_SESSION['alias']->id}' AND `content` = '-{$group->id}' {$where}");
-    	if($this->db->numRows() == 1){
-    		$ntkd = $this->db->getRows();
-    		$group->name = $ntkd->name;
-    	}
-    	array_unshift ($parents, $group);
-		if($all[$parent]->parent > 0) $parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
+		if(isset($this->allGroups[$parent]))
+		{
+			$group = clone $this->allGroups[$parent];
+	    	array_unshift ($parents, $group);
+			if($this->allGroups[$parent]->parent > 0)
+				$parents = $this->makeParents ($this->allGroups[$parent]->parent, $parents);
+		}
 		return $parents;
 	}
 
-	private function makeLink($all, $parent, $link)
+	private function makeLink($parent, $link)
 	{
-		$link = $all[$parent]->alias .'/'.$link;
-		if($all[$parent]->parent > 0) $link = $this->makeLink ($all, $all[$parent]->parent, $link);
+		$link = $this->allGroups[$parent]->alias .'/'.$link;
+		if($this->allGroups[$parent]->parent > 0)
+			$link = $this->makeLink ($this->allGroups[$parent]->parent, $link);
 		return $link;
+	}
+
+	public function getProducts_SiteMap()
+	{
+		$where = array('wl_alias' => $_SESSION['alias']->id);
+
+		if($_SESSION['option']->useGroups == 1)
+		{
+			if($_SESSION['option']->ProductMultiGroup == 0)
+				$where['active'] = 1;
+			else
+			{
+
+			}
+		}
+		else
+			$where['active'] = 1;
+
+		$this->db->select($this->table('_products'), 'id, alias, `group`', $where);
+		if($products = $this->db->get('array'))
+        {
+        	if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup == 0 && empty($this->allGroups))
+        		$this->init();
+
+            foreach ($products as $product)
+            {
+            	$link = $_SESSION['alias']->alias.'/';
+            	if($_SESSION['option']->ProductMultiGroup == 0 && $product->group > 0)
+					foreach ($this->makeParents($product->group, array()) as $parent) {
+						$link .= $parent->alias .'/';
+					}
+            	$product->link = $link.$product->alias;
+            }
+		}
+		return $products;
+	}
+
+	public function getGroups_SiteMap()
+	{
+		if($_SESSION['option']->useGroups && empty($this->allGroups))
+    		$this->init();
+        if(empty($this->allGroups))
+        	return false;
+
+		$categories = array();
+		foreach ($this->allGroups as $group) {
+			if($group->active)
+				$categories[] = clone $group;
+		}
+		if(empty($categories))
+        	return false;
+
+		if(!empty($categories))
+		{
+			$link = $_SESSION['alias']->alias.'/';
+            foreach ($categories as $Group) {
+            	$Group->link = $link.$Group->alias;
+            	if($Group->parent > 0)
+            		$Group->link = $link.$this->makeLink($Group->parent, $Group->alias);
+            }
+            return $categories;
+		}
+		return false;
 	}
 
 }

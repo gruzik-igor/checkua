@@ -207,6 +207,40 @@ class shopshowcase extends Controller {
     	return $this->shop_search_model->getByContent($content);
     }
 
+    public function __get_SiteMap_Links()
+    {
+        $data = $row = array();
+        $row['link'] = $_SESSION['alias']->alias;
+        $row['alias'] = $_SESSION['alias']->id;
+        $row['content'] = 0;
+        // $row['code'] = 200;
+        // $row['data'] = '';
+        // $row['time'] = time();
+        // $row['changefreq'] = 'daily';
+        // $row['priority'] = 5;
+        $data[] = $row;
+
+        $this->load->smodel('shop_search_model');
+        if($products = $this->shop_search_model->getProducts_SiteMap())
+        	foreach ($products as $product)
+            {
+            	$row['link'] = $product->link;
+            	$row['content'] = $product->id;
+            	$data[] = $row;
+            }
+
+       	if($_SESSION['option']->useGroups)
+	        if($groups = $this->shop_search_model->getGroups_SiteMap())
+	        	foreach ($groups as $group)
+	            {
+	            	$row['link'] = $group->link;
+	            	$row['content'] = -$group->id;
+	            	$data[] = $row;
+	            }
+
+        return $data;
+    }
+    
     // $id['key'] може мати любий ключ _products. Рекомендовано: id, article, alias.
 	public function __get_Product($id = 0)
 	{

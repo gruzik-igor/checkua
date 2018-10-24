@@ -174,14 +174,16 @@ class SitemapGenerator {
                                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                 xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                                 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd"
-                                xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                                xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                                xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                          </urlset>';
         $sitemapIndexHeader = '<?xml version="1.0" encoding="UTF-8"?>'.$generatorInfo.'
                                 <sitemapindex
                                     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
                                     xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
                                     http://www.sitemaps.org/schemas/sitemap/0.9/siteindex.xsd"
-                                    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+                                    xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+                                    xmlns:image="http://www.google.com/schemas/sitemap-image/1.1">
                               </sitemapindex>';
         foreach(array_chunk($this->urls,$this->maxURLsPerSitemap) as $sitemap) {
             $xml = new SimpleXMLElement($sitemapHeader);

@@ -198,6 +198,15 @@
 		    </div>
 		<?php }
 	}
+	else { ?>
+		<div class="form-group">
+			<label class="col-md-3 control-label">Стан</label>
+		    <div class="col-md-9">
+		    	<input type="radio" name="active" value="1" <?=($product->active == 1)?'checked':''?> id="active-1"><label for="active-1">Публікація активна</label>
+				<input type="radio" name="active" value="0" <?=($product->active == 0)?'checked':''?> id="active-0"><label for="active-0">Публікацію тимчасово відключено</label>
+		    </div>
+	    </div>
+	<?php }
 	$changePriceOptions = array();
 	$showh3 = $init_select2 = true;
 	foreach ($options_parents as $option_id) {

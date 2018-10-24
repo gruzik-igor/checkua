@@ -415,11 +415,14 @@ class shop_model {
 	        		$where = array('option' => '#po.value');
 	        		if($_SESSION['language'])
 	        			$where['language'] = $_SESSION['language'];
-			        $options = $this->db->select($this->table('_product_options'). ' as po', 'option, product', array('product' => $products_ids, 'option' => $ids))
+			        $options = $this->db->select($this->table('_product_options'). ' as po', 'option, product, value', array('product' => $products_ids, 'option' => $ids))
 		            						->join($this->table('_options_name'), 'name', $where)->get('array');
 		            if($options)
 		            	foreach ($options as $opt) {
-			            	$main_options[$opt->product][$opt->option] = $opt->name;
+		            		if(!empty($opt->name))
+			            		$main_options[$opt->product][$opt->option] = $opt->name;
+			            	else
+			            		$main_options[$opt->product][$opt->option] = $opt->value;
 			            }
 		            unset($options);
 		        }

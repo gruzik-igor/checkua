@@ -106,6 +106,8 @@
 					return $link;
 				}
 				foreach ($product->group as $g) {
+					if (empty($list[$g]))
+						continue;
 					$g = $list[$g]; 
 					$checked = ($g->product_active) ? 'checked' : '';
 	            	echo '<td><input name="active-group-'.$g->id.'" type="checkbox" data-render="switchery" class="switchery-small" '.$checked.' value="1" /></td>';

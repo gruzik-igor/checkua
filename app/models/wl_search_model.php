@@ -5,7 +5,7 @@ class wl_search_model {
 	public function get($by, $all = false)
 	{
 		$where['name'] = '%'.$by;
-		$where['content'] = '> 0';
+		// $where['content'] = '> 0';
 		if($_SESSION['language'])
 		{
 			if(!$all)

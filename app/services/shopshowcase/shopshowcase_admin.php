@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.5"
+ 	Service "Shop Showcase 2.6"
 	for WhiteLion 1.0
 
 */
@@ -44,16 +44,8 @@ class shopshowcase_admin extends Controller {
 				unset($product);
 
 				$group->alias_name = $_SESSION['alias']->name;
-				$group->parents = array();
-				if($group->parent > 0)
-				{
-					$list = array();
-		            $groups = $this->db->getAllData($this->shop_model->table('_groups'));
-		            foreach ($groups as $Group) {
-		            	$list[$Group->id] = clone $Group;
-		            }
-					$group->parents = $this->shop_model->makeParents($list, $group->parent, $group->parents);
-				}
+				$group->parents = $this->shop_model->makeParents($group->parent, array());
+
 				$this->wl_alias_model->setContent(($group->id * -1));
 
 				$groups = $this->shop_model->getGroups($group->id, false);
@@ -343,10 +335,30 @@ class shopshowcase_admin extends Controller {
 
 	public function export()
 	{
-		$this->load->smodel('groups_model');
-		$groups = $this->groups_model->getGroups(-1, false);
-
-		$this->load->admin_view('products/export_view', array('groups' => $groups));
+		if(isset($_GET['active']) && empty($_SESSION['option']->exportKey))
+		{
+			$password = bin2hex(openssl_random_pseudo_bytes(4));
+            $password = sha1($_SESSION['alias']->alias . md5($password) . SYS_PASSWORD);
+            $option = array();
+            $option['service'] = $_SESSION['service']->id;
+            $option['alias'] = $_SESSION['alias']->id;
+            $option['name'] = 'exportKey';
+            $option['value'] = $password;
+            if($this->db->insertRow('wl_options', $option))
+            {
+            	$_SESSION['notify'] = new stdClass();
+            	$_SESSION['notify']->success = "Ключ безпеки для експорту товарів: <strong>{$password}</strong>";
+            }
+            $this->redirect();
+		}
+		$_SESSION['alias']->name = 'Експорт товарів';
+		if(isset($_GET['groups']) && !empty($_SESSION['option']->exportKey))
+		{
+			$this->load->smodel('groups_model');
+			$this->load->admin_view('export/groups_view', array('groups' => $this->groups_model->getGroups(-1)));
+		}
+		else
+			$this->load->admin_view('export/index_view');
 	}
 
 	public function saveOption()
@@ -466,14 +478,30 @@ class shopshowcase_admin extends Controller {
 		$this->load->smodel('groups_model');
 		$id = $this->data->uri(3);
 		$id = explode('-', $id);
-		if(is_numeric($id[0]))
-			$this->edit_group($id[0]);
+		if($id[0] == 'edit' && is_numeric($id[1]))
+			$this->edit_group($id[1]);
 		else
 		{
-			$groups = $this->groups_model->getGroups(-1, false);
 			$_SESSION['alias']->name = 'Групи '.$_SESSION['admin_options']['word:products_to_all'];
 			$_SESSION['alias']->breadcrumb = array('Групи' => '');
-			$this->load->admin_view('groups/index_view', array('groups' => $groups));
+
+			if(isset($_GET['all']))
+			{
+				$groups = $this->groups_model->getGroups(-1, false);
+				$this->load->admin_view('groups/index_view', array('groups' => $groups));
+			}
+			else
+			{
+				$group = false;
+				if(is_numeric($id[0]))
+				{
+					$groups = $this->groups_model->getGroups($id[0], false);
+					$group = $this->groups_model->getById($id[0]);
+				}
+				else
+					$groups = $this->groups_model->getGroups(0, false);
+				$this->load->admin_view('groups/list_view', array('groups' => $groups, 'group' => $group));
+			}
 		}
 	}
 
@@ -560,51 +588,6 @@ class shopshowcase_admin extends Controller {
 			}
 		}
 		$this->load->page_404();
-	}
-
-	public function changePromGroup()
-	{
-		$res = array('result' => false);
-		$groupId = $this->data->post('groupId');
-		$promGroupId = $this->data->post('promGroupId');
-
-		if($promGroupId && $groupId)
-		{
-			$this->db->updateRow('s_shopshowcase_groups', array('prom_group' => $promGroupId), $groupId);
-			$res['result'] = true;
-		}
-
-		$this->json($res);
-	}
-
-	public function changePromLink()
-	{
-		$res = array('result' => false);
-		$groupId = $this->data->post('groupId');
-		$promLink = $this->data->post('promLink');
-
-		if($promLink && $groupId)
-		{
-			$this->db->updateRow('s_shopshowcase_groups', array('prom_link' => $promLink), $groupId);
-			$res['result'] = true;
-		}
-
-		$this->json($res);
-	}	
-
-	public function changePromLinkId()
-	{
-		$res = array('result' => false);
-		$groupId = $this->data->post('groupId');
-		$promLinkId = $this->data->post('promLinkId');
-
-		if($promLinkId && $groupId)
-		{
-			$this->db->updateRow('s_shopshowcase_groups', array('prom_link_id' => $promLinkId), $groupId);
-			$res['result'] = true;
-		}
-
-		$this->json($res);
 	}
 
 	public function options()

@@ -5,6 +5,8 @@
             	<div class="panel-heading-btn">
                 	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_group" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати групу</a>
 					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:options_to_all']?></a>
+                	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/groups'?>" class="btn btn-success btn-xs">Список по групно</a>
+                	<a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                 </div>
                 <h4 class="panel-title">Керування групами <?=$_SESSION['admin_options']['word:products_to_all']?></h4>
             </div>
@@ -26,8 +28,6 @@
 								<th>Група</th>
 								<th>Адреса</th>
 								<th>Востаннє редаговано</th>
-								<th>Автор</th>
-								<th>Стан</th>
 								<th>Змінити порядок</th>
                             </tr>
                         </thead>
@@ -59,13 +59,11 @@
 										$pl = 15 * $level + 5;
 										$ml = 10 * $level;
 										foreach ($list as $g) if($g->parent == $parent) { ?>
-											<tr>
+											<tr <?=($g->active)?'':'class="danger" title="Група відключена"'?>>
 												<td style="padding-left: <?=$pl?>px"><?=$g->id?></td>
-												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
-												<td><a href="<?=SITE_URL.$_SESSION['alias']->alias.'/'.$g->link?>">/<?=$_SESSION['alias']->alias.'/'.$g->link?></a></td>
-												<td><?=date("d.m.Y H:i", $g->date_edit)?></td>
-												<td><a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
-												<td style="background-color:<?=($g->active == 1)?'green':'red'?>;color:white"><?=($g->active == 1)?'активний':'відключено'?></td>
+												<td style="padding-left: <?=$pl?>px"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups/edit-<?=$g->id?>-<?=$g->alias?>"><?=($g->parent == 0) ? '<strong>'.$g->name.'</strong>' : $g->name?></a></td>
+												<td><a href="<?=SITE_URL.$g->link?>">/<?=$g->link?></a></td>
+												<td><?=date("d.m.Y H:i", $g->date_edit)?> <a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
 												<td style="padding: 1px 5px;">
 													<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 														<input type="hidden" name="id" value="<?=$g->id?>">

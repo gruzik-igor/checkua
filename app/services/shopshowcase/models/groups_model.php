@@ -2,6 +2,32 @@
 
 class groups_model {
 
+	public $allGroups = false;
+
+    public function init()
+    {
+		if(empty($this->allGroups))
+		{
+			$where = array();
+			$where['wl_alias'] = $_SESSION['alias']->id;
+			$this->db->select($this->table('_groups') .' as g', '*', $where);
+
+			$where_ntkd['alias'] = $_SESSION['alias']->id;
+			$where_ntkd['content'] = "#-g.id";
+			if($_SESSION['language']) $where_ntkd['language'] = $_SESSION['language'];
+			$this->db->join('wl_ntkd', "name", $where_ntkd);
+			$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
+			$this->db->order($_SESSION['option']->groupOrder);
+			if($list = $this->db->get('array'))
+			{
+				foreach ($list as $g) {
+	            	$this->allGroups[$g->id] = clone $g;
+	            }
+	            unset($list);
+	        }
+		}
+    }
+
 	public function table($sufix = '_groups', $useAliasTable = false)
 	{
 		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
@@ -10,42 +36,47 @@ class groups_model {
 
 	public function getGroups($parent = 0, $active = true)
 	{
-		$where = array('wl_alias' => $_SESSION['alias']->id);
-		if($active) $where['active'] = 1;
-		if($parent >= 0) $where['parent'] = $parent;
-		$this->db->select($this->table() .' as c', '*', $where);
-		$this->db->join('wl_users', 'name as user_name', '#c.author_edit');
-		$this->db->order($_SESSION['option']->groupOrder);
+		if(empty($this->allGroups))
+    		$this->init();
+        if(empty($this->allGroups))
+        	return false;
 
-		$categories = $this->db->get('array');
-		if($categories)
+		$categories = array();
+		if($parent < 0 && !$active)
+			$categories = $this->allGroups;
+		else
+			foreach ($this->allGroups as $group) {
+				if($active && $group->active)
+				{
+					if($parent < 0)
+						$categories[] = clone $group;
+					else if($group->parent == $parent)
+						$categories[] = clone $group;
+				}
+				elseif(!$active)
+				{
+					if($parent < 0)
+						$categories[] = clone $group;
+					else if($group->parent == $parent)
+						$categories[] = clone $group;
+				}
+			}
+		if(empty($categories))
+        	return false;
+		else
 		{
-            $list = array();
-            $groups = $this->db->getAllDataByFieldInArray($this->table(), $_SESSION['alias']->id, 'wl_alias');
-            foreach ($groups as $Group) {
-            	$list[$Group->id] = clone $Group;
-            }
-
-            $where = array();
-            if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-            $where['alias'] = $_SESSION['alias']->id;
+			$link = $_SESSION['alias']->alias.'/';
+	        if($parent > 0)
+	        	$link .= $this->makeLink($parent, '');
 
             foreach ($categories as $Group) {
-            	$Group->link = $Group->alias;
-            	if($Group->parent > 0) {
-            		$Group->link = $this->getLink($list, $Group->parent, $Group->alias);
-            	}
-            	$where['content'] = $Group->id * -1;
-            	$this->db->select('wl_ntkd', "name, text, list", $where);
-            	$ntkd = $this->db->get('single');
-            	if($ntkd){
-            		$Group->name = $ntkd->name;
-            		$Group->list = $ntkd->list;
-            		$Group->text = $ntkd->text;
-            	}
+            	$Group->link = $link.$Group->alias;
+            	if($parent < 0 && $Group->parent > 0)
+            		$Group->link = $link.$this->makeLink($Group->parent, $Group->alias);
             }
+            return $categories;
 		}
-		return $categories;
+		return false;
 	}
 
 	public function getByAlias($alias, $parent = 0)
@@ -60,15 +91,22 @@ class groups_model {
 
 	public function getById($id)
 	{
-		$this->db->select($this->table() .' as g', '*', array('wl_alias' => $_SESSION['alias']->id, 'id' => $id));
-		$this->db->join('wl_users', 'name as user_name', '#g.author_edit');
-		$where['alias'] = $_SESSION['alias']->id;
-		$where['content'] = '#-g.id';
-		if($_SESSION['language']) {
-			$where['language'] = $_SESSION['language'];
-		}
-		$this->db->join('wl_ntkd', 'name', $where);
-		return $this->db->get('single');
+		if(empty($this->allGroups))
+    		$this->init();
+		if(isset($this->allGroups[$id]))
+			$group = $this->allGroups[$id];
+		else
+			return false;
+
+		$group->link = $_SESSION['alias']->alias.'/';
+		$group->parents = array();
+        if($group->parent > 0)
+        {
+        	$group->parents = $this->makeParents($group->parent, $group->parents);
+        	$group->link .= $this->makeLink($group->parent, '');
+        }
+        $group->link .= $group->alias; 
+        return $group;
 	}
 
 	public function add(&$alias = '')
@@ -111,7 +149,7 @@ class groups_model {
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
 
-			$data['alias'] = $this->makeLink($data['alias'], $parent);
+			$data['alias'] = $this->makeLink_v1($data['alias'], $parent);
 			$alias = $data['alias'];
 
 			if($parent == 0)
@@ -346,25 +384,29 @@ class groups_model {
 		return true;
 	}
 
-	public function makeParents($all, $parent, $parents)
+	public function makeParents($parent, $parents)
 	{
-		$group = clone $all[$parent];
-		$where['alias'] = $_SESSION['alias']->id;
-		$where['content'] = "-{$group->id}";
-        if($_SESSION['language']) {
-        	$where['language'] = $_SESSION['language'];
-        }
-        $this->db->select("wl_ntkd", 'name', $where);
-        $ntkd = $this->db->get('single');
-    	if($ntkd){
-    		$group->name = $ntkd->name;
-    	}
-    	array_unshift ($parents, $group);
-		if($all[$parent]->parent > 0) $parents = $this->makeParents ($all, $all[$parent]->parent, $parents);
+		if(empty($this->allGroups))
+    		$this->init();
+		if(isset($this->allGroups[$parent]))
+		{
+			$group = clone $this->allGroups[$parent];
+	    	array_unshift ($parents, $group);
+			if($this->allGroups[$parent]->parent > 0)
+				$parents = $this->makeParents ($this->allGroups[$parent]->parent, $parents);
+		}
 		return $parents;
 	}
 
-	private function makeLink($link, $parent = 0){
+	private function makeLink($parent, $link)
+	{
+		$link = $this->allGroups[$parent]->alias .'/'.$link;
+		if($this->allGroups[$parent]->parent > 0)
+			$link = $this->makeLink ($this->allGroups[$parent]->parent, $link);
+		return $link;
+	}
+
+	private function makeLink_v1($link, $parent = 0){
 		$Group = $this->getByAlias($link, $parent);
 		$end = 0;
 		$link2 = $link;

@@ -425,9 +425,12 @@ class Loader {
 			
 			if($old_alias != $alias->id && isset($_SESSION['alias-cache'][$old_alias]))
 			{
+				$_SESSION['option'] = $_SESSION['service'] = NULL;
 				$_SESSION['alias'] = clone $_SESSION['alias-cache'][$old_alias]->alias;
-				$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;
-				$_SESSION['service'] = clone $_SESSION['alias-cache'][$old_alias]->service;
+				if(isset($_SESSION['alias-cache'][$old_alias]->options))
+					$_SESSION['option'] = clone $_SESSION['alias-cache'][$old_alias]->options;
+				if(isset($_SESSION['alias-cache'][$old_alias]->service))
+					$_SESSION['service'] = clone $_SESSION['alias-cache'][$old_alias]->service;
 			}
 		}
 		return $rezult;

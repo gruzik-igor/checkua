@@ -144,6 +144,39 @@ class library extends Controller {
     	return $this->library_search_model->getByContent($content);
     }
 
+    public function __get_SiteMap_Links()
+    {
+        $data = $row = array();
+        $row['link'] = $_SESSION['alias']->alias;
+        $row['alias'] = $_SESSION['alias']->id;
+        $row['content'] = 0;
+        $data[] = $row;
+
+        $this->load->smodel('library_model');
+        $articles = $this->library_model->getArticles();
+        if(!empty($articles))
+        	foreach ($articles as $article)
+            {
+            	$row['link'] = $article->link;
+            	$row['content'] = $article->id;
+            	$data[] = $row;
+            }
+
+        if($_SESSION['option']->useGroups)
+        {
+	        $groups = $this->library_model->getGroups();
+	        if(!empty($groups))
+	        	foreach ($groups as $group)
+	            {
+	            	$row['link'] = $group->link;
+	            	$row['content'] = -$group->id;
+	            	$data[] = $row;
+	            }
+        }
+
+        return $data;
+    }
+
 	public function __get_Articles($data = array())
 	{
 		$group = -1;

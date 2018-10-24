@@ -23,6 +23,15 @@ class Main extends Controller {
 		return $search;
     }
 
+    public function __get_SiteMap_Links()
+    {
+        $row = array();
+        $row['link'] = '';
+        $row['alias'] = $_SESSION['alias']->id;
+        $row['content'] = 0;
+        return array($row);
+    }
+
 }
 
 ?>

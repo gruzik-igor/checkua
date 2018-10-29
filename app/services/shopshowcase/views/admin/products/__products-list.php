@@ -2,7 +2,7 @@
 <link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
 
 <?php $productOrder = false;
-if(isset($_SESSION['option']->productOrder))
+if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
 {
 	$_SESSION['option']->productOrder = trim($_SESSION['option']->productOrder);
 	$order = explode(' ', $_SESSION['option']->productOrder);
@@ -31,7 +31,17 @@ if(isset($_SESSION['option']->productOrder))
 				<?php } ?>
 				<th>Автор</th>
 				<th>Редаговано</th>
-				<th>Стан</th>
+				<th><div class="btn-group">
+					<?php $sort = array('' => 'Авто', 'active_on' => 'Активні згори ↑', 'active_off' => 'Активні знизу ↓'); ?>
+					<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown">
+						<?=(isset($_GET['sort'])) ? $sort[$_GET['sort']] : 'Стан'?> <span class="caret"></span>
+					</button>
+					<ul class="dropdown-menu" role="menu">
+						<?php foreach ($sort as $key => $value) { ?>
+							<li><a href="<?=$this->data->get_link('sort', $key)?>"><?=$value?></a></li>
+						<?php } ?>
+					</ul>
+				</div></th>
             </tr>
         </thead>
         <tbody>
@@ -89,7 +99,7 @@ if(isset($_SESSION['option']->productOrder))
 					<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a></td>
 					<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
 					
-					<?php if(!isset($search) && $productOrder) { ?>
+					<?php if((!isset($search) && $productOrder) || isset($_GET['sort'])) { ?>
 						<td>
 							<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
 						</td>
@@ -117,7 +127,7 @@ if(isset($_SESSION['option']->productOrder))
         </tbody>
     </table>
 </div>
-<div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong></div>
+<div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong>. Активних товарів: <strong><?=$_SESSION['option']->paginator_total_active?></strong></div>
 <?php
 $this->load->library('paginator');
 echo $this->paginator->get();

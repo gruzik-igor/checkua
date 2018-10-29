@@ -103,6 +103,7 @@ class shop_model {
 
 	public function getProducts($Group = -1, $noInclude = 0, $active = true, $getProductOptions = false)
 	{
+		$_SESSION['option']->paginator_total_active = 0;
 		$where = array('wl_alias' => $_SESSION['alias']->id);
 		if($active)
 		{
@@ -365,6 +366,18 @@ class shop_model {
 				case 'article':
 					$this->db->order('article ASC');
 					break;
+				case 'active_on':
+					if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup)
+						$this->db->order('active DESC', 'pg');
+					else
+						$this->db->order('active DESC');
+					break;
+				case 'active_off':
+					if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup)
+						$this->db->order('active ASC', 'pg');
+					else
+						$this->db->order('active ASC');
+					break;
 				default:
 					$this->db->order($_SESSION['option']->productOrder);
 					break;
@@ -391,7 +404,18 @@ class shop_model {
         		if(count($products) < $_SESSION['option']->paginator_per_page && empty($_GET['page']))
 					$_SESSION['option']->paginator_total = count($products);
 				else
+				{
 					$_SESSION['option']->paginator_total = $this->db->get('count');
+
+					if(!$active)
+					{
+						$wherePG = array('active' => 1, 'group' => $Group);
+						if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup)
+							$_SESSION['option']->paginator_total_active = $this->db->getCount($this->table('_product_group'), $wherePG);
+						else
+							$_SESSION['option']->paginator_total_active = $this->db->getCount($this->table('_products'), $wherePG);
+					}
+				}
         	}
 			$this->db->clear();
 
@@ -477,6 +501,12 @@ class shop_model {
 
             foreach ($products as $product)
             {
+            	if($_SESSION['option']->paginator_total <= $_SESSION['option']->paginator_per_page)
+				{
+					if($product->active)
+						$_SESSION['option']->paginator_total_active++;
+				}
+				
             	$product->link = $link.$product->alias;
             	$product->parents = $parents;
             	if($getProductOptions)

@@ -148,7 +148,14 @@ class shop_model {
 						else
 							$order = '';
 
-						if(count($_GET) <= 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+						$getOk = true;
+						if(count($_GET) > 1)
+						{
+							$getOk = false;
+							if(count($_GET) == 2 && isset($_GET['request']) && isset($_GET['page']))
+								$getOk = true;
+						}
+						if($getOk && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 						{
 							$start = 0;
 							if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)
@@ -193,7 +200,14 @@ class shop_model {
 								$this->db->order(trim($_SESSION['option']->productOrder));
 
 							$start = -1;
-							if(count($_GET) == 1 && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
+							$getOk = true;
+							if(count($_GET) > 1)
+							{
+								$getOk = false;
+								if(count($_GET) == 2 && isset($_GET['request']) && isset($_GET['page']))
+									$getOk = true;
+							}
+							if($getOk && isset($_SESSION['option']->paginator_per_page) && $_SESSION['option']->paginator_per_page > 0)
 							{
 								$start = 0;
 								if(isset($_GET['per_page']) && is_numeric($_GET['per_page']) && $_GET['per_page'] > 0)

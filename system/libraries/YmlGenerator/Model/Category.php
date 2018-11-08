@@ -25,6 +25,11 @@ class Category
      * @var int
      */
     private $parentId;
+    
+    /**
+     * @var int
+     */
+    private $portal_id;
 
     /**
      * @var string
@@ -67,6 +72,26 @@ class Category
     public function setParentId($parentId)
     {
         $this->parentId = $parentId;
+
+        return $this;
+    }
+
+    /**
+     * @return int
+     */
+    public function getPortalId()
+    {
+        return $this->portal_id;
+    }
+
+    /**
+     * @param int $portal_id
+     *
+     * @return Category
+     */
+    public function setPortalId($portal_id)
+    {
+        $this->portal_id = $portal_id;
 
         return $this;
     }

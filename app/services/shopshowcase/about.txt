@@ -39,6 +39,7 @@ Options:
 	folder				(text)		назва папки у IMG_PATH, куди будуть заливатися фото, створюватися альбоми + аудіо
 	productOrder		(text)		порядок сортування товарів
 	groupOrder			(text)		порядок сортування груп
+	prom 				(0, 1)		додати колонку prom_id для експорту yml
 
 Увага! Для коректної роботи сервісу на localhost має бути відключено mysql > ONLY_FULL_GROUP_BY
 mysql > SET GLOBAL sql_mode=(SELECT REPLACE(@@sql_mode,'ONLY_FULL_GROUP_BY',''));
@@ -271,3 +272,4 @@ Versions:
 			Панель керування. Перероблено інтерфейс роботи з групами
 			Виправлено дрібні помилки
 			Додано __get_SiteMap_Links()
+			Додано option:prom

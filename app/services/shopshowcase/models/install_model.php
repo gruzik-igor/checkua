@@ -15,9 +15,9 @@ class install
 	public $admin_ico = 'fa-qrcode';
 	public $version = "2.6";
 
-	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'useMarkUp' => 0, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC');
-	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'useMarkUp' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text');
-	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'searchHistory' => 'Зберігати історію пошуку користувачів', 'useMarkUp' => 'Використовувати націнку', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп');
+	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'useMarkUp' => 0, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC', 'prom' => 0);
+	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'useMarkUp' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text', 'prom' => 'bool');
+	public $options_title = array('ProductUseArticle' => 'Використання зовнішнього артикулу', 'useGroups' => 'Наявність груп', 'ProductMultiGroup' => 'Мультигрупи (1 товар більше ніж 1 група)', 'useAvailability' => 'Використання наявності товару', 'searchHistory' => 'Зберігати історію пошуку користувачів', 'useMarkUp' => 'Використовувати націнку', 'folder' => 'Папка для зображень', 'productOrder' => 'Сортування товарів', 'groupOrder' => 'Сортування груп', 'prom' => 'Вигрузка детально prom.ua');
 	public $options_admin = array (
 					'word:products_to_all' => 'товарів',
 					'word:product_to' => 'До товару',
@@ -52,8 +52,10 @@ class install
 						  `author_add` int(11) NOT NULL,
 						  `date_add` int(11) NOT NULL,
 						  `author_edit` int(11) NOT NULL,
-						  `date_edit` int(11) NOT NULL,
-						  PRIMARY KEY (`id`),
+						  `date_edit` int(11) NOT NULL,";
+			if($this->options['prom'] > 0)
+				$query .= "`prom_id` int(11) NOT NULL,";
+			$query .= "	  PRIMARY KEY (`id`),
 						  UNIQUE KEY `id` (`id`),
 						  KEY `wl_alias` (`wl_alias`),
 						  KEY `parent` (`parent`),
@@ -191,6 +193,19 @@ class install
 	{
 		$this->options[$option] = $value;
 
+		if ($option == 'prom' AND $value > 0)
+		{
+			if($columns = $this->db->getQuery("SHOW COLUMNS FROM `{$this->table_service}_groups`"))
+			{
+				$go = true;
+				foreach ($columns as $column) {
+					if($column->Field == 'prom_id')
+						$go = false;
+				}
+				if($go)
+					$this->db->executeQuery("ALTER TABLE `{$this->table_service}_groups` ADD `prom_id` INT NULL");
+			}
+		}
 		if ($option == 'useGroups' AND $value > 0)
 		{
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_groups` (

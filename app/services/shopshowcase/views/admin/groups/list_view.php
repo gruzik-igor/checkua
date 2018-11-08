@@ -38,6 +38,9 @@
 								<th>Група</th>
 								<th>Адреса</th>
 								<th>Востаннє редаговано</th>
+								<?php if(!empty($_SESSION['option']->prom)) { ?>
+									<th>Група prom.ua</th>
+								<?php } ?>
 								<th>Змінити порядок</th>
                             </tr>
                         </thead>
@@ -51,6 +54,9 @@
 								</td>
 								<td><a href="<?=SITE_URL.$g->link?>">/<?=$g->link?></a></td>
 								<td><?=date("d.m.Y H:i", $g->date_edit)?> <a href="<?=SITE_URL.'admin/wl_users/'.$g->author_edit?>"><?=$g->user_name?></a></td>
+								<?php if(!empty($_SESSION['option']->prom)) { ?>
+									<td><input onchange="changePromGroup(this, <?= $g->id?>)" type="number" value="<?= $g->prom_id?>" min="0" class="form-control"></td>
+								<?php } ?>
 								<td style="padding: 1px 5px;">
 									<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_group_position">
 										<input type="hidden" name="id" value="<?=$g->id?>">
@@ -78,3 +84,36 @@
         </div>
     </div>
 </div>
+
+<?php if(!empty($_SESSION['option']->prom)) { ?>
+<script>
+	function changePromGroup(e, groupId) 
+	{
+		var promGroupId = parseInt(e.value);
+		if(Number.isInteger(promGroupId))
+		{
+			$.ajax({
+				url: "<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changePromGroup",
+				type: "POST",
+				data: {
+					groupId : groupId,
+					promGroupId: promGroupId
+				},
+				success: function (res) {
+					if(res['result'])
+						$.gritter.add({text:"Дані успішно збережено!"});
+					else
+					{
+						if(res.error)
+							$.gritter.add({text:"Помилка! "+res.error});
+						else
+							$.gritter.add({text:"Помилка!"});
+					}
+				}
+			})
+		}
+		else
+			$.gritter.add({text:"Помилка! Має бути число"});
+	}
+</script>
+<?php } ?>

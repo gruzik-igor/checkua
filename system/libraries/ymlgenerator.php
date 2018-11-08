@@ -51,10 +51,17 @@ class ymlgenerator extends Controller {
             {
                 if(!in_array($group->id, $this->groupsInList))
                 {
-                    $categories[] = (new Category())
-                        ->setId($group->id)
-                        ->setParentId($group->parent)
-                        ->setName($group->name);
+                    if(!empty($group->prom_id))
+                        $categories[] = (new Category())
+                            ->setId($group->id)
+                            ->setParentId($group->parent)
+                            ->setPortalId($group->prom_id)
+                            ->setName($group->name);
+                    else
+                        $categories[] = (new Category())
+                            ->setId($group->id)
+                            ->setParentId($group->parent)
+                            ->setName($group->name);
                     $this->groupsInList[] = $group->id;
                 }
             }

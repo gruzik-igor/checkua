@@ -62,14 +62,14 @@ class liqpay_model
 						}
 					}
 				}
-				else if($data->status == 'processing')
+				else
 				{
 					$pay = $this->db->getAllDataById($_SESSION['service']->table, $id);
 					if($pay && $pay->id == $data->order_id)
 					{
 						$sender_phone = '';
 						if(isset($data->sender_phone)) $sender_phone = ' '.$data->sender_phone;
-						$transaction = 'LiqPay Transaction ID: processing'.$sender_phone;
+						$transaction = 'LiqPay Transaction ID: '.$data->status.' '.$sender_phone;
 
 						$update = array();
 						$pay->status = $update['status'] = $data->status;

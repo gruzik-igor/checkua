@@ -4,9 +4,10 @@ class groups_model {
 
 	public $errors = false;
 
-	public function table($sufix = '_groups')
+	public function table($sufix = '_groups', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$_SESSION['alias']->table.$sufix;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 
 	public function getGroups($active = true)

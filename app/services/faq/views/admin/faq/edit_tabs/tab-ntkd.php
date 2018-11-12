@@ -10,8 +10,7 @@
 		$ntkd = new stdClass();
 		$ntkd->name = $question->question;
 		$ntkd->text = $question->answer;
-		$lang_text_1 = "";
-		$lang_text_2 = "-lang";
+		$lang_text_1 = $lang_text_2 = $lang = "";
 	}
 ?>
 

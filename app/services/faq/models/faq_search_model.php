@@ -3,9 +3,10 @@
 class faq_search_model
 {
 
-	public function table($sufix = '')
+	public function table($sufix = '', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$_SESSION['alias']->table.$sufix;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 	
 	public function getByContent($content, $admin = false)

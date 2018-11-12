@@ -2,9 +2,10 @@
 
 class question_model {
 
-	public function table($sufix = '_questions')
+	public function table($sufix = '_questions', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$_SESSION['alias']->table.$sufix;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 	
 	public function getQuestions($group = 0, $active = true)
@@ -85,6 +86,7 @@ class question_model {
 				{
 					$ntkd['language'] = $lang;
 					$ntkd['name'] = $this->data->post('name_'.$lang);
+					$ntkd['text'] = $this->data->post('text_'.$lang);
 					$ntkd['title'] = $this->data->post('name_'.$lang);
 					if($lang == $_SESSION['language'])
 					{
@@ -94,6 +96,7 @@ class question_model {
 				}
 			} else {
 				$ntkd['name'] = $this->data->post('name');
+				$ntkd['text'] = $this->data->post('text');
 				$ntkd['title'] = $this->data->post('name');
 				$data['alias'] = $this->data->latterUAtoEN($ntkd['name']);
 				$this->db->insertRow('wl_ntkd', $ntkd);

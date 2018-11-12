@@ -40,7 +40,6 @@
 								<?php } ?>
 								<th>Автор</th>
 								<th>Редаговано</th>
-								<th>Стан</th>
 								<?php if($this->data->uri(2) != 'all') { ?>
 									<th>Порядок</th>
 								<?php } ?>
@@ -52,15 +51,14 @@
 	                        $max = count($faqs);
 	                        foreach($faqs as $faq){ 
 	                        ?>
-	                        	<tr>
+	                        	<tr <?=($faq->active)?'':'class="danger" title="Відключено"'?>>
 	                        		<td><?=$faq->id?></td>
-	                        		<td><a href="<?=SITE_URL?>admin/faq/<?=$faq->link?>"><?=$faq->question?></a></td>
+	                        		<td><a href="<?=SITE_URL?>admin/<?=$_SESSION['alias']->alias?>/<?=$faq->link?>"><?=$faq->question?></a></td>
 	                        		<?php if($_SESSION['option']->useGroups){ ?>
 										<td><?=$faq->group_name?></td>
 									<?php } ?>
 	                        		<td><?=$faq->author_edit_name?></td>
 	                        		<td><?=date('d.m.Y H:i', $faq->date_edit)?></td>
-	                        		<td style="background-color:<?=($faq->active)?'green':'red'?>; color:white"><?=($faq->active)?'Активний':'Відключений'?></td>
 	                        		<?php if($this->data->uri(2) != 'all') { ?>
 		                        		<td>
 											<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/change_question_position">

@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "FAQ 1.0.2"
+ 	Service "FAQ 1.1"
 	for WhiteLion 1.0
 
 */
@@ -36,6 +36,31 @@ class faq extends Controller {
     {
     	$this->load->smodel('faq_search_model');
     	return $this->faq_search_model->getByContent($content);
+    }
+
+    public function __get_SiteMap_Links()
+    {
+        $data = $row = array();
+        $row['link'] = $_SESSION['alias']->alias;
+        $row['alias'] = $_SESSION['alias']->id;
+        $row['content'] = 0;
+        // $row['code'] = 200;
+        // $row['data'] = '';
+        // $row['time'] = time();
+        // $row['changefreq'] = 'daily';
+        // $row['priority'] = 5;
+        $data[] = $row;
+
+        $this->load->smodel('faq_model');
+        if($faqs = $this->faq_model->getQuestions())
+        	foreach ($faqs as $faq)
+            {
+            	$row['link'] = $faq->link;
+            	$row['content'] = $faq->id;
+            	$data[] = $row;
+            }
+
+        return $data;
     }
 
 	public function __get_Questions($data = array())

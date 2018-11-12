@@ -1,5 +1,5 @@
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-9">
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<?php if($_SESSION['option']->useGroups){ ?>
@@ -44,15 +44,26 @@
 									<th>Питання <?=$lang?></th>
 									<td><input type="text" name="name_<?=$lang?>" value="" class="form-control" required></td>
 								</tr>
+								<tr>
+									<th>Відповідь <?=$lang?></th>
+									<td><textarea name="text_<?=$lang?>" class="form-control"></textarea></td>
+								</tr>
 							<?php } else { ?>
 								<tr>
 									<th>Питання</th>
 									<td><input type="text" name="name" value="" class="form-control" required></td>
 								</tr>
+								<tr>
+									<th>Відповідь</th>
+									<td><textarea name="text" class="form-control"></textarea></td>
+								</tr>
 							<?php } ?>
 							<tr>
 								<td></td>
-								<td><input type="submit" class="btn btn-sm btn-success" value="Додати"></td>
+								<td>
+									<input type="submit" name="save_new" class="btn btn-sm btn-success m-r-20" value="Зберегти і додати нове питання">
+									<input type="submit" name="save_edit" class="btn btn-sm btn-info" value="Зберегти і редагувати детально">
+								</td>
 							</tr>
 	                    </table>
 	                </div>

@@ -2,9 +2,10 @@
 
 class faq_model {
 
-	public function table($sufix = '')
+	public function table($sufix = '', $useAliasTable = false)
 	{
-		return $_SESSION['service']->table.$_SESSION['alias']->table.$sufix;
+		if($useAliasTable) return $_SESSION['service']->table.$sufix.$_SESSION['alias']->table;
+		return $_SESSION['service']->table.$sufix;
 	}
 	
 	public function getQuestions($group = 0, $active = true)
@@ -36,6 +37,11 @@ class faq_model {
 		if($faqs)
 		{
 			foreach ($faqs as $faq) {
+				$answer = html_entity_decode($faq->answer);
+				if(substr($answer, 0, 3) == '<p>')
+					$faq->answer = $answer;
+				else
+					$faq->answer = nl2br($faq->answer);
 				if($_SESSION['option']->useGroups && $faq->group_alias != '')
 				{
 					$faq->link = $faq->group_alias .'/'. $faq->alias;

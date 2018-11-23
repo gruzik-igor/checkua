@@ -25,7 +25,7 @@
 						<?php } ?>
 						<tr>
 							<th>Статус</th>
-							<td><strong><?=$payment->status?></strong></td>
+							<td><strong><?=$payment->status?></strong> <a href="https://www.liqpay.ua/documentation/api/callback" target="_blank" title="Інформація про статуси"><i class="fa fa-info-circle"></i></a></td>
 						</tr>
 						<tr>
 							<th>Службова інформація</th>

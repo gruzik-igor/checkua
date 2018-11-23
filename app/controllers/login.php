@@ -32,7 +32,10 @@ class Login extends Controller {
     public function process()
     {
         $this->load->library('validator');
-        $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
+        $email = '';
+    	if($email = $this->data->post('email'))
+    		$email = strtolower($email);
+		$this->validator->setRules('E-mail', $email, 'required|email');
         $this->validator->setRules('Поле пароль', $this->data->post('password'), 'required|5..40');
 
         if($this->validator->run())

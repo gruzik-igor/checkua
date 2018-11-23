@@ -18,7 +18,7 @@
 	<div class="container content">
 		<div class="row">
 			<div class="col-md-12">
-				<h1 class="col-md-12"><?=$this->text('Замовлення')?> #<?= $cart['id']?></h1>
+				<h1 style="margin-bottom: 40px"><?=$this->text('Замовлення')?> #<?= $cart['id']?></h1>
 
 				<h3><b>Покупець</b></h3>
 				<?php
@@ -39,11 +39,12 @@
 					echo '<p>'.$cart['comment'].'</p>';
 				}
 
-				echo '<h3><b>Замовлення</b></h3>';
+				echo '<h3><b>Замовлення</b></h3><div class="row">';
 
 				if(!empty($cart['products']))
 					foreach($cart['products'] as $product) { ?>
-						<div class="row">
+						<div class="col-md-6 ">
+							<div class="row" style="margin-bottom: 20px">
 							<?php if($product->info->photo) { ?>
 								<div class="col-sm-2 col-xs-3" style="max-width: 20%">
 									<a href="<?=SITE_URL.$product->info->link?>">
@@ -66,8 +67,10 @@
 								<?=$product->price .' x '. $product->quantity .' = <strong>'.$product->sum ?></strong>
 							</div>
 						</div>
-						<hr>
-					<?php } ?>
+					</div>
+				<?php } ?>
+				</div>
+				<hr>
 				<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart['total_formatted'] ?></b></h4>
 			</div>
 		</div>

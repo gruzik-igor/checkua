@@ -11,7 +11,10 @@ class faq_admin extends Controller {
 				
     function _remap($method, $data = array())
     {
-    	$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
+    	$this->wl_alias_model->setContent();
+
+    	if(isset($_SESSION['alias']->name))
+    		$_SESSION['alias']->breadcrumb = array($_SESSION['alias']->name => '');
         if (method_exists($this, $method)) {
         	if(empty($data)) $data = null;
             return $this->$method($data);
@@ -81,7 +84,8 @@ class faq_admin extends Controller {
 			$_SESSION['alias']->name = 'Редагувати питання #'.$question->id.' "'.$question->question.'"';
 			$this->load->admin_view('faq/edit_view', array('question' => $question));
 		}
-		$this->load->page_404();
+		else
+			$this->load->page_404();
 	}
 	
 	public function save_question()
@@ -90,7 +94,10 @@ class faq_admin extends Controller {
 			$this->load->smodel('question_model');
 			if($_POST['id'] == 0){
 				$alias = $this->question_model->add();
-				$this->redirect("admin/{$_SESSION['alias']->alias}/{$alias}");
+				if(!empty($_POST['save_new']))
+					$this->redirect("admin/{$_SESSION['alias']->alias}/add");
+				else
+					$this->redirect("admin/{$_SESSION['alias']->alias}/{$alias}");
 			} else {
 				$_SESSION['notify'] = new stdClass();
 				$alias = $this->question_model->save($_POST['id']);

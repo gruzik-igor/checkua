@@ -1021,6 +1021,26 @@ class shopshowcase_admin extends Controller {
     {
     	$this->load->admin_view('import_view');
     }
+
+    public function changePromGroup()
+	{
+		$res = array('result' => false);
+		if(!empty($_SESSION['option']->prom))
+		{
+			$groupId = $this->data->post('groupId');
+			$promGroupId = $this->data->post('promGroupId');
+
+			if($groupId)
+			{
+				$this->db->updateRow('s_shopshowcase_groups', array('prom_id' => $promGroupId), $groupId);
+				$res['result'] = true;
+			}
+		}
+		else
+			$res['error'] = 'Active `prom` => 1 option';
+
+		$this->json($res);
+	}
 }
 
 ?>

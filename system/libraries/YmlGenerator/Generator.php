@@ -153,6 +153,9 @@ class Generator
         if ($category->getParentId() !== null) {
             $this->writer->writeAttribute('parentId', $category->getParentId());
         }
+        if ($category->getPortalId() !== null) {
+            $this->writer->writeAttribute('portal_id', $category->getPortalId());
+        }
 
         $this->writer->text($category->getName());
         $this->writer->fullEndElement();

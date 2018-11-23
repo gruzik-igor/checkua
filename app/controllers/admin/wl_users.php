@@ -115,8 +115,11 @@ class wl_users extends Controller {
             $password = sha1($_SESSION['user']->email . $password . SYS_PASSWORD . $_SESSION['user']->id);
             if($password == $admin->password)
             {
+                $email = '';
+                if($email = $this->data->post('email'))
+                    $email = strtolower($email);
                 $this->load->library('validator');
-                $this->validator->setRules('email', $this->data->post('email'), 'required|email|3..40');
+                $this->validator->setRules('email', $email, 'required|email');
                 $this->validator->setRules('name', $this->data->post('name'), 'required');
 
                 if($_POST['id'] == 0)
@@ -126,7 +129,7 @@ class wl_users extends Controller {
                     
                     if($this->validator->run())
                     {
-                        $user['email'] = $this->data->post('email');
+                        $user['email'] = $email;
                         if($this->db->getAllDataById('wl_users', $user['email'], 'email') == false)
                         {
                             $user['name'] = $this->data->post('name');
@@ -198,7 +201,7 @@ class wl_users extends Controller {
                     
                     if($this->validator->run())
                     {
-                        $user['email'] = $this->data->post('email');
+                        $user['email'] = $email;
                         $check = $this->db->getAllDataByFieldInArray('wl_users', $user['email'], 'email');
                         if(count($check) == 0 || $check == false || (count($check) == 1 && $check[0]->id == $_POST['id']))
                         {

@@ -53,13 +53,16 @@ class Signup extends Controller {
 				$this->validator->setRules("Ім'я", $this->data->post('first_name'), 'required');
 				$this->validator->setRules("Прізвище", $this->data->post('last_name'), 'required');
 			}
-			$this->validator->setRules('E-mail', $this->data->post('email'), 'required|email');
+			$email = '';
+	    	if($email = $this->data->post('email'))
+	    		$email = strtolower($email);
+			$this->validator->setRules('E-mail', $email, 'required|email');
 			$this->validator->setRules('Пароль', $this->data->post('password'), 'required|5..20');
 			$this->validator->password($this->data->post('password'), $this->data->post('re-password'));
 	        if($this->validator->run())
 	        {
 	            $this->load->model('wl_user_model');
-	            $info['email'] = $this->data->post('email');
+	            $info['email'] = $email;
 		    	$info['name'] = $this->data->post('name');
 		    	$info['password'] = $_POST['password'];
 		    	$info['photo'] = '';

@@ -506,7 +506,13 @@ class shop_model {
 					if($product->active)
 						$_SESSION['option']->paginator_total_active++;
 				}
-				
+
+				if($_SESSION['option']->ProductUseArticle && mb_strlen($product->name) > mb_strlen($product->article))
+				{
+					$name = explode(' ', $product->name);
+					if(array_pop($name) == $product->article)
+						$product->name = implode(' ', $name);
+				}
             	$product->link = $link.$product->alias;
             	$product->parents = $parents;
             	if($getProductOptions)

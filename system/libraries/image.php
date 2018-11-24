@@ -12,6 +12,7 @@
  * Версія 1.0.5 (27.11.2015 - виправлено помилку при додаванні фотографій за короткою адресою сайту)
  * Версія 1.1 (13.01.2017 - додано підтримку прозорості зображень при зміні розміру)
  * Версія 1.2 (07.02.2017 - додано підтипи для змін розміру зображень, покращено заливку та збереження фото)
+ * Версія 1.3 (24.11.2018 - додано можливість (якщо сервер дозволяє php.ini)/повідомлення про молку для заливки фотографій великого розміру
  */
 
 class Image {
@@ -82,6 +83,49 @@ class Image {
 		
 		if(!empty($info))
 		{
+			$MB = 1048576;  // number of bytes in 1M
+		    $K64 = 65536;    // number of bytes in 64K
+		    $TWEAKFACTOR = 1.5;  // Or whatever works for you
+		    $memoryNeeded = round( ( $info[0] * $info[1] * $info['bits'] * $info['channels'] / 8 + $K64 ) * $TWEAKFACTOR );
+		    //ini_get('memory_limit') only works if compiled with "--enable-memory-limit" also
+		    //Default memory limit is 8MB so well stick with that. 
+		    //To find out what yours is, view your php.ini file.
+		    $memoryLimit = 16 * $MB;
+		    if($memory_limit = ini_get('memory_limit'))
+		    {
+		    	$size = intval($memory_limit);
+		    	switch (substr($memory_limit, -1)) {
+		    		case 'M':
+		    		case 'm':
+		    			$memoryLimit = $size * $MB;
+		    			break;
+		    		case 'K':
+		    		case 'k':
+		    			$memoryLimit = $size * 1024;
+		    			break;
+		    		
+		    		default:
+		    			$memoryLimit = $size;
+		    			break;
+		    	}
+		    }
+		    if (function_exists('memory_get_usage') && memory_get_usage() + $memoryNeeded > $memoryLimit) 
+		    {
+		        $newLimit = $memoryLimit + ceil( ( memory_get_usage() + $memoryNeeded - $memoryLimit + $MB) / $MB );
+		        if(!ini_set( 'memory_limit', $newLimit . 'M' ))
+		        {
+		        	$memoryLimit /= $MB;
+		        	$this->errors[] = 'SERVER MEMORY_LIMIT '.ceil( $memoryLimit ).'Mb. You need limit not less '.$newLimit.'Mb';
+		        	return false;
+		        }
+		    }
+		    elseif($memoryNeeded > $memoryLimit)
+		    {
+		    	$newLimit = ceil( ($memoryNeeded - $memoryLimit + $MB) / $MB );
+		    	$this->errors[] = 'You need SERVER MEMORY_LIMIT not less '.$newLimit.'Mb';
+		        return false;
+		    }
+
 			$this->type = $info[2];
 			$this->path = $filepath;
 			$this->name = $name;

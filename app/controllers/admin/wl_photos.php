@@ -2,6 +2,9 @@
 
 class wl_photos extends Controller {
 
+	private $extension = false;
+	private $error = false;
+
     function _remap($method)
     {
     	$_SESSION['alias']->name = 'Images';
@@ -65,8 +68,7 @@ class wl_photos extends Controller {
                     $data['file_name'] = $data['title'] = '';
                     $data['author'] = $_SESSION['user']->id;
                     $data['date_add'] = time();
-                    $this->db->insertRow('wl_images', $data);
-                    $photo_id = $this->db->getLastInsertedId();
+                    $photo_id = $this->db->insertRow('wl_images', $data);
                     $photo_name = $this->data->post('PHOTO_FILE_NAME') . '-' . $photo_id;
                     
                     if($extension = $this->savephoto($name_field, $path, $photo_name, true, $i))
@@ -89,7 +91,38 @@ class wl_photos extends Controller {
                         $this->db->cache_clear($data['content'], false, $data['alias']);
                     }
                     else
-                        $error++;
+                    {
+                    	$this->db->deleteRow('wl_images', $photo_id);
+	                    $prefix = array('');
+	                    if($sizes = $this->db->getAliasImageSizes($data['alias']))
+	                        foreach ($sizes as $resize) {
+	                            $prefix[] = $resize->prefix.'_';
+	                        }
+	                    foreach ($prefix as $p) {
+	                    	if($this->extension)
+	                    	{
+	                    		$filename = $path.$p.$photo_name.'.'.$this->extension;
+	                        	@unlink ($filename);
+	                    	}
+	                    	else
+	                    	{
+		                    	$extensions = array('.jpg', '.jpeg', '.png', '.gif');
+		                    	foreach ($extensions as $ext) {
+		                    		$filename = $path.$p.$photo_name.$ext;
+		                        	@unlink ($filename);
+		                    	}
+		                    }
+	                    }
+                        
+                        $photo['id'] = 0;
+                        $photo['error'] = 'Error image file <strong>'.$_FILES[$name_field]['name'][$i].'</strong>';
+                        if($this->error)
+                        	$photo['error'] .= $this->error;
+                        $photo['date'] = date('d.m.Y H:i');
+                        $photo['url'] = SERVER_URL.'style/admin/images/no_image_available.jpg';
+                        $photo['thumbnailUrl'] = SERVER_URL.'style/admin/images/no_image_available.jpg';
+                        $filejson->files[] = $photo;
+                    }
                 }
             }
             if($error > 0)
@@ -231,6 +264,12 @@ class wl_photos extends Controller {
                                 if(in_array($resize->type, array(2, 21, 22)))
                                     $this->image->preview($resize->width, $resize->height, $resize->quality, $resize->type);
                                 $this->image->save($resize->prefix);
+                            }
+                            else
+                            {
+                            	$this->extension = $extension;
+                            	$this->error = $this->image->getErrors();
+                            	return false;
                             }
                         }
                     }

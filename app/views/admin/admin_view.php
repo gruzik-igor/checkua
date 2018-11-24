@@ -8,7 +8,7 @@
   <title><?=$_SESSION['alias']->name?> | Панель керування <?=SITE_NAME?></title>
   <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
   <meta content="White Lion Web Studio" name="author" />
-  <link rel="shortcut icon" href="<?=SERVER_URL?>style/admin/images/whitelion-black.png">
+  <link rel="shortcut icon" href="<?=SERVER_URL?>style/admin/images/WhiteLion-black.png">
   
   <!-- ================== BEGIN BASE CSS STYLE ================== -->
   <link href='https://fonts.googleapis.com/css?family=Open+Sans:300italic,400italic,600italic,700italic,700,300,600,400&subset=latin,cyrillic' rel='stylesheet' type='text/css'>

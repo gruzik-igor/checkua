@@ -794,14 +794,16 @@ class shop_model {
 	{
 		$where['alias'] = $_SESSION['alias']->id;
 		$where['content'] = $product;
-		$this->db->select('wl_images', '*', $where);
-		$this->db->order('position ASC');
 		if(is_array($product) || $product == '<0')
-			$this->db->group('content');
+			$where['position'] = 1;
+		$this->db->select('wl_images', '*', $where);
 		if($all)
 			$this->db->join('wl_users', 'name as user_name', '#author');
 		elseif(is_numeric($product))
+		{
+			$this->db->order('position ASC');
 			$this->db->limit(1);
+		}
 		if(is_array($product) || $all)
 			return $this->db->get('array');
 		else

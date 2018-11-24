@@ -52,10 +52,11 @@ class shopshowcase extends Controller {
 				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
 				$this->wl_alias_model->setContent($product->id);
-				if($_SESSION['option']->ProductUseArticle && mb_strlen($product->article) > mb_strlen($_SESSION['alias']->name))
+				if($_SESSION['option']->ProductUseArticle && mb_strlen($_SESSION['alias']->name) > mb_strlen($product->article))
 				{
-					$product->name = str_replace($product->article, '', $product->name);
-					$_SESSION['alias']->name = str_replace($product->article, '', $_SESSION['alias']->name);
+					$name = explode(' ', $_SESSION['alias']->name);
+					if(array_pop($name) == $product->article)
+						$product->name = $_SESSION['alias']->name = implode(' ', $name);
 				}
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{

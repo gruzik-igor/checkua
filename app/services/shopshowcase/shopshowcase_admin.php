@@ -384,7 +384,7 @@ class shopshowcase_admin extends Controller {
 			$link = $this->products_model->delete($_POST['id']);
 			$_SESSION['notify'] = new stdClass();
 			$_SESSION['notify']->success = $_SESSION['admin_options']['word:product_to_delete'].' успішно видалено!';
-			$this->redirect("admin/{$_SESSION['alias']->alias}/{$link}");
+			$this->redirect("admin{$link}");
 		}
 	}
 	

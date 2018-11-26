@@ -298,6 +298,7 @@
 									$init_select2 = false;
 									echo '<link rel="stylesheet" href="'.SITE_URL.'assets/select2/select2.min.css" />';
 									$_SESSION['alias']->js_load[] = 'assets/select2/select2.min.js';
+									$_SESSION['alias']->js_init[] = "$('.select2').select2();";
 								}
 							}
 							

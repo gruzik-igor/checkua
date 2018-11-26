@@ -86,6 +86,10 @@ class Image {
 			$MB = 1048576;  // number of bytes in 1M
 		    $K64 = 65536;    // number of bytes in 64K
 		    $TWEAKFACTOR = 1.5;  // Or whatever works for you
+		    if(empty($info['bits']))
+		    	$info['bits'] = 32;
+		    if(empty($info['channels']))
+		    	$info['channels'] = 1;
 		    $memoryNeeded = round( ( $info[0] * $info[1] * $info['bits'] * $info['channels'] / 8 + $K64 ) * $TWEAKFACTOR );
 		    //ini_get('memory_limit') only works if compiled with "--enable-memory-limit" also
 		    //Default memory limit is 8MB so well stick with that. 

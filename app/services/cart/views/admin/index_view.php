@@ -104,16 +104,14 @@
 						</tr>
 						<?php } } else { ?>
 							<tr>
-								<td colspan="8">Заявки відсутні</td>
+								<td colspan="8">Замовлення відсутні</td>
 							</tr>
 						<?php } ?>
 						</tbody>
 					</table>
 				</div>
-				<?php print_r($cart);
-                $this->load->library('paginator');
-                echo $this->paginator->get();
-                ?>
+				<?php $this->load->library('paginator');
+                echo $this->paginator->get(); ?>
 			</div>
 		</div>
 	</div>

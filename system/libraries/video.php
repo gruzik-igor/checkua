@@ -53,10 +53,10 @@ class video
 		$text = '';
 		switch ($video->site) {
 			case 'youtube':
-				$text = "<iframe width=\"{$this->width}\" height=\"{$this->height}\" src=\"http://www.youtube.com/embed/{$video->link}\" frameborder=\"0\" allowfullscreen></iframe>";
+				$text = "<iframe width=\"{$this->width}\" height=\"{$this->height}\" src=\"https://www.youtube.com/embed/{$video->link}\" frameborder=\"0\" allowfullscreen></iframe>";
 				break;
 			case 'vimeo':
-				$text = "<iframe src=\"http://player.vimeo.com/video/{$video->link}?color=ff0179\" width=\"{$this->width}\" height=\"{$this->height}\" frameborder=\"0\" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>";
+				$text = "<iframe src=\"https://player.vimeo.com/video/{$video->link}?color=ff0179\" width=\"{$this->width}\" height=\"{$this->height}\" frameborder=\"0\" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe>";
 				break;
 		}
 		if($this->mode == 'replace' && isset($video->replace_text) && $video->replace_text != '')

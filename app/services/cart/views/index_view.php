@@ -19,7 +19,8 @@ if($_SESSION['cart']->initJsStyle) {
 				<?php $subtotal = $discountTotal = 0;
 				if($products) foreach($products as $product) {
 					$subtotal += $product->price * $product->quantity;
-					$discountTotal += $product->discount;
+					if(!empty($product->discount))
+						$discountTotal += $product->discount;
 				?>
 					<div class="row product">
 						<div class="col-md-1">

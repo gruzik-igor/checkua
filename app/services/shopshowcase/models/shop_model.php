@@ -658,7 +658,7 @@ class shop_model {
 	        	// $product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
 	        	// $product->price = ceil($product->price);
 
-	        	if($_SESSION['option']->currency)
+	        	if(!empty($_SESSION['option']->currency))
 	        	{
 		        	$product->price *= $_SESSION['option']->currency;
 		        	$product->old_price *= $_SESSION['option']->currency;

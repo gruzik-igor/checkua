@@ -28,7 +28,7 @@
         <div class="subtotal">
             <div class="overflow-h margin-bottom-10">
                 <span><?=$this->text('Разом', 0)?></span>
-                <span class="pull-right subtotal-cost"><?=$subTotal?> грн</span>
+                <span class="pull-right subtotal-cost"><?=$subTotal?></span>
             </div>
             <div class="row">
                 <div class="col-xs-12 text-center">

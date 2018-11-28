@@ -178,7 +178,8 @@ class cart_model
 		if($products = $this->getProductsInCart($user))
 			foreach ($products as $product) {
 				$subTotal += $product->price * $product->quantity;
-				$this->discountTotal += $product->discount;
+				if(!empty($product->discount))
+					$this->discountTotal += $product->discount;
 			}
 		if($priceFormat)
 			return $this->priceFormat($subTotal);

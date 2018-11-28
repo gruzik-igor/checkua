@@ -67,7 +67,10 @@ class cart_admin extends Controller {
                         $cart->payment = $cart->payment[0];
                 }
 
-                $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
+                if($cart->status_weight < 90)
+                    $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
+                else
+                    $cartStatuses = false;
 
                 $this->load->admin_view('detal_view', array('cart' => $cart, 'cartStatuses' => $cartStatuses));
             }
@@ -204,15 +207,28 @@ class cart_admin extends Controller {
     public function remove()
     {
         $res = array('result' => false);
-        if($this->data->post('id') && $this->data->post('totalPrice') && $this->data->post('cartId'))
+        if($this->data->post('id') && $this->data->post('cartId'))
         {
             $id = $this->data->post('id');
-            $totalPrice = $this->data->post('totalPrice');
             $cartId = $this->data->post('cartId');
             $date_edit = time();
 
             $this->db->deleteRow("s_cart_products", $id);
-            $this->db->executeQuery("UPDATE `s_cart` SET `total` = `total` - $totalPrice, `date_edit` = $date_edit WHERE `id` = $cartId");
+            {
+                $total = $this->db->getQuery("SELECT SUM(quantity * price) as totalPrice FROM `s_cart_products` WHERE `cart` = $cartId")->totalPrice;
+
+                $this->db->executeQuery("UPDATE `s_cart` SET `total` = {$total}, `date_edit` = $date_edit WHERE `id` = $cartId");
+
+                if(!empty($_POST['toHistory']))
+                {
+                    $toHistory = array();
+                    $toHistory['cart'] = $cartId;
+                    $toHistory['user'] = $_SESSION['user']->id;
+                    $toHistory['comment'] = $this->data->post('toHistory');
+                    $toHistory['date'] = $date_edit;
+                    $this->db->insertRow('s_cart_history', $toHistory);
+                }
+            }
 
             $res['result'] = true;
         }

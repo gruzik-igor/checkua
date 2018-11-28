@@ -9,12 +9,25 @@
 
 class cart extends Controller {
 
+    private $marketing = array();
+
     function __construct()
     {
         parent::__construct();
         if(empty($_SESSION['cart']))
             $_SESSION['cart'] = new stdClass();
         $_SESSION['cart']->initJsStyle = true;
+
+        // if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+        //     foreach ($cooperation as $c) {
+        //         if($c->type == 'currency')
+        //         {
+        //             if($currency = $this->load->function_in_alias($c->alias2, '__get_Currency', 'USD'))
+        //                 $_SESSION['option']->currency = $currency;
+        //         }
+        //         if($c->type == 'marketing')
+        //             $this->marketing[] = $c->alias2;
+        //     }
     }
 
     function _remap($method, $data = array())
@@ -213,6 +226,8 @@ class cart extends Controller {
                                 $product->quantity = $invoice->amount_free;
                         }
                     }
+                    if(isset($product->discount))
+                    	$product->discount *= $product->quantity;
                     $this->load->smodel('cart_model');
                     if(isset($_SESSION['user']->id))
                         $product->key = $this->cart_model->addProduct($product);
@@ -237,6 +252,7 @@ class cart extends Controller {
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                     $res['subTotalFormat'] = $this->cart_model->priceFormat($this->cart_model->getSubTotalInCart());
                     $res['productsCountInCart'] = $this->cart_model->getProductsCountInCart();
+                    $res['discountTotal'] = $this->cart_model->priceFormat($this->cart_model->discountTotal);
                     $res['result'] = true;
                 }
             }
@@ -309,6 +325,15 @@ class cart extends Controller {
                 {
                     if($product = $this->cart_model->getProductInfo(array('id' => $id)))
                     {
+                        ///////// -- marketing -- ////////
+                        // $shopProduct = $this->db->select('s_shopshowcase_products', 'price', $product->product_id)->get();
+                        // $product->discount = 0;
+                        // $product->currency = $this->load->function_in_alias(17, '__get_Currency', 'USD');
+                        // $product->price = $shopProduct->price * $product->currency;
+                        // $product->price = round($product->price * 20) / 20;
+                        // if($quantity > 1)
+                        //     $product = $this->load->function_in_alias(19, '__get_Product', $product);
+                        ///////// -- marketing -- ////////
                         $res['quantity'] = $product->quantity;
                         if($product->user == $_SESSION['user']->id)
                         {
@@ -327,6 +352,7 @@ class cart extends Controller {
                                                 $res['result'] = true;
                                                 $res['quantity'] = $quantity;
                                                 $res['priceFormat'] = $this->cart_model->priceFormat($product->price);
+                                                $res['priceSumFormat'] = $this->cart_model->priceFormat($product->price * $quantity);
                                                 $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                                             }
                                             else
@@ -342,12 +368,17 @@ class cart extends Controller {
                                 {
                                     $data = array();
                                     $data['quantity'] = $data['quantity_wont'] = $quantity;
+                                    $data['price'] = $product->price;
+                                    $data['discount'] = $product->discount;
                                     if($this->db->updateRow($this->cart_model->table('_products'), $data, $id))
                                     {
                                         $res['result'] = true;
+                                        $res['price'] = $product->price;
                                         $res['quantity'] = $quantity;
                                         $res['priceFormat'] = $this->cart_model->priceFormat($product->price);
+                                        $res['priceSumFormat'] = $this->cart_model->priceFormat($product->price * $quantity);
                                         $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                                        $res['discountTotal'] = $this->cart_model->priceFormat($this->cart_model->discountTotal);
                                     }
                                     else
                                         $res['error'] = $this->text('Помилка оновлення інформації');
@@ -381,6 +412,7 @@ class cart extends Controller {
                                 $res['result'] = true;
                                 $res['quantity'] = $quantity;
                                 $res['priceFormat'] = $_SESSION['cart']->products[$id]->priceFormat;
+                                $res['priceSumFormat'] = $this->cart_model->priceFormat($_SESSION['cart']->products[$id]->price * $quantity);
                                 $res['subTotal'] = $this->cart_model->getSubTotalInCart();
                             }
                             else
@@ -396,8 +428,20 @@ class cart extends Controller {
                 {
                     $res['result'] = true;
                     $_SESSION['cart']->products[$id]->quantity = $res['quantity'] = $quantity;
+                    ///////// -- marketing -- ////////
+                    // $shopProduct = $this->db->select('s_shopshowcase_products', 'price', $_SESSION['cart']->products[$id]->product_id)->get();
+                    // $_SESSION['cart']->discount = 0;
+                    
+                    // $_SESSION['cart']->products[$id]->currency = $this->load->function_in_alias(17, '__get_Currency', 'USD');
+                    // $_SESSION['cart']->products[$id]->price = round($shopProduct->price * $_SESSION['cart']->products[$id]->currency * 20) / 20;
+                    // if($quantity > 1)
+                    //     $_SESSION['cart']->products[$id] = $this->load->function_in_alias(19, '__get_Product', $_SESSION['cart']->products[$id]);
+                    ///////// -- marketing -- ////////
+                    $_SESSION['cart']->products[$id]->priceFormat = $this->cart_model->priceFormat($_SESSION['cart']->products[$id]->price);
                     $res['priceFormat'] = $_SESSION['cart']->products[$id]->priceFormat;
+                    $res['priceSumFormat'] = $this->cart_model->priceFormat($_SESSION['cart']->products[$id]->price * $quantity);
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                    $res['discountTotal'] = $this->cart_model->priceFormat($this->cart_model->discountTotal);
                 }
             }
             else

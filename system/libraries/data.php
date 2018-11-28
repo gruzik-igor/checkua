@@ -19,6 +19,7 @@
  * Версія 1.3.1 (20.01.2017) Функцію make() перейменовано на prepare()
  * Версія 1.3.2 (14.09.2017) Fix get_link(): коректно працює із масивами в get
  * Версія 1.3.3 (05.09.2018) Add userIP()
+ * Версія 1.3.4 (28.11.2018) Fix get_link(): масив в get. Якщо є підзначення:забрати, нема: додати
  */
 
 class Data {
@@ -153,21 +154,39 @@ class Data {
         	if(substr($nk2, -2) == '[]')
         		$nk2 = substr($nk2, 0, -2);
         	foreach ($_GET as $key => $value) {
-	            if($key != 'request' && $key != $nk2)
+	            if($key != 'request')
 	            {
-	                if(!is_array($value)) {
-	                    $link .= $key .'='.$value . '&';
-	                } else {
-	                    foreach ($value as $key2 => $value2) {
-	                        $link .= $key .'%5B%5D='.$value2 . '&';
-	                    }
+	            	if(is_array($value))
+	            	{
+	            		if($key == $nk2)
+	            		{
+	            			
+		            		if(in_array($new_value, $value))
+		            		{
+		            			$updated = true;
+				            	foreach ($value as $sub_value) {
+				            		if($new_value != $sub_value)
+			                        	$link .= $key .'[]='.$sub_value . '&';
+			                    }
+			                }
+		                   	else
+		                   		foreach ($value as $sub_value) {
+			                        $link .= $key .'[]='.$sub_value . '&';
+			                    }
+		                }
+		                else
+		                	foreach ($value as $sub_value) {
+		                        $link .= $key .'[]='.$sub_value . '&';
+		                    }
 	                }
-	            }
-	            elseif($key == $new_key && $new_value != '')
-	            {
-	            	$link .= $key .'='.$new_value . '&';
-	            	$updated = true;
-	            }
+	             	elseif($key != $nk2)
+	             		$link .= $key .'='.$value . '&';
+		            elseif($key == $new_key && $new_value != '')
+		            {
+		            	$link .= $key .'='.$new_value . '&';
+		            	$updated = true;
+		            }
+		        }
 	        }
 	        if(!$updated && $new_value != '')
 	        	$link .= $new_key .'='.$new_value . '&';

@@ -16,9 +16,10 @@ if($_SESSION['cart']->initJsStyle) {
 	</div>
 	<div class="row">
 			<div class="col-md-8">
-				<?php $subtotal = 0;
+				<?php $subtotal = $discountTotal = 0;
 				if($products) foreach($products as $product) {
 					$subtotal += $product->price * $product->quantity;
+					$discountTotal += $product->discount;
 				?>
 					<div class="row product">
 						<div class="col-md-1">
@@ -37,16 +38,18 @@ if($_SESSION['cart']->initJsStyle) {
 								foreach ($product->product_options as $key => $value) {
 									echo "<p>{$key}: <strong>{$value}</strong></p>";
 								} ?>
-							<p class="price"><?=$this->cart_model->priceFormat($product->price) ?></p>
-							<div class="input-group has-success col-md-3 col-xs-8">
-								<div class="input-group-btn">
-									<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="-">-</button>
+								<br>
+								<p class="price pricePerOne-<?= $product->key ?> pull-left"><?=$this->cart_model->priceFormat($product->price) ?></p>
+								<div class="input-group has-success col-md-3 col-xs-8 pull-left">
+									<div class="input-group-btn">
+										<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="-">-</button>
+									</div>
+									<input type="number" min="1" name="productQuantity-<?= $product->id?>" id="productQuantity-<?= $product->key?>" onchange="cart.update('<?= $product->key?>', event)" value="<?= $product->quantity?>" class="form-control">
+									<div class="input-group-btn">
+										<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="+">+</button>
+									</div>
 								</div>
-								<input type="number" min="1" name="productQuantity-<?= $product->id?>" id="productQuantity-<?= $product->key?>" onchange="cart.update('<?= $product->key?>', event)" value="<?= $product->quantity?>" class="form-control">
-								<div class="input-group-btn">
-									<button type="button" class="btn btn-success" onclick="cart.update('<?= $product->key?>', event)" value="+">+</button>
-								</div>
-							</div>
+								<p class="price priceSum-<?= $product->key ?>"><?=$this->cart_model->priceFormat($product->price * $product->quantity) ?></p>
 						</div>
 					</div>
 				<?php } else { ?>
@@ -59,6 +62,7 @@ if($_SESSION['cart']->initJsStyle) {
 				<?php if($products) { ?>
 					<h3><?=$this->text('Попередня сума')?></h3>
 					<p class="subTotal price"><?=$this->cart_model->priceFormat($subtotal) ?></p>
+					<?php /* <h4 class="economy"><?=$this->text('Ви економите')?> <span><?=$this->cart_model->priceFormat($discountTotal) ?></span></h4>*/ ?>
 					<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/checkout" class="btn btn-warning"><?=$this->text('Оформити замовлення')?></a>
 				<?php } ?>
 			</div>

@@ -17,7 +17,7 @@ $message = '<html><head><title>Замовлення #'.$data['id']. ' '.SITE_NAM
 $message .= '<h3><b>Покупець</b></h3>';
 $message .= '<p><b>'.$data['user_name'].'</b><br> '.$data['user_email'].', '.$data['user_phone'].'</p>';
 if($data['new_user'] && !empty($data['password']))
-	$message .= '<p>Ваш пароль до персонального кабінету: <b>'.$data['password'].'</b></p>';
+	$message .= '<br><p><u>Увага! Ваш пароль до персонального кабінету: <b>'.$data['password'].'</b></u></p>';
 
 if(!empty($data['delivery']))
 {
@@ -60,7 +60,7 @@ foreach($data['products'] as $product){
 }
 
 $message .= '<tr><td colspan="5" align="right">Сума: '.$data['total_formatted'].'</td></tr></tbody></table>';
-$message .= '<p><a href="'.$data['link'].'">Щоб подивитися замовлення, перейдіть по посиланні нижче.</a></p>';
+$message .= '<p><a href="'.$data['link'].'">Щоб подивитися замовлення, перейдіть за цим посиланням.</a></p>';
 
 $message .= '<p>З найкращими побажаннями, адміністрація '.SITE_NAME.'</p></body></html>';
 ?>

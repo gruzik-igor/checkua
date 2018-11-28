@@ -15,8 +15,8 @@
 				<tr>
 					<td>
 						<a class="btn-u" href="<?= SITE_URL.'cart/'.$order->id ?>"><?=$this->text('Перегляд')?></a>
-						<?php if($order->status == 2) { ?>
-							<a href="<?= SITE_URL.'cart/pay/'.$order->id ?>" class="btn btn-warning btn-sm">Оплатити</a>
+						<?php if($order->status == 1) { ?>
+							<a href="<?= SITE_URL.'cart/'.$order->id ?>/pay" class="btn btn-warning btn-sm">Оплатити</a>
 						<?php } ?>
 					</td>
 					<td><?= $order->id ?></td>

@@ -9,8 +9,16 @@ var cart = {
 			var options = [];
 			for (var i = 0; i < options_id.length; i++) {
 				var id = options_id[i].toString();
-				var elem = $('[name=product-option-' + id + ']:checked');
-				var value = elem.val();
+				var value = false;
+				var elem = $('[name=product-option-' + id + ']');
+				if(elem)
+					value = elem.val();
+				if(!value)
+				{
+					var elem = $('[name=product-option-' + id + ']:checked');
+					if(elem)
+						value = elem.val();
+				}
 				if(!value)
 				{
 					var name = $('#product-option-name-' + id).text();
@@ -56,44 +64,31 @@ var cart = {
 					}
 					else
 					{
-						var li = document.createElement('li');
-						li.id = 'product-'+res.product.key;
+						var li = $('<li/>', {id: 'product-'+res.product.key});
+						var a = $('<a/>', {href: SITE_URL + res.product.link});
 
-						var a = document.createElement('a');
-						a.href = SITE_URL + res.product.link;
+						$('<img/>', {
+							"class": 'img-responsive product-img',
+							src: SITE_URL + 'images/' + res.product.admin_photo
+						}).appendTo(a.clone().appendTo(li));
 
-						var a_img = a.cloneNode(true);
-						var img = document.createElement('img');
-						img.src = SITE_URL + 'images/' + res.product.admin_photo;
-						img.className = 'img-responsive product-img';
-						a_img.appendChild(img);
-						li.appendChild(a_img);
+						var div = $('<div/>', {'class': 'product-details'});
 
-						var div = document.createElement('div');
-						div.className = 'product-details';
+						a.text(res.product.name).insertBefore(
+							$('<p/>', {
+								'class': 'product-title clearfix',
+								html: '<span class="amount">'+res.product.priceFormat+' x '+res.product.quantity+'</span>'
+							}).appendTo(div)
+						);
 
-						var p_title = document.createElement('p');
-						p_title.className = 'product-title clearfix';
-						a.innerText = res.product.name;
-						p_title.appendChild(a);
-						div.appendChild(p_title);
-
-						var p_price = document.createElement('p');
-						p_price.className = 'product-price clearfix';
-						p_price.innerHTML = '<span class="amount">'+res.product.priceFormat+' x '+res.product.quantity+'</span>';
-						div.appendChild(p_price);
-
-						li.appendChild(div);
-
-						var minicart_in = document.getElementById('slimScrollDiv');
-						minicart_in.insertBefore(li, minicart_in.firstChild);
+						div.appendTo(li.appendTo('#shopping-cart-in-menu .mCustomScrollbar .mCSB_container'));
 					}
-
-					var minicart = document.getElementById('shopping-cart-in-menu');
-					minicart.className = 'shopping-cart open';
-					$('.cart-empty').remove();
-
-					// document.getElementById('subTotal').innerText = res.subTotal;
+					$('.cart-empty').parent().remove();
+					$('.subtotal-cost').text(res.subTotalFormat);
+					$('#shopping-cart-in-menu .badge-open').slideDown();
+					$('html, body').animate({
+					    scrollTop: $("#shopping-cart-in-menu").offset().top
+					}, 1000);
 				}
 			}
 		})

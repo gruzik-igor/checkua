@@ -22,3 +22,6 @@
     height: 35px;
     padding: 5px;
 }
+#cart .product p.price, #cart .product .input-group.pull-left {
+	margin-right: 15px;
+}

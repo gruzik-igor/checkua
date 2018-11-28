@@ -31,17 +31,17 @@
 		</head>
 
 		<body onload="window.print();">
-		<center><img src="<?=SERVER_URL?>style/images/logo.png" style="padding-top: 15px; width: 150px;"></center>
+		<center><img src="<?=IMG_PATH?>main/logo.png" style="padding-top: 15px; width: 300px;"></center>
 <?php } ?>
 		<div class="container">
 		    <div class="row">
 		    	<div class="col-xs-12">
 				<?php if(!$controls) { ?>
-					<h1 class="col-md-12"><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
+					<h1 class="col-md-12" style="font-size: 20px; text-align: center;"><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
 					<p><strong><?= $cart->user_name .", " . $cart->user_email ?></strong></p>
 					<p>Статус замовлення: <strong><?= $cart->status_name ?></strong></p>
-				<?php }
-				if($cart->shipping_id) {
+				<?php } ?>
+				    <?php if($cart->shipping_id) {
 			        echo "<legend>Доставка</legend>";
 			        echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
 			        if(!empty($cart->shipping->text))

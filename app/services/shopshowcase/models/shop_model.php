@@ -537,7 +537,11 @@ class shop_model {
             			$product->$key = $value;
             		}
             	if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 0 && $products[0]->group > 0)
-            		$product->group_link = $_SESSION['alias']->alias . $link;
+            	{
+            		$product->group_link = $link;
+            		if(substr($product->group_link, -1) == '/')
+            			$product->group_link = substr($product->group_link, 0, -1);
+            	}
 
             	$product->photo = null;
             	if(isset($products_photos[$product->id]))
@@ -886,11 +890,16 @@ class shop_model {
 						}
 						else
 						{
-							$where = array('option' => $option->value);
+							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-							$value = $this->db->getAllDataById($this->table('_options_name'), $where);
+							$value = $this->db->select($this->table('_options') .' as o', 'id, photo', $option->value)
+												->join($this->table('_options_name'), 'name', $where)
+												->get('single');
 							if($value)
+							{
 								$product_options[$option->alias]->value = $value->name;
+								$product_options[$option->alias]->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$value->photo;
+							}
 						}
 					}
 					else

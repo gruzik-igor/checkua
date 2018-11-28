@@ -17,13 +17,7 @@ if(!empty($product->options))
 	$options = array();
 	foreach ($product->options as $key => $option) {
 		if($option->toCart)
-		{
-			$key_array = explode('-', $key);
-            if(isset($key_array[1]) && $key_array[1] == 'tkanyny')
-            	$options[] = 0;
-            else
-				$options[] = $option->id;
-		}
+			$options[] = $option->id;
 	}
 	$options = '['.implode(',', $options).']';
 }

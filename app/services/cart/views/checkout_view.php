@@ -1,7 +1,11 @@
+<script type="text/javascript" src="<?=SERVER_URL?>assets/jquery/jquery-1.9.1.min.js" ></script>
 <link rel="stylesheet" type="text/css" href="<?=SERVER_URL.'style/'.$_SESSION['alias']->alias.'/checkout.css'?>">
 <link href="<?=SERVER_URL?>assets/jquery-ui/themes/base/minified/jquery-ui.min.css" rel="stylesheet" type="text/css"/>
 <?php $jss = array('assets/jquery-ui/ui/minified/jquery-ui.min.js', 'js/'.$_SESSION['alias']->alias.'/cities.js', 'js/'.$_SESSION['alias']->alias.'/checkout.js');
-$this->load->js($jss); ?>
+foreach ($jss as $js) {
+	if(!in_array($js, $_SESSION['alias']->js_load))
+		$_SESSION['alias']->js_load[] = $js;
+} ?>
 
 <div class="page-head content-top-margin">
 	<div class="container">
@@ -102,7 +106,7 @@ $this->load->js($jss); ?>
 			<?php } unset($_SESSION['notify']); ?>
 			<div class="clearfix"></div>
 
-			<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/confirm" method="POST" class="checkout-form inputs-border inputs-bg">
+			<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/confirm" method="POST" class="checkout-form inputs-border inputs-bg" onsubmit="divLoading.style.display='block'">
 				<div class="col-md-6">
 					<div class="billing-field">
 						<?php if(!$this->userIs()) { ?>
@@ -144,9 +148,14 @@ $this->load->js($jss); ?>
 								        </tr>
 								    </thead>
 								    <tbody>
-								    	<?php foreach($products as $product) { ?>
+								    	<?php $discountAll = 0; foreach($products as $product) { ?>
 									        <tr class="item">
 									            <td class="product-name">
+									            	<?php if($product->info->photo) { ?>
+														<a href="<?=SITE_URL.$product->info->link?>">
+															<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>">
+														</a>
+													<?php } ?>
 									                <a href="<?=SITE_URL.$product->info->link?>"><?=$product->info->name?></a> <strong class="product-quantity">× <?= $product->quantity?></strong> 
 									                <?php $p = '';
 													if(!empty($product->info->article)) {
@@ -162,13 +171,21 @@ $this->load->js($jss); ?>
 													?>
 									            </td>
 									            <td class="product-total">
+									            	<?php if(!empty($product->discount)) {
+									            		$discountAll += $product->discount;
+									            		echo '<span class="amount discount">'.$this->cart_model->priceFormat(($product->price * $product->quantity + $product->discount)).'</span><br>'; } ?>
 									                <span class="amount" title="<?=$product->priceFormat ?> × <?= $product->quantity?>"><?=$this->cart_model->priceFormat($product->price * $product->quantity) ?></span>
 									            </td>
 									        </tr>
 								        <?php } ?>
 								    </tbody>
 								    <tfoot>
-								    	<?php /*
+								    	<?php if($discountAll) { ?>
+								    		<tr class="cart-subtotal">
+									            <th><?=$this->text('Загальна економія')?></th>
+									            <td><span class="amount"><?=$this->cart_model->priceFormat($discountAll)?></span></td>
+									        </tr>
+								    	<?php } /*
 								        <tr class="cart-subtotal">
 								            <th><?=$this->text('Попередня сума')?></th>
 								            <td><span class="amount"><?=$subTotal?></span></td>
@@ -209,9 +226,12 @@ $this->load->js($jss); ?>
 								</div>
 							<?php } ?>
 
+							<label><input type="checkbox" name="oferta" style="position: static !important; visibility: visible !important;" checked required> <?=$this->text('Я погоджуюся з')?> <a href="<?=SERVER_URL?>dogovir-oferti"><?=$this->text('Договором оферти')?></a></label>
+							<br>
+
 							<a href="<?=SITE_URL.$_SESSION['alias']->alias?>" class="btn btn-buy btn-warning pull-left"><?=$this->text('До корзини')?></a>
 							<div class="text-right">
-					    		<button type="submit" class="btn btn-buy" onclick="divLoading.style.display='block'"><?=$this->text('Оформити замовлення')?></button>
+					    		<button type="submit" class="btn btn-buy" onclick="ga('send', 'event', 'cart', 'confirm');"><?=$this->text('Оформити замовлення')?></button>
 					    	</div>
 						</div>
 					</div>

@@ -235,6 +235,7 @@ class cart extends Controller {
                         }
                     $res['product'] = $openProduct;
                     $res['subTotal'] = $this->cart_model->getSubTotalInCart();
+                    $res['subTotalFormat'] = $this->cart_model->priceFormat($this->cart_model->getSubTotalInCart());
                     $res['productsCountInCart'] = $this->cart_model->getProductsCountInCart();
                     $res['result'] = true;
                 }
@@ -671,7 +672,7 @@ class cart extends Controller {
             $payments = false;
             if($status = $this->db->getAllDataById($this->cart_model->table('_status'), 10, 'weight'))
                 if($status->active)
-                    $showPayment = false;
+                    $showPayment = true;
             if($showPayment)
                 $payments = $this->cart_model->getPayments(array('active' => 1));
 

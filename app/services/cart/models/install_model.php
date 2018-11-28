@@ -136,7 +136,7 @@ class install
 					) ENGINE=InnoDB DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
-		$query = "INSERT INTO `{$this->table_service}_status` (`name`, `active`, `weight`) VALUES
+		$query = "INSERT INTO `{$this->table_service}_status` (`name`, `color`, `active`, `weight`) VALUES
 											 ('Нове НЕ оплачене', 'warning', 1, 0),
 											 ('Підтверджене/очікує оплати', 'success', 0, 9),
 											 ('Нове оплачене', 'warning', 1, 10),

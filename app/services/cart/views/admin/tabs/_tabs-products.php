@@ -27,14 +27,18 @@
 	    		<?php } ?>
 
 	    		<td>
-	    			<?php if($cart->action == 'new' && !empty($product->info->options)) { ?>
+	    			<?php if($cart->action == 'new' && !empty($product->info->options)) { 
+	    				foreach ($product->info->options as $option) {
+							if($option->toCart) { ?>
 	    				<button type="button" class="btn btn-xs btn-info right" onclick="$('#edit-product-options-<?=$product->id?>').slideToggle()">Редагувати</button>
-	    			<?php } if($product->info->photo) { ?>
+	    			<?php break; } } }
+	    			if(!empty($product->info->photo)) { ?>
 		    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
 		    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
 		    			</a>
 	    			<?php }
-	    			echo '<strong>'.$product->info->name.'</strong>';
+	    			if(!empty($product->info))
+	    				echo '<strong>'.$product->info->name.'</strong>';
 	    			if(!empty($product->product_options))
 					{
 						$product->product_options = unserialize($product->product_options);
@@ -110,7 +114,8 @@
 							<?php $toHistory = '';
 							if(!empty($product->info->article))
 								$toHistory = $product->info->article.' ';
-							$toHistory .= $product->info->name.' ';
+							if(!empty($product->info))
+								$toHistory .= $product->info->name.' ';
 							$toHistory .= '. Зміна кількості з '.$product->quantity.' на ';
 								?>
 							<input type="hidden" name="toHistory" value="<?= $toHistory ?>">

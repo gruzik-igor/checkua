@@ -171,12 +171,14 @@ class cart_model
 		return false;
 	}
 
+	public $discountTotal = 0;
 	public function getSubTotalInCart($user = 0, $priceFormat = true)
 	{
 		$subTotal = 0;
 		if($products = $this->getProductsInCart($user))
 			foreach ($products as $product) {
 				$subTotal += $product->price * $product->quantity;
+				$this->discountTotal += $product->discount;
 			}
 		if($priceFormat)
 			return $this->priceFormat($subTotal);
@@ -214,7 +216,7 @@ class cart_model
 			else
 				$update['price_in'] = $product->price;
 			$update['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
-			$update['discount'] = (isset($price->discount)) ? $product->discount : 0;
+			$update['discount'] = (isset($product->discount)) ? $product->discount : 0;
 			$update['date'] = time();
 			$this->db->updateRow($this->table('_products'), $update, $inCart->id);
 
@@ -229,7 +231,7 @@ class cart_model
 				$cart_product['price_in'] = $product->price;
 			$cart_product['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
 			$cart_product['quantity_returned'] = 0;
-			$cart_product['discount'] = (isset($price->discount)) ? $product->discount : 0;
+			$cart_product['discount'] = (isset($product->discount)) ? $product->discount : 0;
 			$cart_product['date'] = time();
 
 			return $this->db->insertRow($this->table('_products'), $cart_product);
@@ -324,7 +326,7 @@ class cart_model
 					if(!in_array($shipping->wl_alias, $shippings_ids))
         				$shippings_ids[] = $shipping->wl_alias;
 					if(empty($shipping->name))
-						$shipping->name = $shipping->payment_name;
+						$shipping->name = $shipping->shipping_name;
 					elseif($_SESSION['language'])
 					{
 						@$name = unserialize($shipping->name);
@@ -334,7 +336,7 @@ class cart_model
 							$shipping->name = array_shift($name);
 					}
 					if(empty($shipping->info))
-						$shipping->info = $shipping->payment_info;
+						$shipping->info = $shipping->shipping_info;
 					elseif($_SESSION['language'])
 					{
 						@$info = unserialize($shipping->info);

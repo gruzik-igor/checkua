@@ -70,6 +70,8 @@
 							<td><strong><?= $cart->status_name?></strong> <?= $cart->date_edit > 0 ? '<br>від '.date('d.m.Y H:i', $cart->date_edit) : '' ?></td>
 							<td><?php if($cart->products)
                             foreach ($cart->products as $product) {
+                            	if(empty($product->info))
+                            		continue;
                             	if($product->info->photo) { ?>
 					    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
 					    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">

@@ -19,9 +19,8 @@
     background-color: #F6F6F6
 }
 
-.cart-table .product-thumbnail {
-    width: 10%;
-    min-width: 75px
+.cart-table .product-name {
+    width: 75%;
 }
 
 .cart-table .product-name>a {
@@ -110,6 +109,17 @@
 .cart-table .shipping-calculator-button {
     margin-bottom: 20px;
     display: inline-block
+}
+
+.cart-table img {
+    width: 20%;
+    float: left;
+    margin: 0 5px 5px 0;
+}
+
+table.review-order-table span.amount.discount {
+    color: red;
+    text-decoration: line-through;
 }
 
 .wishlist-table tbody tr:last-child>th,

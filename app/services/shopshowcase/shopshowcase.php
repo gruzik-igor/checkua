@@ -16,7 +16,6 @@ class shopshowcase extends Controller {
     {
         parent::__construct();
         $_SESSION['option']->currency = 1;
-        unset($_SESSION['alias-cache'][$_SESSION['alias']->id]);
 
         if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
         	foreach ($cooperation as $c) {
@@ -83,22 +82,14 @@ class shopshowcase extends Controller {
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
-					if(!empty($this->marketing))
-						foreach ($products as $product) {
-							foreach ($this->marketing as $marketingAliasId) {
-								$product->currency = $_SESSION['option']->currency;
-								$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
-							}
-						}
-					if($filters = $this->shop_model->getOptionsToGroup($group))
-						foreach ($filters as $filter) {
-							usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
-							if(!empty($filter->values)){
-								$filterExists = true;
-								break;
-							}
-						}
 				}
+				if(!empty($this->marketing))
+					foreach ($products as $product) {
+						foreach ($this->marketing as $marketingAliasId) {
+							$product->currency = $_SESSION['option']->currency;
+							$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+						}
+					}
 				$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
 
@@ -108,7 +99,8 @@ class shopshowcase extends Controller {
 					$filters = false;
 				if($filters)
 					foreach ($filters as $filter) {
-						usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
+						if(count($filter->values) > 1)
+							usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
 					}
 
 				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters));
@@ -125,7 +117,8 @@ class shopshowcase extends Controller {
 				$this->video->setVideosToText($videos);
 			}
 
-			$products = $this->shop_model->getProducts();
+			// $products = $this->shop_model->getProducts();
+			$products = false;
 			if($_SESSION['option']->useGroups)
 			{
 				$groups = $this->shop_model->getGroups();

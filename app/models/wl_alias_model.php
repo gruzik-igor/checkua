@@ -108,7 +108,7 @@ class wl_alias_model
 		$this->db->join('wl_users', 'name as user_name', '#author');
 		$this->db->order('position ASC');
 		$_SESSION['alias']->images = $this->db->get('array');
-		if(!empty($_SESSION['alias']->images))
+		if(!empty($_SESSION['alias']->images) && !empty($_SESSION['option']->folder))
 		{
 			$sizes = $this->db->getAliasImageSizes();
 			foreach ($_SESSION['alias']->images as $photo) {

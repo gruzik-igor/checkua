@@ -78,7 +78,7 @@ class Loader {
 			$view_path .= 'amp'.DIRSEP;
 		if($_SESSION['alias']->service)
 		{
-			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign == 2)
+			if(isset($_SESSION['option']->uniqueDesign) && $_SESSION['option']->uniqueDesign)
 				$view_path .= $_SESSION['alias']->alias.DIRSEP.$view.'.php';
 			else
 			{

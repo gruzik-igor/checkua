@@ -785,6 +785,7 @@ class cart extends Controller {
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
             }
+        $this->wl_alias_model->setContent();
         $this->load->view('__minicart_subview', array('products' => $products, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
         return true;
     }

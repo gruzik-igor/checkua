@@ -67,12 +67,22 @@ class cart_admin extends Controller {
                         $cart->payment = $cart->payment[0];
                 }
 
-                if($cart->status_weight < 90)
-                    $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
+                if($this->data->uri(3) == 'print')
+                {
+                    if(isset($_GET['go']))
+                        $this->load->view('admin/print_view', array('cart' => $cart, 'print' => true));
+                    else
+                        $this->load->admin_view('print_view', array('cart' => $cart, 'print' => false));
+                }
                 else
-                    $cartStatuses = false;
+                {
+                    if($cart->status_weight < 90)
+                        $cartStatuses = $this->db->getQuery("SELECT * FROM `s_cart_status` WHERE `active` = 1 AND `weight` > (SELECT weight FROM `s_cart_status` WHERE id = $cart->status ) ORDER BY weight", 'array');
+                    else
+                        $cartStatuses = false;
 
-                $this->load->admin_view('detal_view', array('cart' => $cart, 'cartStatuses' => $cartStatuses));
+                    $this->load->admin_view('detal_view', array('cart' => $cart, 'cartStatuses' => $cartStatuses));
+                }
             }
             else
                 $this->load->page_404(false);

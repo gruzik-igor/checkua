@@ -1,7 +1,9 @@
 <div class="table-responsive" >
 	<h4 class="left">Тип покупця: <?= $cart->user_type_name?></h4>
 	<?php if($cart->status_weight == 0){ ?>
-	<button class="btn btn-sm btn-warning pull-right" id="toggleNewProduct" onclick="$('#newProduct').toggle();">Додати товар</button><div class="clearfix"></div><br>
+		<button class="btn btn-sm btn-warning pull-right" id="toggleNewProduct" onclick="$('#newProduct').toggle();">Додати товар</button><div class="clearfix"></div><br>
+	<?php } else { ?>
+    	<a href="<?=SITE_URL?>admin/<?=$_SESSION['alias']->alias?>/<?=$cart->id?>/print" class="btn btn-sm btn-info pull-right"><i class="fa fa-print"></i> Підготувати до друку</a>
     <?php } ?>
     <table class="table table-striped table-bordered nowrap" width="100%">
 	    <thead>

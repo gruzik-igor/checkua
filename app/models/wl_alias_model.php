@@ -214,6 +214,9 @@ class wl_alias_model
 
     public function setContentRobot($data = array())
     {
+    	if(empty($_SESSION['alias']->content))
+    		return false;
+    	
     	$ntkd = $where = array();
     	$keys = array('title', 'description', 'keywords', 'text', 'list', 'meta');
     	if($_SESSION['language'])

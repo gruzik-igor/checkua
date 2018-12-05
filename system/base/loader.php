@@ -73,7 +73,8 @@ class Loader {
 			foreach($data as $key => $value) {
 				$$key = $value;
 			}
-		$this->wl_alias_model->setContentRobot($data);
+		if(isset($_SESSION['alias']->content))
+			$this->wl_alias_model->setContentRobot($data);
 		$view_path = APP_PATH.'views'.DIRSEP;
 		if($_SESSION['amp'])
 			$view_path .= 'amp'.DIRSEP;

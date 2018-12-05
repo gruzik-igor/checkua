@@ -215,7 +215,7 @@ class wl_aliases extends Controller {
                 $data['alias'] = $this->db->sanitizeString($_POST['alias']);
                 $data['service'] = $this->data->post('service');
                 $data['admin_ico'] = NULL;
-                $data['admin_order'] = 0;
+                $data['admin_order'] = $data['admin_sidebar'] = 0;
 
                 if($_POST['id'] == 0 && $go == 0)
                 {
@@ -247,6 +247,7 @@ class wl_aliases extends Controller {
                                 $install->db = $this->db;
 
                                 $update['admin_ico'] = $install->admin_ico;
+                                $update['admin_sidebar'] = $install->admin_sidebar;
                                 $update['admin_order'] = $install->order_alias;
 
                                 if(!empty($install->options))

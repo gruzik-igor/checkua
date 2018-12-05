@@ -11,6 +11,7 @@ class install
 	public $table_service = "s_cart";
 	public $multi_alias = 0;
 	public $order_alias = 200;
+	public $admin_sidebar = 1;
 	public $admin_ico = 'fa-shopping-cart';
 	public $version = "2.0";
 

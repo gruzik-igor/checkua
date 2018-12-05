@@ -1035,6 +1035,19 @@ class cart_admin extends Controller {
         $this->redirect();
     }
 
+    public function __sidebar($alias)
+    {
+        if($statuses = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_status', array('weight' => '<20')))
+        {
+            $ids = array();
+            foreach ($statuses as $status) {
+                $ids[] = $status->id;
+            }
+            $alias->counter = $this->db->getCount($_SESSION['service']->table, array('status' => $ids));
+        }
+        return $alias;
+    }
+
     public function __tab_profile($user_id)
     {   
         if(!isset($_SESSION['option']->paginator_per_page) || $_SESSION['option']->paginator_per_page < 5)

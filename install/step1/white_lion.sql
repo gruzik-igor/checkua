@@ -33,6 +33,7 @@ CREATE TABLE IF NOT EXISTS `wl_aliases` (
   `service` int(11) DEFAULT '0',
   `table` text,
   `seo_robot` tinyint(1) DEFAULT '0',
+  `admin_sidebar` tinyint(1) DEFAULT '0',
   `admin_ico` text,
   `admin_order` int(11) DEFAULT NULL,
   PRIMARY KEY (`id`)

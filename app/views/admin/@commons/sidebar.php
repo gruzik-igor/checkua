@@ -32,8 +32,12 @@
      ?>
         <li<?=$class?>><a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
     <?php }
-    $this->db->select('wl_aliases', 'id, alias, admin_ico', array('admin_order' => '>0'));
+    $this->db->select('wl_aliases as a', 'id, alias, admin_sidebar, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');
+    $where = array('alias' => '#a.id', 'content' => '0');
+    if($_SESSION['language'])
+        $where['language'] = $_SESSION['language'];
+    $this->db->join('wl_ntkd', 'name', $where);
     $this->db->order('admin_order DESC');
     if($wl_aliases = $this->db->get('array'))
     {
@@ -43,36 +47,42 @@
                 $sm->alias *= -1;
                 $sub_menus[$sm->alias][] = $sm;
             }
+        unset($sub_menus_data);
 
         foreach ($wl_aliases as $wl_alias)
             if($this->userCan($wl_alias->alias))
             {
                 if($wl_alias->id > 1)
                 {
-                    $where = array('alias' => $wl_alias->id, 'content' => '0');
-                    if($_SESSION['language'])
-                        $where['language'] = $_SESSION['language'];
-                    $name = $this->db->getAllDataById('wl_ntkd', $where);
-                    if($name)
-                        $wl_alias->name = $name->name;
-                    else
+                    if(empty($wl_alias->name))
                         $wl_alias->name = $wl_alias->alias;
                 }
                 else
                     $wl_alias->name = 'Головна сторінка';
 
-                $ico = 'fa-file';
-                if($wl_alias->admin_ico != '') $ico = $wl_alias->admin_ico;
+                if(empty($wl_alias->admin_ico))
+                    $wl_alias->admin_ico = 'fa-file';
 
                 $sub_menu = false;
                 if(isset($sub_menus[$wl_alias->id]) && is_array($sub_menus[$wl_alias->id]) && !empty($sub_menus[$wl_alias->id]))
                   $sub_menu = $sub_menus[$wl_alias->id];
+
+                if($wl_alias->admin_sidebar)
+                {
+                    $wl_alias->sub_menu = $sub_menu;
+                    $wl_alias = $this->load->function_in_alias($wl_alias->id, '__sidebar', $wl_alias, true);
+                    if(!empty($wl_alias->continue))
+                        continue;
+                }
     ?>
         <li class="<?=($_SESSION['alias']->alias == $wl_alias->alias)?'active':''?> <?=($sub_menu)?'has-sub':''?>">
             <?php if($sub_menu) { ?>
                 <a href="javascript:;">
                     <b class="caret pull-right"></b>
-                    <i class="fa <?=$ico?>"></i>
+                    <?php if(!empty($wl_alias->counter)) { ?>
+                        <span class="badge pull-right"><?=$wl_alias->counter?></span>
+                    <?php } ?>
+                    <i class="fa <?=$wl_alias->admin_ico?>"></i>
                     <span><?=$wl_alias->name?></span>
                 </a>
                 <ul class="sub-menu">
@@ -94,7 +104,12 @@
                     } ?>
             </ul>
           <?php } else { ?>
-                <a href="<?=SITE_URL?>admin/<?=$wl_alias->alias?>"><i class="fa <?=$ico?>"></i> <span><?=$wl_alias->name?></span></a>
+                <a href="<?=SITE_URL?>admin/<?=$wl_alias->alias?>">
+                    <?php if(!empty($wl_alias->counter)) { ?>
+                        <span class="badge pull-right"><?=$wl_alias->counter?></span>
+                    <?php } ?>
+                    <i class="fa <?=$wl_alias->admin_ico?>"></i> <span><?=$wl_alias->name?></span>
+                </a>
           <?php } ?>
         </li>
     <?php }

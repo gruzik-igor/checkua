@@ -4,16 +4,16 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
                 <div class="panel-heading-btn">
-                    <a href="<?=SITE_URL?>admin/cart" class="btn btn-xs btn-success"><i class="fa fa-repeat"></i> До всіх заявок</a>
+                    <a href="<?=SITE_URL?>admin/cart" class="btn btn-xs btn-success"><i class="fa fa-list"></i> До всіх замовлень</a>
                 </div>
-                <h4 class="panel-title">Корзина</h4>
+                <h4 class="panel-title">Корзина. Активні замовлення</h4>
             </div>
             <div class="panel-body">
                 <div class="row">
                     <div class="search-row">
                         <form action="<?=SITE_URL?>admin/cart">
                             <div class="col-lg-8 col-sm-8 search-col">
-                                <input type="number" name="id" class="form-control" placeholder="№ Замовлення" required>
+                                <input type="number" name="id" min="1" class="form-control" placeholder="№ Замовлення" required>
                             </div>
                             <div class="col-lg-4 col-sm-4 search-col">
                                 <button class="btn btn-primary btn-search btn-block"><i class="fa fa-search"></i><strong> Знайти</strong></button>
@@ -138,7 +138,7 @@
                         </tr>
                         <?php } } else { ?>
                             <tr>
-                                <td colspan="8">Нові заявки відсутні</td>
+                                <td colspan="8">Нові замовлення відсутні</td>
                             </tr>
                         <?php } ?>
                         </tbody>

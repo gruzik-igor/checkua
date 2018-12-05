@@ -25,8 +25,16 @@
             <span>Домашня сторінка</span>
         </a>
     </li>
-    <?php
-    $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
+    <?php $wl_comments_new = $this->db->getCount('wl_comments', array('status' => array(2, 3)));
+    ?>
+    <li <?=($_SESSION['alias']->alias == 'wl_comments')?'class="active"':''?>>
+        <a href="<?=SITE_URL?>admin/wl_comments">
+            <?php if($wl_comments_new) { ?>
+                <span class="badge pull-right"><?=$wl_comments_new?></span>
+            <?php } ?>
+            <i class="fa fa-group"></i> Відгуки та коментарі</a>
+    </li>
+    <?php $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
     if($sidebarForms) foreach($sidebarForms as $sidebarForm) {
         $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
      ?>
@@ -114,16 +122,7 @@
         </li>
     <?php }
     } 
-    $wl_comments_new = $this->db->getCount('wl_comments', array('status' => array(2, 3)));
-    ?>
-    <li <?=($_SESSION['alias']->alias == 'wl_comments')?'class="active"':''?>>
-        <a href="<?=SITE_URL?>admin/wl_comments">
-            <?php if($wl_comments_new) { ?>
-                <span class="badge pull-right"><?=$wl_comments_new?></span>
-            <?php } ?>
-            <i class="fa fa-group"></i> Відгуки та коментарі</a>
-    </li>
-    <?php if($_SESSION['user']->admin == 1) { ?>
+    if($_SESSION['user']->admin == 1) { ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
         <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
         <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template', 'wl_pagespeed')) && $this->data->uri(2) != 'info')?'active':''?>">

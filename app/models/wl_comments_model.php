@@ -29,7 +29,7 @@ class wl_comments_model {
 			$wl_sitemap['language'] = $_SESSION['language'];
 
 		$this->db->select('wl_comments as c', '*', $where)
-				->join('wl_users', 'name as user_name, email as user_email', '#c.user')
+				->join('wl_users', 'name as user_name, email as user_email, photo as user_photo', '#c.user')
 				->join('wl_ntkd', 'name as page_name', $wl_sitemap)
 				->join('wl_sitemap', 'link', $wl_sitemap)
 				->order('date_add DESC');

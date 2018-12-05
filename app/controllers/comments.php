@@ -84,6 +84,8 @@ class Comments extends Controller {
                     {
                         $anchor = '#comment-'.$id;
                         $anchor = '#comment_add_success';
+                        $_SESSION['notify']->comment = $id;
+                        $_SESSION['notify']->success = $this->text('Відгук додано успішно');
 
                         $name_field = 'images';
                         if($image_names && !empty($_FILES[$name_field]['name']))

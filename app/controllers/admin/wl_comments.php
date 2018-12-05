@@ -91,7 +91,7 @@ class wl_Comments extends Controller {
         $data = $this->data->prepare($inputs);
         $data['status'] = 1;
         $data['user'] = $data['manager'] = $_SESSION['user']->id;
-        $data['date_manage'] = time();
+        $data['date_add'] = $data['date_manage'] = time();
         $this->db->insertRow('wl_comments', $data);
         $this->redirect();
     }

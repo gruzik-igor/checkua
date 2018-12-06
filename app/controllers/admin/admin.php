@@ -49,7 +49,15 @@ class admin extends Controller {
                 $this->load->page_404();
         }
         else
+        {
+            if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
+                foreach($options as $opt) {
+                    $key = $opt->name;
+                    @$_SESSION['option']->$key = $opt->value;
+                }
+
             $this->load->admin_view('index_view');
+        }
     }
     
 }

@@ -40,7 +40,7 @@
                         $this->db->join('wl_users', 'name as user_name', '#c.user');
                         $this->db->join('wl_user_info', 'value as user_phone', array('user' => '#c.user', 'field' => 'phone'));
                         $this->db->order('date_add DESC');
-                        $this->db->limit(15);
+                        // $this->db->limit(15);
                         $carts =  $this->db->get('array');
                         if(!empty($carts))
                         {
@@ -106,7 +106,7 @@
             <?php if($cart->products) {
                 if($info = $this->load->function_in_alias($cart->products[0]->product_alias, '__get_Product', $cart->products[0]->product_id)) {
                     if($info->photo) { ?>
-                        <a href="<?=SITE_URL.$info->link?>" class="left">
+                        <a href="<?=SITE_URL?>admin/cart/<?=$cart->id?>" class="left">
                             <img src="<?=IMG_PATH?><?=(isset($info->cart_photo)) ? $info->cart_photo : $info->photo ?>" alt="<?=$this->text('Фото'). ' '. $info->name ?>" width="90">
                         </a>
                     <?php } if(!empty($info->article)) { ?>
@@ -127,7 +127,7 @@
                         echo "<br><br>";
                 }
                 if(count($cart->products) > 1) { ?>
-                    <p><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">+ <?=count($cart->products) - 1?> товар</a></p>
+                    <p><a href="<?=SITE_URL?>admin/cart/<?=$cart->id?>" class="btn btn-<?=$color?> btn-xs">+ <?=count($cart->products) - 1?> товар</a></p>
                 <?php } } ?>
                             </td>
                             <td>

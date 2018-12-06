@@ -1,0 +1,18 @@
+exportConfig:
+	vendor
+	subArticleFromName
+
+admin:
+subview on main dashbord as part of cart
+echo all price by price_format()
+edit with notify client by email and save to history:
+	price (sequre by password)
+	options (add empty option)
+	delivery
+add part of payment (by [option]->paymentParts)
+
+buy per one click: use phone to identify
+
+by without password and auto login for clients in db
+
+all orders for new clients by cookie and db

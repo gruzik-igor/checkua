@@ -30,7 +30,7 @@ class wl_aliases extends Controller {
                     $alias->title = '';
 
                     $options = null;
-                    $optionBoolType = array('userSignUp');              
+                    $optionBoolType = array('userSignUp', 'uniqueDesign');              
 
                     if($alias->service > 0)
                     {
@@ -51,6 +51,9 @@ class wl_aliases extends Controller {
                                 $options[$option->name]->type = (in_array($option->name, $optionBoolType)) ? 'bool' : 'text';
                                 $options[$option->name]->title = $option->name;
                             }
+
+                        if(isset($options['uniqueDesign']))
+                            $options['uniqueDesign']->title = 'Унікальний дизайн';
 
                         $service = $this->db->getAllDataById('wl_services', $alias->service);
                         $alias->title = $service->title;
@@ -247,7 +250,8 @@ class wl_aliases extends Controller {
                                 $install->db = $this->db;
 
                                 $update['admin_ico'] = $install->admin_ico;
-                                $update['admin_sidebar'] = $install->admin_sidebar;
+                                if(isset($install->admin_sidebar))
+                                    $update['admin_sidebar'] = $install->admin_sidebar;
                                 $update['admin_order'] = $install->order_alias;
 
                                 if(!empty($install->options))

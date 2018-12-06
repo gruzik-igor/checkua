@@ -20,10 +20,11 @@
                                     if($tableInfo)
                                     {
                                         foreach ($tableInfo[0] as $key => $value) {
-                                            foreach ($formInfo as $info) {
-                                                if($info->name == $key)
-                                                    echo '<th>'.$info->title.'</th>';
-                                            }
+                                            if($key != 'new')
+                                                foreach ($formInfo as $info) {
+                                                    if($info->name == $key)
+                                                        echo '<th>'.$info->title.'</th>';
+                                                }
                                         }
                                     }
                                     else
@@ -37,9 +38,12 @@
                         </thead>
                         <tbody>
                         	<?php if($tableInfo) foreach ($tableInfo as $info) {
-                                echo ('<tr>');
+                                echo ('<tr id="row-'.$info->id.'">');
                                 foreach ($info as $key => $value)
-                                    echo "<td>" . (preg_match('/date/', $key) ? date('d.m.Y H:i', $value) : $value) . '</td>';
+                                    if($key == 'id' && $_SESSION['user']->type == 1)
+                                        echo '<td><button class="btn btn-xs btn-danger" data-id="'.$value.'"><i class="fa fa-trash" aria-hidden="true"></i></button> '.$value.'</td>';
+                                    elseif($key != 'new')
+                                        echo "<td>" . (preg_match('/date/', $key) ? date('d.m.Y H:i', $value) : $value) . '</td>';
                                 echo ('</tr>');
                             } ?>
                         </tbody>
@@ -49,3 +53,47 @@
         </div>
     </div>
 </div>
+
+<?php if($_SESSION['user']->type == 1) { ?>
+<script>
+    var btn = document.querySelectorAll('table#data-table td > button.btn-danger');
+    for (var i = 0; i < btn.length; i++) {
+        btn[i].onclick = deleteRow;
+    }
+    function deleteRow() {
+        var rowId = this.dataset.id;
+        if(confirm('Видалити запис #'+rowId+'? Увага! Дані відновленню не підлягають!'))
+        {
+            $('#saveing').css("display", "block");
+            $.ajax({
+                url: SITE_URL + "admin/wl_forms/deleteRow",
+                type: 'POST',
+                data: {
+                    id: this.dataset.id,
+                    table: '<?=$form->table?>',
+                    json: true
+                },
+                success: function(res){
+                    if(res['result'] == false) {
+                        $.gritter.add({title:"Помилка!", text:res['error']});
+                    }
+                    else
+                    {
+                        $('tr#row-'+rowId).slideUp();
+                        $.gritter.add({title:'Запис #'+rowId, text:"Дані успішно видалено!"});
+                    }
+                    $('#saveing').css("display", "none");
+                },
+                error: function(){
+                    $.gritter.add({title:"Помилка!",text:"Помилка! Спробуйте ще раз!"});
+                    $('#saveing').css("display", "none");
+                },
+                timeout: function(){
+                    $.gritter.add({title:"Помилка!",text:"Помилка: Вийшов час очікування! Спробуйте ще раз!"});
+                    $('#saveing').css("display", "none");
+                }
+            });
+        }
+    }
+</script>
+<?php } ?>

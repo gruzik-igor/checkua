@@ -216,6 +216,7 @@ class wl_forms extends Controller {
         switch ($data['success'])
         {
             case '2':
+            case '4':
                 $data['success_data'] = $_SESSION['all_languages'] ? json_encode($_POST['lang']) :  $this->data->post('lang') ;
                 break;
 
@@ -246,7 +247,9 @@ class wl_forms extends Controller {
                           {$fieldsName},
                           `date_add` int(11) NOT NULL,
                           `language` text,
-                          PRIMARY KEY (`id`)
+                          `new` tinyint(1),
+                          PRIMARY KEY (`id`),
+                          KEY `new` (`new`)
                         ) ENGINE=InnoDB CHARSET=utf8;";
                 $this->db->executeQuery($sql);
             }
@@ -278,9 +281,10 @@ class wl_forms extends Controller {
             {
                 $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
 
-                $tableInfo = $this->db->getQuery("SELECT * FROM `$form->table` ORDER BY `id` DESC", 'array');
+                $this->db->executeQuery("UPDATE `{$form->table}` SET `new` = 0 WHERE `new` = 1");
+                $tableInfo = $this->db->getQuery("SELECT * FROM `{$form->table}` ORDER BY `id` DESC", 'array');
 
-                $this->load->admin_view('wl_forms/info_view', array('formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+                $this->load->admin_view('wl_forms/info_view', array('form' => $form, 'formInfo' => $formInfo, 'tableInfo' => $tableInfo));
             }
         }
 
@@ -336,6 +340,28 @@ class wl_forms extends Controller {
 
         if($this->db->getQuery("SHOW TABLES LIKE '{$tableName}'"))
             $this->db->executeQuery("ALTER TABLE `{$tableName}` DROP `{$fieldName}`");
+    }
+
+    public function deleteRow()
+    {
+        $res = array('result' => false, 'error' => 'Access denied! Only admin');
+        if($_SESSION['user']->type == 1 && !empty($_POST['table']) && !empty($_POST['id']) && is_numeric($_POST['id'])) {
+            if($table = $this->data->post('table'))
+            {
+                $t = explode('_', $table);
+                if(count($t) > 1)
+                {
+                    if(in_array($t[0], array('s', 'wl')))
+                    {
+                        $res['error'] = 'Access denied! Only non system tables';
+                        $this->load->json($res);
+                    }
+                }
+                $this->db->deleteRow($table, $_POST['id']);
+                $res = array('result' => true);
+            }
+        }
+        $this->load->json($res);
     }
 }
 

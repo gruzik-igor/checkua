@@ -25,20 +25,26 @@
             <span>Домашня сторінка</span>
         </a>
     </li>
-    <?php $wl_comments_new = $this->db->getCount('wl_comments', array('status' => array(2, 3)));
-    ?>
-    <li <?=($_SESSION['alias']->alias == 'wl_comments')?'class="active"':''?>>
-        <a href="<?=SITE_URL?>admin/wl_comments">
-            <?php if($wl_comments_new) { ?>
-                <span class="badge pull-right"><?=$wl_comments_new?></span>
-            <?php } ?>
-            <i class="fa fa-group"></i> Відгуки та коментарі</a>
-    </li>
-    <?php $sidebarForms = $this->db->getQuery("SELECT name, title FROM `wl_forms` WHERE `sidebar` = 1", 'array');
-    if($sidebarForms) foreach($sidebarForms as $sidebarForm) {
-        $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
+    <?php if(!empty($_SESSION['option']->showInAdminWl_comments)) {
+        $wl_comments_new = $this->db->getCount('wl_comments', array('status' => array(2, 3))); ?>
+        <li <?=($_SESSION['alias']->alias == 'wl_comments')?'class="active"':''?>>
+            <a href="<?=SITE_URL?>admin/wl_comments">
+                <?php if($wl_comments_new) { ?>
+                    <span class="badge pull-right"><?=$wl_comments_new?></span>
+                <?php } ?>
+                <i class="fa fa-group"></i> Відгуки та коментарі</a>
+        </li>
+    <?php } if( $sidebarForms = $this->db->getQuery("SELECT `name`, `title`, `table` FROM `wl_forms` WHERE `sidebar` = 1", 'array') )
+        foreach($sidebarForms as $sidebarForm) {
+            $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
+            $news = $this->db->getCount($sidebarForm->table, 1, 'new');
      ?>
-        <li<?=$class?>><a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>"><i class="fa fa-list-ul"></i> <?= $sidebarForm->title?></a></li>
+        <li<?=$class?>> <a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>">
+            <?php if($news) { ?>
+                <span class="badge pull-right"><?=$news?></span>
+            <?php } ?>
+            <i class="fa fa-list-ul"></i> <?= $sidebarForm->title?>
+        </a></li>
     <?php }
     $this->db->select('wl_aliases as a', 'id, alias, admin_sidebar, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');

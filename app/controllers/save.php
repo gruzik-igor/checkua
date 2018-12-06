@@ -67,12 +67,18 @@ class save extends Controller {
                         {
                             $data['date_add'] = time();
                             $data['language'] = isset($_SESSION['language']) ? $_SESSION['language'] : null;
+                            $data['new'] = 1;
                             $this->db->insertRow($form->table, $data);
                             $data['id'] = $this->db->getLastInsertedId();
                         }
                 	}
                     else
-                        $this->load->notify_view(array('errors' => implode('</p><p>', $this->errors)));
+                    {
+                        if ($form->success == '4')
+                            $this->load->json(array('errors' => implode('</p><p>', $this->errors)));
+                        else
+                            $this->load->notify_view(array('errors' => implode('</p><p>', $this->errors)));
+                    }
                     $where['form'] = $form->id;
                     $where['active'] = 1;
 
@@ -138,6 +144,11 @@ class save extends Controller {
                             break;
                         case '3':
                             header("Location:".SITE_URL.$form->success_data);
+                            break;
+                        case '4':
+                            $lang = $_SESSION['language'];
+                            $text = $_SESSION['all_languages'] ? json_decode($form->success_data)->$lang : $form->success_data;
+                            $this->load->json(array('success' => $text));
                             break;
                     }
                 }

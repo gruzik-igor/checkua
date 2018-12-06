@@ -145,9 +145,10 @@
 									<select name="after" class="form-control" id="after" onchange="doAfter()">
 										<option value="1" <?= $form->success >= 1 ? 'selected' : '' ?> >Повернутись на ту саму сторінку</option>
 										<option value="2" <?= $form->success == 2 ? 'selected' : '' ?> >Загрузити notify_view</option>
+										<option value="4" <?= $form->success == 4 ? 'selected' : '' ?> >Відповідь ajax</option>
 										<option value="3" <?= $form->success == 3 ? 'selected' : '' ?> >Інша сторінка</option>
 									</select>
-									<input type="text" class="form-control" value="<?= $form->success != 2 ? $form->success_data : '' ?>" name="afterValue" id="doAfterValue" <?= $form->success <= 2 ? 'style="display:none" disabled' : '' ?> >
+									<input type="text" class="form-control" value="<?= $form->success != 2 && $form->success != 4 ? $form->success_data : '' ?>" name="afterValue" id="doAfterValue" <?= $form->success <= 2 || $form->success == 4? 'style="display:none" disabled' : '' ?> >
 								</div>
 							</div>
 
@@ -155,8 +156,6 @@
 								<label class="col-md-3 control-label">send_sms*</label>
 								<div class="col-md-9">
 									<input type="checkbox" name="send_sms" data-render="switchery" onchange="show(this, 'sms_text')" <?= $form->send_sms == 1 ? 'checked' : '' ?> value="1" >
-<!-- 									<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="yes" required <?= $form->send_sms == 1 ? 'checked' : '' ?> >yes
-									<input type="radio" name="send_sms" onclick="show(this, 'sms_text')" value="no" <?= $form->send_sms == 0 ? 'checked' : '' ?> >no -->
 								</div>
 							</div>
 							<div class="form-group" id="sms_text" <?= $form->send_sms == 0 ? 'hidden' : '' ?> >
@@ -176,10 +175,10 @@
 				</div>
 			</div>
 		</div>
-		<div class="col-md-6" id="notifyText" <?= $form->success != 2 ? 'style="display: none"' : '' ?> >
+		<div class="col-md-6" id="notifyText" <?= $form->success != 2 && $form->success != 4 ? 'style="display: none"' : '' ?> >
 			<div class="panel panel-inverse">
 		        <div class="panel-heading">
-		            <h4 class="panel-title">Текст для notify_view</h4>
+		            <h4 class="panel-title">Текст для <span><?= $form->success == 2  ? 'notify_view' : 'ajax' ?></span></h4>
 		        </div>
 				<div  class="panel-body">
 					<div class="form-horizontal">
@@ -187,14 +186,14 @@
 							<div class="form-group">
 								<label class="col-md-3 control-label"><?= $lang?></label>
 								<div class="col-md-9">
-									<input type="text" class="form-control" name="lang[<?= $lang?>]" value="<?= $form->success == 2 ? $form->success_data->$lang : '' ?>" >
+									<input type="text" class="form-control" name="lang[<?= $lang?>]" value="<?= $form->success == 2 || $form->success == 4 ? $form->success_data->$lang : '' ?>" >
 								</div>
 							</div>
 						<?php } else { ?>
 							<div class="form-group">
 								<label class="col-md-3 control-label">Текст</label>
 								<div class="col-md-9">
-									<input type="text" class="form-control" name="lang" value="<?= $form->success == 2 ? $form->success_data : '' ?>" >
+									<input type="text" class="form-control" name="lang" value="<?= $form->success == 2 || $form->success == 4 ? $form->success_data : '' ?>" >
 								</div>
 							</div>
 						<?php } ?>
@@ -292,6 +291,11 @@
 
 		if($("#after").val() == 2){
 			$("#notifyText").show();
+			$("#notifyText h4 span").text('notify_view');
+		}
+		if($("#after").val() == 4){
+			$("#notifyText").show();
+			$("#notifyText h4 span").text('ajax');
 		}
 
 		if($("#after").val() == 3)

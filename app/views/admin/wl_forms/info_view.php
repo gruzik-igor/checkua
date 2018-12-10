@@ -33,7 +33,9 @@
                                         }
                                 } ?>
                                 <th>Дата додачі</th>
-                                <th>Мова сайту</th>
+                                <?php if($_SESSION['language']) { ?>
+                                    <th>Мова сайту</th>
+                                <?php } ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -42,6 +44,11 @@
                                 foreach ($info as $key => $value)
                                     if($key == 'id' && $_SESSION['user']->type == 1)
                                         echo '<td><button class="btn btn-xs btn-danger" data-id="'.$value.'"><i class="fa fa-trash" aria-hidden="true"></i></button> '.$value.'</td>';
+                                    elseif($key == 'language')
+                                    {
+                                        if($_SESSION['language'])
+                                            echo '<td>'.$value.'</td>';
+                                    }
                                     elseif($key != 'new')
                                         echo "<td>" . (preg_match('/date/', $key) ? date('d.m.Y H:i', $value) : $value) . '</td>';
                                 echo ('</tr>');
@@ -53,6 +60,16 @@
         </div>
     </div>
 </div>
+
+
+<?php 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/jquery.dataTables.js';  
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colReorder.js'; 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.colVis.js'; 
+  $_SESSION['alias']->js_load[] = 'assets/DataTables/js/dataTables.responsive.js';
+  $_SESSION['alias']->js_init[] = '$("#data-table").DataTable({ "order":[[0, "desc"]], responsive: true, lengthMenu: [20, 40, 60] });'; 
+?>
+<link href="<?=SITE_URL?>assets/DataTables/css/data-table.css" rel="stylesheet" />
 
 <?php if($_SESSION['user']->type == 1) { ?>
 <script>

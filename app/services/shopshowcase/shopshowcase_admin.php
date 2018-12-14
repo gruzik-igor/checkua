@@ -381,10 +381,10 @@ class shopshowcase_admin extends Controller {
 		if(isset($_POST['id']) && is_numeric($_POST['id']))
 		{
 			$this->load->smodel('products_model');
-			$link = $this->products_model->delete($_POST['id']);
+			$link = $_SESSION['alias']->alias . $this->products_model->delete($_POST['id']);
 			$_SESSION['notify'] = new stdClass();
 			$_SESSION['notify']->success = $_SESSION['admin_options']['word:product_to_delete'].' успішно видалено!';
-			$this->redirect("admin{$link}");
+			$this->redirect("admin/".$link);
 		}
 	}
 	

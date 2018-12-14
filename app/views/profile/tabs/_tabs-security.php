@@ -36,3 +36,10 @@
     <hr>
     <button class="btn-u" type="submit"><?=$this->text('Зберегти зміни')?></button>
 </form>
+
+<style>
+    .sky-form input {
+        border: 1px solid;
+        padding: 5px;
+    }
+</style>

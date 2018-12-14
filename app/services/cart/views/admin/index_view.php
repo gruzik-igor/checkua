@@ -73,11 +73,11 @@
                             	if(empty($product->info))
                             		continue;
                             	if($product->info->photo) { ?>
-					    			<a href="<?=SITE_URL.$product->info->link?>" class="left">
+					    			<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" class="left">
 					    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
 					    			</a>
 				    			<?php } if(!empty($product->info->article)) { ?>
-					    			<a href="<?=SITE_URL.$product->info->link?>" target="_blank"><?= $product->info->article ?></a> <br>
+					    			<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$cart->id?>" target="_blank"><?= $product->info->article ?></a> <br>
 					    		<?php } 
 	    						echo '<strong>'.$product->info->name.'</strong>';
 	    						if(!empty($product->product_options))

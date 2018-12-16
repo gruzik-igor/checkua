@@ -167,12 +167,12 @@
                     	<select name="type" class="form-control" required>
 							<?php 
 							$types = $this->db->getAllData('wl_input_types');
-							$options = false;
+							$useOptions = false;
 							foreach ($types as $type) {
 								$selected = '';
 								if($type->id == $option->type){
 									$selected = 'selected';
-									if($type->options == 1) $options = true;
+									if($type->options == 1) $useOptions = true;
 								}
 								echo("<option value='{$type->id}' {$selected}>{$type->name}</option>");
 							}
@@ -181,7 +181,7 @@
                     </div>
                 </div>
 				
-				<?php if($options) { ?>
+				<?php if($useOptions) { ?>
 					<div class="form-group">
                         <label class="col-md-3 control-label">Основна характеристика товару (витягується завжди)</label>
                         <div class="col-md-9">
@@ -241,7 +241,7 @@
 						$colspan = 3;
 						if($_SESSION['language']) $colspan += count($_SESSION['all_languages']);
 						else $colspan++;
-						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4> <button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning">Додати властивість</button></th></tr>');
+						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4> <button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning"><i class="fa fa-plus"></i> Додати властивість</button></th></tr>');
 
 						$options = array();
 						$this->db->select($this->options_model->table().' as o', '*', -$option->id, 'group');
@@ -358,12 +358,12 @@
 						{
 							echo("<tr>");
 							if($_SESSION['language']){
-								echo("<tr><td>#1</td>");
+								echo("<tr><td>#1</td><td></td>");
 								foreach ($_SESSION['all_languages'] as $lang) {
 									echo("<td><input type='text' name='option_0_{$lang}[]' class='form-control' required></td>");
 								}
 							} else {
-								echo("<td>#1</td><td><input type='text' name='option_0[]' class='form-control' required></td>");
+								echo("<td>#1</td><td></td><td><input type='text' name='option_0[]' class='form-control' required></td>");
 							}
 							echo("<td></td>");
 							echo("</tr>");
@@ -374,7 +374,10 @@
 
 				<div class="form-group">
                     <div class="col-md-9 col-md-offset-3">
-                        <button type="submit" class="btn btn-sm btn-success col-md-2">Зберегти</button>
+                        <button type="submit" class="btn btn-success col-md-2"><i class="fa fa-save"></i> Зберегти</button>
+                        <?php if($useOptions) { ?>
+                        	<button type="button" onClick="addOptionRow()" class="m-l-10 btn btn-warning"><i class="fa fa-plus"></i> Додати властивість</button>
+                        <?php } ?>
                     </div>
                 </div>
 			</form>
@@ -399,7 +402,7 @@
 			<?php foreach ($_SESSION['all_languages'] as $lang) { ?>
 				appendText += '<td><input type="text" name="option_0_<?=$lang?>[]" class="form-control"></td>';
 		<?php } } else { ?>
-			var appendText = '<tr><td>#' + countRows + '</td>';
+			var appendText = '<tr><td>#' + countRows + '</td><td></td>';
 			appendText += '<td><input type="text" name="option_0[]" class="form-control"></td>';
 		<?php } ?>
 		appendText += '<td>*Пустий рядок зараховуватися не буде</td></tr>';

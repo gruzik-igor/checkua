@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Showcase 2.6"
+ 	Service "Shop Showcase 2.7"
 	for WhiteLion 1.0
 
 */
@@ -602,8 +602,7 @@ class shopshowcase_admin extends Controller {
 
 		if(is_numeric($id))
 		{
-			$option = $this->db->getAllDataById($this->options_model->table(), $id);
-			if($option)
+			if($option = $this->db->getAllDataById($this->options_model->table(), $id))
 			{
 				$_SESSION['alias']->name = 'Редагувати властивість "'.$_SESSION['admin_options']['word:option'].'"';
 				$_SESSION['alias']->breadcrumb = array('Властивості' => 'admin/'.$_SESSION['alias']->alias.'/options', 'Редагувати властивість' => '');
@@ -779,6 +778,30 @@ class shopshowcase_admin extends Controller {
 			}
 		}
 		$this->load->page_404();
+	}
+	public function change_suboption_position()
+	{
+		$res = array('result' => false);
+		if(isset($_POST['id']) && is_numeric($_POST['position']))
+		{
+			$id = explode('_', $_POST['id']);
+			if(count($id) == 2 && $id[0] == 'option' && is_numeric($id[1]))
+			{
+				$this->load->smodel('options_model');
+				$this->load->model('wl_position_model');
+				
+				if($option = $this->db->getAllDataById($this->options_model->table('_options'), $id[1]))
+				{
+					$this->wl_position_model->table = $this->options_model->table();
+					$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id." AND `group` = {$option->group}";
+				
+					$position = $_POST['position'] + 1;
+					if($this->wl_position_model->change($id[1], $_POST['position']))
+						$res['result'] = true;
+				}
+			}
+		}
+		$this->load->json($res);
 	}
 
 	public function deleteOptionProperty()

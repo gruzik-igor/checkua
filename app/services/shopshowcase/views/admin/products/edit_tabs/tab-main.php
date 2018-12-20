@@ -72,8 +72,8 @@
 	{
 		if($_SESSION['option']->ProductMultiGroup)
 		{
-            $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
-			echo '<link rel="stylesheet" href="'.SITE_URL.'assets/switchery/switchery.min.css" />';
+   //          $_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
+			// echo '<link rel="stylesheet" href="'.SITE_URL.'assets/switchery/switchery.min.css" />';
 			$_SESSION['alias']->js_load[] = 'assets/jstree/jstree.min.js';
 			echo '<link rel="stylesheet" href="'.SITE_URL.'assets/jstree/themes/default/style.min.css" />';
 			echo "<div class=\"form-group\"><table class=\"table table-striped table-bordered\">";
@@ -110,7 +110,7 @@
 						continue;
 					$g = $list[$g]; 
 					$checked = ($g->product_active) ? 'checked' : '';
-	            	echo '<td><input name="active-group-'.$g->id.'" type="checkbox" data-render="switchery" class="switchery-small" '.$checked.' value="1" /></td>';
+	            	echo '<td><input name="active-group-'.$g->id.'" type="checkbox" data-render="switchery" '.$checked.' value="1" /></td>';
 
 					echo "<td>"; reset($_SESSION['alias']->breadcrumb);
 					$link = SITE_URL.'admin/'.$_SESSION['alias']->alias;
@@ -231,11 +231,22 @@
 					if($option->sufix != '') echo " ({$option->sufix})";
 					echo('</label> <div class="col-md-9">');
 
+					$where = array('option' => '#o.id');
+					if($_SESSION['language'])
+						$where['language'] = $_SESSION['language'];
+					$this->db->select($this->shop_model->table('_options').' as o', '*', -$option->id, 'group')
+								->join($this->shop_model->table('_options_name').' as n', 'id as name_id, name', $where);
+					if($option->sort == 0)
+						$this->db->order('position ASC');
+					if($option->sort == 1)
+							$this->db->order('name ASC', 'n');
+					if($option->sort == 2)
+						$this->db->order('name DESC', 'n');
+					$option_values = $this->db->get('array');
+
 					if($option->toCart && $option->type_name != 'checkbox' && $option->type_name != 'checkbox-select2')
 					{
 						echo 'Обирає клієнт перед додачею в корзину (для ручного керування оберіть тип властивісті checkbox): ';
-						$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
-						$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
 						if(!empty($option_values))
 						{
 							$names = array();
@@ -249,17 +260,11 @@
 								$changePriceOptions[$option->id]->values = $option_values;
 							}
 						}
-
 					}
 					if($option->type_name == 'checkbox' || $option->type_name == 'checkbox-select2')
 					{
-						$where = '';
-						if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-						$option_values = array();
-						$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-						if($this->db->numRows() > 0)
+						if(!empty($option_values))
 						{
-		                    $option_values = $this->db->getRows('array');
 		                    if($option->changePrice)
 							{
 								$changePriceOptions[$option->id] = clone $option;
@@ -306,8 +311,6 @@
 					}
 					elseif($option->type_name == 'radio' && !$option->toCart)
 					{
-						$where = ($_SESSION['language']) ? "AND n.language = '{$_SESSION['language']}'" : '';
-						$option_values = $this->db->getQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'", 'array');
 						if(!empty($option_values))
 						{
 							$checked = ($value == '' || $value == 0) ? ' checked' : '';
@@ -320,13 +323,6 @@
 					}
 					elseif($option->type_name == 'select' && !$option->toCart)
 					{
-						$where = '';
-						if($_SESSION['language']) $where = "AND n.language = '{$_SESSION['language']}'";
-						$option_values = array();
-						$this->db->executeQuery("SELECT o.*, n.id as name_id, n.name FROM `{$this->shop_model->table('_options')}` as o LEFT JOIN `{$this->shop_model->table('_options_name')}` as n ON n.option = o.id {$where} WHERE o.group = '-{$option->id}'");
-						if($this->db->numRows() > 0){
-		                    $option_values = $this->db->getRows('array');
-		                }
 						echo('<select name="option-'.$option->id.'" class="form-control select2"> ');
 						echo("<option value='0'>Не вказано</option>");
 						if(!empty($option_values)){

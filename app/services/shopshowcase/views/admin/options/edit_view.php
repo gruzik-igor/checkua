@@ -183,6 +183,16 @@
 				
 				<?php if($useOptions) { ?>
 					<div class="form-group">
+	                    <label class="col-md-3 control-label">Сортування</label>
+	                    <div class="col-md-9">
+	                    	<select name="sort" class="form-control" required>
+								<option value="0" <?=($option->sort == 0)?'selected' : ''?>>Ручне</option>
+								<option value="1" <?=($option->sort == 1)?'selected' : ''?>>Пряме (а..Я, 0..9)</option>
+								<option value="2" <?=($option->sort == 2)?'selected' : ''?>>Зворотнє (Я..а, 9..0)</option>
+							</select>
+	                    </div>
+	                </div>
+					<div class="form-group">
                         <label class="col-md-3 control-label">Основна характеристика товару (витягується завжди)</label>
                         <div class="col-md-9">
                             <label class="radio-inline">
@@ -241,7 +251,10 @@
 						$colspan = 3;
 						if($_SESSION['language']) $colspan += count($_SESSION['all_languages']);
 						else $colspan++;
-						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4> <button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning"><i class="fa fa-plus"></i> Додати властивість</button></th></tr>');
+						echo($colspan.'"><h4 class="pull-left">Властивості параметру</h4>
+							<button type="button" onClick="addOptionRow()" class="pull-right btn btn-warning"><i class="fa fa-plus"></i> Додати властивість</button>
+							<button type="submit" class="pull-right btn btn-success m-r-15"><i class="fa fa-save"></i> Зберегти</button>
+							</th></tr>');
 
 						$options = array();
 						$this->db->select($this->options_model->table().' as o', '*', -$option->id, 'group');
@@ -252,19 +265,39 @@
 								echo("<td>{$lang}</td>");
 							}
 							echo("<td></td></tr>");
+							$this->db->join($this->options_model->table('_options_name').' as n', 'name', array('option' => '#o.id', 'language' => $_SESSION['language']));
 						}
 						else
-							$this->db->join($this->options_model->table('_options_name'), 'id as name_id, name', '#o.id', 'option');
+							$this->db->join($this->options_model->table('_options_name').' as n', 'id as name_id, name', '#o.id', 'option');
+						if($option->sort == 0)
+							$this->db->order('position ASC');
+						if($option->sort == 1)
+								$this->db->order('name ASC', 'n');
+						if($option->sort == 2)
+							$this->db->order('name DESC', 'n');
 						
 						if($options = $this->db->get('array'))
 						{
+							$pos = 1;
+				            foreach ($options as $opt) {
+				                if($pos != $opt->position)
+				                {
+				                    $opt->position = $pos;
+				                    $this->db->updateRow($this->options_model->table(), array('position' => $pos), $opt->id);
+				                }
+				                $pos++;
+				            }
+
 							$i = 1;
 							
 							foreach ($options as $opt) {
 								
 								$rowspan = ($option->changePrice) ? 'rowspan="2"' : '';
 								echo('<tr id="option_'.$opt->id.'">');
-								echo("<td {$rowspan}>#{$i}</td>");
+								if($option->sort)
+									echo("<td {$rowspan}>#{$i}</td>");
+								else
+									echo("<td {$rowspan} class=\"move sortablehandle\"><i class=\"fa fa-sort\"></i> #{$i}</td>");
 
 								if($opt->photo == 0)
 									echo('<td><label class="btn btn-warning" ><input onchange="uploadPhoto(this)" type="file" name="photo['.$opt->id.']" value="+" style="display: none;"><span>+</span></label></td>');
@@ -385,7 +418,11 @@
 	</div>
 </div>
 
-
+<style type="text/css">
+	td.move {
+        cursor: move;
+    }
+</style>
 <script type="text/javascript">
 	function setChangePrice(id, value) {
 		if(value == '0')
@@ -457,4 +494,38 @@
 		$(event).next().text('OK');
 	}
 
+<?php if($option->sort == 0) { ?>
+window.onload  = function()
+{
+	$( "#options tbody" ).sortable({
+      handle: ".sortablehandle",
+      update: function( event, ui ) {
+            $('#saveing').css("display", "block");
+            $.ajax({
+                url: ALIAS_ADMIN_URL+"change_suboption_position",
+                type: 'POST',
+                data: {
+                    id: ui.item.attr('id'),
+                    position: ui.item.index(),
+                    json: true
+                },
+                success: function(res){
+                    if(res['result'] == false){
+                        alert("Помилка! Спробуйте ще раз!");
+                    }
+                    $('#saveing').css("display", "none");
+                },
+                error: function(){
+                    alert("Помилка! Спробуйте ще раз!");
+                    $('#saveing').css("display", "none");
+                },
+                timeout: function(){
+                    alert("Помилка: Вийшов час очікування! Спробуйте ще раз!");
+                    $('#saveing').css("display", "none");
+                }
+            });
+        }
+    });
+}
+<?php } ?>
 </script>

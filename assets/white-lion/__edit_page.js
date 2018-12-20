@@ -68,7 +68,7 @@ function showEditTKD (lang) {
 }
 
 if(ALIAS_FOLDER) {
-    $(function () {
+    function initFileUpload() {
         'use strict';
 
         // Initialize the jQuery File Upload widget:
@@ -82,12 +82,17 @@ if(ALIAS_FOLDER) {
                 additional_table : ADDITIONAL_TABLE,
                 additional_table_id : ADDITIONAL_TABLE_ID,
                 additional_fields : ADDITIONAL_FIELDS,
+                resizer : resizer.checked ? 1 : 0,
+                newMain : newMain.checked ? 1 : 0,
                 json : true
             },
             autoUpload: true,
             acceptFileTypes: /(\.|\/)(jpe?g|png)$/i
         });
-    });
+    }
+    $(initFileUpload());
+    resizer.onchange = initFileUpload;
+    newMain.onchange = initFileUpload;
 
     $( "#PHOTOS tbody.files" ).sortable({
           handle: ".sortablehandle",

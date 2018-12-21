@@ -190,6 +190,9 @@
 								<option value="1" <?=($option->sort == 1)?'selected' : ''?>>Пряме (а..Я, 0..9)</option>
 								<option value="2" <?=($option->sort == 2)?'selected' : ''?>>Зворотнє (Я..а, 9..0)</option>
 							</select>
+							<?php if($option->sort > 0) { ?>
+								<label><input type="checkbox" name="savePositionToManual" value="1"> Зберегти позиції для ручного сортування</label>
+							<?php } ?>
 	                    </div>
 	                </div>
 					<div class="form-group">
@@ -278,15 +281,19 @@
 						
 						if($options = $this->db->get('array'))
 						{
-							$pos = 1;
-				            foreach ($options as $opt) {
-				                if($pos != $opt->position)
-				                {
-				                    $opt->position = $pos;
-				                    $this->db->updateRow($this->options_model->table(), array('position' => $pos), $opt->id);
-				                }
-				                $pos++;
-				            }
+							if($option->sort == 0 || isset($_SESSION['optionsavePositionToManual']))
+							{
+								$pos = 1;
+					            foreach ($options as $opt) {
+					                if($pos != $opt->position)
+					                {
+					                    $opt->position = $pos;
+					                    $this->db->updateRow($this->options_model->table(), array('position' => $pos), $opt->id);
+					                }
+					                $pos++;
+					            }
+					            unset($_SESSION['optionsavePositionToManual']);
+					        }
 
 							$i = 1;
 							

@@ -702,7 +702,10 @@ class shopshowcase_admin extends Controller {
 			}
 			else
 			{
-				if($this->options_model->saveOption($_POST['id'])){
+				if($this->options_model->saveOption($_POST['id']))
+				{
+					if(!empty($_POST['savePositionToManual']))
+						$_SESSION['optionsavePositionToManual'] = true;
 					$_SESSION['notify']->success = 'Властивість успішно оновлено!';
 
 					if(!empty($_FILES['photo']['name']))
@@ -736,11 +739,10 @@ class shopshowcase_admin extends Controller {
 				        	}
 						}
 					}
-
-					$this->redirect();
 				}
 			}
 		}
+		$this->redirect();
 	}
 
 	public function delete_option()
@@ -795,7 +797,6 @@ class shopshowcase_admin extends Controller {
 					$this->wl_position_model->table = $this->options_model->table();
 					$this->wl_position_model->where = '`wl_alias` = '.$_SESSION['alias']->id." AND `group` = {$option->group}";
 				
-					$position = $_POST['position'] + 1;
 					if($this->wl_position_model->change($id[1], $_POST['position']))
 						$res['result'] = true;
 				}

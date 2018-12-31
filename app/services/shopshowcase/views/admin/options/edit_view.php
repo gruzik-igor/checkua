@@ -300,7 +300,8 @@
 											$value_id = $this->db->getLastInsertedId();
 										}
 										if($value_id > 0) {
-											echo("<td><input type='text' name='option_{$value_id}' value='{$value}' class='form-control'></td>");
+											$value = htmlspecialchars($value);
+											echo("<td><input type='text' name='option_{$value_id}' value=\"{$value}\" class='form-control'></td>");
 										} else {
 											echo("<td>Error {$lang}</td>");
 										}

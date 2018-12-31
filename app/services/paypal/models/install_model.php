@@ -4,8 +4,8 @@ class install
 {
 	public $service = null;
 	
-	public $name = "PayPal";
-	public $title = "paypal";
+	public $name = "paypal";
+	public $title = "PayPal";
 	public $description = "Сервіс оплати PayPal";
 	public $group = "shop";
 	public $table_service = "s_paypal";

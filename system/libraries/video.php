@@ -41,10 +41,10 @@ class video
 		$this->mode == 'echo';
 		if(is_array($videos) && !empty($videos)) { 
 			foreach($videos as $video){
-				$this->show($video, $after);
+				$this->show($video, $after, $start);
 			}
 		} elseif(is_object($videos)) {
-			$this->show($videos, $after);
+			$this->show($videos, $after, $start);
 		}
 	}
 

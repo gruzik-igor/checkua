@@ -822,14 +822,14 @@ class shop_model {
 
 	private function getProductOptions($product, $parents = array())
 	{
-		$product_options = array();
+		$product_options = $positions = array();
 		$where_language = $where_gon_language = '';
         if($_SESSION['language'])
     	{
     		$where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
     		$where_gon_language = "AND gon.language = '{$_SESSION['language']}'";
     	}
-		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, go.sort, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, go.sort, go.position, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
 			FROM `{$this->table('_product_options')}` as po 
 			LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option 
 			LEFT JOIN `{$this->table('_options_name')}` as gon ON gon.option = go.id {$where_gon_language} 
@@ -850,8 +850,9 @@ class shop_model {
 					$product_options[$option->alias]->name = $option->name;
 					$product_options[$option->alias]->sufix = $option->sufix;
 					$product_options[$option->alias]->changePrice = $option->changePrice;
+					$product_options[$option->alias]->position = $option->position;
 					$product_options[$option->alias]->photo = false;
-
+					$positions[$option->alias] = $option->position;
 
 					if($option->photo)
 						$product_options[$option->alias]->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$option->photo;
@@ -931,6 +932,9 @@ class shop_model {
 					$product_options[$option->alias]->alias = $option->alias;
 					$product_options[$option->alias]->filter = $option->filter;
 					$product_options[$option->alias]->toCart = $option->toCart;
+					$product_options[$option->alias]->changePrice = $option->changePrice;
+					$product_options[$option->alias]->position = $option->position;
+					$positions[$option->alias] = $option->position;
 
 					$where = array('option' => $option->id);
 					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
@@ -942,18 +946,26 @@ class shop_model {
 
 					$where = array('option' => '#o.id');
 					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-					$list = $this->db->select($this->table('_options') .' as o', 'id', -$option->id, 'group')
-										->join($this->table('_options_name'), 'name', $where)
-										->get('array');
-					if($list)
+					$list = $this->db->select($this->table('_options') .' as o', 'id, photo', -$option->id, 'group')
+										->join($this->table('_options_name') .' as n', 'name', $where);
+					if($option->sort == 0)
+						$this->db->order('position ASC');
+					if($option->sort == 1)
+						$this->db->order('name ASC', 'n');
+					if($option->sort == 2)
+						$this->db->order('name DESC', 'n');
+					if($list = $this->db->get('array'))
 						foreach ($list as $el) {
-							$product_options[$option->alias]->value[] = $el->name;
+							$product_options[$option->alias]->value[] = $el;
+							if($el->photo)
+								$el->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$el->photo;
 						}
 					else
 						unset($product_options[$option->alias]);
 				}
 			}
 		}
+		array_multisort($positions, $product_options);
 
 		return $product_options;
 	}
@@ -1043,72 +1055,88 @@ class shop_model {
 	{
 		if($product = $this->db->getAllDataById($this->table('_products'), $product))
 		{
-			$list = array();
+			$options_id = array();
 			foreach ($options as $key => $value) {
 				if(is_numeric($key) && is_numeric($value))
-					$list[] = $key;
+					$options_id[] = $key;
 			}
-			if(!empty($list))
+			if(!empty($options_id))
 			{
-				if($settings = $this->db->getAllDataByFieldInArray($this->table('_product_options'), array('product' => $product->id, 'option' => $list)))
-				{
-					$list = array();
-					$price = $product->price;
+				$list = $usedOptions = array();
+				$price = $product->price;
+				if($settings = $this->db->getAllDataByFieldInArray($this->table('_product_options'), array('product' => $product->id, 'option' => $options_id)))
 					foreach ($settings as $setting) {
+						$usedOptions[] = $setting->option;
 						if(!empty($setting->changePrice))
 							$list[$setting->option] = unserialize($setting->changePrice);
 					}
-					foreach ($options as $key => $value) {
-						if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
-						{
-							$changePrice = $list[$key][$value];
-							if(is_numeric($changePrice) && $changePrice > 0)
-								$price = $changePrice;
-						}
-					}
-					foreach ($options as $key => $value) {
-						if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
-						{
-							$changePrice = $list[$key][$value];
-							if(is_numeric($changePrice) && $changePrice == 0)
+				if(count($options_id) != count($usedOptions))
+					if($settings = $this->db->getAllDataByFieldInArray($this->table('_options'), array('id' => $options_id)))
+						foreach ($settings as $option) {
+							if(!in_array($option->id, $usedOptions))
 							{
-								if($setting = $this->db->getAllDataById($this->table('_options'), $value))
+								$usedOptions[] = $option->id;
+								if(!empty($option->changePrice))
 								{
-									$setting->changePrice = unserialize($setting->changePrice);
-									if($setting->changePrice['value'] > 0)
-									{
-										$plus = 0;
-										if($setting->changePrice['currency'] == 'p')
-											$plus = $price * $setting->changePrice['value'] / 100;
-										else
-											$plus = $setting->changePrice['value'];
-										if($setting->changePrice['action'] == '+')
-											$price += $plus;
-										else if($setting->changePrice['action'] == '-')
-											$price -= $plus;
-										else if($setting->changePrice['action'] == '*')
-											$price *= $plus;
-									}
+									if($option_settings = $this->db->getAllDataByFieldInArray($this->table('_options'), -$option->id, 'group'))
+										foreach ($option_settings as $os) {
+											if(!empty($os->changePrice))
+												$list[$option->id][$os->id] = unserialize($os->changePrice);
+										}
+									
 								}
 							}
-							else if(is_array($changePrice) && $changePrice['value'] > 0)
+						}
+				foreach ($options as $key => $value) {
+					if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
+					{
+						$changePrice = $list[$key][$value];
+						if(is_numeric($changePrice) && $changePrice > 0)
+							$price = $changePrice;
+					}
+				}
+				foreach ($options as $key => $value) {
+					if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
+					{
+						$changePrice = $list[$key][$value];
+						if(is_numeric($changePrice) && $changePrice == 0)
+						{
+							if($setting = $this->db->getAllDataById($this->table('_options'), $value))
 							{
-								$plus = 0;
-								if($changePrice['currency'] == 'p')
-									$plus = $price * $changePrice['value'] / 100;
-								else
-									$plus = $changePrice['value'];
-								if($changePrice['action'] == '+')
-									$price += $plus;
-								else if($changePrice['action'] == '-')
-									$price -= $plus;
-								else if($changePrice['action'] == '*')
-									$price *= $plus;
+								$setting->changePrice = unserialize($setting->changePrice);
+								if($setting->changePrice['value'] > 0)
+								{
+									$plus = 0;
+									if($setting->changePrice['currency'] == 'p')
+										$plus = $price * $setting->changePrice['value'] / 100;
+									else
+										$plus = $setting->changePrice['value'];
+									if($setting->changePrice['action'] == '+')
+										$price += $plus;
+									else if($setting->changePrice['action'] == '-')
+										$price -= $plus;
+									else if($setting->changePrice['action'] == '*')
+										$price *= $plus;
+								}
 							}
 						}
+						else if(is_array($changePrice) && $changePrice['value'] > 0)
+						{
+							$plus = 0;
+							if($changePrice['currency'] == 'p')
+								$plus = $price * $changePrice['value'] / 100;
+							else
+								$plus = $changePrice['value'];
+							if($changePrice['action'] == '+')
+								$price += $plus;
+							else if($changePrice['action'] == '-')
+								$price -= $plus;
+							else if($changePrice['action'] == '*')
+								$price *= $plus;
+						}
 					}
-					return $price;
 				}
+				return $price;
 			}
 			return $product->price;
 		}

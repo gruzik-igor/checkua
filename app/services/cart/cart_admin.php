@@ -164,7 +164,7 @@ class cart_admin extends Controller {
                 {
                     if($product->cart == $cartId)
                     {
-                        $price = 0;
+                        $price = -1;
                         $list = $changePrice = array();
                         foreach ($_POST as $row => $rowValue) {
                             $row = explode('-', $row);
@@ -172,7 +172,7 @@ class cart_admin extends Controller {
                             {
                                 if($info = $this->load->function_in_alias($product->product_alias, '__get_Option_Info', $row[1]))
                                 {
-                                    if(!empty($info->values))
+                                    if(!empty($info->values) && $rowValue)
                                         foreach ($info->values as $value) {
                                             if($value->id == $rowValue)
                                             {
@@ -185,25 +185,24 @@ class cart_admin extends Controller {
                                 }
                             }
                         }
+
                         if(!empty($changePrice))
                             $price = $this->load->function_in_alias($product->product_alias, '__get_Price_With_options', array('product' => $product->product_id, 'options' => $changePrice));
-                        if(!empty($list))
+
+                        $update = array();
+                        $product_options = serialize($list);
+                        if($product->product_options != $product_options)
+                            $update['product_options'] = $product_options;
+                        if($product->price != $price && $price >= 0)
+                            $update['price'] = $price;
+                        if(!empty($update))
                         {
-                            $update = array();
-                            $product_options = serialize($list);
-                            if($product->product_options != $product_options)
-                                $update['product_options'] = $product_options;
-                            if($product->price != $price && $price > 0)
-                                $update['price'] = $price;
-                            if(!empty($update))
+                            $this->db->updateRow('s_cart_products', $update, $product->id);
+                            if($product->price != $price && $price >= 0)
                             {
-                                $this->db->updateRow('s_cart_products', $update, $product->id);
-                                if($product->price != $price && $price > 0)
-                                {
-                                    $sum = $this->db->getQuery("SELECT SUM(`price`) as total FROM `s_cart_products` WHERE `cart`=".$cart->id);
-                                    if($sum->total != $cart->total)
-                                        $this->db->updateRow('s_cart', array('total' => $sum->total), $cart->id);
-                                }
+                                $sum = $this->db->getQuery("SELECT SUM(`price`) as total FROM `s_cart_products` WHERE `cart`=".$cart->id);
+                                if($sum->total != $cart->total)
+                                    $this->db->updateRow('s_cart', array('total' => $sum->total), $cart->id);
                             }
                         }
                     }

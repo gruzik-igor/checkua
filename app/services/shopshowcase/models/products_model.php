@@ -577,8 +577,8 @@ class products_model {
 	public function saveChangePrice($id)
 	{
 		$data = $options = array();
-		$data['price'] = $this->data->post('price');
-		$data['old_price'] = $this->data->post('old_price');
+		$data['price'] = (float) $this->data->post('price');
+		$data['old_price'] = (float) $this->data->post('old_price');
 		$this->db->updateRow($this->table(), $data, $id);
 
 		foreach ($_POST as $key => $action) {

@@ -29,7 +29,7 @@
 	    		<?php } ?>
 
 	    		<td>
-	    			<?php if($cart->action == 'new' && !empty($product->info->options)) { 
+	    			<?php if($cart->status_weight == 0 && !empty($product->info->options)) { 
 	    				foreach ($product->info->options as $option) {
 							if($option->toCart) { ?>
 	    				<button type="button" class="btn btn-xs btn-info right" onclick="$('#edit-product-options-<?=$product->id?>').slideToggle()">Редагувати</button>
@@ -48,7 +48,7 @@
 							echo "<p>{$key}: <strong>{$value}</strong></p>";
 						}
 					} 
-					if(!empty($cart->action == 'new' && !empty($product->info->options))){
+					if($cart->status_weight == 0 && !empty($product->info->options)) {
 					?>
 					<div class="clearfix"></div>
 					<form class="form-horizontal m-t-10" id="edit-product-options-<?=$product->id?>" style="display: none;" action="<?= SITE_URL.'admin/'. $_SESSION['alias']->alias.'/updateproductoptions'?>" method="post">
@@ -62,6 +62,7 @@
 		                        </label>
 		                        <div class="col-md-7">
 		                        	<select name="option-<?=$option->id?>" class="form-control" required>
+		                        		<option value="0">Не встановлено</option>
 		                        		<?php foreach ($option->value as $value) {
 		                        			$selected = '';
 		                        			if(isset($product->product_options[$option->name]) && $product->product_options[$option->name] == $value->name)

@@ -829,7 +829,7 @@ class shop_model {
     		$where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
     		$where_gon_language = "AND gon.language = '{$_SESSION['language']}'";
     	}
-		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, go.sort, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
 			FROM `{$this->table('_product_options')}` as po 
 			LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option 
 			LEFT JOIN `{$this->table('_options_name')}` as gon ON gon.option = go.id {$where_gon_language} 
@@ -862,10 +862,15 @@ class shop_model {
 						{
 							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', array('id' => explode(',', $option->value)))
-												->join($this->table('_options_name'), 'name', $where)
-												->get('array');
-							if($list)
+							$this->db->select($this->table('_options') .' as o', 'id, photo', array('id' => explode(',', $option->value)))
+												->join($this->table('_options_name') .' as n', 'name', $where);
+							if($option->sort == 0)
+								$this->db->order('position ASC');
+							if($option->sort == 1)
+								$this->db->order('name ASC', 'n');
+							if($option->sort == 2)
+								$this->db->order('name DESC', 'n');
+							if($list = $this->db->get('array'))
 								foreach ($list as $el) {
 									$product_options[$option->alias]->value[] = $el;
 									if($el->photo)
@@ -877,9 +882,14 @@ class shop_model {
 							$where = array('option' => '#o.id');
 							if($_SESSION['language']) $where['language'] = $_SESSION['language'];
 							$list = $this->db->select($this->table('_options') .' as o', 'id, photo', -$option->id, 'group')
-												->join($this->table('_options_name'), 'name', $where)
-												->get('array');
-							if($list)
+												->join($this->table('_options_name') .' as n', 'name', $where);
+							if($option->sort == 0)
+								$this->db->order('position ASC');
+							if($option->sort == 1)
+								$this->db->order('name ASC', 'n');
+							if($option->sort == 2)
+								$this->db->order('name DESC', 'n');
+							if($list = $this->db->get('array'))
 								foreach ($list as $el) {
 									$product_options[$option->alias]->value[] = $el;
 									if($el->photo)
@@ -1306,7 +1316,13 @@ class shop_model {
 		        	if($_SESSION['language'])
 		        		$where['language'] = $_SESSION['language'];
 		        	$this->db->select($this->table('_options').' as o', 'id', -$option->id, 'group');
-		        	$this->db->join($this->table('_options_name'), 'name', $where);
+		        	$this->db->join($this->table('_options_name') .' as n', 'name', $where);
+					if($option->sort == 0)
+						$this->db->order('position ASC');
+					if($option->sort == 1)
+						$this->db->order('name ASC', 'n');
+					if($option->sort == 2)
+						$this->db->order('name DESC', 'n');
 		        	$option->values = $this->db->get('array');
 
 					if(!empty($option->values))

@@ -1,5 +1,17 @@
 <!-- The fileupload-buttonbar contains buttons to add/delete files and start/cancel the upload -->
 <div id="fileupload" class="fileupload-buttonbar">
+    <div class="pull-right">
+        <label>
+            <input type="checkbox" data-render="switchery" checked data-classname="switchery switchery-small" id="resizer" />
+            Зменшити оригінал
+        </label>
+        <br>
+        <label>
+            <input type="checkbox" data-render="switchery" data-classname="switchery switchery-small" id="newMain" />
+            Нове фото - головне
+        </label>
+    </div>
+
     <!-- The fileinput-button span is used to style the file input field as button -->
     <span class="btn btn-success fileinput-button f-left">
         <i class="glyphicon glyphicon-plus"></i>
@@ -30,6 +42,16 @@
 <table id="PHOTOS" class="table">
     <tbody class="files">
         <?php if(!empty($_SESSION['alias']->images)) {
+            $pos = 1;
+            foreach($_SESSION['alias']->images as $photo)
+            {
+                if($pos != $photo->position)
+                {
+                    $photo->position = $pos;
+                    $this->db->updateRow('wl_images', array('position' => $pos), $photo->id);
+                }
+                $pos++;
+            }
             foreach($_SESSION['alias']->images as $photo) { ?>
                 <tr id="photo-<?=$photo->id?>" class="template-download fade in">
                     <td class="move sortablehandle"><i class="fa fa-sort"></i></td>
@@ -171,7 +193,10 @@ $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.blueimp-gallery.min.js
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.fileupload-audio.js";
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/jquery.fileupload-video.js";
 // $_SESSION['alias']->js_load[] = "assets/blueimp/js/cors/jquery.xdr-transport.js";
+
+$_SESSION['alias']->js_load[] = 'assets/switchery/switchery.min.js';
 ?>
+<link rel="stylesheet" href="<?=SITE_URL?>assets/switchery/switchery.min.css" />
 
 
 <!-- The Templates plugin is included to render the upload/download listings -->

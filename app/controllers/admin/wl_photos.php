@@ -63,6 +63,7 @@ class wl_photos extends Controller {
             {
                 $length = count($_FILES[$name_field]['name']);
                 for($i = 0; $i < $length; $i++) {
+                    $data = array();
                     $data['alias'] = $this->data->post('ALIAS_ID');
                     $data['content'] = $id;
                     $data['file_name'] = $data['title'] = '';
@@ -70,11 +71,22 @@ class wl_photos extends Controller {
                     $data['date_add'] = time();
                     $photo_id = $this->db->insertRow('wl_images', $data);
                     $photo_name = $this->data->post('PHOTO_FILE_NAME') . '-' . $photo_id;
-                    
+
+                    $newMain = false;
+                    if(!empty($_POST['newMain']))
+                    {
+                        $newMain = true;
+                            $data['position'] = 1;
+                    }
+
                     if($extension = $this->savephoto($name_field, $path, $photo_name, true, $i))
                     {
                         $photo_name .= '.'.$extension;
-                        $position = $this->db->getCount('wl_images', array('alias' => $this->data->post('ALIAS_ID'), 'content' => $id));
+                        $position = 1;
+                        if($newMain)
+                            $this->db->executeQuery('UPDATE `wl_images` SET `position`=`position`+1 WHERE `alias` = '.$data['alias'].' AND `content` = '.$data['content']);
+                        else
+                            $position = $this->db->getCount('wl_images', array('alias' => $data['alias'], 'content' => $id));
                         $this->db->updateRow('wl_images', array('file_name' => $photo_name, 'position' => $position), $photo_id);
 
                         $this->updateAdditionall();
@@ -249,33 +261,36 @@ class wl_photos extends Controller {
             if($array) $this->image->uploadArray($name_field, $i, $path, $name);
             else $this->image->upload($name_field, $path, $name);
             $extension = $this->image->getExtension();
-            $this->image->save();
-            if($this->image->getErrors() == '')
+            if(!empty($_POST['resizer']) && $_POST['resizer'] != 'false')
             {
-                if($sizes = $this->db->getAliasImageSizes($this->data->post('ALIAS_ID')))
+                $this->image->save();
+                if($this->image->getErrors() == '')
                 {
-                    foreach ($sizes as $resize) {
-                        if($resize->prefix == '')
-                        {
-                            if($this->image->loadImage($path, $name, $extension))
+                    if($sizes = $this->db->getAliasImageSizes($this->data->post('ALIAS_ID')))
+                    {
+                        foreach ($sizes as $resize) {
+                            if($resize->prefix == '')
                             {
-                                if(in_array($resize->type, array(1, 11, 12)))
-                                    $this->image->resize($resize->width, $resize->height, $resize->quality, $resize->type);
-                                if(in_array($resize->type, array(2, 21, 22)))
-                                    $this->image->preview($resize->width, $resize->height, $resize->quality, $resize->type);
-                                $this->image->save($resize->prefix);
-                            }
-                            else
-                            {
-                            	$this->extension = $extension;
-                            	$this->error = $this->image->getErrors();
-                            	return false;
+                                if($this->image->loadImage($path, $name, $extension))
+                                {
+                                    if(in_array($resize->type, array(1, 11, 12)))
+                                        $this->image->resize($resize->width, $resize->height, $resize->quality, $resize->type);
+                                    if(in_array($resize->type, array(2, 21, 22)))
+                                        $this->image->preview($resize->width, $resize->height, $resize->quality, $resize->type);
+                                    $this->image->save($resize->prefix);
+                                }
+                                else
+                                {
+                                	$this->extension = $extension;
+                                	$this->error = $this->image->getErrors();
+                                	return false;
+                                }
                             }
                         }
                     }
                 }
-                return $this->image->getExtension();
             }
+            return $extension;
         }
         return false;
     }

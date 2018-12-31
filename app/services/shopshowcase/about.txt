@@ -1,7 +1,8 @@
-﻿Service "Shop Showcase 2.6"
+﻿Service "Shop Showcase 2.7"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.7   : 21.12.2018
 Date 2.6   : 21.10.2018
 Date 2.5   : 01.11.2017
 Date 2.4.3 : 08.09.2017
@@ -83,6 +84,7 @@ Tables:
 		`type` int(11)		тип опції згідно wl_input_types
 		`filter` tinyint(1)	чи є даний елемент опції і елементом фільтру (тільки для строго визначений елементів: radio, select..)
 		`active` tinyint(1)	поточний стан (0 - відключено, 1 - активний)
+		`sort` tinyint(1)	режим сортування властивестей: 0 - Ручне, 1 - Пряме (а..Я, 0..9), 2 - Зворотнє (Я..а, 9..0)
 	s_shopshowcase_product_options 	поточні дані опція товару - товар
 		`id` int(11) AUTO_INCREMENT
 		`product` int(11)	ід товару
@@ -164,6 +166,7 @@ Private links (admin access):
 	/save_option - procedure to save or creating new product option for group
 	/delete_option - procedure to delete product option
 	/change_option_position - procedure to change option position in list
+	/change_suboption_position - procedure to change option property position in list
 	/deleteOptionProperty (ajax) - delete option property
 	/savephoto (private) - function which save and make resize photo
 	/__get_Search - global search from admin panel
@@ -273,3 +276,5 @@ Versions:
 			Виправлено дрібні помилки
 			Додано __get_SiteMap_Links()
 			Додано option:prom
+
+	2.7 	Оновлено роботу з властивостями товару (додано сортування)

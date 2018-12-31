@@ -10,7 +10,7 @@ class options_model {
 
 	public function getOptions($group = 0, $active = true)
 	{
-		$where = ''; $where_gn = ''; $select_gn = '';
+		$where = $where_gn = $where_language = $select_gn = '';
 		if($active)
 			$where = 'AND o.active = 1';
 		else
@@ -19,21 +19,27 @@ class options_model {
 			$where_gn = "LEFT JOIN `wl_ntkd` as g ON g.content = '-{$group}' AND g.alias = '{$_SESSION['alias']->id}'";
 			if($_SESSION['language']) $where_gn .= " AND g.language = '{$_SESSION['language']}'";
 		}
-		$this->db->executeQuery("SELECT o.*, t.name as type_name {$select_gn} FROM `{$this->table('_options')}` as o LEFT JOIN wl_input_types as t ON t.id = o.type {$where_gn} WHERE o.wl_alias = '{$_SESSION['alias']->id}' AND o.group = '{$group}' {$where} ORDER BY o.position ASC");
+		if($_SESSION['language'])
+			$where_language = "AND n.language = '{$_SESSION['language']}'";
+		$this->db->executeQuery("SELECT o.*, t.name as type_name {$select_gn} , n.name, n.sufix
+									FROM `{$this->table('_options')}` as o 
+									LEFT JOIN wl_input_types as t ON t.id = o.type {$where_gn} 
+									LEFT JOIN `{$this->table('_options_name')}` as n ON n.option = o.id {$where_language} 
+									WHERE o.wl_alias = '{$_SESSION['alias']->id}' AND o.group = '{$group}' {$where} 
+									ORDER BY o.position ASC");
         if($this->db->numRows() > 0)
         {
             $options = $this->db->getRows('array');
 
-			$where = '';
-            if($_SESSION['language']) $where = "AND `language` = '{$_SESSION['language']}'";
-            foreach ($options as $option) {
-            	$this->db->executeQuery("SELECT * FROM `{$this->table('_options_name')}` WHERE `option` = '{$option->id}' {$where}");
-            	if($this->db->numRows() == 1){
-            		$ns = $this->db->getRows();
-            		$option->name = $ns->name;
-            		$option->sufix = $ns->sufix;
-            	}
-            }
+			$pos = 1;
+	        foreach ($options as $opt) {
+	            if($pos != $opt->position)
+	            {
+	                $opt->position = $pos;
+	                $this->db->updateRow($this->table(), array('position' => $pos), $opt->id);
+	            }
+	            $pos++;
+	        }
 
 			return $options;
 		}
@@ -42,7 +48,7 @@ class options_model {
 
 	public function add_option($property = false)
 	{
-		$data = array('wl_alias' => $_SESSION['alias']->id, 'group' => 0);
+		$data = array('wl_alias' => $_SESSION['alias']->id, 'group' => 0, 'sort' => 0);
 		if(isset($_POST['group']) && is_numeric($_POST['group'])) $data['group'] = $_POST['group'];
 		if($property && isset($_POST['id'])) $data['group'] = -1 * $_POST['id'];
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];
@@ -86,11 +92,12 @@ class options_model {
 
 	public function saveOption($id)
 	{
-		$data = array('active' => 1, 'filter' => 0, 'toCart' => 0, 'main' => 0, 'changePrice' => 0);
+		$data = array('active' => 1, 'filter' => 0, 'toCart' => 0, 'main' => 0, 'changePrice' => 0, 'sort' => 0);
 		if(isset($_POST['alias']) && $_POST['alias'] != '') $data['alias'] = $_POST['id'] . '-' . $_POST['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 0) $data['active'] = 0;
 		if(isset($_POST['filter']) && $_POST['filter'] == 1) $data['filter'] = 1;
 		if(isset($_POST['toCart']) && $_POST['toCart'] == 1) $data['toCart'] = 1;
+		if(isset($_POST['sort']) && $_POST['sort'] > 0) $data['sort'] = $_POST['sort'];
 		if(isset($_POST['changePrice']) && $_POST['changePrice'] == 1) $data['changePrice'] = 1;
 		if(isset($_POST['main']) && $_POST['main'] == 1) $data['main'] = 1;
 		if(isset($_POST['type']) && is_numeric($_POST['type'])) $data['type'] = $_POST['type'];

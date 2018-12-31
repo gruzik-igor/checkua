@@ -58,7 +58,7 @@
 							</tr>
 							<?php } } else { ?>
 							<tr>
-								<td colspan="8" class="text-center">
+								<td colspan="9" class="text-center">
 									<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add_option<?=(isset($group))?'?group='.$group->id:''?>" class="btn btn-warning"><i class="fa fa-plus"></i> <?=$_SESSION['admin_options']['word:option_add']?></a>
 								</td>
 							</tr>

@@ -13,7 +13,7 @@ class install
 	public $multi_alias = 1;
 	public $order_alias = 100;
 	public $admin_ico = 'fa-qrcode';
-	public $version = "2.6";
+	public $version = "2.7";
 
 	public $options = array('ProductUseArticle' => 0, 'useGroups' => 1, 'ProductMultiGroup' => 0, 'useAvailability' => 0, 'searchHistory' => 1, 'useMarkUp' => 0, 'folder' => 'shopshowcase', 'productOrder' => 'position DESC', 'groupOrder' => 'position ASC', 'prom' => 0);
 	public $options_type = array('ProductUseArticle' => 'bool', 'useGroups' => 'bool', 'ProductMultiGroup' => 'bool', 'useAvailability' => 'bool', 'searchHistory' => 'bool', 'useMarkUp' => 'bool', 'folder' => 'text', 'productOrder' => 'text', 'groupOrder' => 'text', 'prom' => 'bool');
@@ -364,6 +364,7 @@ class install
 					  `filter` tinyint(1) NULL,
 					  `toCart` tinyint(1) NULL,
 					  `active` tinyint(1) NULL,
+					  `sort` tinyint(1) NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`),
 					  KEY `wl_alias` (`wl_alias`),

@@ -1,7 +1,7 @@
 <div class="table-responsive" >
 	<h4 class="left">Тип покупця: <?= $cart->user_type_name?></h4>
 	<?php if($cart->status_weight == 0){ ?>
-		<button class="btn btn-sm btn-warning pull-right" id="toggleNewProduct" onclick="$('#newProduct').toggle();">Додати товар</button><div class="clearfix"></div><br>
+		<button class="btn btn-sm btn-warning pull-right" id="toggleNewProduct" onclick="$('#newProduct').toggle();"><i class="fa fa-plus"></i> Додати товар</button><div class="clearfix"></div><br>
 	<?php } else { ?>
     	<a href="<?=SITE_URL?>admin/<?=$_SESSION['alias']->alias?>/<?=$cart->id?>/print" class="btn btn-sm btn-info pull-right"><i class="fa fa-print"></i> Підготувати до друку</a>
     <?php } ?>
@@ -95,7 +95,7 @@
 	    			} elseif(!empty($product->invoices)){ ?>
 						<select id="addInvoice-<?= $product->id ?>">
 							<?php foreach($product->invoices as $invoice) {?>
-							<option value="<?= $invoice->id.'/'.$invoice->storage.'/'.$invoice->price_out?>"><?= $invoice->storage_name . ' / ' . $invoice->amount_free . ' од. ' . ' / $' . $invoice->price_out . ' за од.' ?></option>
+							<option value="<?= $invoice->id.'/'.$invoice->storage.'/'.$invoice->price_out?>"><?= $invoice->storage_name . ' / ' . $invoice->amount_free . ' од. ' . ' / ' . $this->cart_model->priceFormat($invoice->price_out) . ' за од.' ?></option>
 							<?php } ?>
 						</select>
 						<button onclick='changeProductInvoice(this,<?= $product->alias.','.$product->product.','.$product->id?>)' class='right'><i class='fa fa-save'></i></button>
@@ -103,7 +103,12 @@
 	    		</td>
 	    		<?php } ?>
 
-	    		<td id="productPrice-<?= $product->id ?>"><?= $product->price?> грн</td>
+	    		<td id="productPrice-<?= $product->id ?>">
+	    			<?= $this->cart_model->priceFormat($product->price)?>
+	    			<?php if($cart->status_weight == 0 && $_SESSION['user']->admin){ ?>
+		    			<a href="#modal-edit-product-price" data-toggle="modal" class='right btn btn-xs btn-info' title="Редагувати ціну" data-product-name="<?=(isset($product->info->name))?$product->info->name:''?>" data-product-price="<?=$product->price?>" data-product-row-id="<?=$product->id?>"><i class='fa fa-edit'></i></a>
+		    		<?php } ?>
+	    		</td>
 
 	    		<td width="15%" >
 	    			<?php if($cart->status_weight == 0){ ?>
@@ -130,7 +135,7 @@
 	    			<?php } else echo $product->quantity; ?>
 	    		</td>
 
-	    		<td id="productTotalPrice-<?= $product->id ?>"><?= $product->price * $product->quantity?> грн</td>
+	    		<td id="productTotalPrice-<?= $product->id ?>"><?= $this->cart_model->priceFormat($product->price * $product->quantity)?></td>
 
 	    		<?php if($cart->status_weight == 0){ ?>
 	    		<td><button onclick="removeProduct(<?= $product->id?>, <?= $product->cart?>, <?= $product->price * $product->quantity?>)"><i class='fa fa-remove'></i></button></td>
@@ -139,7 +144,7 @@
 	    	<?php } ?>
 	    	<tr>
 	    		<td colspan="6" class="text-right" >
-	    			<span id="totalPrice2"><?= $cart->total ?></span><span> грн</span>
+	    			<span id="totalPrice2"><?= $this->cart_model->priceFormat($cart->total) ?></span>
 	    		</td>
 	    	</tr>
 	    </tbody>
@@ -227,3 +232,49 @@
 	}
 
 </script>
+<?php if($cart->status_weight == 0 && $_SESSION['user']->admin) { ?>
+<div class="modal fade" id="modal-edit-product-price">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+				<h4 class="modal-title">Встановити/редагути ціну для <strong class="product-name"></strong></h4>
+			</div>
+			<form action="<?=SERVER_URL.'admin/'.$_SESSION['alias']->alias.'/save_new_price'?>" method="post">
+				<div class="modal-body">
+					<label>Нова ціна</label>
+					<input type="number" name="product-new-price" class="form-control" placeholder="Нова ціна товару" step="0.01" min="0" required>
+					Увага! Ціна встановлюється <u>без додаткових перевірок</u> та стає <u>кінцевою за одиницю товару/тослуги.</u>
+					<br>
+					<br>
+					<label>Пароль адміністратора для підтвердження</label>
+					<input type="password" name="password" title="Пароль адміністратора для підтвердження" class="form-control" required>
+					<input type="hidden" name="cart-id" value="<?=$cart->id?>">
+					<input type="hidden" name="product-row-id" value="0">
+					<input type="hidden" name="product-name" value="">
+				</div>
+				<div class="modal-footer">
+					<a href="javascript:;" class="btn btn-sm btn-white" data-dismiss="modal">Скасувати</a>
+					<button type="submit" class="btn btn-sm btn-success">Зберегти</button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>
+<script type="text/javascript">
+window.onload = function () {
+	$('#modal-edit-product-price').on('show.bs.modal', function (event) {
+		var button = $(event.relatedTarget) // Button that triggered the modal
+		var id = button.data('product-row-id')
+		var name = button.data('product-name')
+		var price = button.data('product-price')
+
+		var modal = $(this)
+		modal.find('.product-name').text(name)
+		modal.find('input[name=product-name]').val(name)
+		modal.find('input[name=product-new-price]').val(price)
+		modal.find('input[name=product-row-id]').val(id)
+	});
+};
+</script>
+<?php } ?>

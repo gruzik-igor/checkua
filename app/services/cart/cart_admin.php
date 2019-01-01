@@ -974,6 +974,61 @@ class cart_admin extends Controller {
         $this->redirect('admin/'.$_SESSION['alias']->alias.'/settings');
     }
 
+    public function save_new_price()
+    {
+        $_SESSION['notify'] = new stdClass();
+        if(!$_SESSION['user']->admin)
+        {
+            $_SESSION['notify']->errors = 'Редагути ціну у замовленні може виключно адміністратор';
+            $this->redirect();
+        }
+        if(empty($_POST['password']))
+        {
+            $_SESSION['notify']->errors = 'Невірний пароль для підтвердження зміни ціни';
+            $this->redirect();
+        }
+        else
+        {
+            $this->load->model('wl_user_model');
+            $manager = $this->wl_user_model->getInfo($_SESSION['user']->id, false);
+            $password = $this->wl_user_model->getPassword($_SESSION['user']->id, $manager->email, $_POST['password']);
+            if($password != $manager->password)
+            {
+                $_SESSION['notify']->errors = 'Невірний пароль для підтвердження зміни ціни';
+                $this->redirect();
+            }
+        }
+        if($cartId = $this->data->post('cart-id'))
+        {
+            $price = $this->data->post('product-new-price');
+            $name = $this->data->post('product-name');
+            if($productRowId = $this->data->post('product-row-id'))
+            {
+                $this->load->smodel('cart_model');
+                if($productRow = $this->db->getAllDataById('s_cart_products', $productRowId))
+                {
+                    if($productRow->cart == $cartId && $price != $productRow->price)
+                    {
+                        $this->db->updateRow('s_cart_products', array('price' => $price), $productRowId);
+                        
+                        $data = array();
+                        $data['cart'] = $cartId;
+                        $data['status'] = 1;
+                        $data['user'] = $_SESSION['user']->id;
+                        $data['comment'] = $_SESSION['notify']->success = 'Зміна ціни для "<strong>'.$name.'</strong>" '.$productRow->price.' => '.$this->cart_model->priceFormat($price);
+                        $data['date'] = time();
+                        $this->db->insertRow('s_cart_history', $data);
+
+                        $total = $this->db->getQuery("SELECT SUM(quantity * price) as totalPrice FROM `s_cart_products` WHERE `cart` = $cartId")->totalPrice;
+
+                        $this->db->executeQuery("UPDATE `s_cart` SET `total` = {$total}, `date_edit` = {$data['date']} WHERE `id` = $cartId");
+                    }
+                }
+            }
+        }
+        $this->redirect();
+    }
+
     public function reNew()
     {
         if(!$_SESSION['user']->admin)

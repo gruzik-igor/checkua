@@ -24,13 +24,15 @@ class wl_comments_model {
 			$this->db->limit($start, $_SESSION['option']->paginator_per_page);
 		}
 
-		$wl_sitemap = array('alias' => '#c.alias', 'content' => '#c.content');
+		$wl_sitemap = $wl_images = array('alias' => '#c.alias', 'content' => '#c.content');
 		if($_SESSION['language'])
 			$wl_sitemap['language'] = $_SESSION['language'];
+		$wl_images['position'] = 1;
 
 		$this->db->select('wl_comments as c', '*', $where)
-				->join('wl_users', 'name as user_name, email as user_email, photo as user_photo', '#c.user')
+				->join('wl_users', 'name as user_name, email as user_email', '#c.user')
 				->join('wl_ntkd', 'name as page_name', $wl_sitemap)
+				->join('wl_images', 'file_name as page_image', $wl_images)
 				->join('wl_sitemap', 'link', $wl_sitemap)
 				->order('date_add DESC');
 
@@ -39,7 +41,7 @@ class wl_comments_model {
 
 	public function add($user, &$image_names = false)
 	{
-		if(empty($_POST['content']) || empty($_POST['alias']))
+		if(empty($_POST['alias']))
 			return false;
 
 		$_SESSION['notify']->success = 'Thanks for your review. <br>Travelers will be happy to read it!';
@@ -57,7 +59,8 @@ class wl_comments_model {
 		if(!empty($_FILES['images']['name'][0]))
 		{
 			$_SESSION['notify']->success = 'Thanks for your review. <br>We will email you as soon as it is published.';
-			$data['status'] = 3;
+			if(empty($_SESSION['user']->id))
+				$data['status'] = 3;
 			if($image_name = $this->data->post('image_name'))
 			{
 				if(count($_FILES['images']['name']) > 1)

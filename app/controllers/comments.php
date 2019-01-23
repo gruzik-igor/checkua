@@ -12,9 +12,10 @@ class Comments extends Controller {
 
     public function index()
     {
+        $this->wl_alias_model->setContent();
         $this->load->model('wl_comments_model');
         $comments = $this->wl_comments_model->get(array('status' => array(1, 2)));
-    	$this->load->page_view('@wl_comments/index_view', array('comments' => $comments, 'showAddForm' => false));
+    	$this->load->page_view('comments_view', array('comments' => $comments, 'showAddForm' => false));
     }
 
     public function add()
@@ -75,17 +76,15 @@ class Comments extends Controller {
                             $userId = $user->id;
                     }
                 }
-
+$anchor = '#comments';
                 if($userId > 0)
                 {
                     $this->load->model('wl_comments_model');
                     $image_names = false;
                     if($id = $this->wl_comments_model->add($userId, $image_names))
                     {
-                        $anchor = '#comment-'.$id;
-                        $anchor = '#comment_add_success';
-                        $_SESSION['notify']->comment = $id;
-                        $_SESSION['notify']->success = $this->text('Відгук додано успішно');
+                        // $anchor = '#comment-'.$id;
+                        // $anchor = '#comment_add_success';
 
                         $name_field = 'images';
                         if($image_names && !empty($_FILES[$name_field]['name']))
@@ -141,8 +140,8 @@ class Comments extends Controller {
                 $_SESSION['notify']->errors = '<ul>'.$this->validator->getErrors('<li>', '</li>').'</ul>';
         }
         
-        if(isset($_SESSION['notify']->errors))
-            $anchor = '#comment_add_error';
+        // if(isset($_SESSION['notify']->errors))
+        //     $anchor = '#comment_add_error';
         $this->redirect($anchor);
     }
 

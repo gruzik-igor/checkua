@@ -177,6 +177,32 @@ class library extends Controller {
         return $data;
     }
 
+	public function __get_Article($id = 0)
+	{
+		if($id > 0)
+		{
+			$this->load->smodel('library_model');
+			if($article = $this->library_model->getArticle($id, 'id'))
+			{
+            	$article->link = $_SESSION['alias']->alias.'/'.$article->alias;
+            	$article->photo = null;
+            	// $article->video = $this->db->getAllDataByFieldInArray('wl_video', array('alias' => $_SESSION['alias']->id, 'content' => $article->id));
+
+            	if($photo = $this->library_model->getArticlePhoto($article->id))
+            	{
+					if($sizes = $this->db->getAliasImageSizes())
+						foreach ($sizes as $resize) {
+							$resize_name = $resize->prefix.'_photo';
+							$article->$resize_name = $_SESSION['option']->folder.'/'.$article->id.'/'.$resize->prefix.'_'.$photo->file_name;
+						}
+					$article->photo = $_SESSION['option']->folder.'/'.$article->id.'/'.$photo->file_name;
+            	}
+            	return $article;
+			}
+		}
+		return false;
+	}
+	
 	public function __get_Articles($data = array())
 	{
 		$group = -1;

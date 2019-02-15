@@ -317,13 +317,13 @@ class products_model {
 		{
 			$data['article'] = trim($this->data->post('article'));
 			if(empty($data['article']))
-				$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+				$data['alias'] = $id .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
 			else
 			{
 				if(empty($_POST['alias']))
 					$data['alias'] = $this->data->latterUAtoEN($data['article']);
 				else
-					$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. trim($this->data->post('alias'));
+					$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
 			}
 			if($this->data->post('article') != $this->data->post('article_old'))
 			{
@@ -346,7 +346,7 @@ class products_model {
 			if(empty($_POST['alias']))
 				$data['alias'] = $id;
 			else
-				$data['alias'] = $id .'-'. trim($this->data->post('alias'));
+				$data['alias'] = $id .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
 		}
 		$link = $data['alias'];
 		if(isset($_POST['active']) && $_POST['active'] == 1)

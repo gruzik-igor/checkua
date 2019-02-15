@@ -105,7 +105,7 @@
     <?php if(isset($_SESSION['option']->folder) && $_SESSION['option']->folder != '') { ?>
         var ALIAS_FOLDER = '<?=$_SESSION['option']->folder?>';
         var PHOTO_FILE_NAME = '<?=(isset($PHOTO_FILE_NAME)) ? $PHOTO_FILE_NAME : $_SESSION['alias']->alias?>';
-        var PHOTO_TITLE = '<?=$_SESSION['alias']->name?>';
+        var PHOTO_TITLE = '<?=addslashes($_SESSION['alias']->name)?>';
     <?php } else { ?>
         var ALIAS_FOLDER = false;
         var PHOTO_FILE_NAME = false;

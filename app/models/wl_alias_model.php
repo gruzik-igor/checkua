@@ -131,7 +131,7 @@ class wl_alias_model
 			$this->db->join('wl_users', 'name as user_name', '#author');
 			$_SESSION['alias']->videos = $this->db->get('array');
 
-			if($_SESSION['option']->folder)
+			if(!empty($_SESSION['option']->folder))
 			{
 				$this->db->select('wl_audio', '*', $where);
 				$this->db->join('wl_users', 'name as user_name', '#author');

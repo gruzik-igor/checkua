@@ -706,21 +706,6 @@ CREATE TABLE IF NOT EXISTS `wl_video` (
 -- Індекси збережених таблиць
 --
 
---
--- Індекси таблиці `wl_aliases`
---
-ALTER TABLE `wl_aliases` ADD FULLTEXT KEY `alias` (`alias`);
-
---
--- Індекси таблиці `wl_sitemap`
---
-ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-
 -- --------------------------------------------------------
 
 --
@@ -764,3 +749,17 @@ ALTER TABLE `wl_comments`
 --
 ALTER TABLE `wl_comments`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Індекси таблиці `wl_aliases`
+--
+ALTER TABLE `wl_aliases` ADD FULLTEXT KEY `alias` (`alias`);
+
+--
+-- Індекси таблиці `wl_sitemap`
+--
+ALTER TABLE `wl_sitemap` ADD FULLTEXT KEY `link` (`link`);
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

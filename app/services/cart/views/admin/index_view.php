@@ -17,6 +17,7 @@
             <div class="panel-heading">
                 <div class="panel-heading-btn">
                 	<a href="<?= SITE_URL.'admin/'.$_SESSION['alias']->alias?>/add" class="btn btn-warning btn-xs"><i class="fa fa-plus"></i> Додати покупку</a>
+                	<a href="<?= SITE_URL.'admin/'.$_SESSION['alias']->alias?>/bonus" class="btn btn-success btn-xs"><i class="fa fa-ravelry"></i> Бонус-коди</a>
                 	<a href="<?= SITE_URL.'admin/'.$_SESSION['alias']->alias?>/settings" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування</a>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-default" data-click="panel-expand"><i class="fa fa-expand"></i></a>
                     <a href="javascript:;" class="btn btn-xs btn-icon btn-circle btn-success" data-click="panel-reload"><i class="fa fa-repeat"></i></a>

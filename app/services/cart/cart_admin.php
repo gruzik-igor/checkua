@@ -1099,6 +1099,31 @@ class cart_admin extends Controller {
         $this->redirect();
     }
 
+    public function bonus()
+    {
+        $_SESSION['alias']->name .= '. Бонус-коди';
+        if($id = $this->data->uri(3))
+        {
+            if(is_numeric($id))
+            {
+
+            }
+            elseif($id == 'add')
+            {
+                $bonus = new stdClass();
+                $bonus->id = 0;
+                $bonus->mode = 1;
+                $bonus->count_do = -1;
+                $bonus->code = 'Автогенерація';
+                $this->load->admin_view('bonus/edit_view', array('bonus' => $bonus));
+            }
+            else
+                $this->load->page_404(false);
+        }
+        else
+            $this->load->admin_view('bonus/index_view');
+    }
+
     public function __sidebar($alias)
     {
         if($statuses = $this->db->getAllDataByFieldInArray($_SESSION['service']->table.'_status', array('weight' => '<20')))

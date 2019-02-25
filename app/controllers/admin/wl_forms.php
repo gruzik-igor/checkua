@@ -41,7 +41,7 @@ class wl_forms extends Controller {
                     $_SESSION['alias']->breadcrumb = array('Форми' => 'admin/wl_forms', 'Редагувати' => '');
 
                     $fields = $this->db->getQuery("SELECT f.*, i.name as input_type_name FROM wl_fields as f LEFT JOIN wl_input_types as i ON i.id = f.input_type WHERE f.form = {$form->id}", 'array');
-                    $names = '';
+                    $names = array();
 
                     if($fields){
                         foreach ($fields as $f) {

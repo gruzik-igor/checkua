@@ -6,28 +6,39 @@ require APP_PATH.'views/admin/notify_view.php';
     <div class="col-md-12">
         <div class="panel panel-inverse">
             <div class="panel-heading">
-                	<div class="panel-heading-btn">
-						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> До замовлень</a>
-						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/bonus" class="btn btn-success btn-xs"><i class="fa fa-ravelry"></i> До бонус-кодів</a>
-                	</div>
-                <h4 class="panel-title">Додати бонус-код</h4>
+            	<div class="panel-heading-btn">
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs"><i class="fa fa-list"></i> До замовлень</a>
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/bonus" class="btn btn-success btn-xs"><i class="fa fa-ravelry"></i> До бонус-кодів</a>
+            	</div>
+                <h4 class="panel-title"><?=($bonus->id == 0) ? 'Додати бонус-код':'Бонус-код #'.$bonus->id?></h4>
             </div>
             <div class="panel-body">
-            	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_bonus" method="POST" enctype="multipart/form-data" class="form-horizontal" name="bonusForm">
+                <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_bonus" method="POST" class="form-horizontal" id="bonusFormActivate">
+                    <input type="hidden" name="id" value="<?=$bonus->id?>">
+                    <input type="hidden" name="code" value="<?=$bonus->code?>">
+                    <input type="hidden" name="onlyActive" value="1">
+                </form>
+            	<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save_bonus" method="POST" class="form-horizontal" name="bonusForm">
             		<input type="hidden" name="id" value="<?=$bonus->id?>">
             		<?php if($bonus->id > 0){ ?>
         			<div class="form-group">
                         <label class="col-md-3 control-label">Статус</label>
                         <div class="col-md-9">
                             <label>
-                            	<input type="radio" name="mode" value="1" <?=($bonus->status == 1) ? 'checked':''?>> Активний
+                            	<input type="radio" name="status" value="1" <?=($bonus->status == 1) ? 'checked':''?>> Активний
                             </label>
                             <label>
-                            	<input type="radio" name="mode" value="0" <?=($bonus->status == 0) ? 'checked':''?>> Відключено
+                            	<input type="radio" name="status" value="0" <?=($bonus->status == 0) ? 'checked':''?>> Відключено
                             </label>
                             <label>
-                            	<input type="radio" name="mode" value="-1" <?=($bonus->status == -1) ? 'checked':''?>> Архів
+                            	<input type="radio" name="status" value="-1" <?=($bonus->status == -1) ? 'checked':''?>> Архів
                             </label>
+                            <?php if($bonus->status == 0) { ?>
+                                <div class="alert alert-warning">
+                                    <i class="fa fa-check fa-2x pull-left"></i>
+                                    <h4>Увага! Бонус-код <strong><?=$bonus->code?></strong> необхідно <input type="submit" class="btn btn-xs btn-warning" value="Активувати" form="bonusFormActivate"></h4>
+                                </div>
+                            <?php } ?>
                         </div>
                     </div>
             		<?php } ?>
@@ -42,23 +53,25 @@ require APP_PATH.'views/admin/notify_view.php';
                             </label>
                         </div>
                     </div>
-                    <div class="form-group">
-                        <label class="col-md-3 control-label">Бонус-код</label>
-                        <div class="col-md-9">
-                            <input type="text" class="form-control" name="code" value="<?=$bonus->code?>" <?=($bonus->id == 0) ? 'disabled':''?> required minlength="4">
-                            <?php if($bonus->id == 0){ ?>
-	                            <br>
-	                            <label>
-	                            	<input type="checkbox" checked name="generate" value="1">
-	                            	Автогенерація бонус-коду у <input type="number" min="4" max="12" value="8" name="generateLength"> символів
-	                            </label>
-	                        <?php } ?>
+                    <?php if($bonus->mode == 1) { ?>
+                        <div class="form-group">
+                            <label class="col-md-3 control-label">Бонус-код</label>
+                            <div class="col-md-9">
+                                <input type="text" class="form-control" name="code" value="<?=$bonus->code?>" <?=($bonus->id == 0) ? 'disabled':''?> required minlength="4">
+                                <?php if($bonus->id == 0){ ?>
+    	                            <br>
+    	                            <label>
+    	                            	<input type="checkbox" checked name="generate" value="1">
+    	                            	Автогенерація бонус-коду у <input type="number" min="4" max="12" value="8" name="generateLength"> символів
+    	                            </label>
+    	                        <?php } ?>
+                            </div>
                         </div>
-                    </div>
+                    <?php } ?>
                     <div class="form-group">
                         <label class="col-md-3 control-label">Службова інформація</label>
                         <div class="col-md-9">
-                            <textarea name="info" class="form-control" placeholder="Джерела поширення коду, тощо"></textarea>
+                            <textarea name="info" class="form-control" placeholder="Джерела поширення коду, тощо"><?=$bonus->info?></textarea>
                         </div>
                     </div>
                     <div class="form-group">
@@ -79,11 +92,11 @@ require APP_PATH.'views/admin/notify_view.php';
                         <div class="col-md-9">
                             <div class="input-group">
                             	<span class="input-group-addon">від</span>
-					            <input type="datetime-local" name="from" min="<?=date('Y-m-d\TH:s')?>" value="<?=date('Y-m-d\TH:s')?>" class="form-control">
+					            <input type="datetime-local" name="from" min="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" value="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" class="form-control">
 					        </div>
 					        <div class="input-group m-t-5">
                             	<span class="input-group-addon">до</span>
-					            <input type="datetime-local" name="to" min="<?=date('Y-m-d\TH:s')?>" value="" class="form-control">
+					            <input type="datetime-local" name="to" min="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" value="<?=(!empty($bonus->to))?date('Y-m-d\TH:s', $bonus->to):''?>" class="form-control">
 					        </div>
                         </div>
                     </div>
@@ -91,13 +104,13 @@ require APP_PATH.'views/admin/notify_view.php';
                         <label class="col-md-3 control-label">Знижка</label>
                         <div class="col-md-9">
                             <div class="input-group">
-                            	<label class="input-group-addon"> <input type="radio" name="type_do" value="persent" required> %</label>
-					            <input type="number" name="persent" value="" min="0" step="0.01" required class="form-control" disabled>
+                            	<label class="input-group-addon"> <input type="radio" name="type_do" value="persent" required <?=(isset($bonus->discount_type) && $bonus->discount_type == 2)?'checked':''?>> %</label>
+					            <input type="number" name="persent" <?=(isset($bonus->discount_type) && $bonus->discount_type == 2)?'value="'.$bonus->discount.'"':'disabled'?> min="0" step="0.01" required class="form-control">
 					            <span class="input-group-addon">від суми у корзині</span>
 					        </div>
 					        <div class="input-group m-t-5">
-                            	<label class="input-group-addon"> <input type="radio" name="type_do" value="fixsum" required> фіксована сума</label>
-					            <input type="number" name="fixsum" value="" min="0" step="0.01" required class="form-control" disabled>
+                            	<label class="input-group-addon"> <input type="radio" name="type_do" value="fixsum" required <?=(isset($bonus->discount_type) && $bonus->discount_type == 1)?'checked':''?>> фіксована сума</label>
+					            <input type="number" name="fixsum" <?=(isset($bonus->discount_type) && $bonus->discount_type == 1)?'value="'.$bonus->discount.'"':'disabled'?> min="0" step="0.01" required class="form-control">
 					            <span class="input-group-addon"><?php
 					            if(!is_array($_SESSION['option']->price_format) && !empty($_SESSION['option']->price_format))
 									$price_format = unserialize($_SESSION['option']->price_format);
@@ -109,12 +122,12 @@ require APP_PATH.'views/admin/notify_view.php';
 					        </div>
 					        <br>
 					        <label>
-                            	<input type="checkbox" name="maxActive" value="1">
-                            	Не більше ніж <input type="number" min="4" max="12" value="8" name="maxDiscount" disabled> <?=$echo_price_format?>
+                            	<input type="checkbox" name="maxActive" value="1" <?=($bonus->discount_max > 0)?'checked':''?>>
+                            	Не більше ніж <input type="number" min="0" name="maxDiscount" <?=($bonus->discount_max > 0)?'value="'.$bonus->discount_max.'"':'disabled'?>> <?=$echo_price_format?>
                             </label><br>
 					        <label>
-                            	<input type="checkbox" name="minActive" value="1">
-                            	Мінімальна сума замовлення <input type="number" min="4" max="12" value="8" name="minSum" disabled> <?=$echo_price_format?>
+                            	<input type="checkbox" name="minActive" value="1" <?=($bonus->order_min > 0)?'checked':''?>>
+                            	Мінімальна сума замовлення <input type="number" min="0" name="minSum" <?=($bonus->order_min > 0)?'value="'.$bonus->order_min.'"':'disabled'?>> <?=$echo_price_format?>
                             </label>
                         </div>
                     </div>

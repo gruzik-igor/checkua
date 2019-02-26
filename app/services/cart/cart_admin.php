@@ -1106,22 +1106,153 @@ class cart_admin extends Controller {
         {
             if(is_numeric($id))
             {
-
+                if($bonus = $this->db->getAllDataById('s_cart_bonus', $id))
+                {
+                    $bonus->mode = 1;
+                    if($bonus->code == 'all')
+                        $bonus->mode = 0;
+                    $this->load->admin_view('bonus/edit_view', array('bonus' => $bonus));
+                }
+                else
+                    $this->load->page_404(false);
             }
             elseif($id == 'add')
             {
                 $bonus = new stdClass();
                 $bonus->id = 0;
                 $bonus->mode = 1;
-                $bonus->count_do = -1;
+                $bonus->count_do = $bonus->discount_max = $bonus->order_min = -1;
                 $bonus->code = 'Автогенерація';
+                $bonus->info = '';
                 $this->load->admin_view('bonus/edit_view', array('bonus' => $bonus));
             }
             else
                 $this->load->page_404(false);
         }
         else
-            $this->load->admin_view('bonus/index_view');
+        {
+            $bonuses = $this->db->select('s_cart_bonus as b')
+                                ->join('wl_users', 'name as manager_name', '#b.manager')
+                                ->get('array');
+            $this->load->admin_view('bonus/index_view', array('bonuses' => $bonuses));
+        }
+    }
+
+    public function save_bonus()
+    {
+        if(isset($_POST['id']))
+        {
+            $_SESSION['notify'] = new stdClass();
+            $bonus = array();
+            if(isset($_POST['onlyActive']) && $_POST['onlyActive'] == 1 && is_numeric($_POST['id']) && $_POST['id'] > 0)
+            {
+                if($_POST['code'] != 'all')
+                {
+                    $code = mb_strtoupper($this->data->post('code'));
+                    if($list = $this->db->getAllDataByFieldInArray('s_cart_bonus', $code, 'code'))
+                    {
+                        foreach ($list as $row) {
+                            if($row->id != $_POST['id'])
+                            {
+                                $_SESSION['notify']->errors = 'Бонус-код <strong>'.$row->code.'</strong> вже використовується!';
+                                $this->redirect();
+                            }
+                        }
+                    }
+                }
+                $bonus['status'] = 1;
+                $this->db->updateRow('s_cart_bonus', $bonus, $_POST['id']);
+                $_SESSION['notify']->success = 'Бонус-код '.$bonus['code'].' активовано!';
+                $this->redirect();
+            }
+            if($_POST['mode'] == 0)
+                $bonus['code'] = 'all';
+            else
+                $bonus['code'] = mb_strtoupper($this->data->post('code'));
+            $bonus['info'] = $this->data->post('info');
+            $bonus['count_do'] = -1;
+            if($_POST['count_do'] >= 0)
+                $bonus['count_do'] = $this->data->post('count_do_numbers');
+            $bonus['from'] = strtotime($this->data->post('from'));
+            $bonus['to'] = strtotime($this->data->post('to'));
+            if($bonus['to'] <= $bonus['from'])
+                $bonus['to'] = 0;
+            $bonus['discount_type'] = 1; //fixsum
+            if($this->data->post('type_do') == 'persent')
+            {
+                $bonus['discount_type'] = 2; //persent
+                $bonus['discount'] = $this->data->post('persent');
+            }
+            else
+                $bonus['discount'] = $this->data->post('fixsum');
+            $bonus['discount_max'] = $bonus['order_min'] = -1;
+            if(!empty($_POST['maxActive']))
+                $bonus['discount_max'] = $this->data->post('maxDiscount');
+            if(!empty($_POST['minActive']))
+                $bonus['order_min'] = $this->data->post('minSum');
+            $bonus['manager'] = $_SESSION['user']->id;
+            $bonus['date'] = time();
+            if($_POST['id'] == 0)
+            {
+                $bonus['status'] = 0;
+                if($_POST['mode'] == 1 && $_POST['generate'] == 1)
+                {
+                    $generateLength = $this->data->post('generateLength');
+                    if($generateLength < 4)
+                        $generateLength = 8;
+                    do {
+                        $code = bin2hex(openssl_random_pseudo_bytes($generateLength));
+                        $code = mb_strtoupper($code);
+                        $code = substr($code, $generateLength);
+                        $bonus['code'] = $code;
+                    }
+                    while ($this->db->getAllDataById('s_cart_bonus', $code, 'code'));
+                }
+                elseif($bonus['code'] != 'all')
+                {
+                    if($this->db->getAllDataById('s_cart_bonus', $bonus['code'], 'code'))
+                        $_SESSION['notify']->errors = 'Бонус-код <strong>'.$bonus['code'].'</strong> вже використовується!';
+                }
+                $id = $this->db->insertRow('s_cart_bonus', $bonus);
+                $_SESSION['notify']->success = 'Бонус-код <strong>'.$bonus['code'].'</strong> успішно згенеровано та додано';
+                $this->redirect('admin/'.$_SESSION['alias']->alias.'/bonus/'.$id);
+            }
+            elseif(is_numeric($_POST['id']) && $_POST['id'] > 0)
+            {
+                $bonus['status'] = $this->data->post('status');
+                if(empty($bonus['code']))
+                {
+                    $generateLength = 8;
+                    do {
+                        $code = bin2hex(openssl_random_pseudo_bytes($generateLength));
+                        $code = mb_strtoupper($code);
+                        $code = substr($code, $generateLength);
+                        $bonus['code'] = $code;
+                    }
+                    while ($this->db->getAllDataById('s_cart_bonus', $code, 'code'));
+                }
+                elseif($bonus['code'] != 'all')
+                {
+                    if($list = $this->db->getAllDataByFieldInArray('s_cart_bonus', $bonus['code'], 'code'))
+                    {
+                        foreach ($list as $row) {
+                            if($row->id != $_POST['id'])
+                            {
+                                $_SESSION['notify']->errors = 'Бонус-код <strong>'.$bonus['code'].'</strong> вже використовується!';
+                                if($bonus['status'] == 1)
+                                    $bonus['status'] = 0;
+                                break;
+                            }
+                        }
+                    }
+                }
+                $this->db->updateRow('s_cart_bonus', $bonus, $_POST['id']);
+
+                
+                $_SESSION['notify']->success = 'Бонус-код <strong>'.$bonus['code'].'</strong>  оновлено';
+            }
+        }
+        $this->redirect();
     }
 
     public function __sidebar($alias)

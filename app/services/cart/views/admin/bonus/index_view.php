@@ -12,7 +12,7 @@
                     <table id="data-table" class="table table-striped table-bordered nowrap" width="100%">
                         <thead>
                             <tr>
-                            	<th>ID</th>
+                            	<th>ID / Бонус-код</th>
                             	<th>Статус</th>
                             	<th>Знижка</th>
                             	<th>Залишок, термін</th>
@@ -37,42 +37,37 @@
 								<?=$bonus->id?>
 								<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/bonus/<?=$bonus->id?>" class="btn btn-<?=$color?> btn-xs"><?=$bonus->code?></a>
 							</td>
-							<td><strong><?= $bonus->status_name?></strong> <?= $bonus->date_edit > 0 ? '<br>від '.date('d.m.Y H:i', $bonus->date_edit) : '' ?></td>
-							<td><?php if($bonus->products)
-                            foreach ($bonus->products as $product) {
-                            	if(empty($product->info))
-                            		continue;
-                            	if($product->info->photo) { ?>
-					    			<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$bonus->id?>" class="left">
-					    				<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?=$this->text('Фото'). ' '. $product->info->name ?>" width="90">
-					    			</a>
-				    			<?php } if(!empty($product->info->article)) { ?>
-					    			<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$bonus->id?>" target="_blank"><?= $product->info->article ?></a> <br>
-					    		<?php } 
-	    						echo '<strong>'.$product->info->name.'</strong>';
-	    						if(!empty($product->product_options))
-								{
-									$product->product_options = unserialize($product->product_options);
-									$opttext = '';
-									foreach ($product->product_options as $key => $value) {
-										$opttext .= "{$key}: <strong>{$value}</strong>, ";
-									}
-									$opttext = substr($opttext, 0, -2);
-									echo "<p>{$opttext}</p>";
-								}
+							<td><?php switch ($bonus->status) {
+								case 0:
+									echo "Відключено";
+									break;
+								case 1:
+									echo "Активний";
+									break;
+								default:
+									echo "Архів";
+									break;
+							} ?></td>
+							<td>
+								<?php if($bonus->discount_type == 1)
+									echo "Фіксовано <strong>{$bonus->discount} у.о.</strong> ";
 								else
-									echo "<br><br>";
-	    						break;
-	    					} if(count($bonus->products) > 1) { ?>
-	    						<p><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/<?=$bonus->id?>" class="btn btn-<?=$color?> btn-xs">+ <?=count($bonus->products) - 1?> товар</a></p>
-	    					<?php } ?>
+									echo "<strong>{$bonus->discount}%</strong> від суми у корзині ";
+								if($bonus->discount_max > 0)
+									echo "<br>Не більше ніж <strong>{$bonus->discount_max} у.о.</strong> ";
+								if($bonus->order_min > 0)
+									echo "<br>Мінімальна сума замовлення <strong>{$bonus->order_min} у.о.</strong> ";
+								?>
 							</td>
 							<td>
-								<strong><?= ($bonus->user_name != '') ? $bonus->user_name : 'Гість'?></strong>
-								<br>
-								<?= $bonus->user_phone?>
+								<?php if($bonus->from > 0)
+									echo "Від <strong>".date('d.m.Y H:i', $bonus->from)."</strong>";
+								if($bonus->to > 0)
+									echo "<br>До <strong>".date('d.m.Y H:i', $bonus->to)."</strong> ";
+								?>
 							</td>
-							<th><?= $bonus->total?> грн</th>
+							<td><?=(!empty($bonus->info))?$bonus->info.'<br>':''?>
+								<strong><?= $bonus->manager.'. '.$bonus->manager_name?></strong> <?= date('d.m.Y H:i', $bonus->date) ?></td>
 						</tr>
 						<?php } } else { ?>
 							<tr>

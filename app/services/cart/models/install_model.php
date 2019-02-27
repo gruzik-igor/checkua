@@ -97,6 +97,8 @@ class install
 					  `payment_alias` int(11) NULL,
 					  `payment_id` int(11) NULL,
 					  `total` float UNSIGNED NOT NULL,
+					  `bonus` int(11) NULL,
+					  `discount` float UNSIGNED NULL,
 					  `comment` text NULL,
 					  `date_add` int(11) NOT NULL,
 					  `date_edit` int(11) NOT NULL,
@@ -120,6 +122,7 @@ class install
 					  `quantity_wont` int(11) NOT NULL,
 					  `quantity_returned` int(11) NULL,
 					  `discount` float UNSIGNED NULL,
+					  `bonus` int(11) NULL,
 					  `date` int(11) NOT NULL,
 					  PRIMARY KEY (`id`),
 					  UNIQUE KEY `id` (`id`)

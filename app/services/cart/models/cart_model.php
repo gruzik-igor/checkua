@@ -172,15 +172,26 @@ class cart_model
 	}
 
 	public $discountTotal = 0;
+	private $bonusDiscountId = 0;
+	public $bonusDiscountInfo = array();
 	public function getSubTotalInCart($user = 0, $priceFormat = true)
 	{
 		$subTotal = 0;
+		$bonus = 0;
 		if($products = $this->getProductsInCart($user))
 			foreach ($products as $product) {
 				$subTotal += $product->price * $product->quantity;
 				if(!empty($product->discount))
 					$this->discountTotal += $product->discount;
+				if($product->bonus < 0 && $bonus == 0)
+					$bonus = $product->bonus;
 			}
+		if($discount = $this->getBonusDiscount(-$bonus, $subTotal))
+		{
+			$subTotal -= $discount;
+			$this->discountTotal += $discount;
+			$this->bonusDiscountId = -$bonus;
+		}
 		if($priceFormat)
 			return $this->priceFormat($subTotal);
 		return $subTotal;
@@ -218,6 +229,7 @@ class cart_model
 				$update['price_in'] = $product->price;
 			$update['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
 			$update['discount'] = (isset($product->discount)) ? $product->discount : 0;
+			$update['bonus'] = (isset($product->bonus)) ? $product->bonus : 0;
 			$update['date'] = time();
 			$this->db->updateRow($this->table('_products'), $update, $inCart->id);
 
@@ -233,6 +245,7 @@ class cart_model
 			$cart_product['quantity'] = $cart_product['quantity_wont'] = $product->quantity;
 			$cart_product['quantity_returned'] = 0;
 			$cart_product['discount'] = (isset($product->discount)) ? $product->discount : 0;
+			$cart_product['bonus'] = (isset($product->bonus)) ? $product->bonus : 0;
 			$cart_product['date'] = time();
 
 			return $this->db->insertRow($this->table('_products'), $cart_product);
@@ -246,7 +259,7 @@ class cart_model
 		$cart['status'] = 1;
 		$cart['shipping_id'] = (isset($delivery['id'])) ? $delivery['id'] : 0;
 		$cart['shipping_info'] = (!empty($delivery['info'])) ? serialize($delivery['info']) : '';
-		$cart['payment_alias'] = $cart['payment_id'] = 0;
+		$cart['payment_alias'] = $cart['payment_id'] = $cart['bonus'] = $cart['discount'] = 0;
 		if($payment)
 		{
 			$cart['payment_alias'] = $payment->wl_alias;
@@ -254,6 +267,12 @@ class cart_model
 				$cart['payment_id'] = $payment->id;
 		}
 		$cart['total'] = $this->getSubTotalInCart($user, false);
+		if($this->discountTotal)
+		{
+			$cart['discount'] = $this->discountTotal;
+			if($this->bonusDiscountId)
+				$cart['bonus'] = $this->bonusDiscountId;
+		}
 		$cart['comment'] = $this->data->post('comment');
 		$cart['date_add'] = $cart['date_edit'] = time();
 		$cart_id = $this->db->insertRow($this->table(), $cart);
@@ -261,6 +280,16 @@ class cart_model
 
 		$where = array('user' => $user, 'cart' => 0);
 		$this->db->updateRow($this->table('_products'), array('cart' => $cart_id), $where);
+		if($this->bonusDiscountId && !empty($this->bonusDiscountInfo))
+			foreach ($this->bonusDiscountInfo as $key => $value) {
+				$history = array();
+				$history['cart'] = $cart_id;
+				$history['status'] = 1;
+				$history['user'] = $user;
+				$history['comment'] = 'Бонус-код: '.$key.' '.$value;
+				$history['date'] = $cart['date_add'];
+				$this->db->insertRow($this->table('_history'), $history);
+			}
 
 		return $cart;
 	}
@@ -571,15 +600,89 @@ class cart_model
 
 	public function bonusCodes()
 	{
+		if(!empty($this->bonusDiscountInfo))
+		{
+			$bonus = new stdClass();
+			$bonus->showForm = false;
+			$bonus->info = $this->bonusDiscountInfo;
+			return $bonus;
+		}
 		if($bonuses = $this->db->getAllDataByFieldInArray($this->table('_bonus'), 1, 'status'))
 		{
 			$bonus = new stdClass();
 			$bonus->showForm = true;
 			foreach ($bonuses as $row) {
 				if($row->code == 'all')
+				{
 					$bonus->showForm = false;
+					$this->getSubTotalInCart();
+				}
 			}
+			$bonus->info = $this->bonusDiscountInfo;
 			return $bonus;
+		}
+		return false;
+	}
+
+	public function getBonusDiscount($bonus, $total)
+	{
+		$discount = 0;
+		if(is_numeric($bonus) && $bonus > 0)
+			$bonus = $this->db->getAllDataById($this->table('_bonus'), $bonus);
+		if(is_object($bonus) && $total > 0)
+		{
+			if($bonus->order_min < 0 || $total >= $bonus->order_min)
+			{
+				if($bonus->discount_type == 1)
+					$discount = $bonus->discount;
+				elseif($bonus->discount_type == 2)
+					$discount = $total * $bonus->discount / 100;
+				if($discount > $bonus->discount_max && $bonus->discount_max > 0)
+					$discount = $bonus->discount_max;
+				$text = $bonus->code.' (Фіксована знижка)';
+				if($bonus->discount_type == 2)
+					$text = $bonus->code.' ('.$bonus->discount.'%)';
+				$this->bonusDiscountInfo = array($text => $this->priceFormat($discount));
+			}
+		}
+		return $discount;
+	}
+
+	public function applayBonusCode($code)
+	{
+		if($bonus = $this->db->getAllDataById($this->table('_bonus'), array('code' => $code, 'status' => 1)))
+		{
+			$now = time();
+			$update = array();
+			if($now > $bonus->to && $bonus->to > $bonus->from)
+				$update['status'] = -1;
+			$finish = false;
+			if($bonus->to < $bonus->from || $now <= $bonus->to)
+				$finish = true;
+			if($bonus->count_do != 0 && $now >= $bonus->from && $finish)
+			{
+				if($bonus->count_do > 0)
+				{
+					if(--$bonus->count_do == 0)
+						$update['status'] = -1;
+					$update['count_do'] = $bonus->count_do;
+				}
+				
+				if(isset($_SESSION['user']->id))
+				{
+					$where_cp = array('user' => $_SESSION['user']->id, 'cart' => 0);
+					$this->db->updateRow($this->table('_products'), array('bonus' => -$bonus->id), $where_cp);
+				}
+				elseif(isset($_SESSION['cart']->products))
+					foreach ($_SESSION['cart']->products as $product) {
+						$product->bonus = -$bonus->id;
+					}
+				if(!empty($update))
+					$this->db->updateRow($this->table('_bonus'), $update, $bonus->id);
+				return true;
+			}
+			if(!empty($update))
+				$this->db->updateRow($this->table('_bonus'), $update, $bonus->id);
 		}
 		return false;
 	}

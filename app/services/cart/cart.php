@@ -698,7 +698,7 @@ class cart extends Controller {
 
         if($products = $this->cart_model->getProductsInCart())
         {
-            $user_type = $subTotal = 0;
+            $user_type = $subTotal = $bonus = 0;
             if(isset($_SESSION['user']->type))
                 $user_type = $_SESSION['user']->type;
             
@@ -711,7 +711,14 @@ class cart extends Controller {
                 }
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
+                if($product->bonus < 0 && $bonus == 0)
+                    $bonus = $product->bonus;
             }
+
+            $total = $subTotal;
+            if($discount = $this->cart_model->getBonusDiscount(-$bonus, $subTotal))
+                $total -= $discount;
+
             $showPayment = true;
             $payments = false;
             if($status = $this->db->getAllDataById($this->cart_model->table('_status'), 10, 'weight'))
@@ -724,7 +731,7 @@ class cart extends Controller {
             $userShipping = $this->cart_model->getUserShipping();
 
             $this->wl_alias_model->setContent(1);
-            $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal), 'bonusCodes' => $this->cart_model->bonusCodes()));
+            $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal), 'total' => $this->cart_model->priceFormat($total), 'bonusCodes' => $this->cart_model->bonusCodes()));
         }
         else
             $this->redirect($_SESSION['alias']->alias);
@@ -732,17 +739,25 @@ class cart extends Controller {
 
     public function coupon()
     {
-        $_SESSION['notify-Cart'] = new stdClass();
         if($code = $this->data->post('code'))
         {
             $this->load->smodel('cart_model');
             if($this->cart_model->applayBonusCode($code))
+            {
+                $_SESSION['notify'] = new stdClass();
                 $_SESSION['notify']->success = $this->text('Бонус-код застосовано!');
+            }
             else
+            {
+                $_SESSION['notify-Cart'] = new stdClass();
                 $_SESSION['notify-Cart']->error = $this->text('Бонус-код невірний або застарів');
+            }
         }
         else
+        {
+            $_SESSION['notify-Cart'] = new stdClass();
             $_SESSION['notify-Cart']->error = $this->text('Введіть бонус-код');
+        }
         $this->redirect();
     }
 

@@ -24,7 +24,7 @@ foreach ($jss as $js) {
 			        <?=$_SESSION['notify-Cart']->error?>
 			    </div>
 			</div>
-		<?php } ?>
+		<?php unset($_SESSION['notify-Cart']); } ?>
 		<div class="row">
 
 			<?php if(!$this->userIs()) { ?>
@@ -87,7 +87,7 @@ foreach ($jss as $js) {
 							<input type="text" name="code" class="form-control" placeholder="<?=$this->text('Coupon code')?>" required>
 						</div>
 						<div class="form-group text-right">
-							<button type="button" class="btn btn-default"><?=$this->text('Apply Coupon')?></button>
+							<button class="btn btn-default"><?=$this->text('Apply Coupon')?></button>
 						</div>
 					</form>
 				</div>
@@ -177,16 +177,23 @@ foreach ($jss as $js) {
 								        <?php } ?>
 								    </tbody>
 								    <tfoot>
-								    	<?php if($discountAll) { ?>
+								    	<?php if($discountAll || ($bonusCodes && !empty($bonusCodes->info))) { ?>
 								    		<tr class="cart-subtotal">
-									            <th><?=$this->text('Загальна економія')?></th>
+									            <th><?=$this->text('Сума')?></th>
+									            <td><span class="amount"><?=$subTotal?></span></td>
+									        </tr>
+								    	<?php } if($discountAll) { ?>
+								    		<tr class="cart-subtotal">
+									            <th><?=$this->text('Економія')?></th>
 									            <td><span class="amount"><?=$this->cart_model->priceFormat($discountAll)?></span></td>
 									        </tr>
+								    	<?php } if($bonusCodes && !empty($bonusCodes->info))
+											foreach ($bonusCodes->info as $key => $discount) { ?>
+								    		<tr class="cart-subtotal">
+									            <th><?=$this->text('Бонус-код').': '.$key?></th>
+									            <td><span class="amount"><?=$discount?></span></td>
+									        </tr>
 								    	<?php } /*
-								        <tr class="cart-subtotal">
-								            <th><?=$this->text('Попередня сума')?></th>
-								            <td><span class="amount"><?=$subTotal?></span></td>
-								        </tr>
 								        <tr class="shipping">
 								            <th><?=$this->text('Доставка')?></th>
 								            <td>
@@ -196,7 +203,7 @@ foreach ($jss as $js) {
 								        <tr class="order-total">
 								            <th><?=$this->text('До оплати')?></th>
 								            <td>
-									            <strong><span class="amount"><?=$subTotal?></span></strong>
+									            <strong><span class="amount"><?=$total?></span></strong>
 								            </td>
 								        </tr>
 								    </tfoot>

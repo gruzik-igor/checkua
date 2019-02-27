@@ -29,7 +29,7 @@
                 <?php } else { ?>
                     <li><a href="<?=SITE_URL?>login"><?= $this->text('УВІЙТИ', 0); ?></a></li>
                 <?php } 
-                    $this->load->function_in_alias('cart', '__show_minicart');
+                    //$this->load->function_in_alias('cart', '__show_minicart');
                 ?>
             </ul>
         </div>

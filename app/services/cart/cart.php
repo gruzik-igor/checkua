@@ -724,10 +724,26 @@ class cart extends Controller {
             $userShipping = $this->cart_model->getUserShipping();
 
             $this->wl_alias_model->setContent(1);
-            $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal)));
+            $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal), 'bonusCodes' => $this->cart_model->bonusCodes()));
         }
         else
             $this->redirect($_SESSION['alias']->alias);
+    }
+
+    public function coupon()
+    {
+        $_SESSION['notify-Cart'] = new stdClass();
+        if($code = $this->data->post('code'))
+        {
+            $this->load->smodel('cart_model');
+            if($this->cart_model->applayBonusCode($code))
+                $_SESSION['notify']->success = $this->text('Бонус-код застосовано!');
+            else
+                $_SESSION['notify-Cart']->error = $this->text('Бонус-код невірний або застарів');
+        }
+        else
+            $_SESSION['notify-Cart']->error = $this->text('Введіть бонус-код');
+        $this->redirect();
     }
 
     public function pay()

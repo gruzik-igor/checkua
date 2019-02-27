@@ -35,17 +35,15 @@ foreach ($jss as $js) {
 						<p><?=$this->text('Якщо Ви новий покупець, перейдіть до розділів "Доставка та оплата"')?></p>
 					</div>
 				</div>
-				
 			</div>
-
 			<div class="clearfix"></div>
-			<?php /*
+			<?php } if ($bonusCodes && $bonusCodes->showForm) { ?>
 			<div class="col-sm-6">
 				<div class="alert">
-					<strong>Have a coupon?</strong> <a href="#" class="effect" data-slide-toggle=".checkout-coupon-form">Click here to enter your code</a>
+					<strong><?=$this->text('Have a coupon?')?></strong> <a href="#" class="effect" data-slide-toggle=".checkout-coupon-form"><?=$this->text('Click here to enter your code')?></a>
 				</div>
 			</div>
-			*/ ?>
+			<?php } if(!$this->userIs()) { ?>
 			<div class="col-sm-6">
 				<div class="checkout-login-form box" <?=(empty($_SESSION['notify'])) ? 'style="display: none;"' : ''?>>
 					<h2><?=$this->text('Увійти')?></h2>
@@ -80,22 +78,21 @@ foreach ($jss as $js) {
 					</form>
 				</div>
 			</div>
-			<?php /*
+			<?php } if ($bonusCodes && $bonusCodes->showForm) { ?>
 			<div class="col-sm-6">
 				<div class="checkout-coupon-form box" style="display: none;">
 					<form action="<?=SITE_URL.$_SESSION['alias']->alias?>/coupon" method="POST" class="coupon-form inputs-border inputs-bg">
 						<div class="form-group">
-							<label for="coupon_code">Coupon code</label>
-							<input type="text" id="coupon_code" class="form-control" placeholder="Coupon code">
+							<label for="coupon_code"><?=$this->text('Coupon code')?></label>
+							<input type="text" name="code" class="form-control" placeholder="<?=$this->text('Coupon code')?>" required>
 						</div>
 						<div class="form-group text-right">
-							<button type="button" class="btn btn-default">Apply Coupon</button>
+							<button type="button" class="btn btn-default"><?=$this->text('Apply Coupon')?></button>
 						</div>
 					</form>
 				</div>
 			</div>
-			*/ }
-			if(!empty($_SESSION['notify']->success)) { ?>
+			<?php } if(!empty($_SESSION['notify']->success)) { ?>
 				<div class="col-md-12">
 				    <div class="alert alert-success fade in">
 				        <span class="close" data-dismiss="alert">×</span>

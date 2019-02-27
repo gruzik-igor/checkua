@@ -189,6 +189,24 @@ class install
 			) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";
 		$this->db->executeQuery($query);
 
+		$query = "CREATE TABLE `{$this->table_service}_bonus` (
+			  `id` int(11) NOT NULL AUTO_INCREMENT,
+			  `status` tinyint(1) NOT NULL,
+			  `code` varchar(12) NOT NULL,
+			  `count_do` int(11) NOT NULL,
+			  `from` int(11) NOT NULL,
+			  `to` int(11) NOT NULL,
+			  `discount_type` tinyint(1) NOT NULL,
+			  `discount` float NOT NULL,
+			  `discount_max` float NOT NULL,
+			  `order_min` float NOT NULL,
+			  `info` text NOT NULL,
+			  `manager` int(11) NOT NULL,
+			  `date` int(11) NOT NULL,
+			  PRIMARY KEY (`id`)
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8;";
+		$this->db->executeQuery($query);
+
 		return true;
 	}
 

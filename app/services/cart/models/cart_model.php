@@ -569,6 +569,21 @@ class cart_model
 		return $text;
 	}
 
+	public function bonusCodes()
+	{
+		if($bonuses = $this->db->getAllDataByFieldInArray($this->table('_bonus'), 1, 'status'))
+		{
+			$bonus = new stdClass();
+			$bonus->showForm = true;
+			foreach ($bonuses as $row) {
+				if($row->code == 'all')
+					$bonus->showForm = false;
+			}
+			return $bonus;
+		}
+		return false;
+	}
+
 }
 
 ?>

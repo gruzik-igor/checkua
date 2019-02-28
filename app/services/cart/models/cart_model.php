@@ -183,7 +183,7 @@ class cart_model
 				$subTotal += $product->price * $product->quantity;
 				if(!empty($product->discount))
 					$this->discountTotal += $product->discount;
-				if($product->bonus < 0 && $bonus == 0)
+				if(isset($product->bonus) && $product->bonus < 0 && $bonus == 0)
 					$bonus = $product->bonus;
 			}
 		if($discount = $this->getBonusDiscount(-$bonus, $subTotal))

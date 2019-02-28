@@ -92,7 +92,7 @@ require APP_PATH.'views/admin/notify_view.php';
                         <div class="col-md-9">
                             <div class="input-group">
                             	<span class="input-group-addon">від</span>
-					            <input type="datetime-local" name="from" min="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" value="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" class="form-control">
+					            <input type="datetime-local" name="from" value="<?=(!empty($bonus->from))?date('Y-m-d\TH:s', $bonus->from):date('Y-m-d\TH:s')?>" class="form-control">
 					        </div>
 					        <div class="input-group m-t-5">
                             	<span class="input-group-addon">до</span>

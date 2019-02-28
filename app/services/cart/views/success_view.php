@@ -71,6 +71,10 @@
 				<?php } ?>
 				</div>
 				<hr>
+				<?php if (!empty($cart['discount'])){ ?>
+					<h4><?=$this->text('Сума')?>: <b class="color-red"><?= $cart['sum_formatted'] ?></b></h4>
+					<h4><?=$this->text('Знижка')?>: <b class="color-red"><?= $cart['discount_formatted'] ?></b></h4>
+				<?php } ?>
 				<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart['total_formatted'] ?></b></h4>
 			</div>
 		</div>

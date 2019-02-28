@@ -249,8 +249,8 @@ class cart extends Controller {
                             $openProduct->product_options .= $key.': '.$value;
                         }
                     $res['product'] = $openProduct;
-                    $res['subTotal'] = $this->cart_model->getSubTotalInCart();
-                    $res['subTotalFormat'] = $this->cart_model->priceFormat($this->cart_model->getSubTotalInCart());
+                    $res['subTotal'] = $this->cart_model->getSubTotalInCart(0, false);
+                    $res['subTotalFormat'] = $this->cart_model->priceFormat($res['subTotal']);
                     $res['productsCountInCart'] = $this->cart_model->getProductsCountInCart();
                     $res['discountTotal'] = $this->cart_model->priceFormat($this->cart_model->discountTotal);
                     $res['result'] = true;
@@ -574,7 +574,7 @@ class cart extends Controller {
                         $this->cart_model->addProduct($product, $_SESSION['user']->id);
                     }
 
-                $delivery = array('id' => 0, 'recipient' => '', 'info' => '', 'text');
+                $delivery = array('id' => 0, 'recipient' => '', 'info' => '', 'text' => '');
                 if($shippingId = $this->data->post('shipping-method'))
                     if(is_numeric($shippingId))
                         if($shipping = $this->db->getAllDataById($this->cart_model->table('_shipping'), array('id' => $shippingId, 'active' => 1)))
@@ -639,10 +639,15 @@ class cart extends Controller {
                     $cart['admin_link'] = SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$cart['id'];
                     foreach ($products as $product) {
                         $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
-                        $product->price = $this->cart_model->priceFormat($product->price);
                         $product->sum = $this->cart_model->priceFormat($product->price * $product->quantity);
+                        $product->price = $this->cart_model->priceFormat($product->price);
                     }
                     $cart['total_formatted'] = $this->cart_model->priceFormat($cart['total']);
+                    if($cart['discount'])
+                    {
+                        $cart['sum_formatted'] = $this->cart_model->priceFormat($cart['total'] + $cart['discount']);
+                        $cart['discount_formatted'] = $this->cart_model->priceFormat($cart['discount']);
+                    }
                     $cart['products'] = $products;
                     $cart['delivery'] = $delivery['text'];
                     $cart['payment'] = $payment ? $payment->name : '';
@@ -711,7 +716,7 @@ class cart extends Controller {
                 }
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
-                if($product->bonus < 0 && $bonus == 0)
+                if(isset($product->bonus) && $product->bonus < 0 && $bonus == 0)
                     $bonus = $product->bonus;
             }
 

@@ -799,7 +799,7 @@ class shop_model {
 										}
 									$product->similarProducts[$key]->photo = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$photo->file_name;
 				            	}
-				            	if($_SESSION['option']->useMarkUp > 0 && $product->markup)
+				            	if($_SESSION['option']->useMarkUp > 0 && $product->similarProducts[$key]->markup)
 				        		{
 					        		$product->similarProducts[$key]->price *= $product->similarProducts[$key]->markup;
 					        		$product->similarProducts[$key]->old_price *= $product->similarProducts[$key]->markup;
@@ -811,8 +811,8 @@ class shop_model {
 						        	$product->similarProducts[$key]->old_price *= $_SESSION['option']->currency;
 						        }
 
-						        $product->similarProducts[$key]->price = $this->formatPrice($product->price);
-						        $product->similarProducts[$key]->old_price = $this->formatPrice($product->old_price);
+						        $product->similarProducts[$key]->price = $this->formatPrice($product->similarProducts[$key]->price);
+						        $product->similarProducts[$key]->old_price = $this->formatPrice($product->similarProducts[$key]->old_price);
 							}
 							else
 								$this->db->deleteRow($this->table('_products_similar'), $similar->id);

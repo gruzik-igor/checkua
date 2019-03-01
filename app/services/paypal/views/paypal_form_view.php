@@ -11,7 +11,7 @@ if(isset($pay) && $pay->amount > 0 && !empty($_SESSION['option']->receiverEmail)
 
 ?>
 
-<h2 style="font-size: 43px;"><i class="fa fa-cc-visa"></i> Attends une minute..</h2>
+<h2 style="font-size: 43px;"><i class="fab fa-cc-visa"></i> Attends une minute..</h2>
     <h3 style="font-size: 27px;">redirige vers le service de paiement</h3>
     
     <p class="reply__text">*Si la redirection ne s'est pas effectuée automatiquement, veuillez cliquer sur</p>
@@ -31,7 +31,7 @@ if(isset($pay) && $pay->amount > 0 && !empty($_SESSION['option']->receiverEmail)
 	<input type="hidden" name="bn" value="PP-BuyNowBF">
 
 	<button type="submit" class="btn-u btn-u-sea-shop">
-	    <i class="fa fa-paypal"></i> Pour payer <?=number_format($pay->amount, 2)?> €
+	    <i class="fab fa-paypal"></i> Pour payer <?=number_format($pay->amount, 2)?> €
 	</button>
 </form>
 

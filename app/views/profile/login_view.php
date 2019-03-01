@@ -102,17 +102,17 @@
                         <input type="email" name="email" value="<?=$this->data->re_post('email')?>" class="form-control input-lg" placeholder="Email" required />
                     </div>
                     <div class="form-group m-b-20">
-                        <input type="password" name="password" class="form-control input-lg" placeholder="Пароль" required />
+                        <input type="password" name="password" class="form-control input-lg" placeholder="<?=$this->text('password')?>" required />
                     </div>
                     <div class="login-buttons">
                         <button type="submit" class="btn btn-success btn-block btn-lg"><?=$this->text('Увійти')?></button>
                     </div>
                     <?php if($_SESSION['option']->userSignUp && ($_SESSION['option']->facebook_initialise || $this->googlesignin->clientId)) { ?>
                         <div class="m-t-20 text-center">
-                            <big>АБО</big>
+                            <big><?=$this->text('АБО')?></big>
                             <div class="login-buttons m-t-10">
                                 <?php if($_SESSION['option']->facebook_initialise) { ?>
-                                    <button type="button" onclick="facebookSignUp()" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> <?=$this->text('Увійти через ')?>facebook</button>
+                                    <button type="button" onclick="facebookSignUp()" class="btn btn-success btn-block btn-lg"><i class="fa fa-facebook"></i> <?=$this->text('Увійти через')?> facebook</button>
                                 <?php } if($this->googlesignin->clientId) { ?>
                                     <div class="g-signin2 m-t-20" data-width="match_parent" data-longtitle="true" data-onsuccess="googleSignIn"></div>
                                 <?php } ?>
@@ -121,9 +121,9 @@
                     <?php } ?>
                     <div class="m-t-20">
                         <?php if($_SESSION['option']->userSignUp) { ?>
-                            <?=$this->text('Ще не зареєстровані')?>? <a href="<?=SITE_URL?>signup"><?=$this->text('Зареєструватися')?></a>. <br>
+                            <?=$this->text('Ще не зареєстровані')?> <a href="<?=SITE_URL?>signup"><?=$this->text('Зареєструватися')?></a>. <br>
                         <?php } ?>
-                        <?=$this->text('Не можете ввійти')?>? <a href="<?=SITE_URL?>reset"><?=$this->text('Забув пароль')?></a>. <br>
+                        <?=$this->text('Не можете ввійти')?> <a href="<?=SITE_URL?>reset"><?=$this->text('Забув пароль')?></a>. <br>
                         <?=$this->text('Повернутися на')?> <a href="<?=SITE_URL?>"><?=$this->text('головну сторінку')?></a>.
                     </div>
                 </form>

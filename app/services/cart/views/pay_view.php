@@ -33,7 +33,12 @@
 	<?php } ?>
 </div>
 	<div class="row">
-		<h4><?=$this->text('До оплати')?>: <b class="text-danger" style="text-decoration: none;"><?= $cart->total ?> грн</b></h4>
+		<?php if (!empty($cart->discount)){ ?>
+			<h4><?=$this->text('Sum')?>: <b><?= $this->cart_model->priceFormat($cart->total + $cart->discount) ?></b></h4>
+			<h4><?=$this->text('Discount')?>: <b><?= $this->cart_model->priceFormat($cart->discount) ?></b></h4>
+		<?php } ?>
+
+            	<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total) ?></b></h4>
 		
 			<h2 class="title-type"><?=$this->text('Оберіть платіжний механізм')?></h2>
 

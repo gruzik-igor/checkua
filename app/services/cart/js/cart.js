@@ -60,7 +60,7 @@ var cart = {
 					var product_exist = document.getElementById('product-'+res.product.key);
 					if(product_exist)
 					{
-						$('#product-'+res.product.key + ' span.amount').text(res.product.priceFormat+' x '+res.product.quantity);
+						$('#product-'+res.product.key + ' span.amount').html('<strong>'+res.product.quantity+'</strong> x <span class="price text-primary">'+res.product.priceFormat+'</span>');
 					}
 					else
 					{
@@ -158,6 +158,9 @@ var cart = {
 					{
 						$('.subTotal').text(res['subTotal']);
 						$('#product-'+id + ' span.amount').text(res.priceFormat+' x '+quantity);
+						$('p.pricePerOne-'+id).text(res.priceFormat);
+						$('p.priceSum-'+id).text(res.priceSumFormat);
+						$('h4.economy span').text(res.discountTotal);
 					}
 					else
 					{

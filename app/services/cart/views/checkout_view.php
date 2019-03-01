@@ -74,7 +74,7 @@ foreach ($jss as $js) {
 						if($_SESSION['option']->facebook_initialise){ ?>
 							<p><?=$this->text('Швидкий вхід:')?></p>
 							<div class="form-group">
-								<button class="facebookSignUp" onclick="return facebookSignUp()">Facebook <i class="fa fa-facebook-square fa-lg pull-right" aria-hidden="true"></i></button>
+								<button class="facebookSignUp" onclick="return facebookSignUp()">Facebook <i class="fab fa-facebook-f fa-lg pull-right" aria-hidden="true"></i></button>
 							</div>
 						<?php } ?>
 					</form>

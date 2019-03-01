@@ -655,9 +655,6 @@ class shop_model {
 	        		$product->old_price *= $product->markup;
 	        	}
 
-	        	// $product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
-	        	// $product->price = ceil($product->price);
-
 	        	if(!empty($_SESSION['option']->currency))
 	        	{
 		        	$product->price *= $_SESSION['option']->currency;
@@ -772,15 +769,29 @@ class shop_model {
 				        }
 
 						foreach ($similars as $key => $similar) {
-							$this->db->select('s_shopshowcase_products', 'id, alias, article', $similar->product);
+							$this->db->select('s_shopshowcase_products as p', 'id, alias, article, `group`, price, old_price', $similar->product);
+							$where_ntkd['content'] = "#p.id";
+							$this->db->join('wl_ntkd as n', 'name', $where_ntkd);
+							if($_SESSION['option']->useMarkUp > 0)
+								$this->db->join($this->table('_markup'), 'value as markup', array('from' => '<p.price', 'to' => '>=p.price'));
 							if($similarProduct = $this->db->get())
 							{
 								$product->similarProducts[$key] = $similarProduct;
 								$product->similarProducts[$key]->photo = false;
+								$product->similarProducts[$key]->link = $_SESSION['alias']->alias.'/'.$similarProduct->alias;
+								if($_SESSION['option']->useGroups > 0 && !empty($this->allGroups) && $_SESSION['option']->ProductMultiGroup == 0 && $similarProduct->group > 0)
+								{
+									$parents = $this->makeParents($similarProduct->group, array());
+									$link = $_SESSION['alias']->alias . '/';
+									foreach ($parents as $parent)
+										$link .= $parent->alias .'/';
+									$product->similarProducts[$key]->link = $link . $similarProduct->alias;
+								}
 
 								if(isset($similars_photos[$similarProduct->id]))
 				            	{
 				            		$photo = $similars_photos[$similarProduct->id];
+
 									if($sizes)
 										foreach ($sizes as $resize) {
 											$resize_name = $resize->prefix.'_photo';
@@ -788,6 +799,20 @@ class shop_model {
 										}
 									$product->similarProducts[$key]->photo = $_SESSION['option']->folder.'/'.$similarProduct->id.'/'.$photo->file_name;
 				            	}
+				            	if($_SESSION['option']->useMarkUp > 0 && $product->markup)
+				        		{
+					        		$product->similarProducts[$key]->price *= $product->similarProducts[$key]->markup;
+					        		$product->similarProducts[$key]->old_price *= $product->similarProducts[$key]->markup;
+					        	}
+
+					        	if(!empty($_SESSION['option']->currency))
+					        	{
+						        	$product->similarProducts[$key]->price *= $_SESSION['option']->currency;
+						        	$product->similarProducts[$key]->old_price *= $_SESSION['option']->currency;
+						        }
+
+						        $product->similarProducts[$key]->price = $this->formatPrice($product->price);
+						        $product->similarProducts[$key]->old_price = $this->formatPrice($product->old_price);
 							}
 							else
 								$this->db->deleteRow($this->table('_products_similar'), $similar->id);
@@ -822,14 +847,14 @@ class shop_model {
 
 	private function getProductOptions($product, $parents = array())
 	{
-		$product_options = $positions = array();
+		$product_options = array();
 		$where_language = $where_gon_language = '';
         if($_SESSION['language'])
     	{
     		$where_language = "AND (po.language = '{$_SESSION['language']}' OR po.language = '')";
     		$where_gon_language = "AND gon.language = '{$_SESSION['language']}'";
     	}
-		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, go.sort, go.position, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
+		$this->db->executeQuery("SELECT go.id, go.alias, go.filter, go.toCart, go.photo, go.changePrice, go.sort, po.value, it.name as type_name, it.options, gon.name, gon.sufix 
 			FROM `{$this->table('_product_options')}` as po 
 			LEFT JOIN `{$this->table('_options')}` as go ON go.id = po.option 
 			LEFT JOIN `{$this->table('_options_name')}` as gon ON gon.option = go.id {$where_gon_language} 
@@ -850,9 +875,8 @@ class shop_model {
 					$product_options[$option->alias]->name = $option->name;
 					$product_options[$option->alias]->sufix = $option->sufix;
 					$product_options[$option->alias]->changePrice = $option->changePrice;
-					$product_options[$option->alias]->position = $option->position;
 					$product_options[$option->alias]->photo = false;
-					$positions[$option->alias] = $option->position;
+
 
 					if($option->photo)
 						$product_options[$option->alias]->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$option->photo;
@@ -932,9 +956,6 @@ class shop_model {
 					$product_options[$option->alias]->alias = $option->alias;
 					$product_options[$option->alias]->filter = $option->filter;
 					$product_options[$option->alias]->toCart = $option->toCart;
-					$product_options[$option->alias]->changePrice = $option->changePrice;
-					$product_options[$option->alias]->position = $option->position;
-					$positions[$option->alias] = $option->position;
 
 					$where = array('option' => $option->id);
 					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
@@ -946,26 +967,18 @@ class shop_model {
 
 					$where = array('option' => '#o.id');
 					if($_SESSION['language']) $where['language'] = $_SESSION['language'];
-					$list = $this->db->select($this->table('_options') .' as o', 'id, photo', -$option->id, 'group')
-										->join($this->table('_options_name') .' as n', 'name', $where);
-					if($option->sort == 0)
-						$this->db->order('position ASC');
-					if($option->sort == 1)
-						$this->db->order('name ASC', 'n');
-					if($option->sort == 2)
-						$this->db->order('name DESC', 'n');
-					if($list = $this->db->get('array'))
+					$list = $this->db->select($this->table('_options') .' as o', 'id', -$option->id, 'group')
+										->join($this->table('_options_name'), 'name', $where)
+										->get('array');
+					if($list)
 						foreach ($list as $el) {
-							$product_options[$option->alias]->value[] = $el;
-							if($el->photo)
-								$el->photo = IMG_PATH.$_SESSION['option']->folder.'/options/'.$option->alias.'/'.$el->photo;
+							$product_options[$option->alias]->value[] = $el->name;
 						}
 					else
 						unset($product_options[$option->alias]);
 				}
 			}
 		}
-		array_multisort($positions, $product_options);
 
 		return $product_options;
 	}
@@ -1055,88 +1068,72 @@ class shop_model {
 	{
 		if($product = $this->db->getAllDataById($this->table('_products'), $product))
 		{
-			$options_id = array();
+			$list = array();
 			foreach ($options as $key => $value) {
 				if(is_numeric($key) && is_numeric($value))
-					$options_id[] = $key;
+					$list[] = $key;
 			}
-			if(!empty($options_id))
+			if(!empty($list))
 			{
-				$list = $usedOptions = array();
-				$price = $product->price;
-				if($settings = $this->db->getAllDataByFieldInArray($this->table('_product_options'), array('product' => $product->id, 'option' => $options_id)))
+				if($settings = $this->db->getAllDataByFieldInArray($this->table('_product_options'), array('product' => $product->id, 'option' => $list)))
+				{
+					$list = array();
+					$price = $product->price;
 					foreach ($settings as $setting) {
-						$usedOptions[] = $setting->option;
 						if(!empty($setting->changePrice))
 							$list[$setting->option] = unserialize($setting->changePrice);
 					}
-				if(count($options_id) != count($usedOptions))
-					if($settings = $this->db->getAllDataByFieldInArray($this->table('_options'), array('id' => $options_id)))
-						foreach ($settings as $option) {
-							if(!in_array($option->id, $usedOptions))
-							{
-								$usedOptions[] = $option->id;
-								if(!empty($option->changePrice))
-								{
-									if($option_settings = $this->db->getAllDataByFieldInArray($this->table('_options'), -$option->id, 'group'))
-										foreach ($option_settings as $os) {
-											if(!empty($os->changePrice))
-												$list[$option->id][$os->id] = unserialize($os->changePrice);
-										}
-									
-								}
-							}
-						}
-				foreach ($options as $key => $value) {
-					if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
-					{
-						$changePrice = $list[$key][$value];
-						if(is_numeric($changePrice) && $changePrice > 0)
-							$price = $changePrice;
-					}
-				}
-				foreach ($options as $key => $value) {
-					if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
-					{
-						$changePrice = $list[$key][$value];
-						if(is_numeric($changePrice) && $changePrice == 0)
+					foreach ($options as $key => $value) {
+						if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
 						{
-							if($setting = $this->db->getAllDataById($this->table('_options'), $value))
-							{
-								$setting->changePrice = unserialize($setting->changePrice);
-								if($setting->changePrice['value'] > 0)
-								{
-									$plus = 0;
-									if($setting->changePrice['currency'] == 'p')
-										$plus = $price * $setting->changePrice['value'] / 100;
-									else
-										$plus = $setting->changePrice['value'];
-									if($setting->changePrice['action'] == '+')
-										$price += $plus;
-									else if($setting->changePrice['action'] == '-')
-										$price -= $plus;
-									else if($setting->changePrice['action'] == '*')
-										$price *= $plus;
-								}
-							}
-						}
-						else if(is_array($changePrice) && $changePrice['value'] > 0)
-						{
-							$plus = 0;
-							if($changePrice['currency'] == 'p')
-								$plus = $price * $changePrice['value'] / 100;
-							else
-								$plus = $changePrice['value'];
-							if($changePrice['action'] == '+')
-								$price += $plus;
-							else if($changePrice['action'] == '-')
-								$price -= $plus;
-							else if($changePrice['action'] == '*')
-								$price *= $plus;
+							$changePrice = $list[$key][$value];
+							if(is_numeric($changePrice) && $changePrice > 0)
+								$price = $changePrice;
 						}
 					}
+					foreach ($options as $key => $value) {
+						if(is_numeric($key) && is_numeric($value) && isset($list[$key][$value]))
+						{
+							$changePrice = $list[$key][$value];
+							if(is_numeric($changePrice) && $changePrice == 0)
+							{
+								if($setting = $this->db->getAllDataById($this->table('_options'), $value))
+								{
+									$setting->changePrice = unserialize($setting->changePrice);
+									if($setting->changePrice['value'] > 0)
+									{
+										$plus = 0;
+										if($setting->changePrice['currency'] == 'p')
+											$plus = $price * $setting->changePrice['value'] / 100;
+										else
+											$plus = $setting->changePrice['value'];
+										if($setting->changePrice['action'] == '+')
+											$price += $plus;
+										else if($setting->changePrice['action'] == '-')
+											$price -= $plus;
+										else if($setting->changePrice['action'] == '*')
+											$price *= $plus;
+									}
+								}
+							}
+							else if(is_array($changePrice) && $changePrice['value'] > 0)
+							{
+								$plus = 0;
+								if($changePrice['currency'] == 'p')
+									$plus = $price * $changePrice['value'] / 100;
+								else
+									$plus = $changePrice['value'];
+								if($changePrice['action'] == '+')
+									$price += $plus;
+								else if($changePrice['action'] == '-')
+									$price -= $plus;
+								else if($changePrice['action'] == '*')
+									$price *= $plus;
+							}
+						}
+					}
+					return $price;
 				}
-				return $price;
 			}
 			return $product->price;
 		}

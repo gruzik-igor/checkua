@@ -36,14 +36,14 @@
                         <label class="control-label">Додати продукт</label>
                     </div>
                     <div class="form-group m-r-10">
-                        <input type="text" class="form-control" name="article" value="" placeholder="article">
+                        <input type="text" class="form-control" name="article" value="" placeholder="article" required>
                     </div>
                     <div class="form-group m-r-10">
                         <input type="submit" class="btn btn-success" value="Додати">
                     </div>
                 </form>
 
-                <?php if($similarProducts['group']) {?>
+                <?php if($similarProducts['group'] && false) {?>
                 <div class="col-md-12">
                     <h4 class="text-center">Опис для всіх схожих продуктів</h4>
                     <?php if($_SESSION['language']){ ?>

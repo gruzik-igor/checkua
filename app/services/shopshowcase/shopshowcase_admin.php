@@ -200,9 +200,7 @@ class shopshowcase_admin extends Controller {
 		}
 
 		$similarProducts = null;
-		$getSimilar = $this->db->getAllDataById($this->shop_model->table('_products_similar'), array('product' => $product->id));
-
-		if($getSimilar)
+		if($getSimilar = $this->db->getAllDataById($this->shop_model->table('_products_similar'), array('product' => $product->id)))
 		{
 			$similars = $this->db->getQuery("SELECT * FROM `s_shopshowcase_products_similar` WHERE `group` = '{$getSimilar->group}' AND product != '{$product->id}' ", 'array');
 
@@ -931,35 +929,30 @@ class shopshowcase_admin extends Controller {
         $productId = $this->data->post('product');
         $group = $this->data->post('group');
 
-        $articleInfo =  $this->db->select('s_shopshowcase_products', 'id, `group`', array('article' => $articleId))->get();
+        $articleInfo =  $this->db->select('s_shopshowcase_products', 'id', array('article' => $articleId))->get();
 
         if($articleInfo && $productId != $articleInfo->id)
         {
-        	if($group == 0 && $articleInfo->group == 0)
+        	if($group == 0)
         	{
-        		$this->db->updateRow('s_shopshowcase_products', array('group' => '-'.$articleInfo->id), $articleInfo->id);
-        		$this->db->updateRow('s_shopshowcase_products', array('group' => '-'.$articleInfo->id), $productId);
+        		$nextGroup = 1;
+        		if($next = $this->db->getQuery('SELECT MAX(`group`) as nextGroup FROM `s_shopshowcase_products_similar`'))
+        			$nextGroup = $next->nextGroup + 1;
 
-        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => '-'.$articleInfo->id));
-        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $productId, 'group' => '-'.$articleInfo->id));
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => $nextGroup));
+        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $productId, 'group' => $nextGroup));
         	}
-        	elseif($group != 0 && $articleInfo->group == 0)
+        	elseif($group != 0)
         	{
-        		$this->db->updateRow('s_shopshowcase_products', array('group' => $group), $articleInfo->id);
-        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => $group));
-        	}
-        	elseif($group == 0 && $articleInfo->group != 0)
-        	{
-        		$this->db->updateRow('s_shopshowcase_products', array('group' => $articleInfo->group), $productId);
-        		$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $productId, 'group' => $articleInfo->group));
-        	}
-        	else
-        	{
-        		$_SESSION['notify'] = new stdClass();
-        		$_SESSION['notify']->errors = 'Товар уже має інші схожі товари.';
+        		if(!$this->db->getAllDataById('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => $group)))
+        			$this->db->insertRow('s_shopshowcase_products_similar', array('product' => $articleInfo->id, 'group' => $group));
         	}
         }
-
+        else
+    	{
+    		$_SESSION['notify'] = new stdClass();
+    		$_SESSION['notify']->errors = 'Невірний артикул товару';
+    	}
         $this->redirect("#tab-similar");
     }
 	
@@ -968,7 +961,6 @@ class shopshowcase_admin extends Controller {
 		$productId = $this->data->post('productId');
 
 		$this->db->deleteRow('s_shopshowcase_products_similar', $productId, 'product');
-		$this->db->updateRow('s_shopshowcase_products', array('group' => 0), $productId);
 	}
 
 	public function saveSimilarText()

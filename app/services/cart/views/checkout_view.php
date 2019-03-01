@@ -36,16 +36,18 @@ foreach ($jss as $js) {
 					</div>
 				</div>
 			</div>
-			<div class="clearfix"></div>
 			<?php } if ($bonusCodes && $bonusCodes->showForm) { ?>
 			<div class="col-sm-6">
 				<div class="alert">
 					<strong><?=$this->text('Have a coupon?')?></strong> <a href="#" class="effect" data-slide-toggle=".checkout-coupon-form"><?=$this->text('Click here to enter your code')?></a>
 				</div>
 			</div>
-			<?php } if(!$this->userIs()) { ?>
+			<?php }
+			else
+				echo '<div class="clearfix"></div>';
+			if(!$this->userIs()) { ?>
 			<div class="col-sm-6">
-				<div class="checkout-login-form box" <?=(empty($_SESSION['notify'])) ? 'style="display: none;"' : ''?>>
+				<div class="checkout-login-form box" <?=(empty($_SESSION['notify']->error)) ? 'style="display: none;"' : ''?>>
 					<h2><?=$this->text('Увійти')?></h2>
 					<?php if(!empty($_SESSION['notify']->error)) { ?>
 					   <div class="alert alert-danger fade in">

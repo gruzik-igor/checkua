@@ -58,10 +58,12 @@ foreach($data['products'] as $product){
                 </tr>';
     $i++;
 }
-
+if (!empty($data['discount'])){
+	$message .= '<tr><td colspan="5" align="right">'.$this->text('Sum').': '.$data['sum_formatted'].'</td></tr>
+					<tr><td colspan="5" align="right">'.$this->text('Discount').': '.$data['discount_formatted'].'</td></tr>';
+}
 $message .= '<tr><td colspan="5" align="right">Сума: '.$data['total_formatted'].'</td></tr></tbody></table>';
 $message .= '<p><a href="'.$data['link'].'">Щоб подивитися замовлення, перейдіть за цим посиланням.</a></p>';
-
 $message .= '<p>З найкращими побажаннями, адміністрація '.SITE_NAME.'</p></body></html>';
 ?>
 

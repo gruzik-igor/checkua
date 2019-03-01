@@ -38,7 +38,7 @@
 		                <table class="table table-striped table-bordered nowrap" width="100%">
 		                    <thead>
 		                        <tr>
-		                            <th>Ключове слово у шаблоні</th>
+		                            <th style="width: 35%">Ключове слово у шаблоні</th>
 		                            <?php if($_SESSION['language']) foreach ($_SESSION['all_languages'] as $language) {
 		                            	echo("<th>{$language}</th>");
 		                            } else echo("<th>До виводу</th>")?>

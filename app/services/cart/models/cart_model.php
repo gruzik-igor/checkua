@@ -80,6 +80,7 @@ class cart_model
 			$_SESSION['option']->paginator_total = $this->db->get('count');
 			$ids = array();
 			foreach ($carts as $cart) {
+				$cart->total_format = $this->priceFormat($cart->total);
 				$cart->products = false;
 				$ids[] = $cart->id;
 			}

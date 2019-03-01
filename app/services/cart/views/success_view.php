@@ -20,26 +20,26 @@
 			<div class="col-md-12">
 				<h1 style="margin-bottom: 40px"><?=$this->text('Замовлення')?> #<?= $cart['id']?></h1>
 
-				<h3><b>Покупець</b></h3>
+				<h3><b><?=$this->text('Покупець')?></b></h3>
 				<?php
 				echo '<p><b>'.$cart['user_name'].'</b><br> '.$cart['user_email'].', '.$cart['user_phone'].'</p>';
 
 				if(!empty($cart['delivery']))
 				{
-					echo '<h3><b>Доставка</b></h3>';
+					echo '<h3><b>'.$this->text('Доставка').'</b></h3>';
 					echo '<p>'.$cart['delivery'].'</p>';
 				}
 
 				if(!empty($cart['payment']))
-					echo '<p>Платіжний механізм: <b>'.$cart['payment'].'</b></p>';
+					echo '<p>'.$this->text('Оплата').': <b>'.$cart['payment'].'</b></p>';
 
 				if(!empty($cart['comment']))
 				{
-					echo '<h3><b>Коментар</b></h3>';
+					echo '<h3><b>'.$this->text('Побажання до замовлення').'</b></h3>';
 					echo '<p>'.$cart['comment'].'</p>';
 				}
 
-				echo '<h3><b>Замовлення</b></h3><div class="row">';
+				echo '<h3><b>'.$this->text('Замовлення').'</b></h3><div class="row">';
 
 				if(!empty($cart['products']))
 					foreach($cart['products'] as $product) { ?>
@@ -72,12 +72,11 @@
 				</div>
 				<hr>
 				<?php if (!empty($cart['discount'])){ ?>
-					<h4><?=$this->text('Сума')?>: <b class="color-red"><?= $cart['sum_formatted'] ?></b></h4>
-					<h4><?=$this->text('Знижка')?>: <b class="color-red"><?= $cart['discount_formatted'] ?></b></h4>
+					<h4><?=$this->text('Sum')?>: <b class="color-red"><?= $cart['sum_formatted'] ?></b></h4>
+					<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $cart['discount_formatted'] ?></b></h4>
 				<?php } ?>
 				<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart['total_formatted'] ?></b></h4>
 			</div>
 		</div>
 	</div>
 </section>
-

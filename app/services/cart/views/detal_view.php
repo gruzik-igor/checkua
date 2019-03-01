@@ -13,7 +13,7 @@
 				<a href="<?=SITE_URL.$_SESSION['alias']->alias?>/my" class="btn btn-success btn-sm"><?=$this->text('До всіх замовлень')?></a>
 				<a href="<?=SITE_URL?>cart/<?= $cart->id?>/print" class="btn btn-danger btn-sm pull-right lilbotbtn" target="_blank"><?=$this->text('Друкувати')?></a>
 				<?php if($cart->action == 'new') { ?>
-					<a href="<?=SITE_URL?>cart/<?= $cart->id?>/pay" class="btn btn-warning btn-sm pull-right lilbotbtn" style="margin-right:5px">Оплатити</a>
+					<a href="<?=SITE_URL?>cart/<?= $cart->id?>/pay" class="btn btn-warning btn-sm pull-right lilbotbtn" style="margin-right:5px"><?=$this->text('Оплатити')?></a>
 				<?php } ?>
 			</div>
 		</div>
@@ -21,7 +21,7 @@
 	<section class="section">
 <?php } else { ?>
 	<!DOCTYPE html>
-	<html lang="uk">
+	<html lang="<?=$_SESSION['language']?>">
 		<head>
 			<title>.</title>
 		    <meta charset="utf-8">
@@ -39,25 +39,25 @@
 				<?php if(!$controls) { ?>
 					<h1 class="col-md-12" style="font-size: 20px; text-align: center;"><?=$this->text('Замовлення')?> #<?= $cart->id?> <?=$this->text('від')?> <?= date('d.m.Y H:i', $cart->date_edit)?></h1>
 					<p><strong><?= $cart->user_name .", " . $cart->user_email ?></strong></p>
-					<p>Статус замовлення: <strong><?= $cart->status_name ?></strong></p>
+					<p><?=$this->text('Статус')?>: <strong><?= $cart->status_name ?></strong></p>
 				<?php } ?>
 				    <?php if($cart->shipping_id) {
-			        echo "<legend>Доставка</legend>";
-			        echo "<p>Служба доставки: <b>{$cart->shipping->name}</b> </p>";
+			        echo "<legend>{$this->text('Доставка')}</legend>";
+			        echo "<p><b>{$cart->shipping->name}</b> </p>";
 			        if(!empty($cart->shipping->text))
 			            echo "<p>{$cart->shipping->text}</p>";
 			        else
 			        {
 			            if(!empty($cart->shipping_info['city']))
-			                echo "<p>Місто: <b>{$cart->shipping_info['city']}</b> </p>";
+			                echo "<p>{$this->text('Місто')}: <b>{$cart->shipping_info['city']}</b> </p>";
 			            if(!empty($cart->shipping_info['department']))
-			                echo "<p>Відділення: <b>{$cart->shipping_info['department']}</b> </p>";
+			                echo "<p>{$this->text('Відділення')}: <b>{$cart->shipping_info['department']}</b> </p>";
 			            if(!empty($cart->shipping_info['address']))
-			                echo "<p>Адреса: <b>{$cart->shipping_info['address']}</b> </p>";
+			                echo "<p>{$this->text('Адреса')}: <b>{$cart->shipping_info['address']}</b> </p>";
 			        }
 			        if(!empty($cart->shipping_info['recipient']))
 			        {
-			            echo "<p>Отримувач: <b>{$cart->shipping_info['recipient']}</b> ";
+			            echo "<p>{$this->text('Отримувач')}: <b>{$cart->shipping_info['recipient']}</b> ";
 			            if(!empty($cart->shipping_info['phone']))
 			            	echo " <b>{$cart->shipping_info['phone']}</b>";
 			        	echo "</p>";
@@ -90,39 +90,43 @@
 						<?=$this->cart_model->priceFormat($product->price) ?> x <?= $product->quantity ?> = <strong><?=$this->cart_model->priceFormat($product->price * $product->quantity) ?></strong></div>
 				</div>
 				<hr>
+			<?php }
+
+			if (!empty($cart->discount)){ ?>
+				<h4><?=$this->text('Sum')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total + $cart->discount) ?></b></h4>
+				<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->discount) ?></b></h4>
 			<?php } ?>
 
+            	<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total) ?></b></h4>
 
-                	<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart->total ?> грн</b></h4>
-
-	                <?php if(isset($controls) && $controls) { ?>
-				    	<div class="table-responsive" style="clear:both">
-				    		<h3><?=$this->text('Історія замовлення')?></h3>
-						    <table class="table table-striped table-bordered " width="100%">
-						        <thead>
-						        	<tr>
-						        		<th>Дата</th>
-						    	    	<th>Статус</th>
-						    	    	<th><?=$this->text('Коментар')?></th>
-						        	</tr>
-						        </thead>
-						        <tbody>
-						        	<?php if($cart->history) foreach($cart->history as $history) {?>
-						        	<tr>
-						                <td><?= date('d.m.Y H:i',$history->date)?></td>
-						                <td><?= $history->status_name?></td>
-						                <td><?= $history->comment?></td>
-						        	</tr>
-						        	<?php } ?>
-						        	<tr>
-						                <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
-						                <td><?=$this->text('Нова, не оплачено')?></td>
-						                <td></td>
-						            </tr>
-						        </tbody>
-						    </table>
-						</div>
-					<?php } ?>
+                <?php if(isset($controls) && $controls) { ?>
+			    	<div class="table-responsive" style="clear:both">
+			    		<h3><?=$this->text('Історія замовлення')?></h3>
+					    <table class="table table-striped table-bordered " width="100%">
+					        <thead>
+					        	<tr>
+					        		<th><?=$this->text('Дата')?></th>
+					    	    	<th><?=$this->text('Статус')?></th>
+					    	    	<th><?=$this->text('Коментар')?></th>
+					        	</tr>
+					        </thead>
+					        <tbody>
+					        	<?php if($cart->history) foreach($cart->history as $history) {?>
+					        	<tr>
+					                <td><?= date('d.m.Y H:i',$history->date)?></td>
+					                <td><?= $history->status_name?></td>
+					                <td><?= $history->comment?></td>
+					        	</tr>
+					        	<?php } ?>
+					        	<tr>
+					                <td><?= date('d.m.Y H:i',$cart->date_add)?></td>
+					                <td><?=$this->text('Нова, не оплачено')?></td>
+					                <td></td>
+					            </tr>
+					        </tbody>
+					    </table>
+					</div>
+				<?php } ?>
 				</div>
 		    </div>
 		</div>

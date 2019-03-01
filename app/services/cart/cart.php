@@ -72,6 +72,19 @@ class cart extends Controller {
                                 if($cart->shipping = $this->cart_model->getShippings(array('id' => $cart->shipping_id)))
                                 {
                                     $cart->shipping = $cart->shipping[0];
+                                    if($_SESSION['language'])
+                                    {
+                                        @$name = unserialize($cart->shipping->name);
+                                        if(isset($name[$_SESSION['language']]))
+                                            $cart->shipping->name = $name[$_SESSION['language']];
+                                        else if(is_array($name))
+                                            $cart->shipping->name = array_shift($name);
+                                        @$info = unserialize($cart->shipping->info);
+                                        if(isset($info[$_SESSION['language']]))
+                                            $cart->shipping->info = $info[$_SESSION['language']];
+                                        else if(is_array($info))
+                                            $cart->shipping->info = array_shift($info);
+                                    }
                                     $cart->shipping->text = '';
                                     if($cart->shipping->wl_alias)
                                         $cart->shipping->text = $this->load->function_in_alias($cart->shipping->wl_alias, '__get_info', $cart->shipping_info);  

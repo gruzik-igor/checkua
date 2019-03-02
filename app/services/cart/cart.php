@@ -663,7 +663,10 @@ class cart extends Controller {
                     $cart['total_formatted'] = $this->cart_model->priceFormat($cart['total']);
                     if($cart['discount'])
                     {
-                        $cart['sum_formatted'] = $this->cart_model->priceFormat($cart['total'] + $cart['discount']);
+                        $sum = $cart['total'] + $cart['discount'];
+                        if(!empty($delivery['price']))
+                            $sum -= $delivery['price'];
+                        $cart['sum_formatted'] = $this->cart_model->priceFormat($sum);
                         $cart['discount_formatted'] = $this->cart_model->priceFormat($cart['discount']);
                     }
                     $cart['products'] = $products;

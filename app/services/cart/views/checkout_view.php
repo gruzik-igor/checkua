@@ -179,7 +179,7 @@ foreach ($jss as $js) {
 								        <?php } ?>
 								    </tbody>
 								    <tfoot>
-								    	<?php if($discountAll || ($bonusCodes && !empty($bonusCodes->info))) { ?>
+								    	<?php if($discountAll || ($bonusCodes && !empty($bonusCodes->info)) || ($shippings && $shippings[0]->pay >= -1)) { ?>
 								    		<tr class="cart-subtotal">
 									            <th><?=$this->text('Сума')?></th>
 									            <td><span class="amount"><?=$subTotal?></span></td>
@@ -195,13 +195,14 @@ foreach ($jss as $js) {
 									            <th><?=$this->text('Бонус-код').': '.$key?></th>
 									            <td><span class="amount"><?=$discount?></span></td>
 									        </tr>
-								    	<?php } /*
-								        <tr class="shipping">
-								            <th><?=$this->text('Доставка')?></th>
-								            <td>
-								                <p><?=$this->text('безкоштовно')?></p>
-								            </td>
-								        </tr> */ ?>
+								        <?php } if($shippings && $shippings[0]->pay >= -1) { ?>
+								        	<tr class="shipping">
+									            <th><?=$this->text('Доставка')?></th>
+									            <td>
+									                <p><?=($shippings[0]->pay == -1)?$this->text('безкоштовно'):$this->cart_model->priceFormat($shippings[0]->price)?></p>
+									            </td>
+									        </tr>
+								        <?php } ?>
 								        <tr class="order-total">
 								            <th><?=$this->text('До оплати')?></th>
 								            <td>

@@ -58,9 +58,12 @@ foreach($data['products'] as $product){
                 </tr>';
     $i++;
 }
-if (!empty($data['discount'])){
-	$message .= '<tr><td colspan="5" align="right">Сума: '.$data['sum_formatted'].'</td></tr>
-					<tr><td colspan="5" align="right">Знижка: '.$data['discount_formatted'].'</td></tr>';
+if (!empty($data['discount']) || !empty($data['delivery_price'])){
+	$message .= '<tr><td colspan="5" align="right">Сума: '.$data['sum_formatted'].'</td></tr>';
+	if (!empty($data['discount']))
+		$message .= '<tr><td colspan="5" align="right">Знижка: '.$data['discount_formatted'].'</td></tr>';
+	if (!empty($data['delivery_price']))
+		$message .= '<tr><td colspan="5" align="right">Доставка: '.$data['delivery_price'].'</td></tr>';
 }
 $message .= '<tr><td colspan="5" align="right">Сума: '.$data['total_formatted'].'</td></tr></tbody></table>';
 $message .= '<p><a href="'.$data['link'].'">Щоб подивитися замовлення, перейдіть за цим посиланням.</a></p>';

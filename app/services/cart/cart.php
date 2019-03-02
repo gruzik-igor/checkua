@@ -627,6 +627,11 @@ class cart extends Controller {
                             if(empty($recipient))
                                 $recipient = $_SESSION['user']->name;
                             $delivery['info']['recipient'] = $recipient;
+                            if($shipping->pay >= 0)
+                            {
+                                $delivery['pay'] = $delivery['info']['pay'] = $shipping->pay;
+                                $delivery['price'] = $delivery['info']['price'] = $shipping->price;
+                            }
                             $delivery['text'] .= '<br><br>'.$this->text('Отримувач').': '.$recipient.', '.$delivery['info']['phone'];
                         }
 
@@ -663,6 +668,8 @@ class cart extends Controller {
                     }
                     $cart['products'] = $products;
                     $cart['delivery'] = $delivery['text'];
+                    if(!empty($delivery['price']))
+                        $cart['delivery_price'] = $this->cart_model->priceFormat($delivery['price']);
                     $cart['payment'] = $payment ? $payment->name : '';
                     
                     $this->mail->sendTemplate('checkout', $_SESSION['user']->email, $cart);
@@ -747,6 +754,8 @@ class cart extends Controller {
 
             $shippings = $this->cart_model->getShippings(array('active' => 1));
             $userShipping = $this->cart_model->getUserShipping();
+            if($shippings && ($shippings[0]->pay >= 0 || $shippings[0]->pay > $total))
+                $total += $shippings[0]->price;
 
             $this->wl_alias_model->setContent(1);
             $this->load->page_view('checkout_view', array('products' => $products, 'shippings' => $shippings,  'userShipping' => $userShipping, 'payments' => $payments, 'subTotal' => $this->cart_model->priceFormat($subTotal), 'total' => $this->cart_model->priceFormat($total), 'bonusCodes' => $this->cart_model->bonusCodes()));

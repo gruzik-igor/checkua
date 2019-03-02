@@ -14,7 +14,8 @@
                             <tr>
                                 <th style="width: 50px"></th>
                             	<th>Перевізник</th>
-                            	<th>Тип доставки</th>
+                                <th>Тип доставки</th>
+                            	<th>Вартість</th>
                             	<th>Інформація</th>
 								<th>Стан</th>
                             </tr>
@@ -32,6 +33,17 @@
                                                 echo('у відділення');
                                               else if($shipping->type == 3)
                                                 echo('без адреси');
+                                     ?></td>
+                                    <td><?php if($shipping->pay == -2)
+                                                echo "Не виводити";
+                                              else if($shipping->pay == -1)
+                                                echo('безкоштовно');
+                                              else
+                                              {
+                                                if($shipping->pay > 0)
+                                                    echo('Ціна до ');
+                                                echo($shipping->price.' y.o.');
+                                              }
                                      ?></td>
                                     <td><?=$this->data->getShortText($shipping->info)?></td>
                                     <td>

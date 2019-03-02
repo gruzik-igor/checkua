@@ -71,9 +71,12 @@
 				<?php } ?>
 				</div>
 				<hr>
-				<?php if (!empty($cart['discount'])){ ?>
+				<?php if (!empty($cart['discount']) || !empty($cart['delivery_price'])){ ?>
 					<h4><?=$this->text('Sum')?>: <b class="color-red"><?= $cart['sum_formatted'] ?></b></h4>
-					<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $cart['discount_formatted'] ?></b></h4>
+					<?php if (!empty($cart['discount'])) { ?>
+						<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $cart['discount_formatted'] ?></b></h4>
+					<?php } if (!empty($cart['delivery_price'])) { ?>
+						<h4><?=$this->text('Доставка')?>: <b class="color-red"><?= $cart['delivery_price'] ?></b></h4>
 				<?php } ?>
 				<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $cart['total_formatted'] ?></b></h4>
 			</div>

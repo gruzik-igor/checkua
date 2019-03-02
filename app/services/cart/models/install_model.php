@@ -13,7 +13,7 @@ class install
 	public $order_alias = 200;
 	public $admin_sidebar = 1;
 	public $admin_ico = 'fa-shopping-cart';
-	public $version = "2.0";
+	public $version = "2.1";
 
 	public $options = array('useCheckBox' => 0, 'newUserType' => 4, 'price_format' => '');
 	public $options_type = array('useCheckBox' => 'bool', 'usePassword' => 'bool', 'newUserType' => 'number', 'price_format' => false);
@@ -175,6 +175,8 @@ class install
 					  `type` tinyint(1) NULL,
 					  `name` text NOT NULL,
 					  `info` text,
+					  `pay` float NULL,
+					  `price` float NULL,
 					  PRIMARY KEY (`id`),
 					  KEY `active` (`active`)
 					) ENGINE=InnoDB  DEFAULT CHARSET=utf8;";

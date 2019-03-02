@@ -866,8 +866,13 @@ class cart_admin extends Controller {
         if(is_numeric($_POST['id']))
         {
             $this->load->smodel('cart_model');
-            $shipping = array('active' => 0);
+            $shipping = array('active' => 0, 'pay' => -2);
             $shipping['type'] = $this->data->post('type');
+            if(isset($_POST['pay']))
+                $shipping['pay'] = $this->data->post('pay');
+            if($shipping['pay'] >= 0)
+                $shipping['pay'] = $this->data->post('pay_to');
+            $shipping['price'] = $this->data->post('price');
             $shipping['active'] = ($_POST['active'] > 0 || $_POST['id'] == 0) ? 1 : 0;
             if($_SESSION['language'])
             {

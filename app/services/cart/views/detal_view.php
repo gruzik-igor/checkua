@@ -71,9 +71,9 @@
 				<div class="row">
 					<?php if($product->info->photo) { ?>
 						<div class="col-sm-2 col-xs-3" style="max-width: 20%">
-							<a href="<?=SITE_URL.$product->info->link?>">
+							<?=($controls)?'<a href="'.SITE_URL.$product->info->link.'">':''?>
 								<img src="<?=IMG_PATH?><?=(isset($product->info->cart_photo)) ? $product->info->cart_photo : $product->info->photo ?>" alt="<?= $product->info->name ?>" style="width: 100%">
-							</a>
+							<?=($controls)?'</a>':''?>
 						</div>
 					<?php } ?>
 					<div class="col-sm-<?=($product->info->photo) ? 8 : 10?> col-xs-9" style="max-width: 80%">
@@ -92,10 +92,16 @@
 				<hr>
 			<?php }
 
-			if (!empty($cart->discount)){ ?>
-				<h4><?=$this->text('Sum')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total + $cart->discount) ?></b></h4>
-				<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->discount) ?></b></h4>
-			<?php } ?>
+			if (!empty($cart->discount) || !empty($cart->shipping_info['price'])){
+				if(empty($cart->shipping_info['price']))
+					$cart->shipping_info['price'] = 0;
+				?>
+				<h4><?=$this->text('Sum')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total + $cart->discount - $cart->shipping_info['price']) ?></b></h4>
+				<?php if (!empty($cart->discount)) { ?>
+					<h4><?=$this->text('Discount')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->discount) ?></b></h4>
+				<?php } if (!empty($cart->shipping_info['price'])) { ?>
+					<h4><?=$this->text('Доставка')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->shipping_info['price']) ?></b></h4>
+			<?php } } ?>
 
             	<h4><?=$this->text('До оплати')?>: <b class="color-red"><?= $this->cart_model->priceFormat($cart->total) ?></b></h4>
 

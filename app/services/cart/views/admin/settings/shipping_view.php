@@ -58,7 +58,36 @@
 								Доставка НЕ активна
 							</label>
 						</div>
-					<?php }
+						<div class="form-group">
+							<label class="col-md-3 control-label">Ціна доставки</label>
+							<div class="col-md-9">
+								<select name="pay" class="form-control">
+									<option value="-2" <?=$shipping->pay == -2 ? 'selected' : ''?>>Не виводити</option>
+									<option value="-1" <?=$shipping->pay == -1 ? 'selected' : ''?>>безкоштовно</option>
+									<option value="0" <?=$shipping->pay >= 0 ? 'selected' : ''?>>ціна (у.о.)</option>
+								</select>
+							</div>
+						</div>
+						<?php if($shipping->pay >= 0) { ?>
+							<div class="form-group">
+		                        <label class="col-md-3 control-label">Ціна доставки при сумі замовлення менше</label>
+		                        <div class="col-md-9">
+		                        	<div class="input-group">
+			                            <input type="number" class="form-control" name="pay_to" value="<?=$shipping->pay?>" min="0" step="0.01" required>
+			                            <span class="input-group-addon">у.о.</span>
+			                        </div>
+		                    	</div>
+		                    </div>
+		                    <div class="form-group">
+		                        <label class="col-md-3 control-label">Вартість доставки</label>
+		                        <div class="col-md-9">
+		                        	<div class="input-group">
+			                            <input type="number" class="form-control" name="price" value="<?=$shipping->price?>" min="0" step="0.01" required>
+			                            <span class="input-group-addon">у.о.</span>
+			                        </div>
+			                    </div>
+		                    </div>
+					<?php } }
 
 					if($_SESSION['language'])
 					{

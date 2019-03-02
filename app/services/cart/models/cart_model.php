@@ -268,6 +268,8 @@ class cart_model
 				$cart['payment_id'] = $payment->id;
 		}
 		$cart['total'] = $this->getSubTotalInCart($user, false);
+		if(!empty($delivery['price']) && ($delivery['pay'] == 0 || $delivery['pay'] > $cart['total']))
+			$cart['total'] += $delivery['price'];
 		if($this->discountTotal)
 		{
 			$cart['discount'] = $this->discountTotal;

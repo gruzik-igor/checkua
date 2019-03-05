@@ -38,7 +38,7 @@
                             </li>
                         <?php } ?>
                         <li class="list-group-item">
-                            <a href="<?=SITE_URL?>logout"> Вийти</a>
+                            <a href="<?=SITE_URL?>logout"> <i class="fa fa-sign-out" aria-hidden="true"></i> Вийти</a>
                         </li>
                     </ul>   
                 </div>
@@ -55,10 +55,11 @@
                             <?php } ?>
                         </div>
                     </div>
-
+                    <div class="row">
                     <?php if(isset($sub_page))
                             require_once $sub_page;
                     ?>
+                    </div>
                 </div>
                 <!-- End Profile Content -->
             </div>

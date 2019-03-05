@@ -51,7 +51,7 @@
                                     </td>
                                 </tr>
                             <?php } else { ?>
-                                <tr><td colspan="5" class="text-center"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/settings/shipping/add" class="btn btn-xs btn-warning"><i class="fa fa-plus"></i> Додати перевізника</a></td></tr>
+                                <tr><td colspan="6" class="text-center"><a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/settings/shipping/add" class="btn btn-xs btn-warning"><i class="fa fa-plus"></i> Додати перевізника</a></td></tr>
                             <?php } ?>
                         </tbody>
                     </table>

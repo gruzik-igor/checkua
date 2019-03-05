@@ -41,5 +41,6 @@
     .sky-form input {
         border: 1px solid;
         padding: 5px;
+        width: 300px;
     }
 </style>

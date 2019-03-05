@@ -434,6 +434,7 @@ class cart_model
         			$insert['position'] = $s->position = count($shippings) + 1;
         			$insert['name'] = $s->name = $insert['info'] = $s->info = 0;
         			$s->id = $this->db->insertRow($this->table('_shipping'), $insert);
+        			$s->pay = 0;
         			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
         			{
         				$s->name = $ntkd->name;

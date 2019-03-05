@@ -17,6 +17,13 @@ $config['db'] = array(
 	'database'	=> '$DATABASE'
 );
 
+$config['mail'] = array(
+	'host' 		=> '$MAILHOST',
+	'user' 		=> '$MAILUSER',
+	'password'	=> '$MAILPASSWORD',
+	'port'		=> '$MAILPORT'
+);
+
 $config['Paginator'] = array(
 	'ul'		=> 'pagination nomargin'
 );

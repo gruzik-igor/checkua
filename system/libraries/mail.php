@@ -1,5 +1,9 @@
 <?php
 
+/*
+ * Версія 2.0 (05.03.2019) підключено smtp через Swift_Mailer
+ */
+
 class Mail {
 
     private $to;
@@ -8,6 +12,27 @@ class Mail {
     private $replyTo;
     private $message;
     private $params;
+    private $smtp;
+
+    /*
+     * Отримуємо дані для з'єднання з конфігураційного файлу
+     */
+    function __construct($cfg)
+    {
+        if(!empty($cfg['host']) && $cfg['host'] != '$MAILHOST')
+        {
+            $cfg['port'] = $cfg['port'] ?? 25;
+            require_once 'swiftmailer/autoload.php';
+
+            $transport = (new Swift_SmtpTransport($cfg['host'], $cfg['port']))
+              ->setUsername($cfg['user'])
+              ->setPassword($cfg['password']);
+
+            $this->from = $this->replyTo = $cfg['user'];
+
+            $this->smtp = new Swift_Mailer($transport);
+        }
+    }
 
     public function subject($title)
     {
@@ -21,8 +46,11 @@ class Mail {
 
     public function from($send_from)
     {
-        $this->from = $send_from;
-        $this->replyTo = $send_from;
+        if(empty($this->smtp))
+        {
+            $this->from = $send_from;
+            $this->replyTo = $send_from;
+        }
     }
 
     public function message($msg)
@@ -44,10 +72,8 @@ class Mail {
                 $this->subject = str_replace('{'.$key.'}', $value, $this->subject);
                 $this->message = str_replace('{'.$key.'}', $value, $this->message);
             }
-        // $this->message = mb_convert_encoding ($this->message, 'windows-1251', 'utf-8');
 
         $headers ="Mime-Version: 1.0 \r\n";
-        // $headers .= "Content-type: text/html; charset=windows-1251 \r\n";
         $headers .= "Content-type: text/html; charset=utf-8 \r\n";
         $headers .= "From: ".SITE_NAME." <".$this->from."> \r\n";
         $headers .= 'Reply-To: '.$this->replyTo;
@@ -60,10 +86,25 @@ class Mail {
         $sent_mail->message = $this->message;
         $sent_mail->headers = $headers;
 
-        if($_SERVER["SERVER_NAME"] == 'localhost')
-            return $sent_mail;
-        if(mail($this->to, $this->subject, $this->message, $headers))
-            return $sent_mail;
+        if($this->smtp)
+        {
+            $message = (new Swift_Message($this->subject))
+                      ->setFrom($this->from)
+                      ->setTo($this->to)
+                      ->setBody($this->message, 'text/html');
+            if($this->replyTo)
+                $message->setReplyTo($this->replyTo);
+
+            if($this->smtp->send($message))
+                return $sent_mail;
+        }
+        else
+        {
+            if($_SERVER["SERVER_NAME"] == 'localhost')
+                return $sent_mail;
+            if(mail($this->to, $this->subject, $this->message, $headers))
+                return $sent_mail;
+        }
         return false;
     }
 

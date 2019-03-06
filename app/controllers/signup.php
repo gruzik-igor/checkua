@@ -15,6 +15,7 @@ class Signup extends Controller {
     	{
     		if($userSignUp && $userSignUp->value == 1)
     		{
+    			$this->wl_alias_model->setContent();
     			$this->load->library('facebook');
 	    		if($_SESSION['option']->facebook_initialise)
 	        		$this->load->view('profile/signup/index_view');
@@ -32,6 +33,7 @@ class Signup extends Controller {
     {
     	if(!$this->userIs())
     	{
+    		$this->wl_alias_model->setContent();
     		$this->load->library('facebook');
         	$this->load->view('profile/signup/email_view');
     	}

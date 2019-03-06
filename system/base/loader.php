@@ -166,6 +166,11 @@ class Loader {
 			$sub_page = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'views'.DIRSEP.$sub_page;
 		$view_path = APP_PATH.'views'.DIRSEP.'page_view.php';
 		$view_file = 'profile/index_view';
+		if(empty($user))
+		{
+			$this->model('wl_user_model');
+			$user = $this->wl_user_model->getInfo(0, false);
+		}
 		if(file_exists($view_path))
 		{
 			require $view_path;

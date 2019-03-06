@@ -15,6 +15,7 @@ class Login extends Controller {
     {
     	$_SESSION['alias']->content = 0;
     	$_SESSION['alias']->code = 201;
+    	$this->wl_alias_model->setContent();
     	
         if($this->userIs())
         	$this->redirect($this->after);
@@ -56,7 +57,7 @@ class Login extends Controller {
 					if($redirect = $this->data->post('redirect'))
 						$this->redirect($redirect);
 					else
-						$this->redirect();
+						$this->redirect($status->load);
 						// header('Location: '.SITE_URL.$status->load);
 				}
 				exit;

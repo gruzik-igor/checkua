@@ -93,7 +93,7 @@ class shopshowcase extends Controller {
 				$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
 
-				if(!$group->haveChild)
+				if(!$subgroups)
 					$filters = $this->shop_model->getOptionsToGroup($group);
 				else
 					$filters = false;

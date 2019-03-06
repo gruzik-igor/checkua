@@ -180,7 +180,23 @@
 						</select>
                     </div>
                 </div>
-				
+				<div class="form-group">
+                    <label class="col-md-3 control-label">Основна характеристика товару (витягується завжди)</label>
+                    <div class="col-md-9">
+                        <label class="radio-inline">
+                        	<input type="radio" name="main" value="1" <?=($option->main == 1)?'checked':''?>>
+                            Так
+                        </label>
+                        <label class="radio-inline">
+                        	<input type="radio" name="main" value="0" <?=($option->main == 0)?'checked':''?>>
+                            Ні
+                        </label>
+                        <?php $alias = explode('-', $option->alias);
+	        			if($alias[0] == $option->id)
+	        				array_shift($alias); ?>
+                        <p><i>В каталозі у змінній товару <strong>$product-><?=implode('_', $alias)?></strong></i></p>
+                    </div>
+                </div>
 				<?php if($useOptions) { ?>
 					<div class="form-group">
 	                    <label class="col-md-3 control-label">Сортування</label>
@@ -195,19 +211,6 @@
 							<?php } ?>
 	                    </div>
 	                </div>
-					<div class="form-group">
-                        <label class="col-md-3 control-label">Основна характеристика товару (витягується завжди)</label>
-                        <div class="col-md-9">
-                            <label class="radio-inline">
-                            	<input type="radio" name="main" value="1" <?=($option->main == 1)?'checked':''?>>
-                                Так
-                            </label>
-                            <label class="radio-inline">
-                            	<input type="radio" name="main" value="0" <?=($option->main == 0)?'checked':''?>>
-                                Ні
-                            </label>
-                        </div>
-                    </div>
 					<div class="form-group">
                         <label class="col-md-3 control-label">Елемент фільтру (для пошуку)</label>
                         <div class="col-md-9">

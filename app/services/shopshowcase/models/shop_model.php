@@ -438,7 +438,7 @@ class shop_model {
 
 			$sizes = $this->db->getAliasImageSizes();
 
-			$products_ids = $products_photos = $main_options = $main_options_Alias = $product_group = array();
+			$products_ids = $products_photos = $main_options = $main_options_Alias = $main_options_UseSubOptions = $product_group = array();
             foreach ($products as $product)
             	$products_ids[] = $product->id;
             if($photos = $this->getProductPhoto($products_ids))
@@ -450,7 +450,9 @@ class shop_model {
 	        }
 	        if(!$getProductOptions)
 	        {
-	        	if($mainOptions = $this->db->getAllDataByFieldInArray($this->table('_options'), array('wl_alias' => $_SESSION['alias']->id, 'main' => 1)))
+	        	$this->db->select($this->table('_options') .' as o', 'id, alias', array('wl_alias' => $_SESSION['alias']->id, 'main' => 1))
+	        			->join('wl_input_types', 'options', '#o.type');
+	        	if($mainOptions = $this->db->get('array'))
 	        	{
 	        		$ids = array();
 	        		foreach ($mainOptions as $o) {
@@ -459,6 +461,7 @@ class shop_model {
 	        			if($o->alias[0] == $o->id)
 	        				array_shift($o->alias);
 	        			$main_options_Alias[$o->id] = implode('_', $o->alias);
+	        			$main_options_UseSubOptions[$o->id] = $o->options;
 	        		}
 	        		$where = array('option' => '#po.value');
 	        		if($_SESSION['language'])
@@ -467,12 +470,12 @@ class shop_model {
 		            						->join($this->table('_options_name'), 'name', $where)->get('array');
 		            if($options)
 		            	foreach ($options as $opt) {
-		            		if(!empty($opt->name))
+		            		if(!empty($opt->name) && $main_options_UseSubOptions[$opt->option])
 			            		$main_options[$opt->product][$opt->option] = $opt->name;
 			            	else
 			            		$main_options[$opt->product][$opt->option] = $opt->value;
 			            }
-		            unset($options);
+		            unset($options, $main_options_UseSubOptions);
 		        }
 	        }
 

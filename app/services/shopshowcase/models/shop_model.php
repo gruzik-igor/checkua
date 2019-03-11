@@ -681,9 +681,10 @@ class shop_model {
 						$product->parents = $this->makeParents($product->group, $product->parents);
 						$link = $_SESSION['alias']->alias . '/';
 						foreach ($product->parents as $parent) {
-							$link .= $parent->alias .'/';
+							$link .= $parent->alias;
 							if(isset($_SESSION['alias']->breadcrumbs))
 								$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+							$link .= '/';
 						}
 						$product->group_link = $link;
 						$product->link = $link . $product->alias;

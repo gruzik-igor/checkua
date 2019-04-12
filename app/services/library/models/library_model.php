@@ -64,7 +64,7 @@ class library_model {
 		if($active)
 			$where['active'] = 1;
 
-		if($_SESSION['option']->useGroups > 0)
+		if($_SESSION['option']->useGroups > 0 && $Group >= 0)
 		{
 			if(is_array($Group) && !empty($Group))
 			{
@@ -314,7 +314,7 @@ class library_model {
 					$link = $_SESSION['alias']->alias . '/';
 					foreach ($article->parents as $parent) {
 						$link .= $parent->alias;
-						if(isset($_SESSION['alias']->breadcrumbs)) $_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+						if(isset($_SESSION['alias']->breadcrumbs) && !empty($parent->name)) $_SESSION['alias']->breadcrumbs[$parent->name] = $link;
 						$link .= '/';
 					}
 					$article->group_link = $link;

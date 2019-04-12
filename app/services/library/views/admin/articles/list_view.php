@@ -36,9 +36,7 @@
 								<?php if($_SESSION['option']->useGroups == 1 && $_SESSION['option']->articleMultiGroup){ ?>
 									<th>Групи</th>
 								<?php } ?>
-								<th>Автор</th>
 								<th>Редаговано</th>
-								<th>Стан</th>
 								<th>Змінити порядок</th>
                             </tr>
                         </thead>
@@ -47,7 +45,7 @@
                         	if(!empty($articles)) { 
                         		$max = count($articles); 
                         		foreach($articles as $a) { ?>
-									<tr>
+									<tr <?=($a->active == 1)?'':'class="danger" title="відключено"'?>>
 										<td><?=$a->id?></td>
 										<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a></td>
 										<td><a href="<?=SITE_URL.$a->link?>"><?=$a->link?></a></td>
@@ -63,9 +61,11 @@
                                             }
                                             echo("</td>");
                                         } ?>
-										<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a></td>
-										<td><?=date("d.m.Y H:i", $a->date_edit)?></td>
-										<td style="background-color:<?=($a->active == 1)?'green':'red'?>;color:white"><?=($a->active == 1)?'активний':'відключено'?></td>
+										<td>
+											<a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->author_edit_name?></a>
+											<br>
+											<?=date("d.m.Y H:i", $a->date_edit)?>
+										</td>
 										<td style="padding:2px 5px">
 											<form method="POST" action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/changeposition">
 												<input type="hidden" name="id" value="<?=$a->id?>">

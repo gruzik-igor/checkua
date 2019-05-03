@@ -359,6 +359,7 @@ CREATE TABLE IF NOT EXISTS `wl_ntkd` (
   `alias` int(11) NOT NULL,
   `content` int(11) NOT NULL,
   `language` varchar(2) DEFAULT NULL,
+  `use_sections` tinyint(1) DEFAULT NULL,
   `name` text,
   `title` text,
   `description` text,
@@ -748,6 +749,46 @@ ALTER TABLE `wl_comments`
 -- AUTO_INCREMENT для таблиці `wl_comments`
 --
 ALTER TABLE `wl_comments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- Структура таблиці `wl_sections`
+--
+
+CREATE TABLE `wl_sections` (
+  `id` int(11) NOT NULL,
+  `alias` int(11) NOT NULL,
+  `content` int(11) NOT NULL,
+  `name` text NOT NULL,
+  `global` tinyint(1) DEFAULT NULL,
+  `position` int(11) NOT NULL,
+  `type` smallint(6) NOT NULL,
+  `value` text NOT NULL,
+  `title` text NOT NULL,
+  `attr` text NOT NULL
+) ENGINE=MyISAM DEFAULT CHARSET=utf8;
+
+--
+-- Індекси збережених таблиць
+--
+
+--
+-- Індекси таблиці `wl_sections`
+--
+ALTER TABLE `wl_sections`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `alias` (`alias`,`content`),
+  ADD KEY `global` (`global`),
+  ADD KEY `position` (`position`);
+
+--
+-- AUTO_INCREMENT для збережених таблиць
+--
+
+--
+-- AUTO_INCREMENT для таблиці `wl_sections`
+--
+ALTER TABLE `wl_sections`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --

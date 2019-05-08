@@ -102,11 +102,11 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
 						<td>
 							<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
 						</td>
-					<?php } else { 
+					<?php } else {
+						$color = 'success';
+                        $color_text = 'активний';
 						if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
                         {
-                            $color = 'success';
-                            $color_text = 'активний';
                             if($active == 0)
                             {
                                 $color = 'danger';

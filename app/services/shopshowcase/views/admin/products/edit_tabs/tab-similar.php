@@ -100,7 +100,7 @@
         </div>
     </div>
 </div>
-
+<?php if (false): ?>
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckeditor/ckeditor.js"></script>
 <script type="text/javascript" src="<?=SITE_URL?>assets/ckfinder/ckfinder.js"></script>
 <script type="text/javascript">
@@ -115,6 +115,7 @@
         filebrowserFlashUploadUrl : '<?=SITE_URL?>assets/ckfinder/core/connector/asp/connector.asp?command=QuickUpload&type=Flash',
     });
 </script>
+<?php endif ?>
 <script>
     function deleteSimilarProduct(productId, btn) {
         if(confirm("Ви впевнені, що хочете видалити товар зі схожих продуктів?"))

@@ -210,10 +210,11 @@ class products_model {
 	
 	public function add(&$link = '')
 	{
+		$article = false;
 		if($_SESSION['option']->ProductUseArticle && $_POST['article'] != '')
 		{
 			$check['wl_alias'] = $_SESSION['alias']->id;
-			$check['article'] = trim($this->data->post('article'));
+			$check['article'] = $article = $this->prepareArticleKey($this->data->post('article'));
 			$check = $this->db->getAllDataByFieldInArray($this->table(), $check);
 			if($check)
 			{
@@ -225,7 +226,8 @@ class products_model {
 
 		$data = array();
 		$data['wl_alias'] = $_SESSION['alias']->id;
-		if(isset($_POST['article'])) $data['article'] = trim($this->data->post('article'));
+		if(isset($_POST['article']))
+			$data['article'] = $article;
 		$data['active'] = $data['availability'] = 1;
 		$data['price'] = $data['group'] = $data['position'] = 0;
 		if(isset($_POST['price']) && is_numeric($_POST['price']) && $_POST['price'] > 0) $data['price'] = $_POST['price'];
@@ -263,8 +265,8 @@ class products_model {
 				$this->db->insertRow('wl_ntkd', $ntkd);
 			}
 			
-			if($_SESSION['option']->ProductUseArticle > 0 && $this->data->post('article') != '')
-				$data['alias'] = $this->ckeckAlias($this->data->latterUAtoEN(trim($this->data->post('article'))) . '-' . $data['alias']);
+			if($_SESSION['option']->ProductUseArticle > 0 && $article)
+				$data['alias'] = $this->ckeckAlias($article . '-' . $data['alias']);
 			else
 				$data['alias'] = $id . '-' . $data['alias'];
 			$link = $data['alias'];
@@ -315,15 +317,15 @@ class products_model {
 		$data = array('active' => 0, 'author_edit' => $_SESSION['user']->id, 'date_edit' => time());
 		if($_SESSION['option']->ProductUseArticle)
 		{
-			$data['article'] = trim($this->data->post('article'));
+			$data['article'] = $this->prepareArticleKey($this->data->post('article'));
 			if(empty($data['article']))
 				$data['alias'] = $id .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
 			else
 			{
 				if(empty($_POST['alias']))
-					$data['alias'] = $this->data->latterUAtoEN($data['article']);
+					$data['alias'] = $data['article'];
 				else
-					$data['alias'] = $this->data->latterUAtoEN($data['article']) .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
+					$data['alias'] = $data['article'] .'-'. $this->data->latterUAtoEN(trim($this->data->post('alias')));
 			}
 			if($this->data->post('article') != $this->data->post('article_old'))
 			{
@@ -706,6 +708,20 @@ class products_model {
 		 	$Group = $this->db->getAllDataById($this->table(), array('wl_alias' => $_SESSION['alias']->id, 'alias' => $link2));
 		}
 		return $link2;
+	}
+
+	public function prepareArticleKey($text)
+	{
+		$text = (string) $text;
+		$text = trim($text);
+		$text = mb_strtolower($text, "utf-8");
+        $ua = array('-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'', '[+]', '“', '”');
+        $en = array('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
+        for ($i = 0; $i < count($ua); $i++) {
+            $text = mb_eregi_replace($ua[$i], $en[$i], $text);
+        }
+        $text = mb_eregi_replace("[-]{2,}", '-', $text);
+        return $text;
 	}
 	
 }

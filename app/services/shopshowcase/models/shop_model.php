@@ -1497,6 +1497,20 @@ class shop_model {
 		return round($price * 20) / 20;
 	}
 
+	public function prepareArticleKey($text)
+	{
+		$text = (string) $text;
+		$text = trim($text);
+		$text = mb_strtolower($text, "utf-8");
+        $ua = array('-', '_', ' ', '`', '~', '!', '@', '#', '$', '%', '^', '&', '"', ',', '\.', '\?', '/', ';', ':', '\'', '[+]', '“', '”');
+        $en = array('', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '', '');
+        for ($i = 0; $i < count($ua); $i++) {
+            $text = mb_eregi_replace($ua[$i], $en[$i], $text);
+        }
+        $text = mb_eregi_replace("[-]{2,}", '-', $text);
+        return $text;
+	}
+
 }
 
 ?>

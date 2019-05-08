@@ -102,7 +102,7 @@ class shopshowcase_admin extends Controller {
 			$search = '%'.$this->data->get('id');
 		}
 		if($this->data->get('article'))
-			$search = '%'.$this->makeArticle($this->data->get('article'));
+			$search = '%'.$this->shop_model->prepareArticleKey($this->data->get('article'));
 
 		if($this->data->get('group'))
 		{
@@ -134,15 +134,6 @@ class shopshowcase_admin extends Controller {
 		}
 		else
 			$this->load->admin_view('products/list_view', array('products' => false));
-	}
-
-	private function makeArticle($article)
-	{
-		$article = (string) $article;
-		$article = trim($article);
-		$article = strtoupper($article);
-		$article = str_replace('-', '', $article);
-		return str_replace(' ', '-', $article);
 	}
 	
 	public function add()

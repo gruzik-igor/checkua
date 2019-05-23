@@ -217,7 +217,7 @@ class wl_alias_model
 
     public function setContentRobot($data = array())
     {
-    	if(empty($_SESSION['alias']->content))
+    	if(!is_numeric($_SESSION['alias']->content))
     		return false;
     	
     	$ntkd = $where = array();

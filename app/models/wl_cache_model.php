@@ -14,7 +14,7 @@ class wl_cache_model extends Loader
 							->join('wl_aliases as a', 'alias as alias_link, service, table as alias_table', '#s.alias')
 							->join('wl_services', 'name as service_name, table as service_table', '#a.service')
 							->get('array');
-		if(count($pages) > 1)
+		if($pages && count($pages) > 1)
 		{
 			for ($i=1; $i < count($pages); $i++) {
 				$this->db->deleteRow('wl_sitemap', $pages[$i]->id);

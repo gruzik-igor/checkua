@@ -220,7 +220,7 @@ class shop_model {
 
 							if($products = $this->db->get('array', false))
 							{
-								if($start >= 0)
+								if($start >= 0 && $_SESSION['option']->paginator_per_page <= count($products))
 									$_SESSION['option']->paginator_total = $this->db->get('count');
 								else
 									$_SESSION['option']->paginator_total = count($products);
@@ -336,7 +336,7 @@ class shop_model {
 
 		$this->db->select($this->table('_products').' as p', '*', $where);
 
-		if(isset($where['#pg.group']))
+		if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !is_array($Group))
 			$this->db->join($this->table('_product_group').' as pg', 'id as position_id, position, active', array('group' => $Group, 'product' => '#p.id'));
 
 		if(!$active)
@@ -397,6 +397,8 @@ class shop_model {
 					break;
 			}
 		}
+		else if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup)
+			$this->db->order($_SESSION['option']->productOrder, 'pg');
 		else
 			$this->db->order($_SESSION['option']->productOrder);
 

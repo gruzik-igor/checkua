@@ -38,8 +38,7 @@ class Router extends Loader {
 
 		$parts = explode('/', $this->request);
 		$path = APP_PATH.'controllers'.DIRSEP;
-		$admin = false;
-
+		
 		$_SESSION['amp'] = false;
 		if(end($parts) == 'amp')
 		{
@@ -52,36 +51,36 @@ class Router extends Loader {
 		if(empty($parts))
 			$parts[] = 'main';
 
+		$userAdmin = false;
+		if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+		{
+			if($_SESSION['user']->admin)
+				$userAdmin = true;
+			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions)))
+				$userAdmin = true;
+		}
+
 		if($this->request == 'wlLoadPage404')
 			new Page404();
 		elseif($parts[0] == 'admin')
 		{
-			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0)
+			if($userAdmin)
 			{
-				if($_SESSION['user']->admin)
-					$admin = true;
-    			if($_SESSION['user']->manager == 1 && (!isset($parts[1]) || isset($parts[1]) && in_array($parts[1], $_SESSION['user']->permissions)))
-    				$admin = true;
-    			if($admin)
-    			{
-    				if($_SESSION['language'] && $_SESSION['language'] != $_SESSION['all_languages'][0])
-    					parent::redirect(SERVER_URL.$this->request, false);
-					if(count($parts) == 1)
-					{
-						$parts[] = 'admin';
-						$_SESSION['alias'] = new stdClass();
-						$_SESSION['alias']->service = false;
-						$_SESSION['service'] = new stdClass();
-					}
-					else
-					{
-						parent::model('wl_alias_model');
-						$this->wl_alias_model->init($parts[1], $this->request);
-						$this->wl_alias_model->admin_options();
-					}
+				if($_SESSION['language'] && $_SESSION['language'] != $_SESSION['all_languages'][0])
+					parent::redirect(SERVER_URL.$this->request, false);
+				if(count($parts) == 1)
+				{
+					$parts[] = 'admin';
+					$_SESSION['alias'] = new stdClass();
+					$_SESSION['alias']->service = false;
+					$_SESSION['service'] = new stdClass();
 				}
 				else
-					new Page404();
+				{
+					parent::model('wl_alias_model');
+					$this->wl_alias_model->init($parts[1], $this->request);
+					$this->wl_alias_model->admin_options();
+				}
 			}
 			else
 				parent::redirect('login?redirect='.$this->request);
@@ -92,7 +91,7 @@ class Router extends Loader {
 
 			if(empty($_POST))
 			{
-				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				if(!$userAdmin)
 				{
 					parent::model('wl_statistic_model');
 					$this->wl_statistic_model->set_views();
@@ -101,10 +100,10 @@ class Router extends Loader {
 				parent::model('wl_cache_model');
 				if($this->wl_cache_model->init($this->request))
 				{
-					if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
-						$this->wl_statistic_model->set_page($this->wl_cache_model->page);
-					
 					$this->wl_alias_model->initFromCache($this->wl_cache_model->page);
+
+					if($_SESSION['option']->statictic_set_page && !$userAdmin)
+						$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					$this->wl_cache_model->get();
 				}
 				else
@@ -116,7 +115,7 @@ class Router extends Loader {
 
 		if($this->isService())
 		{
-			if($admin)
+			if($userAdmin && $parts[0] == 'admin')
 			{
 				$path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.$_SESSION['alias']->service.'_admin';
 				$this->class .= '_admin';
@@ -160,13 +159,13 @@ class Router extends Loader {
 			new Page404();
 
 		$_SESSION['_POST'] = $_SESSION['_GET'] = NULL;
-		if(!$admin && empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
+		if(!$userAdmin && empty($_POST) && (isset($parts[0]) && !in_array($parts[0], array('admin', 'app', 'assets', 'style', 'js', 'css', 'images', 'upload')) || $this->method == 'index'))
 		{
 			if($this->wl_cache_model->page == false)
 			{
 				$this->wl_cache_model->page = $this->db->sitemap_add($_SESSION['alias']->content, $this->request);
 				
-				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				if($_SESSION['option']->statictic_set_page && !$userAdmin)
 				{
 					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					$this->wl_statistic_model->updatePageIndex();
@@ -175,7 +174,7 @@ class Router extends Loader {
 			}
 			else
 			{
-				if(@!$_SESSION['user']->admin && @!$_SESSION['user']->manager)
+				if($_SESSION['option']->statictic_set_page && !$userAdmin)
 				{
 					$this->wl_statistic_model->set_page($this->wl_cache_model->page);
 					$this->wl_statistic_model->updatePageIndex();
@@ -221,6 +220,23 @@ class Router extends Loader {
 	function callController()
 	{
 		$controller = new $this->class();
+
+		if(!empty($_SESSION['alias']->id))
+		{
+			$alias = new stdClass();
+			$alias->id = $_SESSION['alias']->id;
+			$alias->alias = $_SESSION['alias']->alias;
+			$alias->table = $_SESSION['alias']->table ?? 0;
+			$alias->service = $alias->service_name = $alias->service_table = false;
+			if($_SESSION['alias']->service)
+			{
+				$alias->service = $_SESSION['service']->id;
+				$alias->service_name = $_SESSION['service']->name;
+				$alias->service_table = $_SESSION['service']->table;
+			}
+			$controller->addToWlAliasesCache($alias);
+		}
+
 		$method = $this->method;
 		if(is_callable(array($controller, '_remap'))) {
 			$controller->_remap($method);

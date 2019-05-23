@@ -62,11 +62,12 @@ class wl_alias_model
 		$_SESSION['alias']->link = $page->link;
 		$_SESSION['alias']->id = $page->alias;
 		$_SESSION['alias']->content = $page->content;
-		$_SESSION['alias']->code = $page->content;
+		$_SESSION['alias']->code = $page->code;
 		$_SESSION['alias']->table = $page->alias_table;
 		if($page->service)
 		{
 			$_SESSION['alias']->service = $page->service_name;
+			$_SESSION['service']->id = $page->service;
 			$_SESSION['service']->name = $page->service_name;
 			$_SESSION['service']->table = $page->service_table;
 		}
@@ -79,15 +80,20 @@ class wl_alias_model
 		if(isset($_SESSION['alias-cache'][$_SESSION['alias']->id]))
 			$_SESSION['alias-cache'][$_SESSION['alias']->id]->alias->js_load = $_SESSION['alias-cache'][$_SESSION['alias']->id]->alias->js_init  = array();
 
-		$options_where['service'] = $options_where['alias'] = array(0);
-		if($page->service > 0)
-			$options_where['service'][] = $page->service;
-		$options_where['alias'][] = $page->alias;
-		if($options = $this->db->getAllDataByFieldInArray('wl_options', $options_where, 'service, alias'))
-			foreach($options as $opt) {
-				$key = $opt->name;
-				$_SESSION['option']->$key = $opt->value;
-			}
+		if(empty($_SESSION['alias-cache'][$page->alias]->options))
+		{
+			$options_where['service'] = $options_where['alias'] = array(0);
+			if($page->service > 0)
+				$options_where['service'][] = $page->service;
+			$options_where['alias'][] = $page->alias;
+			if($options = $this->db->getAllDataByFieldInArray('wl_options', $options_where, 'service, alias'))
+				foreach($options as $opt) {
+					$key = $opt->name;
+					$_SESSION['option']->$key = $opt->value;
+				}
+		}
+		else
+			$_SESSION['option'] = $_SESSION['alias-cache'][$page->alias]->options;
 		return true;
     }
 
@@ -131,7 +137,7 @@ class wl_alias_model
 			$this->db->join('wl_users', 'name as user_name', '#author');
 			$_SESSION['alias']->videos = $this->db->get('array');
 
-			if(!empty($_SESSION['option']->folder))
+			if(!empty($_SESSION['option']->folder) && $_SESSION['alias']->content > 0)
 			{
 				$this->db->select('wl_audio', '*', $where);
 				$this->db->join('wl_users', 'name as user_name', '#author');

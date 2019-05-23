@@ -286,6 +286,14 @@ class Loader {
 	 * @params $admin позначка що відповідає за режим доступу та контролер панелі керування
 	 */	
 	private $wl_aliases = array();
+	public function addToWlAliasesCache($alias)
+	{
+		if(is_object($alias))
+		{
+			$this->wl_aliases[$alias->id] = clone $alias;
+			$this->wl_aliases[$alias->alias] = clone $alias;
+		}
+	}
 	public function function_in_alias($alias, $method = '', $data = array(), $admin = false)
 	{
 		$rezult = NULL;
@@ -317,12 +325,12 @@ class Loader {
 						$service .= '_admin';
 				}
 
-				if(isset($this->$service) && is_object($this->$service))
+				if(get_class($this) == $service)
 				{
-					if(is_callable(array($this->$service, '_remap')))
-						return $this->$service->_remap($method, $data);
-					else if(is_callable(array($this->$service, $method)))
-						return $this->$service->$method($data);
+					if(is_callable(array($this, '_remap')))
+						return $this->_remap($method, $data);
+					else if(is_callable(array($this, $method)))
+						return $this->$method($data);
 					return false;
 				}
 			}

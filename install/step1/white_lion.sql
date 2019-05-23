@@ -423,11 +423,13 @@ INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (3, 0, 0, 'sitemap_lastgenerate', '0'),
 (4, 0, 0, 'sitemap_lastsent', '0'),
 (5, 0, 0, 'sitemap_lastedit', '0'),
-(6, 0, 0, 'global_MetaTags', ''),
-(7, 0, 0, 'showTimeSiteGenerate', '1'),
-(8, 0, 0, 'showInAdminWl_comments', '0'),
-(9, 0, 0, 'paginator_per_page', '20'),
-(10, 0, 1, 'folder', 'main');
+(6, 0, 0, 'statictic_set_page', '0'),
+(7, 0, 0, 'sitemap_lastedit', '0'),
+(8, 0, 0, 'global_MetaTags', ''),
+(9, 0, 0, 'showTimeSiteGenerate', '1'),
+(10, 0, 0, 'showInAdminWl_comments', '0'),
+(11, 0, 0, 'paginator_per_page', '20'),
+(12, 0, 1, 'folder', 'main');
 
 
 -- --------------------------------------------------------

@@ -17,16 +17,22 @@ class shopshowcase extends Controller {
         parent::__construct();
         $_SESSION['option']->currency = 1;
 
-        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
-        	foreach ($cooperation as $c) {
-        		if($c->type == 'currency')
-        		{
-		        	if($currency = $this->load->function_in_alias($c->alias2, '__get_Currency', 'USD'))
-		            	$_SESSION['option']->currency = $currency;
+        if(isset($_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing))
+        	$this->marketing = $_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing;
+        else
+        {
+        	$_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing = array();
+	        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
+	        	foreach ($cooperation as $c) {
+	        		if($c->type == 'currency')
+	        		{
+			        	if($currency = $this->load->function_in_alias($c->alias2, '__get_Currency', 'USD'))
+			            	$_SESSION['option']->currency = $currency;
+			        }
+			        if($c->type == 'marketing')
+			        	$this->marketing[] = $c->alias2;
 		        }
-		        if($c->type == 'marketing')
-		        	$this->marketing[] = $c->alias2;
-	        }
+		}
     }
 
     function _remap($method, $data = array())
@@ -90,7 +96,9 @@ class shopshowcase extends Controller {
 							$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
 						}
 					}
-				$subgroups = $this->shop_model->getGroups($group->id);
+				$subgroups = false;
+				if($group->haveChild)
+					$subgroups = $this->shop_model->getGroups($group->id);
 				$products = $this->shop_model->getProducts($group->id);
 
 				if(!$subgroups)

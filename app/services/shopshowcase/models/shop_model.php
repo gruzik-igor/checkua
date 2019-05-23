@@ -220,7 +220,7 @@ class shop_model {
 
 							if($products = $this->db->get('array', false))
 							{
-								if($start >= 0 && $_SESSION['option']->paginator_per_page <= count($products))
+								if($start >= 0 && $_SESSION['option']->paginator_per_page >= count($products))
 									$_SESSION['option']->paginator_total = $this->db->get('count');
 								else
 									$_SESSION['option']->paginator_total = count($products);
@@ -1196,7 +1196,7 @@ class shop_model {
 		if($group)
 		{
 			$group->haveChild = false;
-			if(empty($this->allGroups))
+			if(!empty($this->allGroups))
 				foreach ($this->allGroups as $g) {
 					if($g->parent == $group->id)
 					{

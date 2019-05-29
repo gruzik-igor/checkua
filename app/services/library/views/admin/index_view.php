@@ -9,6 +9,7 @@
 						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/all" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:articles_to_all']?></a>
 						<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/groups" class="btn btn-info btn-xs">До всіх <?=$_SESSION['admin_options']['word:groups_to_all']?></a>
 					<?php } ?>
+					<a href="<?=SITE_URL.'admin/wl_ntkd/'.$_SESSION['alias']->alias?>/main?>" class="btn btn-success btn-xs"><i class="fa fa-newspaper-o"></i> Головна сторінка текст</a>
                 </div>
                 <h4 class="panel-title"><?=$_SESSION['alias']->name?>. Групи/підгрупи</h4>
             </div>

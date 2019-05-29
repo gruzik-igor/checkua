@@ -182,14 +182,16 @@
 		        </div>
 				<div  class="panel-body">
 					<div class="form-horizontal">
-						<?php if($_SESSION['all_languages']) foreach($_SESSION['all_languages'] as $lang) { ?>
+						<?php if($_SESSION['all_languages']) {
+							$form->success_data = json_decode($form->success_data);
+						foreach($_SESSION['all_languages'] as $lang) { ?>
 							<div class="form-group">
 								<label class="col-md-3 control-label"><?= $lang?></label>
 								<div class="col-md-9">
 									<input type="text" class="form-control" name="lang[<?= $lang?>]" value="<?= $form->success == 2 || $form->success == 4 ? $form->success_data->$lang : '' ?>" >
 								</div>
 							</div>
-						<?php } else { ?>
+						<?php } } else { ?>
 							<div class="form-group">
 								<label class="col-md-3 control-label">Текст</label>
 								<div class="col-md-9">

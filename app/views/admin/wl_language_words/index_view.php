@@ -50,15 +50,16 @@
 									$all = 0;
 									foreach ($words as $word) {
 										if($word->alias == $alias->id){
+											$word->word = htmlspecialchars($word->word, ENT_COMPAT, 'UTF-8');
 											echo("<tr>");
 												echo("<td id=\"word-{$word->id}\" class=\"alias-{$alias->id}\"><button class='btn btn-xs btn-danger' onClick='deleteWord({$word->id}, \"{$word->word}\")'>x</button> <b>{$word->word}</b></td>");
 												if($_SESSION['language'])
 												{												
 													foreach ($_SESSION['all_languages'] as $language) {
 														if($word->type == 1) {
-															echo("<td id=\"td-word-{$word->id}-{$language}\"><input type=\"text\" value=\"{$word->$language}\" id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\"></td>");
+															echo("<td id=\"td-word-{$word->id}-{$language}\"><input type=\"text\" value=\"{$word->$language}\" placeholder=\"{$word->word}\" id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\"></td>");
 														} elseif($word->type == 3) {
-															echo("<td id=\"td-word-{$word->id}-{$language}\"><textarea id=\"word-{$word->id}-{$language}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\">{$word->$language}</textarea></td>");
+															echo("<td id=\"td-word-{$word->id}-{$language}\"><textarea id=\"word-{$word->id}-{$language}\" placeholder=\"{$word->word}\" class=\"form-control\" onChange=\"save({$word->id}, '{$language}', this)\">{$word->$language}</textarea></td>");
 														}
 													}
 												}
@@ -66,11 +67,11 @@
 												{
 													if($word->type == 1)
 													{
-														echo("<td id=\"td-word-{$word->id}\"><input type=\"text\" value=\"{$word->value}\" id=\"word-{$word->id}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\"></td>");
+														echo("<td id=\"td-word-{$word->id}\"><input type=\"text\" value=\"{$word->value}\" placeholder=\"{$word->word}\" id=\"word-{$word->id}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\"></td>");
 													}
 													elseif($word->type == 3)
 													{
-														echo("<td id=\"td-word-{$word->id}\"><textarea id=\"word-{$word->id}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\">{$word->value}</textarea></td>");
+														echo("<td id=\"td-word-{$word->id}\"><textarea id=\"word-{$word->id}\" placeholder=\"{$word->word}\" class=\"form-control\" onChange=\"save({$word->id}, '', this)\">{$word->value}</textarea></td>");
 													}
 												}
 												echo("<td>");

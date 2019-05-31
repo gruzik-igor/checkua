@@ -72,14 +72,13 @@
 			}
 		}
 	}
-	$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$lang}' );";
+	$_SESSION['alias']->js_init[] = "var editor_{$lang} = CKEDITOR.replace( 'editor-{$lang}' ); editor_{$lang}.on('blur', function(ev) { saveText('{$lang}' ) } );";
 	?>
 	<br>
 	<label class="control-label">Короткий опис:</label><br>
 	<textarea onChange="save('list', this, '<?=$lang?>')"><?=$ntkd[$lang]->list?></textarea>
 	<h3>Опис:</h3>
 	<textarea id="editor-<?=$lang?>"><?=$ntkd[$lang]->text?></textarea>
-	<button class="btn btn-success m-t-5" onClick="saveText('<?=$lang?>')"><i class="fa fa-save"></i> Зберегти текст опису сторінки</button>
 <?php } else { ?>
 	<div class="input-group">
 	    <span class="input-group-addon">Назва</span>
@@ -155,6 +154,5 @@
 	<textarea onChange="save('list', this)" class="form-control"><?=$ntkd->list?></textarea>
 	<h3>Опис:</h3>
 	<textarea onChange="save('text', this)" id="editor"><?=html_entity_decode($ntkd->text, ENT_QUOTES, 'utf-8')?></textarea>
-	<button class="btn btn-success m-t-5" onClick="saveText(false)"><i class="fa fa-save"></i> Зберегти текст опису сторінки</button>
 
-<?php $_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor' );"; } ?>
+<?php $_SESSION['alias']->js_init[] = "var editorCKEDITOR.replace( 'editor' ); editor.on('blur', function(ev) { saveText(false) } );"; } ?>

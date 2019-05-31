@@ -16,14 +16,14 @@ if(!$_SESSION['language'] || $_SESSION['language'] == $language)
 		$language_attr = ", '{$language}'";
 		$language_block = "-{$language}";
 		$language_block_name = "'{$language}'";
-		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
+		$_SESSION['alias']->js_init[] = "var editor_{$language} = CKEDITOR.replace( 'editor-{$language}' ); editor_{$language}.on('blur', function(ev) { saveText('{$language}') } );";	
 	}
 	else
 	{
 		$language_attr = "";
 		$language_block = "-block";
 		$language_block_name = "'block'";
-		$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-block' );";		
+		$_SESSION['alias']->js_init[] = "var editor = CKEDITOR.replace( 'editor-block' ); editor.on('blur', function(ev) { saveText('block') } );";	
 	}
 }
 else
@@ -46,7 +46,7 @@ else
 	$language_attr = ", '{$language}'";
 	$language_block = "-{$language}";
 	$language_block_name = "'{$language}'";
-	$_SESSION['alias']->js_init[] = "CKEDITOR.replace( 'editor-{$language}' );";
+	$_SESSION['alias']->js_init[] = "var editor_{$language} = CKEDITOR.replace( 'editor-{$language}' ); editor_{$language}.on('blur', function(ev) { saveText('{$language}') } );";	
 }
 
 ?>
@@ -81,4 +81,3 @@ else
 <textarea class="form-control" onChange="save('list', this <?=$language_attr?>)"><?=$ntkd->list?></textarea>
 <label>Опис:</label><br>
 <textarea onChange="save('text', this <?=$language_attr?>)" id="editor<?=$language_block?>"><?=html_entity_decode($ntkd->text, ENT_QUOTES, 'utf-8')?></textarea>
-<button class="btn btn-success m-t-5" onClick="saveText(<?=$language_block_name?>)"><i class="fa fa-save"></i> Зберегти текст опису сторінки</button>

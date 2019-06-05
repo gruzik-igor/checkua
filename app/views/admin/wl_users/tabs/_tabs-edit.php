@@ -54,6 +54,14 @@
 							}
 							foreach ($permissions as $p) { ?>
 								<input type="checkbox" id="<?=$p->alias?>" name="permissions[]" value="<?=$p->id?>" <?=(in_array($p->id, $user_permissions))?'checked':''?>><label for="<?=$p->alias?>"><?=$p->alias?></label>
+						<?php }
+						if( $sidebarForms = $this->db->getQuery("SELECT `id`, `title` FROM `wl_forms`", 'array') ){
+							echo "<p>Форми:</p>";
+							foreach ($sidebarForms as $form) { ?>
+								<input type="checkbox" id="form-<?=$form->id?>" name="permissions[]" value="-<?=$form->id?>" <?=(in_array(-$form->id, $user_permissions))?'checked':''?>><label for="form-<?=$form->id?>"><?=$form->title?></label>
+						<?php } }
+						if(!empty($_SESSION['option']->showInAdminWl_comments)) { ?>
+							<br><input type="checkbox" id="wl_comments" name="permissions[]" value="0" <?=(in_array(0, $user_permissions))?'checked':''?>><label for="wl_comments">Відгуки та коментарі</label>
 						<?php } ?>
 			        </div>
 

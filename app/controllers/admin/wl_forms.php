@@ -15,6 +15,9 @@ class wl_forms extends Controller {
 
     public function index()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         if($this->data->uri(2) != ''){
             $form = $this->data->uri(2);
             $form = $this->db->getAllDataById('wl_forms', $form, 'name');
@@ -92,6 +95,9 @@ class wl_forms extends Controller {
 
     public function add()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         $_SESSION['alias']->name = 'Додати нову форму';
         $_SESSION['alias']->breadcrumb = array('Форми' => 'admin/wl_forms', 'Нова форма' => '');
         $this->load->admin_view('wl_forms/add_view');
@@ -99,6 +105,8 @@ class wl_forms extends Controller {
 
     public function add_save()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
 
         if(!empty($_POST)){
             if(!empty($_POST['name'])) $name = $this->data->post('name');
@@ -116,6 +124,9 @@ class wl_forms extends Controller {
 
     public function add_field()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         if(!empty($_POST))
         {
             $form = $this->data->post('form');
@@ -159,6 +170,9 @@ class wl_forms extends Controller {
 
     public function edit_field($value='')
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         if(!empty($_POST)){
             $id = $this->data->post('id');
             $form = $this->data->post('form');
@@ -200,6 +214,9 @@ class wl_forms extends Controller {
 
     public function edit_form()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         $data = array();
         $formId = $_POST['formId'];
 
@@ -277,16 +294,20 @@ class wl_forms extends Controller {
     {
         if($name = $this->data->uri(3))
         {
-            if($form = $this->db->getQuery("SELECT `id`, `table`, `title` FROM `wl_forms` WHERE `name` = '{$name}'"))
-            {
-                $_SESSION['alias']->name = $form->title;
-                $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
+            if($this->userCan('form_'.$name)) {
+                if($form = $this->db->getQuery("SELECT `id`, `table`, `title` FROM `wl_forms` WHERE `name` = '{$name}'"))
+                {
+                    $_SESSION['alias']->name = $form->title;
+                    $formInfo = $this->db->getQuery("SELECT name, title FROM `wl_fields` WHERE `form` = '{$form->id}'", 'array');
 
-                $this->db->executeQuery("UPDATE `{$form->table}` SET `new` = 0 WHERE `new` = 1");
-                $tableInfo = $this->db->getQuery("SELECT * FROM `{$form->table}` ORDER BY `id` DESC", 'array');
+                    $this->db->executeQuery("UPDATE `{$form->table}` SET `new` = 0 WHERE `new` = 1");
+                    $tableInfo = $this->db->getQuery("SELECT * FROM `{$form->table}` ORDER BY `id` DESC", 'array');
 
-                $this->load->admin_view('wl_forms/info_view', array('form' => $form, 'formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+                    $this->load->admin_view('wl_forms/info_view', array('form' => $form, 'formInfo' => $formInfo, 'tableInfo' => $tableInfo));
+                }
             }
+            else
+                $this->page_403();
         }
 
         $this->load->page_404(false);
@@ -294,8 +315,10 @@ class wl_forms extends Controller {
 
     public function createMailTemplate()
     {
-        $formId = $this->data->uri(3);
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
 
+        $formId = $this->data->uri(3);
         if(isset($formId) && is_numeric($formId))
         {
             $data = array();
@@ -319,6 +342,9 @@ class wl_forms extends Controller {
 
     public function deleteForm()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         $form = $this->data->post('form');
         $deleteTable = $this->data->post('deleteTable');
         $tableName = $this->data->post('tableName');
@@ -333,6 +359,9 @@ class wl_forms extends Controller {
 
     public function deleteField()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+
         $field = $this->data->post('field');
         $fieldName = $this->data->post('fieldName');
         $tableName = $this->data->post('tableName');
@@ -345,6 +374,9 @@ class wl_forms extends Controller {
 
     public function deleteRow()
     {
+        if(!$_SESSION['user']->admin)
+            $this->page_403();
+        
         $res = array('result' => false, 'error' => 'Access denied! Only admin');
         if($_SESSION['user']->type == 1 && !empty($_POST['table']) && !empty($_POST['id']) && is_numeric($_POST['id'])) {
             if($table = $this->data->post('table'))
@@ -363,6 +395,26 @@ class wl_forms extends Controller {
             }
         }
         $this->load->json($res);
+    }
+
+    public function page_403()
+    {
+        $_SESSION['alias'] = new stdClass();
+        $_SESSION['alias']->id = -1;
+        $_SESSION['alias']->name = '403 Forbidden';
+        $_SESSION['alias']->alias = 'admin403';
+        $_SESSION['alias']->service = false;
+        $_SESSION['alias']->table = $_SESSION['alias']->text = '';
+        $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumb = array();
+
+        if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
+            foreach($options as $opt) {
+                $key = $opt->name;
+                @$_SESSION['option']->$key = $opt->value;
+            }
+        header('HTTP/1.0 403 Forbidden');
+        $this->load->admin_view('403_view');
+        exit;
     }
 }
 

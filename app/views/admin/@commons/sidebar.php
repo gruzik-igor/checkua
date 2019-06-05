@@ -25,7 +25,7 @@
             <span>Домашня сторінка</span>
         </a>
     </li>
-    <?php if(!empty($_SESSION['option']->showInAdminWl_comments)) {
+    <?php if(!empty($_SESSION['option']->showInAdminWl_comments) && $this->userCan('wl_comments')) {
         $wl_comments_new = $this->db->getCount('wl_comments', array('status' => array(2, 3))); ?>
         <li <?=($_SESSION['alias']->alias == 'wl_comments')?'class="active"':''?>>
             <a href="<?=SITE_URL?>admin/wl_comments">
@@ -35,16 +35,17 @@
                 <i class="fa fa-group"></i> Відгуки та коментарі</a>
         </li>
     <?php } if( $sidebarForms = $this->db->getQuery("SELECT `name`, `title`, `table` FROM `wl_forms` WHERE `sidebar` = 1", 'array') )
-        foreach($sidebarForms as $sidebarForm) {
-            $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
-            $news = $this->db->getCount($sidebarForm->table, 1, 'new');
-     ?>
-        <li<?=$class?>> <a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>">
-            <?php if($news) { ?>
-                <span class="badge pull-right"><?=$news?></span>
-            <?php } ?>
-            <i class="fa fa-list-ul"></i> <?= $sidebarForm->title?>
-        </a></li>
+        foreach($sidebarForms as $sidebarForm)
+            if($this->userCan('form_'.$sidebarForm->name)) {
+                $class = ($_SESSION['alias']->alias == 'wl_forms' && $this->data->uri(2) == 'info' && $this->data->uri(3) == $sidebarForm->name) ? ' class="active"' : '';
+                $news = $this->db->getCount($sidebarForm->table, 1, 'new');
+         ?>
+            <li<?=$class?>> <a href="<?= SITE_URL.'admin/wl_forms/info/'.$sidebarForm->name?>">
+                <?php if($news) { ?>
+                    <span class="badge pull-right"><?=$news?></span>
+                <?php } ?>
+                <i class="fa fa-list-ul"></i> <?= $sidebarForm->title?>
+            </a></li>
     <?php }
     $this->db->select('wl_aliases as a', 'id, alias, admin_sidebar, admin_ico', array('admin_order' => '>0'));
     $this->db->join('wl_services', 'name as service_name', '#service');
@@ -130,9 +131,7 @@
     } 
     if($_SESSION['user']->admin == 1) { ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
-        <?php if(!empty($_SESSION['option']->statictic_set_page)) { ?>
-            <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
-        <?php } ?>
+        <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
         <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template', 'wl_pagespeed')) && $this->data->uri(2) != 'info')?'active':''?>">
             <a href="javascript:;">
                 <b class="caret pull-right"></b>

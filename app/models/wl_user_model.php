@@ -328,7 +328,7 @@ class wl_user_model {
         $_SESSION['user']->photo = NULL;
         if(!empty($user->photo))
             $_SESSION['user']->photo = IMG_PATH.'profile/'.$user->photo;
-        $_SESSION['user']->permissions = array('wl_users', 'wl_ntkd', 'wl_images', 'wl_video');
+        $_SESSION['user']->permissions = array('wl_users', 'wl_ntkd', 'wl_photos', 'wl_video', 'wl_audio');
 
         if($user->type == 1)
             $_SESSION['user']->admin = 1; 
@@ -337,13 +337,29 @@ class wl_user_model {
 
         if($user->type == 2)
         {
+        	$search_forms = array();
             $_SESSION['user']->manager = 1;
             $this->db->select('wl_user_permissions as up', '*', $user->id, 'user');
             $this->db->join('wl_aliases', 'alias', '#up.permission');
             $permissions = $this->db->get('array');
             if($permissions)
                 foreach($permissions as $permission)
-                	$_SESSION['user']->permissions[] = $permission->alias;
+                {
+                	if($permission->permission == 0)
+                		$_SESSION['user']->permissions[] = 'wl_comments';
+                	if($permission->permission > 0)
+                		$_SESSION['user']->permissions[] = $permission->alias;
+                	else
+                		$search_forms[] = -$permission->permission;
+                }
+            if(!empty($search_forms))
+            {
+            	$_SESSION['user']->permissions[] = 'wl_forms';
+            	if($forms = $this->db->getAllDataByFieldInArray('wl_forms', array('id' => $search_forms)))
+            		foreach ($forms as $form) {
+            			$_SESSION['user']->permissions[] = 'form_'.$form->name;
+            		}
+            }
         }
         else
             $_SESSION['user']->manager = 0;

@@ -20,9 +20,7 @@ class admin extends Controller {
         $_SESSION['alias']->table = '';
         $_SESSION['alias']->name = 'Панель керування';
         $_SESSION['alias']->text = '';
-        $_SESSION['alias']->js_load = array();
-        $_SESSION['alias']->js_init = array();
-        $_SESSION['alias']->breadcrumb = array();
+        $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumb = array();
 
         $alias = $this->data->uri(1);
         if($alias != '')
@@ -58,6 +56,25 @@ class admin extends Controller {
 
             $this->load->admin_view('index_view');
         }
+    }
+
+    public function page_403()
+    {
+        $_SESSION['alias'] = new stdClass();
+        $_SESSION['alias']->id = -1;
+        $_SESSION['alias']->name = '403 Forbidden';
+        $_SESSION['alias']->alias = 'admin403';
+        $_SESSION['alias']->service = false;
+        $_SESSION['alias']->table = $_SESSION['alias']->text = '';
+        $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumb = array();
+
+        if($options = $this->db->getAllDataByFieldInArray('wl_options', array('service' => 0, 'alias' => 0)))
+            foreach($options as $opt) {
+                $key = $opt->name;
+                @$_SESSION['option']->$key = $opt->value;
+            }
+        header('HTTP/1.0 403 Forbidden');
+        $this->load->admin_view('403_view');
     }
     
 }

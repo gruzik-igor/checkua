@@ -155,4 +155,4 @@
 	<h3>Опис:</h3>
 	<textarea onChange="save('text', this)" id="editor"><?=html_entity_decode($ntkd->text, ENT_QUOTES, 'utf-8')?></textarea>
 
-<?php $_SESSION['alias']->js_init[] = "var editorCKEDITOR.replace( 'editor' ); editor.on('blur', function(ev) { saveText(false) } );"; } ?>
+<?php $_SESSION['alias']->js_init[] = "var editor = CKEDITOR.replace( 'editor' ); editor.on('blur', function(ev) { saveText(false) } );"; } ?>

@@ -64,23 +64,28 @@ class Router extends Loader {
 			new Page404();
 		elseif($parts[0] == 'admin')
 		{
-			if($userAdmin)
+			if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && ($_SESSION['user']->admin || $_SESSION['user']->manager))
 			{
 				if($_SESSION['language'] && $_SESSION['language'] != $_SESSION['all_languages'][0])
 					parent::redirect(SERVER_URL.$this->request, false);
-				if(count($parts) == 1)
+				if(count($parts) == 1 || !$userAdmin)
 				{
 					$parts[] = 'admin';
 					$_SESSION['alias'] = new stdClass();
 					$_SESSION['alias']->service = false;
 					$_SESSION['service'] = new stdClass();
+
+					if(!$userAdmin)
+						$parts = array('admin', 'admin', 'page_403');
 				}
-				else
+				elseif($userAdmin)
 				{
 					parent::model('wl_alias_model');
 					$this->wl_alias_model->init($parts[1], $this->request);
 					$this->wl_alias_model->admin_options();
 				}
+				else
+					new Page404(false);
 			}
 			else
 				parent::redirect('login?redirect='.$this->request);

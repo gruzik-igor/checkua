@@ -41,6 +41,11 @@ class wl_users extends Controller {
             else
                 $this->load->admin_view('wl_users/list_view');
         }
+        else
+        {
+            header('HTTP/1.0 403 Forbidden');
+            $this->load->admin_view('403_view');
+        }
     }
 
     public function add()

@@ -41,7 +41,7 @@ if($shops) {
                         			$price = $shopData[$type->id]['price'];
                         		} ?>
                         		<tr>
-                        			<th><?=$type->title?></th>
+                        			<th><?=$type->title?> <?=(isset($_SESSION['option']->new_user_type) && $_SESSION['option']->new_user_type == $type->id)?'<u>(*по замовчуванню)</u>':''?></th>
                         			<td>
                         				<select class="form-control" id="change_price-<?=$shop->id?>-<?=$type->id?>" onchange="saveChangePrice(<?=$shop->id?>, <?=$type->id?>, '<?=$type->title?>')">
                         					<option value="+">+ додати фіксовані у.о.</option>
@@ -55,6 +55,7 @@ if($shops) {
                         	<?php } ?>
 						</tbody>
 					</table>
+					<p><u>*по замовчуванню</u> - ціна для неавторизованих відвідувачів/покупців</p>
 				</div>
 			</div>
 		</div>

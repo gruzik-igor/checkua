@@ -13,7 +13,7 @@
             <div class="panel-body">
 	            <form action="<?=SITE_URL?>admin/wl_aliases/save_all" method="POST" class="form-horizontal">
 					<?php if(isset($options)) { 
-                        $bools = array('sitemap_active', 'sitemap_autosent', 'showTimeSiteGenerate', 'showInAdminWl_comments', 'statictic_set_page');
+                        $bools = array('sitemap_active', 'sitemap_autosent', 'showTimeSiteGenerate', 'userSignUp', 'showInAdminWl_comments', 'statictic_set_page');
                         $dates = array('sitemap_lastgenerate', 'sitemap_lastsent', 'sitemap_lastedit');
                         $titles = array( 'sitemap_active' => 'Автоматично оновлювати SiteMap при зміні контенту на сайті',
                             'sitemap_autosent' => 'Автоматично відправляти SiteMap пошуковим роботам',
@@ -21,10 +21,14 @@
                             'sitemap_lastsent' => 'Остання відправка SiteMap пошуковим роботам',
                             'sitemap_lastedit' => 'Остання зміна інформації на сайті',
                             'paginator_per_page' => 'Матеріалів на сторінці (per page)',
-                            'showTimeSiteGenerate' => 'Виводити час генерації сторінки', 
-                            'statictic_set_page' => 'Зберігати внутрішню статистику', 
+                            'showTimeSiteGenerate' => 'Виводити час генерації сторінки',
+                            'statictic_set_page' => 'Зберігати внутрішню статистику',
+                            'userSignUp' => 'Вільна реєстрація користувачів',
+                            'new_user_type' => 'Тип (категорія) новозареєстрованого користувача',
                             'showInAdminWl_comments' => 'Виводити в панелі керування вігуки');
-						foreach ($options as $option) { ?>
+						foreach ($options as $option) {
+                            if($option->name == 'global_MetaTags' || $option->name == 'new_user_type' && empty($_SESSION['option']->userSignUp))
+                                continue; ?>
 							<div class="form-group">
 		                        <label class="col-md-3 control-label"><?=(isset($titles[$option->name])) ? $titles[$option->name] : $option->name?></label>
 		                        <div class="col-md-9">
@@ -32,7 +36,19 @@
                                         echo ($option->value > 0) ? date('d.m.Y H:i', $option->value) : 'Дані відсутні';
                                     } elseif(in_array($option->name, $bools)) { ?>
                                         <input name="option-<?=$option->id?>-<?=$option->name?>" type="checkbox" data-render="switchery" <?=($option->value == 1) ? 'checked' : ''?> value="1" />
-                                    <?php } else { ?>
+                                    <?php } elseif($option->name == 'new_user_type') {
+                                        $selected = $option->value ?? 4;
+                                        if($userTypes = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active')) {
+                                     ?>
+                                        <select name="option-<?=$option->id?>" class="form-control">
+                                            <?php foreach ($userTypes as $type) {
+                                                echo "<option value='{$type->id}'";
+                                                if($type->id == $selected)
+                                                    echo " selected";
+                                                echo ">{$type->title}</option>";
+                                            } ?>
+                                        </select>
+                                    <?php } } else { ?>
 		                            <input type="text" class="form-control" name="option-<?=$option->id?>" value="<?=$option->value?>" placeholder="<?=$option->name?>">
                                     <?php } ?>
 		                        </div>

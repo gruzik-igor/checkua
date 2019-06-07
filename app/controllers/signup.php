@@ -7,6 +7,18 @@ class Signup extends Controller {
     public $additionall = array('phone'); // false додаткові поля при реєстрації. Згодом можна використовувати у ідентифікації, тощо
     private $new_user_type = 4; // Ід типу новозареєстрованого користувача
 
+    function _remap($method, $data = array())
+    {
+    	if(isset($_SESSION['option']->new_user_type))
+    		$this->new_user_type = $_SESSION['option']->new_user_type;
+        if (method_exists($this, $method)) {
+        	if(empty($data)) $data = null;
+            return $this->$method($data);
+        } else {
+        	$this->index($method);
+        }
+    }
+
     public function index()
     {
     	$where = array('service' => 0, 'alias' => 4, 'name' => 'userSignUp');

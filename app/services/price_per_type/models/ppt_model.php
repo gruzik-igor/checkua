@@ -11,18 +11,22 @@ class ppt_model
 	
 	public function getProduct($product)
 	{
-		$where = array();
+		$where = $data = array();
 		if(isset($product->wl_alias))
 		{
-			$where['product_alias'] = $product->wl_alias;
+			$where['product_alias'] = $data['shop_alias'] = $product->wl_alias;
 			$where['product_id'] = $product->id;
 		}
 		else if(isset($product->product_alias))
 		{
-			$where['product_alias'] = $product->product_alias;
+			$where['product_alias'] = $data['shop_alias'] = $product->product_alias;
 			$where['product_id'] = $product->product_id;
 		}
-		// $where['user_type'] = $this->data->post('type_id');
+		$where['user_type'] = $data['user_type'] = 4;
+		if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && isset($_SESSION['user']->type))
+			$where['user_type'] = $data['user_type'] = $_SESSION['user']->type;
+		elseif(isset($_SESSION['option']->new_user_type))
+    		$where['user_type'] = $data['user_type'] = $_SESSION['option']->new_user_type;
 		if(!empty($where))
 		{
 			$product->marketing = false;
@@ -35,21 +39,15 @@ class ppt_model
 					$product->price += $marketing->price;
 				if($marketing->change_price == '*')
 					$product->price *= $marketing->price;
-				$product->discount = ($product->price_before - $product->price) * $product->quantity;
+				$product->discount = $product->price - $product->price_before;
 			}
-			else
+			elseif($marketing = $this->db->getAllDataById($this->table(), $data))
 			{
-				$data = array();
-				$data['shop_alias'] = $product->product_alias;
-				// $data['user_type'] = $this->data->post('type_id');
-				if($marketing = $this->db->getAllDataById($this->table(), $data))
-				{
-					if($marketing->change_price == '+')
-						$product->price += $marketing->price;
-					if($marketing->change_price == '*')
-						$product->price *= $marketing->price;
-					$product->discount = ($product->price_before - $product->price) * $product->quantity;
-				}
+				if($marketing->change_price == '+')
+					$product->price += $marketing->price;
+				if($marketing->change_price == '*')
+					$product->price *= $marketing->price;
+				$product->discount = $product->price - $product->price_before;
 			}
 		}
 		return $product;

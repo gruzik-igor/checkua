@@ -53,12 +53,12 @@ if(file_exists($file_config))
         $nextstep = 3.5;
         if($_POST['userSignUp'] == 1)
         {
-        	$query = "INSERT INTO `wl_options` (`service`, `alias`, `name`, `value`) VALUES (0, 4, 'userSignUp', 1);";
+        	$query = "INSERT INTO `wl_options` (`service`, `alias`, `name`, `value`) VALUES (0, 0, 'userSignUp', 1);";
 			$connect->query($query);
         }
         else
         {
-        	$query = "INSERT INTO `wl_options` (`service`, `alias`, `name`, `value`) VALUES (0, 4, 'userSignUp', 0);";
+        	$query = "INSERT INTO `wl_options` (`service`, `alias`, `name`, `value`) VALUES (0, 0, 'userSignUp', 0);";
 			$connect->query($query);
 
         	$query = "UPDATE `wl_sitemap` SET `code`= 404 WHERE `id` = 5";

@@ -427,9 +427,10 @@ INSERT INTO `wl_options` (`id`, `service`, `alias`, `name`, `value`) VALUES
 (7, 0, 0, 'sitemap_lastedit', '0'),
 (8, 0, 0, 'global_MetaTags', ''),
 (9, 0, 0, 'showTimeSiteGenerate', '1'),
-(10, 0, 0, 'showInAdminWl_comments', '0'),
-(11, 0, 0, 'paginator_per_page', '20'),
-(12, 0, 1, 'folder', 'main');
+(10, 0, 0, 'new_user_type', '4'),
+(11, 0, 0, 'showInAdminWl_comments', '0'),
+(12, 0, 0, 'paginator_per_page', '20'),
+(13, 0, 1, 'folder', 'main');
 
 
 -- --------------------------------------------------------

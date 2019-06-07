@@ -532,7 +532,7 @@ class wl_aliases extends Controller {
     {
         if($_SESSION['user']->admin == 1)
         {
-            $bools = array('sitemap_active' => 0, 'sitemap_autosent' => 0, 'showTimeSiteGenerate' => 0, 'statictic_set_page' => 0);
+            $bools = array('sitemap_active' => 0, 'sitemap_autosent' => 0, 'showTimeSiteGenerate' => 0, 'statictic_set_page' => 0, 'userSignUp' => 0);
             foreach ($_POST as $key => $value) {
                 $key = explode('-', $key);
                 if(count($key) == 2 && $key[0] == 'option' && is_numeric($key[1]))

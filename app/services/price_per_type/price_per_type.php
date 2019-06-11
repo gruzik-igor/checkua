@@ -38,15 +38,14 @@ class price_per_type extends Controller {
 	public function __get_Products($products)
 	{
 		$this->load->smodel('ppt_model');
-        $all = $currency = false;
-        if(isset($products['all']) && isset($products['products']))
+        $currency = false;
+        if(isset($products['products']))
         {
-            $all = true;
             if(isset($products['currency']))
                 $currency = $products['currency'];
             $products = $products['products'];
         }
-		return $this->ppt_model->getProducts($products, $currency, $all);
+		return $this->ppt_model->getProducts($products, $currency);
 	}
 	
 }

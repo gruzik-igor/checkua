@@ -21,7 +21,6 @@ class shopshowcase extends Controller {
         	$this->marketing = $_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing;
         else
         {
-        	$_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing = array();
 	        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
 	        	foreach ($cooperation as $c) {
 	        		if($c->type == 'currency')
@@ -32,6 +31,7 @@ class shopshowcase extends Controller {
 			        if($c->type == 'marketing')
 			        	$this->marketing[] = $c->alias2;
 		        }
+		    $_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing = $this->marketing;
 		}
     }
 
@@ -89,13 +89,7 @@ class shopshowcase extends Controller {
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
-				if(!empty($this->marketing))
-					foreach ($products as $product) {
-						foreach ($this->marketing as $marketingAliasId) {
-							$product->currency = $_SESSION['option']->currency;
-							$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
-						}
-					}
+				
 				$subgroups = false;
 				if($group->haveChild)
 					$subgroups = $this->shop_model->getGroups($group->id);
@@ -109,6 +103,11 @@ class shopshowcase extends Controller {
 					foreach ($filters as $filter) {
 						if(count($filter->values) > 1)
 							usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
+					}
+
+				if(!empty($this->marketing))
+					foreach ($this->marketing as $marketingAliasId) {
+						$products = $this->load->function_in_alias($marketingAliasId, '__get_Products', array('products' => $products, 'currency' => $_SESSION['option']->currency));
 					}
 
 				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters));

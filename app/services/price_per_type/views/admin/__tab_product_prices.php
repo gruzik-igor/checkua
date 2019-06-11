@@ -40,6 +40,7 @@
                     <select class="form-control" id="change_price-ppt-<?=$type->id?>" onchange="savePPTChangePrice(<?=$type->id?>, '<?=$type->title?>')" <?=(isset($productData[$type->id]))?'':'disabled'?>>
                         <option value="+">+ додати фіксовані у.о.</option>
                         <option value="*" <?=($change_price == '*') ? 'selected' : ''?>>* помножити на коефіцієнт</option>
+                        <option value="=" <?=($change_price == '=') ? 'selected' : ''?>>= точне значення</option>
                     </select>
                 </td>
                 <td>

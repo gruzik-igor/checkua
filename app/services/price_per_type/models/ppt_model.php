@@ -32,19 +32,23 @@ class ppt_model
 			$product->marketing = false;
 			$product->price_before = $product->price;
 			$product->discount = 0;
+			if(empty($product->markup))
+				$product->markup = 1;
 			if($marketing = $this->db->getAllDataById($this->table('_product'), $where))
 			{
 				$product->marketing = $marketing;
 				if($marketing->change_price == '+')
-					$product->price += $marketing->price;
+					$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
 				if($marketing->change_price == '*')
 					$product->price *= $marketing->price;
+				if($marketing->change_price == '=')
+					$product->price = $marketing->price * $product->currency * $product->markup;
 				$product->discount = $product->price - $product->price_before;
 			}
 			elseif($marketing = $this->db->getAllDataById($this->table(), $data))
 			{
 				if($marketing->change_price == '+')
-					$product->price += $marketing->price;
+					$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
 				if($marketing->change_price == '*')
 					$product->price *= $marketing->price;
 				$product->discount = $product->price - $product->price_before;
@@ -53,7 +57,7 @@ class ppt_model
 		return $product;
 	}
 
-	public function getProducts($products, $currency, $all)
+	public function getProducts($products, $currency)
 	{
 		if(is_array($products) && is_object($products[0]))
 		{
@@ -61,45 +65,84 @@ class ppt_model
 			if(isset($products[0]->wl_alias))
 			{
 				$where['product_alias'] = $products[0]->wl_alias;
-				if(!$all)
-				{
-					$where['product_id'] = array();
-					foreach ($products as $product) {
-						$where['product_id'][] = $product->id;
-					}
+				$where['product_id'] = array();
+				foreach ($products as $product) {
+					$where['product_id'][] = $product->id;
 				}
 			}
 			else if(isset($products[0]->product_alias))
 			{
 				$where['product_alias'] = $products[0]->product_alias;
-				if(!$all)
-				{
-					$where['product_id'] = array();
-					foreach ($products as $product) {
-						$where['product_id'][] = $product->product_id;
-					}
+				$where['product_id'] = array();
+				foreach ($products as $product) {
+					$where['product_id'][] = $product->product_id;
 				}
 			}
 			if(!empty($where))
 			{
-				if($marketings = $this->db->getAllDataByFieldInArray($this->table(), $where))
+				$where['user_type'] = $data['user_type'] = 4;
+				if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && isset($_SESSION['user']->type))
+					$where['user_type'] = $data['user_type'] = $_SESSION['user']->type;
+				elseif(isset($_SESSION['option']->new_user_type))
+		    		$where['user_type'] = $data['user_type'] = $_SESSION['option']->new_user_type;
+
+				$_products_skip = array();
+				if($marketings = $this->db->getAllDataByFieldInArray($this->table('_product'), $where))
 					foreach ($products as $product) {
 						foreach ($marketings as $marketing) {
 							if($marketing->product_id == $product->id)
 							{
-								$prices = unserialize($marketing->price);
-								ksort ($prices);
-								if($currency && is_numeric($currency) && $currency > 0)
-									foreach ($prices as $from => &$price)
-										$price *= $currency;
-								else if(!empty($product->currency))
-									foreach ($prices as $from => &$price)
-										$price *= $product->currency;
-								$product->prices = $prices;
+								$_products_skip[] = $product->id;
+								$product->price_before = $product->price;
+								$product->discount = 0;
+								if(empty($product->markup))
+									$product->markup = 1;
+								$product->marketing = $marketing;
+								if($marketing->change_price == '+')
+									$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
+								if($marketing->change_price == '*')
+									$product->price *= $marketing->price;
+								if($marketing->change_price == '=')
+									$product->price = $marketing->price * $product->currency * $product->markup;
+								$product->discount = $product->price - $product->price_before;
 								break;
 							}
 						}
 					}
+
+				if(count($_products_skip) != count($products))
+				{
+					$where = array();
+					if(isset($products[0]->wl_alias))
+						$where['shop_alias'] = $products[0]->wl_alias;
+					else if(isset($products[0]->product_alias))
+						$where['shop_alias'] = $products[0]->product_alias;
+					if(!empty($where))
+					{
+						$where['user_type'] = $data['user_type'] = 4;
+						if(isset($_SESSION['user']->id) && $_SESSION['user']->id > 0 && isset($_SESSION['user']->type))
+							$where['user_type'] = $data['user_type'] = $_SESSION['user']->type;
+						elseif(isset($_SESSION['option']->new_user_type))
+				    		$where['user_type'] = $data['user_type'] = $_SESSION['option']->new_user_type;
+					}
+					if($marketings = $this->db->getAllDataByFieldInArray($this->table(), $where))
+						foreach ($products as $product) {
+							if(!in_array($product->id, $_products_skip))
+								foreach ($marketings as $marketing) {
+									$product->price_before = $product->price;
+									$product->discount = 0;
+									if(empty($product->markup))
+										$product->markup = 1;
+									$product->marketing = $marketing;
+									if($marketing->change_price == '+')
+										$product->price = $product->price + $marketing->price * $currency * $product->markup;
+									if($marketing->change_price == '*')
+										$product->price *= $marketing->price;
+									$product->discount = $product->price - $product->price_before;
+									break;
+								}
+						}
+				}
 			}
 		}
 		return $products;

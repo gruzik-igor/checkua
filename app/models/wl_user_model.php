@@ -20,7 +20,7 @@ class wl_user_model {
     {
     	if($id == 0 && isset($_SESSION['user']->id) && !is_string($id)) $id = $_SESSION['user']->id;
         $this->db->select('wl_users as u', '*', $id, $field);
-        $this->db->join('wl_user_types', 'name as type_name', '#u.type');
+        $this->db->join('wl_user_types', 'name as type_name, title as type_title', '#u.type');
     	$user = $this->db->get('single');
         if($user && $additionall)
         {

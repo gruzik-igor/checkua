@@ -131,7 +131,9 @@
     } 
     if($_SESSION['user']->admin == 1) { ?>
         <li <?=($_SESSION['alias']->alias == 'wl_users')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_users"><i class="fa fa-group"></i> Користувачі</a></li>
-        <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
+        <?php if(!empty($_SESSION['option']->statictic_set_page)) { ?>
+            <li <?=($_SESSION['alias']->alias == 'wl_statistic')?'class="active"':''?>><a href="<?=SITE_URL?>admin/wl_statistic"><i class="fa fa-area-chart"></i> Статистика сайту</a></li>
+        <?php } ?>
         <li class="has-sub <?=(in_array($_SESSION['alias']->alias, array('wl_ntkd', 'wl_sitemap', 'wl_aliases', 'wl_services', 'wl_images', 'wl_register', 'wl_language_words', 'wl_forms', 'wl_mail_template', 'wl_pagespeed')) && $this->data->uri(2) != 'info')?'active':''?>">
             <a href="javascript:;">
                 <b class="caret pull-right"></b>

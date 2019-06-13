@@ -156,7 +156,7 @@ class cart_model
 			if($products = $this->db->getAllDataByFieldInArray($this->table('_products'), $where_cp))
 			{
 				foreach ($products as $product) {
-					$product->key = $product->id;
+					$product->key = $product->row_id = $product->id;
 					if(!is_array($product->product_options) && !empty($product->product_options))
 						$product->product_options = unserialize($product->product_options);
 				}
@@ -434,7 +434,6 @@ class cart_model
         			$insert['position'] = $s->position = count($shippings) + 1;
         			$insert['name'] = $s->name = $insert['info'] = $s->info = 0;
         			$s->id = $this->db->insertRow($this->table('_shipping'), $insert);
-        			$s->pay = 0;
         			if($ntkd = $this->db->getAllDataById('wl_ntkd', $where_ntkd))
         			{
         				$s->name = $ntkd->name;
@@ -689,6 +688,23 @@ class cart_model
 				$this->db->updateRow($this->table('_bonus'), $update, $bonus->id);
 		}
 		return false;
+	}
+
+	public function checkProductInfo($product_before, $product_after)
+	{
+		$update = array();
+        if($product_after->price != $product_before->price)
+            $update['price'] = $product_before->price = $product_after->price;
+        if($product_after->discount != $product_before->discount)
+            $update['price'] = $product_before->discount = $product_after->discount;
+        if(!empty($update))
+        {
+        	if(!empty($product_before->row_id))
+        		$this->db->updateRow($this->table('_products'), $update, $product_before->row_id);
+        	elseif(isset($_SESSION['cart']->products[$product_before->key]))
+        		$_SESSION['cart']->products[$product_before->key] = $product_before;
+        }
+		return $product_before;
 	}
 
 }

@@ -141,6 +141,7 @@ class cart extends Controller {
                 $product->info = $this->load->function_in_alias($product->product_alias, '__get_Product', $product->product_id);
                 if($product->storage_invoice)
                     $product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type));
+                $product = $this->cart_model->checkProductInfo($product, $product->info);
             }
         $this->load->page_view('index_view', array('products' => $products));
     }
@@ -251,7 +252,7 @@ class cart extends Controller {
                     $openProduct->key = $product->key;
                     $openProduct->priceFormat = $product->priceFormat;
                     $openProduct->quantity = $product->quantity;
-                    $openProduct->admin_photo = $product->admin_photo;
+                    $openProduct->admin_photo = $product->admin_photo ?? false;
                     $openProduct->link = $product->link;
                     $openProduct->name = $product->name;
                     $openProduct->product_options = '';
@@ -737,6 +738,7 @@ class cart extends Controller {
                     if($product->storage = $this->load->function_in_alias($product->storage_alias, '__get_Invoice', array('id' => $product->storage_invoice, 'user_type' => $user_type)))
                         $product->price = $product->storage->price_out;
                 }
+                $product = $this->cart_model->checkProductInfo($product, $product->info);
                 $subTotal += $product->price * $product->quantity;
                 $product->priceFormat = $this->cart_model->priceFormat($product->price);
                 if(isset($product->bonus) && $product->bonus < 0 && $bonus == 0)

@@ -19,6 +19,11 @@ class Controller extends Loader {
     {
         parent::__construct();
         $this->load = $this;
+
+        if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => 0, 'type' => '__page_before_init')))
+            foreach ($actions as $action) {
+                $this->load->function_in_alias($action->alias2, '__page_before_init');
+            }
 	}
 	
 	/**

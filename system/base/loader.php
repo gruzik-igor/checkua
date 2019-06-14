@@ -296,8 +296,6 @@ class Loader {
 	}
 	public function function_in_alias($alias, $method = '', $data = array(), $admin = false)
 	{
-		if(empty($_SESSION['alias']->id))
-			$_SESSION['alias']->id = 0;
 		$rezult = NULL;
 		$old_alias = $_SESSION['alias']->id;
 		$this->library('db');

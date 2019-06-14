@@ -15,11 +15,8 @@ class admin extends Controller {
 
     public function index()
     {
-        @$_SESSION['alias']->id = 0;
-        $_SESSION['alias']->alias = 'admin';
-        $_SESSION['alias']->table = '';
         $_SESSION['alias']->name = 'Панель керування';
-        $_SESSION['alias']->text = '';
+        $_SESSION['alias']->table = $_SESSION['alias']->text = '';
         $_SESSION['alias']->js_load = $_SESSION['alias']->js_init = $_SESSION['alias']->breadcrumb = array();
 
         $alias = $this->data->uri(1);

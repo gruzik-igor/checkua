@@ -15,15 +15,16 @@ class Controller extends Loader {
          * це потрібно для надання логіки. Відтак для завантаження скажімо бібліотеки
          * ми не пишемо $this->library(library_name), а пишемо $this->load->library(library_name)
 	 */
-	function __construct()
+	function __construct($init_page = false)
     {
         parent::__construct();
         $this->load = $this;
-
-        if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => 0, 'type' => '__page_before_init')))
-            foreach ($actions as $action) {
-                $this->load->function_in_alias($action->alias2, '__page_before_init');
-            }
+        
+        if($init_page)
+            if($actions = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', array('alias1' => 0, 'type' => '__page_before_init')))
+                foreach ($actions as $action) {
+                    $this->load->function_in_alias($action->alias2, '__page_before_init');
+                }
 	}
 	
 	/**

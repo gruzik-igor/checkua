@@ -72,6 +72,8 @@ class Router extends Loader {
 				{
 					$parts[] = 'admin';
 					$_SESSION['alias'] = new stdClass();
+					$_SESSION['alias']->id = 0;
+        			$_SESSION['alias']->alias = 'admin';
 					$_SESSION['alias']->service = false;
 					$_SESSION['service'] = new stdClass();
 
@@ -224,7 +226,7 @@ class Router extends Loader {
 	 */	
 	function callController()
 	{
-		$controller = new $this->class();
+		$controller = new $this->class(true);
 
 		if(!empty($_SESSION['alias']->id))
 		{

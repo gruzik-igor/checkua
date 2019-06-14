@@ -12,7 +12,7 @@ class install
 	public $multi_alias = 0;
 	public $order_alias = 10;
 	public $admin_ico = 'fa-line-chart';
-	public $version = "1.0";
+	public $version = "2.0";
 
 	public $options = array('autoUpdate' => 1, 'saveToHistory' => 1);
 	public $options_type = array('autoUpdate' => 'bool', 'saveToHistory' => 'bool');
@@ -42,6 +42,9 @@ class install
 			$this->db->executeQuery($query);
 		}
 
+		$data = array('alias1' => 0, 'alias2' => $alias, 'type' => '__page_before_init');
+		$this->db->insertRow('wl_aliases_cooperation', $data);
+
 		return true;
 	}
 
@@ -58,6 +61,7 @@ class install
 		{
 			$query = "CREATE TABLE IF NOT EXISTS `{$this->table_service}_history` (
 					  `id` int(11) NOT NULL AUTO_INCREMENT,
+					  `default` tinyint(1) NULL,
 					  `currency` tinyint(4) NOT NULL,
 					  `day` int(11) NOT NULL,
 					  `value` float NOT NULL,

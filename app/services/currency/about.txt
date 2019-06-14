@@ -1,7 +1,8 @@
-Service "Currency 1.0"
+Service "Currency 2.0"
 for WhiteLion 1.0
 
 Author: Ostap Matskiv
+Date 2.0   : 14.06.2019
 Date 1.0   : 01.04.2016
 
 Description: Курс валют з автоматичним оновленням через API Privat24
@@ -13,6 +14,8 @@ Public links:
 	/index			page 404
 	/__get_Search	повертає об'єкт пошуку - завжди false
 	/__get_Currency повертає коефіціент для валюти
+	/__set_Currency встановлює $_SESSION['currency'], повертає коефіціент для валюти
+	/__page_before_init 	при завантеженні сторінки (ініціалізація сайту) запускає __set_Currency
 
 Private links (admin access):
 	/index		перелік всіх квитанцій (нові згори)
@@ -20,3 +23,4 @@ Private links (admin access):
 
 Versions:
 	1.0 	Основа сервісу
+	2.0		Встановлено курс по замовчуванню. Додано $_SESSION['currency'], __page_before_init()

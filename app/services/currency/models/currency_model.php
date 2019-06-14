@@ -13,10 +13,12 @@ class currency_model
 		$currency['code'] = $this->data->post('code');
 		$currency['currency'] = $this->data->post('currency');
 		$currency['day'] = strtotime('today');
-		$this->db->insertRow($this->table(), $currency);
+		$id = $this->db->insertRow($this->table(), $currency);
+		if($id == 1)
+			$this->db->updateRow($this->table(), array('default' => 1), $id);
 		if($_SESSION['option']->saveToHistory)
 		{
-			$history['currency'] = $this->db->getLastInsertedId();
+			$history['currency'] = $id;
 			$history['value'] = $currency['currency'];
 			$history['day'] = $currency['day'];
 			$history['from'] = 'Користувач: '.$_SESSION['user']->id.'. '.$_SESSION['user']->name;
@@ -49,6 +51,13 @@ class currency_model
 		return true;
 	}
 
+	public function setDefault($id)
+	{
+		$this->db->executeQuery('UPDATE `'.$this->table().'` SET `default` = 0');
+		$currency['default'] = $this->data->post('default');
+		return $this->db->updateRow($this->table(), $currency, $id);
+	}
+
 	public function updatePrivat24($code = false)
 	{
 		$sale = 0;
@@ -74,9 +83,14 @@ class currency_model
 		return true;
 	}
 
-    public function get($code)
+    public function get($code = false)
     {
-    	if($currency = $this->db->getAllDataById($this->table(), $code, 'code'))
+    	$currency = false;
+    	if($code)
+    		$currency = $this->db->getAllDataById($this->table(), $code, 'code');
+    	else
+    		$currency = $this->db->getAllDataById($this->table(), 1, 'default');
+    	if($currency)
     	{
     		if($_SESSION['option']->autoUpdate)
     		{

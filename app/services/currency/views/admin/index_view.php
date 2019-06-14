@@ -16,7 +16,6 @@
                     <table class="table table-striped table-bordered nowrap" width="100%">
                         <thead>
                             <tr>
-                                <th>Внутрішній код</th>
                                 <th>Код валюти</th>
 								<th>Курс</th>
 								<th>Інформація актуальна на</th>
@@ -27,11 +26,13 @@
                         	if(!empty($currents)) { 
                         		foreach($currents as $currency) { ?>
 									<tr>
-										<td><?=$currency->id?></td>
-										<td><?=$currency->code?></td>
 										<td>
-											<button class='btn btn-sm  btn-warning' data-toggle='modal' data-target='#ModalEditCurrency' data-currencyid='<?=$currency->id?>' data-currencyvalue='<?=$currency->currency?>' title="Редагувати курс <?=$currency->code?>"><i class='fa fa-pencil'></i></button> 
-											<b><?=$currency->currency?></b> 
+											<strong><?=$currency->code?></strong>
+											<label><input type="radio" name="default" value="<?=$currency->id?>" onChange="setDefault(<?=$currency->id?>, '<?=$currency->code?>')" <?=($currency->default) ? 'checked':''?>> <u>Курс по замовчуванню</u></label>	
+										</td>
+										<td>
+											<button class='btn btn-sm  btn-warning' data-toggle='modal' data-target='#ModalEditCurrency' data-currencyid='<?=$currency->id?>' data-currencyсode='<?=$currency->code?>' title="Редагувати курс <?=$currency->code?>"><i class='fa fa-pencil'></i></button> 
+											<strong id="currency-<?=$currency->id?>"><?=$currency->currency?></strong> 
 										</td>
 										<td><?=date("d.m.Y", $currency->day)?></td>
 									</tr>
@@ -52,8 +53,9 @@
             <h4 class="modal-title"></h4>
             </div>
             <div class="modal-body">
-	            <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" id="FormEditCurrency">
+	            <form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/save" method="POST" id="FormEditCurrency" onSubmit="return updateCurrency()">
 		            <input type="hidden" name="id" value="0" id="currencyId">
+		            <input type="hidden" name="code" value="" id="currencyCode">
 	                <div class="row">
 	                    <div class="form-group">
 	                        <label class="control-label col-md-3">Курс:</label>
@@ -63,13 +65,13 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-default" data-dismiss="modal">Закрити</button>
-                <button type="button" class="btn btn-primary" onClick="document.getElementById('FormEditCurrency').submit();">Оновити</button>
+                <button type="button" class="btn btn-primary" onClick="updateCurrency()">Оновити</button>
             </div>
         </div>
     </div>
 </div>
 
-<?php $_SESSION['alias']->js_load[] = 'app/services/'.$_SESSION['service']->name.'/views/admin/currency.js';
+<?php $_SESSION['alias']->js_load[] = 'js/'.$_SESSION['service']->name.'/currency.js';
  if($_SESSION['option']->saveToHistory) { ?>
 
  	<div class="row">

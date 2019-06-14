@@ -15,8 +15,7 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
         <thead>
             <tr>
             	<?php if(!isset($search) && $productOrder) echo "<th></th>"; ?>
-                <th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул' : 'Id'?></th>
-				<th>Назва</th>
+				<th><?=($_SESSION['option']->ProductUseArticle) ? 'Артикул /' : ''?> Назва</th>
 				<th>Ціна (у.о.)</th>
 				<?php if($_SESSION['option']->useAvailability == 1) { 
 					$this->db->select($this->shop_model->table('_availability').' as a');
@@ -30,17 +29,19 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
 					<th>Групи</th>
 				<?php } ?>
 				<th>Автор / Редаговано</th>
-				<th><div class="btn-group">
-					<?php $sort = array('' => 'Авто', 'active_on' => 'Активні згори ↑', 'active_off' => 'Активні знизу ↓'); ?>
-					<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown">
-						<?=(isset($_GET['sort'])) ? $sort[$_GET['sort']] : 'Стан'?> <span class="caret"></span>
-					</button>
-					<ul class="dropdown-menu" role="menu">
-						<?php foreach ($sort as $key => $value) { ?>
-							<li><a href="<?=$this->data->get_link('sort', $key)?>"><?=$value?></a></li>
-						<?php } ?>
-					</ul>
-				</div></th>
+				<?php if(!isset($search)) { ?>
+					<th><div class="btn-group">
+						<?php $sort = array('' => 'Авто', 'active_on' => 'Активні згори ↑', 'active_off' => 'Активні знизу ↓'); ?>
+						<button type="button" class="btn btn-info btn-xs dropdown-toggle" data-toggle="dropdown">
+							<?=(isset($_GET['sort'])) ? $sort[$_GET['sort']] : 'Стан'?> <span class="caret"></span>
+						</button>
+						<ul class="dropdown-menu" role="menu">
+							<?php foreach ($sort as $key => $value) { ?>
+								<li><a href="<?=$this->data->get_link('sort', $key)?>"><?=$value?></a></li>
+							<?php } ?>
+						</ul>
+					</div></th>
+				<?php } ?>
             </tr>
         </thead>
         <tbody>
@@ -49,21 +50,13 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
 					<?php if(!isset($search) && $productOrder) { ?>
 						<td class="move sortablehandle"><i class="fa fa-sort"></i></td>
 					<?php } ?>
-					<td><a href="<?=SITE_URL.'admin/'.$a->link?>"><?=($_SESSION['option']->ProductUseArticle) ? $a->article : $a->id?></a></td>
 					<td>
 						<?php if(!empty($a->admin_photo)) {?>
-						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" class="pull-left" alt=""></a>
-						<?php }
-						if($_SESSION['option']->ProductUseArticle)
-						{
-							$name = explode(' ', $a->name);
-							$article = array_pop($name);
-							if($article == $a->article)
-								$a->name = implode(' ', $name);
-						}
-						?>
-						<a href="<?=SITE_URL.'admin/'.$a->link?>"><strong><?=($_SESSION['option']->ProductUseArticle) ? mb_strtoupper($a->article) : $a->id?></strong></a> <br>
-						<a href="<?=SITE_URL.'admin/'.$a->link?>"><?=$a->name?></a>
+						<a href="<?=SITE_URL.'admin/'.$a->link?>"><img src="<?= IMG_PATH.$a->admin_photo?>" width="90" class="pull-left p-r-10" alt=""></a>
+						<?php } ?>
+						<a href="<?=SITE_URL.'admin/'.$a->link?>">
+							<?=($_SESSION['option']->ProductUseArticle) ? '<strong>'.mb_strtoupper($a->article).'</strong>' : ''?> 
+							<?=empty($a->name)?$a->id : $a->name?></a>
 						<a href="<?=SITE_URL.$a->link?>"><i class="fa fa-eye"></i></a>
 					</td>
 					<td><?=$a->price?> <?=($a->old_price) ? "<del>{$a->old_price}</del>" : ''?></td>
@@ -90,7 +83,8 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
                                 if($g->active)
                                     $active++;
                             }
-                        } else {
+                        }
+                         else {
                             echo("Не визначено");
                         }
                         echo("</td>");
@@ -98,35 +92,36 @@ if(isset($_SESSION['option']->productOrder) && empty($_GET['sort']))
                     ?>
 					<td><a href="<?=SITE_URL.'admin/wl_users/'.$a->author_edit?>"><?=$a->user_name?></a> <br> <?=date("d.m.Y H:i", $a->date_edit)?></td>
 					
-					<?php if((!isset($search) && $productOrder) || isset($_GET['sort'])) { ?>
-						<td>
-							<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
-						</td>
-					<?php } else {
-						$color = 'success';
-                        $color_text = 'активний';
-						if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
-                        {
-                            if($active == 0)
-                            {
-                                $color = 'danger';
-                                $color_text = 'відключено';
-                            }
-                            elseif($active < count($a->group))
-                            {
-                                $color = 'warning';
-                                $color_text = 'частково активний';
-                            }
-                        }
-					?>
-						<td class="<?=$color?>"><?=$color_text?></td>
-					<?php } ?>
+					<?php if(!isset($search)) {
+						if($productOrder || isset($_GET['sort'])) { ?>
+							<td>
+								<input type="checkbox" data-render="switchery" <?=($a->active == 1) ? 'checked' : ''?> value="1" onchange="changeActive(this, <?=$a->id?>, <?=(isset($group)) ? $group->id : 0 ?>)" />
+							</td>
+						<?php } else {
+							$color = 'success';
+	                        $color_text = 'активний';
+							if($_SESSION['option']->useGroups && $_SESSION['option']->ProductMultiGroup && !empty($a->group) && is_array($a->group))
+	                        {
+	                            if($active == 0)
+	                            {
+	                                $color = 'danger';
+	                                $color_text = 'відключено';
+	                            }
+	                            elseif($active < count($a->group))
+	                            {
+	                                $color = 'warning';
+	                                $color_text = 'частково активний';
+	                            }
+	                        }
+						?>
+							<td class="<?=$color?>"><?=$color_text?></td>
+					<?php } } ?>
 				</tr>
 			<?php } ?>
         </tbody>
     </table>
 </div>
-<div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong>. Активних товарів: <strong><?=$_SESSION['option']->paginator_total_active?></strong></div>
+<div class="pull-right">Товарів у групі: <strong><?=$_SESSION['option']->paginator_total?></strong>. <?php if(!isset($search)){?>Активних товарів: <strong><?=$_SESSION['option']->paginator_total_active?></strong><?php } ?></div>
 <?php
 $this->load->library('paginator');
 echo $this->paginator->get();

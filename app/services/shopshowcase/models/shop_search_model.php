@@ -57,6 +57,9 @@ class shop_search_model
 						return false;
 				}
 
+				$product->price *= $_SESSION['currency'];
+				$product->old_price *= $_SESSION['currency'];
+
 				$search = new stdClass();
 				$search->id = $product->id;
 				$search->article = $product->article;

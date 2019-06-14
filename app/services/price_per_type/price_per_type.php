@@ -29,23 +29,16 @@ class price_per_type extends Controller {
     	return false;
     }
 
-    public function __get_Product($product)
+    public function __update_Product($product)
     {
         $this->load->smodel('ppt_model');
         return $this->ppt_model->getProduct($product);
     }
 
-	public function __get_Products($products)
+	public function __update_Products($products)
 	{
 		$this->load->smodel('ppt_model');
-        $currency = false;
-        if(isset($products['products']))
-        {
-            if(isset($products['currency']))
-                $currency = $products['currency'];
-            $products = $products['products'];
-        }
-		return $this->ppt_model->getProducts($products, $currency);
+		return $this->ppt_model->getProducts($products);
 	}
 	
 }

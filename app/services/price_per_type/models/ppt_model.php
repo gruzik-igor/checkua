@@ -30,34 +30,29 @@ class ppt_model
 		if(!empty($where))
 		{
 			$product->marketing = false;
-			$product->price_before = $product->price;
-			$product->discount = 0;
-			if(empty($product->markup))
-				$product->markup = 1;
 			if($marketing = $this->db->getAllDataById($this->table('_product'), $where))
 			{
 				$product->marketing = $marketing;
 				if($marketing->change_price == '+')
-					$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
+					$product->price += $marketing->price;
 				if($marketing->change_price == '*')
 					$product->price *= $marketing->price;
 				if($marketing->change_price == '=')
-					$product->price = $marketing->price * $product->currency * $product->markup;
-				$product->discount = $product->price - $product->price_before;
+					$product->price = $marketing->price;
 			}
 			elseif($marketing = $this->db->getAllDataById($this->table(), $data))
 			{
+				$product->marketing = $marketing;
 				if($marketing->change_price == '+')
-					$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
+					$product->price += $marketing->price;
 				if($marketing->change_price == '*')
 					$product->price *= $marketing->price;
-				$product->discount = $product->price - $product->price_before;
 			}
 		}
 		return $product;
 	}
 
-	public function getProducts($products, $currency)
+	public function getProducts($products)
 	{
 		if(is_array($products) && is_object($products[0]))
 		{
@@ -93,18 +88,13 @@ class ppt_model
 							if($marketing->product_id == $product->id)
 							{
 								$_products_skip[] = $product->id;
-								$product->price_before = $product->price;
-								$product->discount = 0;
-								if(empty($product->markup))
-									$product->markup = 1;
 								$product->marketing = $marketing;
 								if($marketing->change_price == '+')
-									$product->price = $product->price + $marketing->price * $product->currency * $product->markup;
+									$product->price += $marketing->price;
 								if($marketing->change_price == '*')
 									$product->price *= $marketing->price;
 								if($marketing->change_price == '=')
-									$product->price = $marketing->price * $product->currency * $product->markup;
-								$product->discount = $product->price - $product->price_before;
+									$product->price = $marketing->price;
 								break;
 							}
 						}
@@ -129,16 +119,11 @@ class ppt_model
 						foreach ($products as $product) {
 							if(!in_array($product->id, $_products_skip))
 								foreach ($marketings as $marketing) {
-									$product->price_before = $product->price;
-									$product->discount = 0;
-									if(empty($product->markup))
-										$product->markup = 1;
 									$product->marketing = $marketing;
 									if($marketing->change_price == '+')
-										$product->price = $product->price + $marketing->price * $currency * $product->markup;
+										$product->price += $marketing->price;
 									if($marketing->change_price == '*')
 										$product->price *= $marketing->price;
-									$product->discount = $product->price - $product->price_before;
 									break;
 								}
 						}

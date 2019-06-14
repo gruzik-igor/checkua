@@ -20,9 +20,9 @@ class install
 	public $options_admin = array ();
 	public $sub_menu = array();
 
-	public $cooperation_index = array('cart' => 2, 'shopshowcase' => 2);
-	public $cooperation_types = array('currency' => 'Курс валют');
-	public $cooperation_service = array('cart' => 'currency', 'shopshowcase' => 'currency');
+	public $cooperation_index = array();
+	public $cooperation_types = array();
+	public $cooperation_service = array();
 
 	function alias($alias = 0, $table = '')
 	{

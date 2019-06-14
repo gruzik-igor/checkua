@@ -29,13 +29,13 @@ class price_per_amount extends Controller {
     	return false;
     }
 
-    public function __get_Product($product)
+    public function __update_Product($product)
     {
         $this->load->smodel('ppa_model');
         return $this->ppa_model->getProduct($product);
     }
 
-	public function __get_Products($products)
+	public function __update_Products($products)
 	{
 		$this->load->smodel('ppa_model');
         $all = $currency = false;

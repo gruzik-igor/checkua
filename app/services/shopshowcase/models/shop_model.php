@@ -2,11 +2,27 @@
 
 class shop_model {
 
+	public $getBreadcrumbs = false;
+	public $breadcrumbs = array();
 	public $allGroups = false;
 	private $productsIdInGroup = false;
 
     public function init()
     {
+    	if($this->getBreadcrumbs && empty($this->breadcrumbs))
+    	{
+    		if(isset($_SESSION['alias']->breadcrumb_name))
+    			$this->breadcrumbs = $_SESSION['alias']->breadcrumbs;
+    		else
+    		{
+	    		$where = array('alias' => $_SESSION['alias']->id, 'content' => 0);
+				if($_SESSION['language'])
+					$where['language'] = $_SESSION['language'];
+				if($data = $this->db->getAllDataById('wl_ntkd', $where))
+					$this->breadcrumbs = array($data->name => $_SESSION['alias']->alias);
+			}
+    	}
+
 		if($_SESSION['option']->useGroups && empty($this->allGroups))
 		{
 			$where = array();
@@ -562,22 +578,11 @@ class shop_model {
 
             	if(@$this->data->url()[0] != 'admin' || (@$this->data->url()[0] == 'admin' && @$this->data->url()[1] == 'cart'))
 	        	{
+	        		$product->price_before = $product->price;
 	        		if($_SESSION['option']->useMarkUp > 0 && $product->markup){
 		        		$product->price *= $product->markup;
 		        		$product->old_price *= $product->markup;
 		        	}
-
-		        	// $product->old_price = $product->price != $product->old_price ? ceil($product->old_price) : 0;
-		        	// $product->price = ceil($product->price);
-
-		        	if(!empty($_SESSION['option']->currency))
-		        	{
-			        	$product->price *= $_SESSION['option']->currency;
-			        	$product->old_price *= $_SESSION['option']->currency;
-			        }
-
-			        $product->price = $this->formatPrice($product->price);
-			        $product->old_price = $this->formatPrice($product->old_price);
 	        	}
 				
 				if($_SESSION['option']->useGroups > 0 && $_SESSION['option']->ProductMultiGroup == 1)
@@ -638,19 +643,6 @@ class shop_model {
         if($product = $this->db->get('single'))
         {
         	$product->link = $_SESSION['alias']->alias.'/'.$product->alias;
-        	if(isset($_SESSION['alias']->breadcrumbs) && empty($_SESSION['alias']->breadcrumbs))
-        	{
-        		$where = array();
-				$where['alias'] = $_SESSION['alias']->id;
-				if($_SESSION['language'])
-					$where['language'] = $_SESSION['language'];
-        		$where['content'] = 0;
-				if($data = $this->db->getAllDataById('wl_ntkd', $where))
-				{
-					$_SESSION['alias']->breadcrumb_name = $data->name;
-					$_SESSION['alias']->breadcrumbs = array($data->name => $_SESSION['alias']->alias);
-				}
-        	}
 
         	if(@$this->data->url()[0] != 'admin')
         	{
@@ -659,17 +651,13 @@ class shop_model {
 	        		$product->price *= $product->markup;
 	        		$product->old_price *= $product->markup;
 	        	}
-
-	        	if(!empty($_SESSION['option']->currency))
-	        	{
-		        	$product->price *= $_SESSION['option']->currency;
-		        	$product->old_price *= $_SESSION['option']->currency;
-		        }
-
-		        $product->price = $this->formatPrice($product->price);
-		        $product->old_price = $this->formatPrice($product->old_price);
         	}
-
+        	if($_SESSION['option']->ProductUseArticle && mb_strlen($product->name) > mb_strlen($product->article))
+			{
+				$name = explode(' ', $product->name);
+				if(array_pop($name) == $product->article)
+					$product->name = implode(' ', $name);
+			}
 			$product->parents = array();
 
 			if($_SESSION['option']->useGroups > 0)
@@ -684,8 +672,8 @@ class shop_model {
 						$link = $_SESSION['alias']->alias . '/';
 						foreach ($product->parents as $parent) {
 							$link .= $parent->alias;
-							if(isset($_SESSION['alias']->breadcrumbs))
-								$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+							if($this->getBreadcrumbs)
+								$this->breadcrumbs[$parent->name] = $link;
 							$link .= '/';
 						}
 						$product->group_link = $link;
@@ -699,6 +687,9 @@ class shop_model {
 						$this->db->join($this->table('_groups'), 'id, alias, parent', array('id' => '#pg.group', 'active' => 1));
 						$where_ntkd['content'] = "#-pg.group";
 	        			$this->db->join('wl_ntkd', 'name', $where_ntkd);
+	        			unset($where_ntkd['language']);
+	        			$where_ntkd['position'] = 1;
+	        			$this->db->join('wl_images', 'file_name', $where_ntkd);
 						if($product->group = $this->db->get('array'))
 						{
 							$setBreadcrumbs = true;
@@ -709,24 +700,26 @@ class shop_model {
 				            		$g->link = $_SESSION['alias']->alias . '/' . $this->makeLink($g->parent, $g->alias);
 				            	else
 				            		$g->link = $_SESSION['alias']->alias . '/' . $g->alias;
-				            	if(isset($_SESSION['alias']->breadcrumbs) && isset($_SERVER['HTTP_REFERER']) && $g->link == str_replace(SITE_URL, '', $_SERVER['HTTP_REFERER']))
+				            	$g->parents = array();
+				            	if($this->getBreadcrumbs && isset($_SERVER['HTTP_REFERER']) && $g->link == str_replace(SITE_URL, '', $_SERVER['HTTP_REFERER']))
 				            	{
 				            		$setBreadcrumbs = false;
 				            		$parents = $this->makeParents($g->id, $product->parents);
-									$link = $_SESSION['alias']->alias . '/';
+									$link = $_SESSION['alias']->alias;
 									foreach ($parents as $parent) {
-										$link .= $parent->alias .'/';
-										$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+										$link .= '/'.$parent->alias;
+										$g->parents[$parent->name] = $link;
+										$this->breadcrumbs[$parent->name] = $link;
 									}
 				            	}
 				            }
-				            if(isset($_SESSION['alias']->breadcrumbs) && $setBreadcrumbs)
+				            if($this->getBreadcrumbs && $setBreadcrumbs)
 				            {
 				            	$parents = $this->makeParents($product->group[0]->id, $product->parents);
 								$link = $_SESSION['alias']->alias . '/';
 								foreach ($parents as $parent) {
 									$link .= $parent->alias .'/';
-									$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+									$this->breadcrumbs[$parent->name] = $link;
 								}
 				            }
 				        }
@@ -1205,19 +1198,8 @@ class shop_model {
 					}
 				}
 
-			if(isset($_SESSION['alias']->breadcrumbs) && empty($_SESSION['alias']->breadcrumbs))
-        	{
-        		$where = array();
-				$where['alias'] = $_SESSION['alias']->id;
-				if($_SESSION['language'])
-					$where['language'] = $_SESSION['language'];
-        		$where['content'] = 0;
-				if($data = $this->db->getAllDataById('wl_ntkd', $where))
-				{
-					$_SESSION['alias']->breadcrumb_name = $data->name;
-					$_SESSION['alias']->breadcrumbs = array($data->name => $_SESSION['alias']->alias);
-				}
-        	
+			if($this->getBreadcrumbs)
+        	{       	
 				$group->parents = array();
 				if($group->parent > 0)
 				{
@@ -1225,11 +1207,11 @@ class shop_model {
 					$link = $_SESSION['alias']->alias;
 					foreach ($group->parents as $parent) {
 						$link .= '/'.$parent->alias;
-						$_SESSION['alias']->breadcrumbs[$parent->name] = $link;
+						$this->breadcrumbs[$parent->name] = $link;
 					}
 					$group->link = $link;
 				}
-				$_SESSION['alias']->breadcrumbs[$group->name] = '';
+				$this->breadcrumbs[$group->name] = '';
 			}
 			else
 			{

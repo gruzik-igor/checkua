@@ -15,7 +15,8 @@ class shopshowcase extends Controller {
     function __construct()
     {
         parent::__construct();
-        $_SESSION['option']->currency = 1;
+        if(empty($_SESSION['currency']))
+        	$_SESSION['currency'] = 1;
 
         if(isset($_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing))
         	$this->marketing = $_SESSION['alias-cache'][$_SESSION['alias']->id]->marketing;
@@ -23,11 +24,6 @@ class shopshowcase extends Controller {
         {
 	        if($cooperation = $this->db->getAllDataByFieldInArray('wl_aliases_cooperation', $_SESSION['alias']->id, 'alias1'))
 	        	foreach ($cooperation as $c) {
-	        		if($c->type == 'currency')
-	        		{
-			        	if($currency = $this->load->function_in_alias($c->alias2, '__get_Currency', 'USD'))
-			            	$_SESSION['option']->currency = $currency;
-			        }
 			        if($c->type == 'marketing')
 			        	$this->marketing[] = $c->alias2;
 		        }
@@ -50,30 +46,35 @@ class shopshowcase extends Controller {
 		if(count($this->data->url()) > 1)
 		{
 			$type = null;
+			$this->shop_model->getBreadcrumbs = true;
 			$product = $this->shop_model->routeURL($this->data->url(), $type);
 
 			if($type == 'product' && $product)
 			{
 				if($product->active == 0 && !$this->userCan())
 					$this->load->page_404(false);
+
 				$this->wl_alias_model->setContent($product->id);
-				if($_SESSION['option']->ProductUseArticle && mb_strlen($_SESSION['alias']->name) > mb_strlen($product->article))
-				{
-					$name = explode(' ', $_SESSION['alias']->name);
-					if(array_pop($name) == $product->article)
-						$product->name = $_SESSION['alias']->name = implode(' ', $name);
-				}
+				$_SESSION['alias']->name = $product->name;
+				$_SESSION['alias']->breadcrumbs = $this->shop_model->breadcrumbs;
 				if($videos = $this->wl_alias_model->getVideosFromText())
 				{
 					$this->load->library('video');
 					$this->video->setVideosToText($videos);
 				}
 
-				if(!empty($this->marketing))
+				$product->price_before = $product->price;
+				if(!empty($this->marketing) && $product)
 					foreach ($this->marketing as $marketingAliasId) {
-						$product->currency = $_SESSION['option']->currency;
-						$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
+						$product = $this->load->function_in_alias($marketingAliasId, '__update_Product', $product);
 					}
+				
+				$product->discount = $product->price_before - $product->price;
+				$product->price *= $_SESSION['currency'];
+				$product->old_price *= $_SESSION['currency'];
+				$product->price_format = $this->shop_model->formatPrice($product->price);
+				$product->old_price_format = $this->shop_model->formatPrice($product->old_price);
+
 				$this->load->page_view('detal_view', array('product' => $product));
 			}
 			elseif($_SESSION['option']->useGroups && $type == 'group' && $product)
@@ -84,36 +85,50 @@ class shopshowcase extends Controller {
 				unset($product);
 
 				$this->wl_alias_model->setContent(-$group->id);
-				if($videos = $this->wl_alias_model->getVideosFromText())
-				{
-					$this->load->library('video');
-					$this->video->setVideosToText($videos);
-				}
+				$_SESSION['alias']->breadcrumbs = $this->shop_model->breadcrumbs;
+				// if($videos = $this->wl_alias_model->getVideosFromText())
+				// {
+				// 	$this->load->library('video');
+				// 	$this->video->setVideosToText($videos);
+				// }
 				
-				$subgroups = false;
+				$subgroups = $products = $filters = false;
 				if($group->haveChild)
 					$subgroups = $this->shop_model->getGroups($group->id);
-				$products = $this->shop_model->getProducts($group->id);
 
 				if(!$subgroups)
-					$filters = $this->shop_model->getOptionsToGroup($group);
-				else
-					$filters = false;
+				{
+					// $filters = $this->shop_model->getOptionsToGroup($group);
+					$products = $this->shop_model->getProducts($group->id);
+				}
 				if($filters)
 					foreach ($filters as $filter) {
 						if(count($filter->values) > 1)
 							usort($filter->values, function($a, $b) { return strcmp($a->name, $b->name); });
 					}
-
-				if(!empty($this->marketing))
-					foreach ($this->marketing as $marketingAliasId) {
-						$products = $this->load->function_in_alias($marketingAliasId, '__get_Products', array('products' => $products, 'currency' => $_SESSION['option']->currency));
+				$group->parents_ids = array($group->id);
+				if(!empty($group->parents))
+					foreach ($group->parents as $parent) {
+						$group->parents_ids[] = $parent->id;
 					}
 
-				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters));
+				if(!empty($this->marketing) && $products)
+					foreach ($this->marketing as $marketingAliasId) {
+						$products = $this->load->function_in_alias($marketingAliasId, '__update_Products', $products);
+					}
+				if($products)
+					foreach ($products as $product) {
+						$product->discount = $product->price_before - $product->price;
+						$product->price *= $_SESSION['currency'];
+						$product->old_price *= $_SESSION['currency'];
+						$product->price_format = $this->shop_model->formatPrice($product->price);
+						$product->old_price_format = $this->shop_model->formatPrice($product->old_price);
+					}
+
+				$this->load->page_view('group_view', array('group' => $group, 'subgroups' => $subgroups, 'products' => $products, 'filters' => $filters, 'catalogAllGroups' => $this->shop_model->getGroups(-1)));
 			}
 			else
-				$this->load->page_404();
+				$this->load->page_404(false);
 		}
 		else
 		{
@@ -123,16 +138,18 @@ class shopshowcase extends Controller {
 				$this->load->library('video');
 				$this->video->setVideosToText($videos);
 			}
-
-			// $products = $this->shop_model->getProducts();
-			$products = false;
+			
 			if($_SESSION['option']->useGroups)
 			{
 				$groups = $this->shop_model->getGroups();
-				$this->load->page_view('index_view', array('groups' => $groups, 'products' => $products));
+				$this->load->page_view('index_view', array('catalogAllGroups' => $groups));
 			}
 			else
+			{
+				// $products = $this->shop_model->getProducts();
+				$products = false;
 				$this->load->page_view('index_view', array('products' => $products));
+			}
 		}
     }
 
@@ -144,13 +161,10 @@ class shopshowcase extends Controller {
 				$this->redirect($_SESSION['alias']->alias.'/'.$_GET['name']);
 
 			$this->load->smodel('shop_model');
-			$_SESSION['alias']->name = $_SESSION['alias']->title = 'Пошук по назві';
+			$_SESSION['alias']->name = $_SESSION['alias']->title = $this->text('Пошук по назві');
 
 			if(isset($_GET['name']))
-			{
-				$_SESSION['alias']->name = "Пошук по назві '{$this->data->get('name')}'";
-				$_SESSION['alias']->title = "Пошук по назві '{$this->data->get('name')}'";
-			}
+				$_SESSION['alias']->name = $_SESSION['alias']->title = $this->text('Пошук по назві')." '{$this->data->get('name')}'";
 
 			$group_id = 0;
 			if(isset($_GET['group']))
@@ -161,13 +175,27 @@ class shopshowcase extends Controller {
 				$this->db->join('wl_ntkd', 'name, title', $where);
 				if($group = $this->db->get())
 				{
-					$_SESSION['alias']->name = 'Пошук '.$group->name;
-					$_SESSION['alias']->title = 'Пошук '.$group->title;
+					$_SESSION['alias']->name = $_SESSION['alias']->title = $this->text('Пошук', 0).' '.$group->title;
 					$group_id = $group->id;
 				}
 			}
 
-			$this->load->page_view('group_view', array('products' => $this->shop_model->getProducts($group_id)));
+			$products = $this->shop_model->getProducts($group_id);
+
+			if(!empty($this->marketing) && $products)
+				foreach ($this->marketing as $marketingAliasId) {
+					$products = $this->load->function_in_alias($marketingAliasId, '__update_Products', $products);
+				}
+			if($products)
+				foreach ($products as $product) {
+					$product->discount = $product->price_before - $product->price;
+					$product->price *= $_SESSION['currency'];
+					$product->old_price *= $_SESSION['currency'];
+					$product->price_format = $this->shop_model->formatPrice($product->price);
+					$product->old_price_format = $this->shop_model->formatPrice($product->old_price);
+				}
+
+			$this->load->page_view('group_view', array('products' => $products));
 		}
 		if(isset($_GET['id']) || isset($_GET['article']))
 		{
@@ -250,22 +278,26 @@ class shopshowcase extends Controller {
 		{
 			if(isset($id['key'])) $key = $id['key'];
 			if(isset($id['id'])) $id = $id['id'];
-			elseif(isset($id['article'])) $id = $id['article'];
+			else if(isset($id['article'])) $id = $id['article'];
 		}
-		$_SESSION['alias']->breadcrumbs = NULL;
+
 		$this->load->smodel('shop_model');
-		$product = $this->shop_model->getProduct($id, $key);
-
-		if(!empty($this->marketing) && $product)
-			foreach ($this->marketing as $marketingAliasId) {
-				$product->currency = $_SESSION['option']->currency;
-				$product->price_before = $product->price;
-				$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
-				$product->price = $this->shop_model->formatPrice($product->price);
-				$product->old_price = $this->shop_model->formatPrice($product->old_price);
-				$product->discount = $product->price_before - $product->price;
-			}
-
+		if($product = $this->shop_model->getProduct($id, $key))
+		{
+			$product->price_before = $product->price;
+			if(!empty($this->marketing) && $product)
+				foreach ($this->marketing as $marketingAliasId) {
+					$product = $this->load->function_in_alias($marketingAliasId, '__update_Product', $product);
+				}
+			
+			$product->discount = $product->price_before - $product->price;
+			$product->price_no_currency = $product->price;
+			$product->old_price_no_currency = $product->old_price;
+			$product->price *= $_SESSION['currency'];
+			$product->old_price *= $_SESSION['currency'];
+			$product->price_format = $this->shop_model->formatPrice($product->price);
+			$product->old_price_format = $this->shop_model->formatPrice($product->old_price);
+		}
 		return $product;
 	}
 
@@ -286,14 +318,20 @@ class shopshowcase extends Controller {
 
 		$this->load->smodel('shop_model');
 		$products = $this->shop_model->getProducts($group, $noInclude, $active, $getProductOptions);
+
 		if(!empty($this->marketing) && $products)
+			foreach ($this->marketing as $marketingAliasId) {
+				$products = $this->load->function_in_alias($marketingAliasId, '__update_Products', $products);
+			}
+		if($products)
 			foreach ($products as $product) {
-				foreach ($this->marketing as $marketingAliasId) {
-					$product->currency = $_SESSION['option']->currency;
-					$product = $this->load->function_in_alias($marketingAliasId, '__get_Product', $product);
-					$product->price = $this->shop_model->formatPrice($product->price);
-					$product->old_price = $this->shop_model->formatPrice($product->old_price);
-				}
+				$product->discount = $product->price_before - $product->price;
+				$product->price_no_currency = $product->price;
+				$product->old_price_no_currency = $product->old_price;
+				$product->price *= $_SESSION['currency'];
+				$product->old_price *= $_SESSION['currency'];
+				$product->price_format = $this->shop_model->formatPrice($product->price);
+				$product->old_price_format = $this->shop_model->formatPrice($product->old_price);
 			}
 		return $products;
 	}
@@ -357,9 +395,9 @@ class shopshowcase extends Controller {
 	        if(!empty($this->marketing))
 				foreach ($this->marketing as $marketingAliasId) {
 					$config = array('all' => true, 'products' => $products);
-					if($_SESSION['option']->currency)
-						$config['currency'] = $_SESSION['option']->currency;
-					$products = $this->load->function_in_alias($marketingAliasId, '__get_Products', $config);
+					if($_SESSION['currency'])
+						$config['currency'] = $_SESSION['currency'];
+					$products = $this->load->function_in_alias($marketingAliasId, '__update_Product', $config);
 				}
 	  //       echo "<pre>";
 	  //       print_r($products);

@@ -54,7 +54,7 @@ class price_per_type_admin extends Controller {
         $this->load->view('admin/__tab_product_prices', array('product' => $product));
         $tab = new stdClass();
         $tab->key = $_SESSION['alias']->alias;
-        $tab->name = 'Керування ціною';
+        $tab->name = 'Ціна від типу клієнта';
         $tab->content = ob_get_contents();
         ob_end_clean();
         return $tab;

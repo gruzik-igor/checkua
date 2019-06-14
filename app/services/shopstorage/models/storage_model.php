@@ -186,12 +186,14 @@ class storage_model
 			$data['product'] = $this->data->post('product-id');
 			$data['currency_in'] = $data['currency_out'] = $data['date_out'] = 0;
 			$data['manager_add'] = $_SESSION['user']->id;
-			$data['date_add'] = time();
-			if($this->db->insertRow($this->table('_products'), $data)) return $this->db->getLastInsertedId();
+			$data['date_add'] = $data['date_out'] = time();
+			if($this->db->insertRow($this->table('_products'), $data))
+				return $this->db->getLastInsertedId();
 		}
 		elseif($id > 0)
 		{
-			if($this->db->updateRow($this->table('_products'), $data, $id)) return true;
+			if($this->db->updateRow($this->table('_products'), $data, $id))
+				return true;
 		}
         return false;
 	}

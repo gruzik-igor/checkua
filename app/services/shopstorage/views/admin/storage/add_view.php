@@ -18,7 +18,7 @@ require APP_PATH.'views/admin/notify_view.php';
 	                    <table class="table table-striped table-bordered nowrap" width="100%">
 	                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 	                    		<tr>
-									<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>Артикул товару</th>
 									<td>
 										<input type="text" id="article" name="article" value="" class="form-control" required onchange="getProduct(this)">
 										<input type="hidden" id="id" name="product-id" value="" required>
@@ -26,7 +26,7 @@ require APP_PATH.'views/admin/notify_view.php';
 								</tr>
 							<?php } else { ?>
 								<tr>
-									<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>ID товару</th>
 									<td><input type="text" name="product-id" value="" class="form-control" required onchange="getProduct(this)"></td>
 								</tr>
 							<?php } ?>
@@ -51,14 +51,7 @@ require APP_PATH.'views/admin/notify_view.php';
 											<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="0" min="0" step="0.01" class="form-control price_out productIS" disabled="disabled">
 										</td>
 									</tr>
-								<?php } } ?>
-									<tr>
-										<td>Неавторизований користувач / гість (Націнка <?=(isset($storage->markup[0]))?$storage->markup[0] : 0 ?>%)</td>
-										<td>
-											<input type="number" name="price_out-0" id="price_out-0" value="0" min="0" step="0.01" class="form-control price_out productIS" disabled="disabled">
-										</td>
-									</tr>
-							<?php } else { ?>
+								<?php } } } else { ?>
 								<tr>
 									<th>Ціна вихідна</th>
 									<td>
@@ -93,7 +86,7 @@ require APP_PATH.'views/admin/notify_view.php';
     <div class="col-md-6">
         <div class="panel panel-inverse">
             <div class="panel-heading">
-                <h4 class="panel-title">Інформація про <?=$_SESSION['admin_options']['word:product']?></h4>
+                <h4 class="panel-title">Інформація про товар</h4>
             </div>
             <div class="panel-body" id="product">
                 <div id="product-info" class="table-responsive" style="display:none">
@@ -104,12 +97,12 @@ require APP_PATH.'views/admin/notify_view.php';
 						</tr>
 	                	<?php if($_SESSION['option']->productUseArticle) { ?>
                     		<tr>
-								<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+								<th>Артикул товару</th>
 								<td id="product-article"></td>
 							</tr>
 						<?php } else { ?>
 							<tr>
-								<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+								<th>ID товару</th>
 								<td id="product-id"></td>
 							</tr>
 						<?php } ?>
@@ -139,7 +132,7 @@ require APP_PATH.'views/admin/notify_view.php';
                     	<?php if($_SESSION['option']->productUseArticle) { ?>
 								<th>Артикул</th>
 						<?php } else { ?>
-								<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+								<th>ID товару</th>
 						<?php } ?>
 							<th>Назва</th>
 							<th>Оригінал</th>
@@ -149,7 +142,7 @@ require APP_PATH.'views/admin/notify_view.php';
 
                 <div class="alert alert-info fade in" id="product-alert">
 			        <h4>Увага!</h4>
-			        <p>Введіть <?=($_SESSION['option']->productUseArticle)?'артикул':'ID'?> <?=$_SESSION['admin_options']['word:product_to']?></p>
+			        <p>Введіть <?=($_SESSION['option']->productUseArticle)?'артикул':'ID'?> товару</p>
 			    </div>
             </div>
         </div>

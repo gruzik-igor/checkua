@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Storage 1.1"
+ 	Service "Shop Storage 1.2"
 	for WhiteLion 1.0
 
 */
@@ -202,19 +202,16 @@ class shopstorage_admin extends Controller {
             }
         }
 
-        if($_SESSION['alias']->service > 0)
-        {
-            $path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'models/install_model.php';
-            if(file_exists($path)){
-                require_once($path);
-                $install = new install();
+        $path = APP_PATH.'services'.DIRSEP.$_SESSION['alias']->service.DIRSEP.'models/install_model.php';
+        if(file_exists($path)){
+            require_once($path);
+            $install = new install();
 
-                if(!empty($install->options) && !empty($options))
-                {
-                    foreach ($install->options as $key => $value) {
-                        if(isset($install->options_type[$key]) && isset($options[$key])) $options[$key]->type = $install->options_type[$key];
-                        if(isset($install->options_title[$key]) && isset($options[$key])) $options[$key]->title = $install->options_title[$key];
-                    }
+            if(!empty($install->options) && !empty($options))
+            {
+                foreach ($install->options as $key => $value) {
+                    if(isset($install->options_type[$key]) && isset($options[$key])) $options[$key]->type = $install->options_type[$key];
+                    if(isset($install->options_title[$key]) && isset($options[$key])) $options[$key]->title = $install->options_title[$key];
                 }
             }
         }

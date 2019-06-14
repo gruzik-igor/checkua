@@ -24,7 +24,7 @@ require APP_PATH.'views/admin/notify_view.php';
                 	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/update" class="btn btn-warning btn-xs"><i class="fa fa-refresh"></i> Оновити прайс</a>
                 	<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування складу</a>
                 </div>
-                <h4 class="panel-title"><?=$_SESSION['alias']->name?>. Список всіх накладних</h4>
+                <h4 class="panel-title"><?=$_SESSION['alias']->name?>. Прихідні накладні потоварно</h4>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
@@ -41,14 +41,12 @@ require APP_PATH.'views/admin/notify_view.php';
 									$groups = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
 									foreach($groups as $group) if($group->id > 2) {
 									?>
-									<th>Ціна для <?=$group->title?></th>
+									<th>Ціна для <strong><?=$group->title?></strong></th>
 								<?php }
-									echo("<th>Ціна для Неавторизованого</th>");
 								 } else { ?>
 									<th>Ціна вихідна</th>
 								<?php } ?>
 								<th>Остання операція</th>
-								<th>Оновлено</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -91,7 +89,6 @@ require APP_PATH.'views/admin/notify_view.php';
 											echo("<td>{$product->price_out}</td>");
                                         ?>
 										<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
-										<td><?=date("d.m.Y H:i", $product->date_edit)?></td>
 									</tr>
 							<?php } } ?>
                         </tbody>

@@ -8,15 +8,15 @@ require APP_PATH.'views/admin/notify_view.php';
             <div class="panel-heading">
             	<div class="panel-heading-btn">
 					<button onClick="showUninstalForm()" class="btn btn-danger btn-xs">Видалити накладну</button>
-					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$product->id?>" class="btn btn-info btn-xs">До всіх накладної</a>
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias.'/'.$product->id?>" class="btn btn-info btn-xs">До всіх накладних</a>
             	</div>
-                <h4 class="panel-title">Накладна #<?=$product->id?></h4>
+                <h4 class="panel-title">Прихідна накладна #<?=$product->id?></h4>
             </div>
             <div class="panel-body">
 	            <div id="uninstall-form" class="alert alert-danger fade in" style="display: none;">
 					<i class="fa fa-trash fa-2x pull-left"></i>
 					<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete" method="POST">
-						<p>Ви впевнені що бажаєте видалити накладну?</p>
+						<p>Ви впевнені що бажаєте видалити прихідну накладну?</p>
 						<input type="hidden" name="id" value="<?=$product->id?>">
 						<input type="submit" value="Видалити" class="btn btn-danger">
 						<button type="button" style="margin-left:25px" onClick="showUninstalForm()" class="btn btn-info">Скасувати</button>
@@ -33,12 +33,12 @@ require APP_PATH.'views/admin/notify_view.php';
 								</tr>
 		                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 		                    		<tr>
-										<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+										<th>Артикул товару</th>
 										<th><?=$product->info->article?></th>
 									</tr>
 								<?php } else { ?>
 									<tr>
-										<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+										<th>ID товару</th>
 										<th><?=$product->info->id?></th>
 									</tr>
 								<?php } ?>
@@ -95,14 +95,8 @@ require APP_PATH.'views/admin/notify_view.php';
 													<input type="number" name="price_out-<?=$group->id?>" id="price_out-<?=$group->id?>" value="<?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?>" min="0" step="0.01" class="form-control price_out">
 												</td>
 											</tr>
-										<?php } ?>
-										<tr>
-											<td>Неавторизований користувач / гість (Націнка <?=(isset($storage->markup[0]))?$storage->markup[0] : 0 ?>%)</td>
-											<td>
-												<input type="number" name="price_out-0" id="price_out-0" value="<?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?>" min="0" step="0.01" class="form-control price_out">
-											</td>
-										</tr>
-									<?php } 
+										<?php }
+									} 
 								} else { ?>
 									<tr>
 										<th>Ціна вихідна</th>
@@ -111,22 +105,22 @@ require APP_PATH.'views/admin/notify_view.php';
 											<input type="hidden" id="markup" value="<?=(isset($storage->markup))?$storage->markup : 0?>">
 										</td>
 									</tr>
-								<?php } /* ?>
-								<tr>
-									<th>Дата приходу</th>
-									<td><input type="text" name="date_in" value="<?=date('d.m.Y', $product->date_in)?>" class="form-control" required></td>
-								</tr>
-								*/ ?>
+								<?php } if(!$_SESSION['option']->deleteIfZero) { ?>
+									<tr>
+										<th>Дата приходу</th>
+										<td><input type="text" name="date_in" value="<?=date('d.m.Y', $product->date_in)?>" class="form-control" required></td>
+									</tr>
+								<?php } ?>
 								<tr>
 									<th>Дата останньої операції</th>
 									<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
 								</tr>
 								<tr>
-									<th>Квитанцію додано</th>
+									<th>Накладну додано</th>
 									<td><?=date('d.m.Y H:i', $product->date_add)?> by <?=($product->manager_add)?$product->manager_add_name:'auto 1c'?></td>
 								</tr>
 								<tr>
-									<th>Квитанцію редаговано</th>
+									<th>Накладну редаговано</th>
 									<td><?=date('d.m.Y H:i', $product->date_edit)?> by <?=($product->manager_edit)?$product->manager_edit_name:'auto 1c'?></td>
 								</tr>
 								<tr>
@@ -155,9 +149,9 @@ require APP_PATH.'views/admin/notify_view.php';
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-					<a href="<?=SITE_URL.'admin/'.$product->info->link?>" class="btn btn-info btn-xs">До <?=$_SESSION['admin_options']['word:product_to']?></a>
+					<a href="<?=SITE_URL.'admin/'.$product->info->link?>" class="btn btn-info btn-xs">До товару</a>
             	</div>
-                <h4 class="panel-title">Інформація про <?=$_SESSION['admin_options']['word:product']?></h4>
+                <h4 class="panel-title">Інформація про товар</h4>
             </div>
             <div class="panel-body" id="product">
 	                <div id="product-info" class="table-responsive">
@@ -168,12 +162,12 @@ require APP_PATH.'views/admin/notify_view.php';
 							</tr>
 	                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 	                    		<tr>
-									<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>Артикул товару</th>
 									<td><?=$product->info->article?></td>
 								</tr>
 							<?php } else { ?>
 								<tr>
-									<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>ID товару</th>
 									<td><?=$product->info->id?></td>
 								</tr>
 							<?php } ?>

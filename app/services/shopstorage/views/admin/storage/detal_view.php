@@ -11,13 +11,13 @@ require APP_PATH.'views/admin/notify_view.php';
 					<button onClick="showUninstalForm()" class="btn btn-danger btn-xs">Видалити накладну товару</button>
 					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>" class="btn btn-info btn-xs">До всіх товарів складу</a>
             	</div>
-                <h4 class="panel-title">Накладна товару #<?=$product->id?></h4>
+                <h4 class="panel-title">Прихідна накладна товару #<?=$product->id?></h4>
             </div>
             <div class="panel-body">
                 <div id="uninstall-form" class="alert alert-danger fade in" style="display: none;">
 					<i class="fa fa-trash fa-2x pull-left"></i>
 					<form action="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/delete" method="POST">
-						<p>Ви впевнені що бажаєте видалити накладну товару?</p>
+						<p>Ви впевнені що бажаєте видалити прихідну накладну товару?</p>
 						<input type="hidden" name="id" value="<?=$product->id?>">
 						<input type="submit" value="Видалити" class="btn btn-danger">
 						<button type="button" style="margin-left:25px" onClick="showUninstalForm()" class="btn btn-info">Скасувати</button>
@@ -31,12 +31,12 @@ require APP_PATH.'views/admin/notify_view.php';
 						</tr>
                     	<?php if($_SESSION['option']->productUseArticle) { ?>
                     		<tr>
-								<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+								<th>Артикул товару</th>
 								<td><?=$product->info->article?></td>
 							</tr>
 						<?php } else { ?>
 							<tr>
-								<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+								<th>ID товару</th>
 								<td><?=$product->info->id?></td>
 							</tr>
 						<?php } ?>
@@ -87,22 +87,18 @@ require APP_PATH.'views/admin/notify_view.php';
 									<td><?=$group->title?> <?=(isset($storage->markup[$group->id])) ? '('.$storage->markup[$group->id].'%)' : ''?></td>
 									<td><?=(isset($product->price_out[$group->id])) ? $product->price_out[$group->id] : $price_out?></td>
 								</tr>
-							<?php } ?>
-							<tr>
-								<td>Неавторизований користувач / гість</td>
-								<td><?=(isset($product->price_out[0])) ? $product->price_out[0] : $price_out?></td>
-							</tr>
-						<?php } else { ?>
+							<?php }
+						} else { ?>
 							<tr>
 								<th>Ціна вихідна</th>
 								<td><?=$product->price_out?></td>
 							</tr>
-						<?php } /* ?>
-						<tr>
-							<th>Дата приходу</th>
-							<td><?=date('d.m.Y', $product->date_in)?></td>
-						</tr>
-						*/ ?>
+						<?php } if(!$_SESSION['option']->deleteIfZero) { ?>
+							<tr>
+								<th>Дата приходу</th>
+								<td><?=date('d.m.Y', $product->date_in)?></td>
+							</tr>
+						<?php } ?>
 						<tr>
 							<th>Дата останньої операції</th>
 							<td><?=($product->date_out > 0) ? date("d.m.Y H:i", $product->date_out) : 'Відсутня'?></td>
@@ -124,9 +120,9 @@ require APP_PATH.'views/admin/notify_view.php';
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-					<a href="<?=SITE_URL.'admin/'.$product->info->link?>" class="btn btn-info btn-xs">До <?=$_SESSION['admin_options']['word:product_to']?></a>
+					<a href="<?=SITE_URL.'admin/'.$product->info->link?>" class="btn btn-info btn-xs">До товару</a>
             	</div>
-                <h4 class="panel-title">Інформація про <?=$_SESSION['admin_options']['word:product']?></h4>
+                <h4 class="panel-title">Інформація про товар</h4>
             </div>
             <div class="panel-body" id="product">
 	                <div id="product-info" class="table-responsive">
@@ -137,12 +133,12 @@ require APP_PATH.'views/admin/notify_view.php';
 							</tr>
 	                    	<?php if($_SESSION['option']->productUseArticle) { ?>
 	                    		<tr>
-									<th>Артикул <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>Артикул товару</th>
 									<td><?=$product->info->article?></td>
 								</tr>
 							<?php } else { ?>
 								<tr>
-									<th>ID <?=$_SESSION['admin_options']['word:product_to']?></th>
+									<th>ID товару</th>
 									<td><?=$product->info->id?></td>
 								</tr>
 							<?php } ?>

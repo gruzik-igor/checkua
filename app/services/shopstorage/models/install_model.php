@@ -6,25 +6,23 @@ class install
 	
 	public $name = "shopstorage";
 	public $title = "Склад";
-	public $description = "Перелік товарів з підтримкою властифостей та фотогалереї БЕЗ можливості їх замовити та оплатити. Мультимовна.";
+	public $description = "Наявність товару на складі (Ціна - кількість). Ціна може залежати від типу користувача";
 	public $group = "shop";
 	public $table_service = "s_shopstorage";
 	public $multi_alias = 1;
 	public $order_alias = 150;
 	public $admin_ico = 'fa-qrcode';
-	public $version = "1.1";
+	public $version = "1.2";
 
 	public $options = array('productUseArticle' => 1, 'deleteIfZero' => 0, 'markUpByUserTypes' => 0);
 	public $options_type = array('productUseArticle' => 'bool', 'deleteIfZero' => 'bool', 'markUpByUserTypes' => 'bool');
 	public $options_title = array('productUseArticle' => 'Використання товарами зовнішнього артикулу', 'deleteIfZero' => 'Видаляти прихідні квитанції по закінченню залишків', 'markUpByUserTypes' => 'Націнка відносно рівня користувача');
-	public $options_admin = array (
-					'word:product_to' => 'товару',
-					'word:product' => 'товар'
-				);
+	public $options_admin = array ();
 	public $sub_menu = array("add" => "Прихід товару", "options" => "Властивості");
 
-	public $cooperation_index = 2;
+	public $cooperation_index = array('shopshowcase' => 2);
 	public $cooperation_types = array('storage' => 'Склад');
+	public $cooperation_service = array('shopshowcase' => 'storage');
 
 	public $seo_name = "Склад";
 	public $seo_title = "Склад";

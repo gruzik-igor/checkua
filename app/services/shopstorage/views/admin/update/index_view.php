@@ -3,9 +3,9 @@
         <div class="panel panel-inverse">
             <div class="panel-heading">
             	<div class="panel-heading-btn">
-					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/options" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування складу</a>
+					<a href="<?=SITE_URL.'admin/'.$_SESSION['alias']->alias?>/optionsimport" class="btn btn-info btn-xs"><i class="fa fa-cogs"></i> Налаштування структури файлу імпорту</a>
             	</div>
-                <h4 class="panel-title">Оновити інформацію</h4>
+                <h4 class="panel-title">Оновити склад через файл імпорту <strong>xls, xlsx, csv</strong></h4>
             </div>
             <div class="panel-body">
                 <div class="table-responsive">
@@ -121,20 +121,20 @@
 		</div>
 	</div>
 	<div class="col-md-6">
-	<?php if(isset($_SESSION['import'])) { ?>
-		<div class="alert alert-success fade in">
-	        <span class="close" data-dismiss="alert">×</span>
-	        <i class="fa fa-check fa-2x pull-left"></i>
-	        <h4>Прайс успішно імпортовано!</h4>
-	        <?=$_SESSION['import']?>
-	    </div>
-	<?php unset($_SESSION['import']); } if(isset($_SESSION['admin_options']['importInfo'])) { ?>
-		<div class="alert alert-warning">
-	        <i class="fa fa-info fa-2x pull-left"></i>
-	        <h4>Інформація щодо імпорту</h4>
-	        <?=$_SESSION['admin_options']['importInfo']?>
-	    </div>
-	<?php } ?>
+		<?php if(isset($_SESSION['import'])) { ?>
+			<div class="alert alert-success fade in">
+		        <span class="close" data-dismiss="alert">×</span>
+		        <i class="fa fa-check fa-2x pull-left"></i>
+		        <h4>Прайс успішно імпортовано!</h4>
+		        <?=$_SESSION['import']?>
+		    </div>
+		<?php unset($_SESSION['import']); } if(isset($_SESSION['admin_options']['importInfo'])) { ?>
+			<div class="alert alert-warning">
+		        <i class="fa fa-info fa-2x pull-left"></i>
+		        <h4>Інформація щодо імпорту</h4>
+		        <?=$_SESSION['admin_options']['importInfo']?>
+		    </div>
+		<?php } ?>
 	</div>
 </div>
 

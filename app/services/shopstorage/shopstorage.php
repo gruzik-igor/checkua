@@ -2,7 +2,7 @@
 
 /*
 
- 	Service "Shop Storage 1.1"
+ 	Service "Shop Storage 1.2"
 	for WhiteLion 1.0
 
 */

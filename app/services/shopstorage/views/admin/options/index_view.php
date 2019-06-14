@@ -113,24 +113,21 @@
 							$groups = $this->db->getAllDataByFieldInArray('wl_user_types', 1, 'active');
 							foreach($groups as $group) if($group->id > 1) { ?>
 								<tr>
-									<td><?=$group->title?></td>
+									<td>
+										<?=$group->title?> <?=(isset($_SESSION['option']->new_user_type) && $_SESSION['option']->new_user_type == $group->id)?'<u>(*по замовчуванню)</u>':''?>	
+									</td>
 									<td>
 										<input type="number" name="markup-<?=$group->id?>" value="<?=(isset($storage->markup[$group->id]))?$storage->markup[$group->id] : 0?>" min="0" class="form-control">
 									</td>
 								</tr>
 							<?php } ?>
-								<tr>
-									<td>Неавторизований користувач / гість</td>
-									<td>
-										<input type="number" name="markup-0" value="<?=(isset($storage->markup[0]))?$storage->markup[0] : 0?>" min="0" class="form-control">
-									</td>
-								</tr>
 							<tr>
 								<td></td>
 								<td><button type="submit" class="btn btn-sm btn-success col-md-6">Зберегти</button></td>
 							</tr>
 						</tbody>
 					</table>
+					<p><u>*по замовчуванню</u> - ціна для неавторизованих відвідувачів/покупців</p>
 					</form>
 				</div>
 			</div>
